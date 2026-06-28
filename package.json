@@ -46,14 +46,12 @@
 	},
 	"browser": {
 		"fs": false,
-		"image-size": false,
 		"node:fs": false,
 		"node:https": false,
 		"os": false,
 		"path": false
 	},
 	"dependencies": {
-		"image-size": "^2.0.2",
 		"jszip": "^3.10.1"
 	},
 	"devDependencies": {
