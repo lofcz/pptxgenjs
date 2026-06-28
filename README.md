@@ -1,9 +1,11 @@
 # PptxGenJS
 
+Fork of [PptxGenJS](https://github.com/gitbrent/PptxGenJS) published as [`@lofcz/pptxgenjs`](https://www.npmjs.com/package/@lofcz/pptxgenjs) on npm.
+
 ![PptxGenJS Sample Slides](https://raw.githubusercontent.com/gitbrent/PptxGenJS/gh-pages/img/readme_banner.png)
 
-![GitHub Repo stars](https://img.shields.io/github/stars/NeomaVerwaltung/PptxGenJS?style=flat-square)
-![GitHub License](https://img.shields.io/github/license/NeomaVerwaltung/PptxGenJS?style=flat-square)
+![GitHub Repo stars](https://img.shields.io/github/stars/lofcz/PptxGenJS?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/lofcz/PptxGenJS?style=flat-square)
 
 ## 🚀 Features
 
@@ -61,11 +63,11 @@ Choose your preferred method to install **PptxGenJS**:
 ### Quick Install (Node-based)
 
 ```bash
-npm install @neoma/pptxgenjs
+npm install @lofcz/pptxgenjs
 ```
 
 ```bash
-yarn add @neoma/pptxgenjs
+yarn add @lofcz/pptxgenjs
 ```
 
 ## 🚀 Universal Compatibility
@@ -96,7 +98,7 @@ PptxGenJS PowerPoint presentations are created via JavaScript by following 4 bas
 #### Angular/React, ES6, TypeScript
 
 ```typescript
-import pptxgen from "@neoma/pptxgenjs";
+import pptxgen from "@lofcz/pptxgenjs";
 
 // 1. Create a new Presentation
 let pres = new pptxgen();
@@ -157,7 +159,7 @@ Complete API reference, tutorials, and integration guides are available on the o
 
 ## 🛠️ Issues / Suggestions
 
-Please file issues or suggestions on the [issues page on github](https://github.com/NeomaVerwaltung/PptxGenJS/issues/new), or even better, [submit a pull request](https://github.com/NeomaVerwaltung/PptxGenJS/pulls). Feedback is always welcome!
+Please file issues or suggestions on the [issues page on github](https://github.com/lofcz/PptxGenJS/issues/new), or even better, [submit a pull request](https://github.com/lofcz/PptxGenJS/pulls). Feedback is always welcome!
 
 When reporting issues, please include a code snippet or a link demonstrating the problem.
 Here is a small [jsFiddle](https://jsfiddle.net/gitbrent/L1uctxm0/) that is already configured and uses the latest PptxGenJS code.
@@ -197,6 +199,6 @@ If you find this library useful, consider contributing to open-source projects, 
 
 ## 📜 License
 
-Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [NEOMA GmbH](https://github.com/NeomaVerwaltung)
+Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [lofcz](https://github.com/lofcz)
 
-[MIT](https://github.com/NeomaVerwaltung/PptxGenJS/blob/master/LICENSE)
+[MIT](https://github.com/lofcz/PptxGenJS/blob/master/LICENSE)

@@ -7,7 +7,7 @@
  *  This framework is released under the MIT Public License (MIT)
  *
  *  PptxGenJS (C) 2015-present Brent Ely -- https://github.com/gitbrent
- *  Portions (C) 2026-present NEOMA GmbH -- https://github.com/NeomaVerwaltung
+ *  Portions (C) 2026-present lofcz -- https://github.com/lofcz
  *
  *  Some code derived from the OfficeGen project:
  *  github.com/Ziv-Barber/officegen/ (Copyright 2013 Ziv Barber)

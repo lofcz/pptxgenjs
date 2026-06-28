@@ -1,5 +1,5 @@
 {
-	"name": "@neoma/pptxgenjs",
+	"name": "@lofcz/pptxgenjs",
 	"version": "4.0.1",
 	"author": {
 		"name": "Brent Ely",
@@ -7,12 +7,15 @@
 	},
 	"contributors": [
 		{
-			"name": "NEOMA GmbH",
-			"url": "https://github.com/NeomaVerwaltung"
+			"name": "lofcz",
+			"url": "https://github.com/lofcz"
 		}
 	],
 	"description": "Create JavaScript PowerPoint Presentations",
-	"homepage": "https://github.com/NeomaVerwaltung/PptxGenJS#readme",
+	"homepage": "https://github.com/lofcz/PptxGenJS#readme",
+	"publishConfig": {
+		"access": "public"
+	},
 	"license": "MIT",
 	"exports": {
 		"types": "./types/index.d.ts",
@@ -76,7 +79,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/NeomaVerwaltung/PptxGenJS.git"
+		"url": "git+https://github.com/lofcz/PptxGenJS.git"
 	},
 	"keywords": [
 		"es6-powerpoint",
@@ -100,6 +103,6 @@
 		"typescript-powerpoint"
 	],
 	"bugs": {
-		"url": "https://github.com/NeomaVerwaltung/PptxGenJS/issues"
+		"url": "https://github.com/lofcz/PptxGenJS/issues"
 	}
 }

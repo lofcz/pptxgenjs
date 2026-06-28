@@ -3,7 +3,7 @@
  * AUTH: Brent Ely (https://github.com/gitbrent/)
  * DATE: 20210502
  * DESC: PptxGenJS feature demos for Node.js
- * REQS: npm 4.x + `npm install @neoma/pptxgenjs`
+ * REQS: npm 4.x + `npm install @lofcz/pptxgenjs`
  *
  * USAGE: `node demo.js`       (runs local tests with callbacks etc)
  * USAGE: `node demo.js All`   (runs all pre-defined tests in `../common/demos.js`)
@@ -11,7 +11,7 @@
  */
 
 import { execGenSlidesFuncs, runEveryTest } from "../modules/demos.mjs";
-import pptxgen from "@neoma/pptxgenjs";
+import pptxgen from "@lofcz/pptxgenjs";
 
 // ============================================================================
 

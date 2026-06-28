@@ -12,7 +12,7 @@ We appreciate your feedback - to help the team understand your needs please comp
 ### Submission Guidelines
 
 - **If you are not using the latest release, please update and see if the issue is resolved before submitting an issue**
-- General questions or high-level topics should be posted in [Discussions](https://github.com/NeomaVerwaltung/PptxGenJS/discussions)
+- General questions or high-level topics should be posted in [Discussions](https://github.com/lofcz/PptxGenJS/discussions)
 - Please browse the online [Documentation](https://gitbrent.github.io/PptxGenJS/) to see if your question is already addressed there
 
 ### Issue Category

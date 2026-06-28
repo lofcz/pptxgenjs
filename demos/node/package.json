@@ -7,13 +7,13 @@
 	},
 	"contributors": [
 		{
-			"name": "NEOMA GmbH",
-			"url": "https://github.com/NeomaVerwaltung"
+			"name": "lofcz",
+			"url": "https://github.com/lofcz"
 		}
 	],
 	"type": "module",
 	"description": "Create PowerPoint Presentations with JavaScript",
-	"homepage": "https://github.com/NeomaVerwaltung/PptxGenJS#readme",
+	"homepage": "https://github.com/lofcz/PptxGenJS#readme",
 	"scripts": {
 		"demo": "node demo.js",
 		"demo-all": "node demo.js All",
@@ -22,11 +22,11 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/NeomaVerwaltung/PptxGenJS.git"
+		"url": "git+https://github.com/lofcz/PptxGenJS.git"
 	},
 	"license": "MIT",
 	"dependencies": {
 		"express": "^5.1.0",
-		"@neoma/pptxgenjs": "^4.0.1"
+		"@lofcz/pptxgenjs": "^4.0.1"
 	}
 }

@@ -1,4 +1,4 @@
-export const demoCode = `import pptxgen from "@neoma/pptxgenjs";
+export const demoCode = `import pptxgen from "@lofcz/pptxgenjs";
 
 let pptx = new pptxgen();
 let slide = pptx.addSlide();

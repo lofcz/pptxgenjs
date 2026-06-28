@@ -3,13 +3,13 @@
  * AUTH: Brent Ely (https://github.com/gitbrent/)
  * DATE: 20210410
  * DESC: PptxGenJS feature demos for Node.js
- * REQS: npm 4.x + `npm install @neoma/pptxgenjs`
+ * REQS: npm 4.x + `npm install @lofcz/pptxgenjs`
  *
  * USAGE: `node demo_stream.js`
  */
 
 // ============================================================================
-import pptxgen from "@neoma/pptxgenjs";
+import pptxgen from "@lofcz/pptxgenjs";
 import express from "express"; // @note Only required for streaming test (not a req for PptxGenJS)
 const app = express(); // @note Only required for streaming test (not a req for PptxGenJS)
 //let exportName = `PptxGenJS_Node_Demo_Stream_${new Date().toISOString()}.pptx`;
