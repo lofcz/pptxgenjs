@@ -1452,8 +1452,11 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 	
 	// NOTE: Only one slideMaster (slideMaster1.xml) is ever written (see pptxgen.ts), so emit its Override once — NOT once per slide, which referenced phantom slideMaster parts and triggered the PowerPoint repair dialog (#1444)
 	strXml += '<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>'
-	
-	slides.forEach((slide) => {
+
+	// Each slide part needs its own Override. Omitting these makes PowerPoint treat the package as corrupt
+	// (repair dialog / dropped content). Keep this in sync with the single slideMaster Override above.
+	slides.forEach((slide, idx) => {
+		strXml += `<Override PartName="/ppt/slides/slide${idx + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`
 		// Add charts if any
 		slide._relsChart.forEach(rel => {
 			strXml += `<Override PartName="${rel.Target}" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`

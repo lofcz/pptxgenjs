@@ -46,6 +46,14 @@ test('e2e: contains required OOXML parts', () => {
 	}
 })
 
+test('e2e: Content_Types declares the slide part', async () => {
+	const types = await zip.file('[Content_Types].xml')!.async('string')
+	assert.ok(
+		types.includes('PartName="/ppt/slides/slide1.xml"'),
+		'[Content_Types].xml must Override /ppt/slides/slide1.xml or PowerPoint reports corruption'
+	)
+})
+
 test('e2e: every XML part is well-formed', async () => {
 	const xmlParts = Object.keys(zip.files).filter(name => name.endsWith('.xml') || name.endsWith('.rels'))
 	assert.ok(xmlParts.length > 0, 'no XML parts found in package')

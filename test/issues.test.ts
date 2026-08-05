@@ -309,3 +309,24 @@ test('#35: images accept a line/outline and emit it in the picture spPr', async 
 	assert.ok(pic.includes('<a:srgbClr val="FF0000"/>'), 'picture outline color missing')
 	assert.ok(pic.includes('<a:prstDash val="dash"/>'), 'picture outline dash type missing')
 })
+
+test('Content_Types: every slide part has an Override (missing entries corrupt PowerPoint)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('one', { x: 0.5, y: 0.5, w: 4, h: 1 })
+	pptx.addSlide().addText('two', { x: 0.5, y: 0.5, w: 4, h: 1 })
+	pptx.addSlide().addText('three', { x: 0.5, y: 0.5, w: 4, h: 1 })
+
+	const types = await readPart(await writeZip(pptx), '[Content_Types].xml')
+	for (const n of [1, 2, 3]) {
+		assert.ok(
+			types.includes(`/ppt/slides/slide${n}.xml`),
+			`[Content_Types].xml missing Override for slide${n}.xml`
+		)
+	}
+	// Still only one slideMaster Override — the #1444 regression must not return
+	assert.equal(
+		(types.match(/\/ppt\/slideMasters\/slideMaster\d+\.xml/g) || []).length,
+		1,
+		'expected exactly one slideMaster Override'
+	)
+})
