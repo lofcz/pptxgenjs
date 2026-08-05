@@ -37,7 +37,7 @@ function matchSnapshot (name: string, actual: string): void {
 		writeFileSync(file, norm)
 		return
 	}
-	assert.equal(norm, readFileSync(file, 'utf8'), `snapshot mismatch for ${name} - run \`UPDATE_SNAPSHOTS=1 npm test\` if the change is intended`)
+	assert.equal(norm, normalize(readFileSync(file, 'utf8')), `snapshot mismatch for ${name} - run \`UPDATE_SNAPSHOTS=1 npm test\` if the change is intended`)
 }
 
 let zip: JSZip
