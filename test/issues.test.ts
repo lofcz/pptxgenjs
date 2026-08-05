@@ -310,6 +310,38 @@ test('#35: images accept a line/outline and emit it in the picture spPr', async 
 	assert.ok(pic.includes('<a:prstDash val="dash"/>'), 'picture outline dash type missing')
 })
 
+test('OMML: text runs with options.omml emit m:oMath and math namespace on the slide', async () => {
+	// Minimal OMML fraction a/b (prebuilt — conversion is the host's job)
+	const omml = [
+		'<m:oMath>',
+		'<m:f><m:fPr><m:ctrlPr/></m:fPr>',
+		'<m:num><m:r><m:t>a</m:t></m:r></m:num>',
+		'<m:den><m:r><m:t>b</m:t></m:r></m:den>',
+		'</m:f>',
+		'</m:oMath>',
+	].join('')
+
+	const pptx = new pptxgen()
+	pptx.addSlide().addText(
+		[
+			{ text: 'Speed: ' },
+			{ text: '', options: { omml } },
+		],
+		{ x: 0.5, y: 0.5, w: 6, h: 1 },
+	)
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(
+		xml.includes('xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'),
+		'slide missing math namespace',
+	)
+	assert.ok(xml.includes('<m:oMath>'), 'missing m:oMath')
+	assert.ok(xml.includes('<m:f>'), 'missing fraction')
+	assert.ok(xml.includes('<m:num>'), 'missing numerator')
+	assert.ok(xml.includes('<m:den>'), 'missing denominator')
+	assert.ok(xml.includes('<a:t>Speed: </a:t>'), 'surrounding plain text missing')
+})
+
 test('Content_Types: every slide part has an Override (missing entries corrupt PowerPoint)', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addText('one', { x: 0.5, y: 0.5, w: 4, h: 1 })

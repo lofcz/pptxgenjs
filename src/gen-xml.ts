@@ -1071,7 +1071,24 @@ function genXmlTextRunProperties (opts: ObjectOptions | TextPropsOptions, isDefa
  * @param {TextProps} textObj - Text object
  * @return {string} XML string
  */
+/**
+ * Normalize caller-supplied OMML so it always has an `m:oMath` / `m:oMathPara` root.
+ * Inner fragments (e.g. `<m:f>…</m:f>`) are wrapped in `<m:oMath>`.
+ */
+function normalizeOmml (omml: string): string {
+	const trimmed = omml.trim()
+	if (!trimmed) return ''
+	if (/^<m:oMath[\s/>]/i.test(trimmed) || /^<m:oMathPara[\s/>]/i.test(trimmed)) return trimmed
+	return `<m:oMath>${trimmed}</m:oMath>`
+}
+
 function genXmlTextRun (textObj: TextProps): string {
+	// Native Office Math run — editable in PowerPoint (not an image).
+	const omml = textObj.options?.omml
+	if (typeof omml === 'string' && omml.trim()) {
+		return normalizeOmml(omml)
+	}
+
 	// NOTE: Dont create full rPr runProps for empty [lineBreak] runs
 	// Why? The size of the lineBreak wont match (eg: below it will be 18px instead of the correct 36px)
 	// Do this:
@@ -1267,6 +1284,9 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 	const arrLines: TextProps[][] = []
 	let arrTexts: TextProps[] = []
 	arrTextObjects.forEach((textObj, idx) => {
+		// OMML-only runs use empty `text` but must still emit content
+		if (!textObj.text && textObj.options?.omml) textObj.text = ''
+
 		// A: Align or Bullet trigger new line
 		if (arrTexts.length > 0 && (textObj.options?.align || opts.align)) {
 			// Only start a new paragraph when align *changes*
@@ -1611,7 +1631,8 @@ export function makeXmlSlide (slide: PresSlide): string {
 	return (
 		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
 		'<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
-		'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"' +
+		'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" ' +
+		'xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"' +
 		`${slide?.hidden ? ' show="0"' : ''}>` +
 		`${slideObjectToXml(slide)}` +
 		'<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>'

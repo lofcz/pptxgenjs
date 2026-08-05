@@ -1955,6 +1955,16 @@ declare namespace PptxGenJS {
 		 * @default true
 		 */
 		wrap?: boolean
+		/**
+		 * Prebuilt Office Math (OMML) fragment for this text run.
+		 * When set, the run is emitted as `<m:oMath>…</m:oMath>` (or the provided
+		 * `m:oMath` / `m:oMathPara` root) instead of a plain `<a:r>` text run.
+		 * Callers convert LaTeX/MathML → OMML themselves (e.g. MathLive + mathml2omml).
+		 * Use `text: ''` for math-only runs; surrounding runs can still hold plain text.
+		 * @example { text: '', options: { omml: '<m:oMath xmlns:m="…">…</m:oMath>' } }
+		 * @since v4.1.0
+		 */
+		omml?: string
 
 		/**
 		 * Whether "Fit to Shape?" is enabled
