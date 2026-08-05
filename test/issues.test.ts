@@ -342,6 +342,45 @@ test('OMML: text runs with options.omml emit m:oMath and math namespace on the s
 	assert.ok(xml.includes('<a:t>Speed: </a:t>'), 'surrounding plain text missing')
 })
 
+test('Schema: a paragraph contains at most one a:pPr (ECMA-376 CT_TextParagraph)', async () => {
+	// Multi-run paragraphs (mixed runs, bullets, align, omml) must emit a single `a:pPr`,
+	// placed first. Duplicate `a:pPr` blocks make PowerPoint repair-destructively,
+	// dropping runs/equations ("repairable" pptx with missing elements).
+	const omml = '<m:oMath><m:r><m:t>v=s/t</m:t></m:r></m:oMath>'
+
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText(
+		[
+			{ text: 'Konstantní rychlost: ', options: { bullet: { code: '2022' } } },
+			{ text: '', options: { omml } },
+			{ text: ' trailing', options: { color: 'AA0000' } },
+		],
+		{ x: 0.5, y: 0.5, w: 6, h: 2 },
+	)
+	slide.addText(
+		[
+			{ text: 'left', options: { align: 'left' } },
+			{ text: '', options: { omml, breakLine: true } },
+			{ text: 'second', options: { align: 'right' } },
+		],
+		{ x: 0.5, y: 3, w: 6, h: 2 },
+	)
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const paragraphs = xml.split(/<a:p>/).slice(1)
+	assert.ok(paragraphs.length >= 2, 'expected multiple paragraphs')
+	for (const para of paragraphs) {
+		const body = para.split('</a:p>')[0]
+		const pPrCount = (body.match(/<a:pPr[\s>]/g) || []).length
+		assert.ok(pPrCount <= 1, `paragraph has ${pPrCount} pPr blocks: <a:p>${body.slice(0, 300)}`)
+		if (pPrCount === 1) {
+			assert.ok(body.startsWith('<a:pPr'), 'pPr must be the first child of a:p')
+		}
+	}
+	assert.ok(xml.includes('<m:oMath>'), 'missing m:oMath')
+})
+
 test('Content_Types: every slide part has an Override (missing entries corrupt PowerPoint)', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addText('one', { x: 0.5, y: 0.5, w: 4, h: 1 })

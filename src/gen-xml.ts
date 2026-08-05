@@ -1320,12 +1320,28 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 	arrLines.forEach(line => {
 		let reqsClosingFontSize = false
 
-		// A: Start paragraph, add paraProps
+		// A: Start paragraph
 		strSlideXml += '<a:p>'
-		// NOTE: `rtlMode` is like other opts, its propagated up to each text:options, so just check the 1st one
-		let paragraphPropXml = `<a:pPr ${line[0].options?.rtlMode ? ' rtl="1" ' : ''}`
 
-		// B: Start paragraph, loop over lines and add text runs
+		// A.1: Emit paragraph properties ONCE, derived from the first run.
+		// OOXML (ECMA-376 CT_TextParagraph) allows at most one `a:pPr` and it must be the
+		// first child of `a:p`. Emitting a `pPr` before every run (legacy behavior) produces
+		// schema-invalid XML that PowerPoint silently tolerated for text-only paragraphs,
+		// but REPAIRS DESTRUCTIVELY (dropping runs/equations) once `m:oMath` is present.
+		{
+			const firstOpts = line[0].options ?? (line[0].options = {})
+			firstOpts._lineIdx = 0
+			firstOpts.align = firstOpts.align || opts.align
+			firstOpts.lineSpacing = firstOpts.lineSpacing || opts.lineSpacing
+			firstOpts.lineSpacingMultiple = firstOpts.lineSpacingMultiple || opts.lineSpacingMultiple
+			firstOpts.indentLevel = firstOpts.indentLevel || opts.indentLevel
+			firstOpts.paraSpaceBefore = firstOpts.paraSpaceBefore || opts.paraSpaceBefore
+			firstOpts.paraSpaceAfter = firstOpts.paraSpaceAfter || opts.paraSpaceAfter
+			const paragraphPropXml = genXmlParagraphProperties(line[0], false)
+			strSlideXml += paragraphPropXml.replace('<a:pPr></a:pPr>', '') // IMPORTANT: Empty "pPr" blocks will generate needs-repair/corrupt msg
+		}
+
+		// B: Loop over line runs and add text runs
 		line.forEach((textObj, idx) => {
 			// NOTE: `options` is always populated by the time text is serialized; bind the real object so mutations below persist
 			const textOpts = textObj.options ?? (textObj.options = {})
@@ -1344,9 +1360,7 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 			textOpts.indentLevel = textOpts.indentLevel || opts.indentLevel
 			textOpts.paraSpaceBefore = textOpts.paraSpaceBefore || opts.paraSpaceBefore
 			textOpts.paraSpaceAfter = textOpts.paraSpaceAfter || opts.paraSpaceAfter
-			paragraphPropXml = genXmlParagraphProperties(textObj, false)
 
-			strSlideXml += paragraphPropXml.replace('<a:pPr></a:pPr>', '') // IMPORTANT: Empty "pPr" blocks will generate needs-repair/corrupt msg
 			// C: Inherit any main options (color, fontSize, etc.)
 			// NOTE: We only pass the text.options to genXmlTextRun (not the Slide.options),
 			// so the run building function cant just fallback to Slide.color, therefore, we need to do that here before passing options below.
