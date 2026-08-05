@@ -1,149 +1,84 @@
-# PptxGenJS Testing Guide
+# Testing Guide
 
-This document outlines how to manually test PptxGenJS across supported platforms and environments prior to release.
+This document describes how to manually verify PptxGenJS across supported platforms and environments prior to a release.
 
-> ✅ Run these tests to ensure compatibility with major bundlers, runtimes, and front-end frameworks.
+The automated suite (`npm run check`) covers linting, type checks, and unit/e2e/snapshot tests. The manual steps below validate real runtimes and bundlers.
 
-Config Notes
+> **Note:** the checked-in `demos/` workspace was removed (issue #8). The manual tests below scaffold a throwaway
+> project per platform instead, so nothing has to be kept current in this repository. Demos may return later in a
+> form that carries no third-party assets.
 
-> ⚠️ Disable VPN on the server machine, otherwise, clients using the local IP address cannot connect.
+Procedure:
 
-Testing Steps
+1. Run `npm run ship`.
+2. Execute the tests in each section below.
 
-1. Run `npm run ship`
-2. Execute tests from each section below
+## Test suite overview
 
-## 🧪 Test Suites Overview
+| Platform        | Tooling              |
+| --------------- | -------------------- |
+| Node.js         | Native CLI           |
+| Vite/TypeScript | Modern front-end SPA |
+| Webpack         | SharePoint Framework |
 
-| Platform        | Tooling              | Status |
-| --------------- | -------------------- | ------ |
-| Browser         | Standalone HTML demo | ✅      |
-| Node.js         | Native CLI           | ✅      |
-| Web Worker      | JS Worker demo       | ✅      |
-| Vite/TypeScript | Modern front-end SPA | ✅      |
-| Webpack         | SharePoint Framework | ✅      |
+## Node.js tests
 
----
-
-## 🌐 Browser Tests
-
-**Purpose:** Validate browser compatibility using the standalone bundle as script.
-
-### Desktop & Mobile Browsers
-
-Run local test server:
+Purpose: validate the CommonJS build in a pure Node environment.
 
 ```bash
-cd demos
-npm install   # installs express (demo-only; no longer in the library's deps)
-node browser_server.mjs
+mkdir /tmp/pptxgenjs-node-test && cd /tmp/pptxgenjs-node-test
+npm init -y
+npm install /path/to/this/repo   # installs @neo-ma/pptxgenjs from the local checkout
 ```
 
-1. Open the [Demo Page](http://localhost:8000/browser/index.html).
-2. In DevTools, confirm the latest `pptxgen.bundle.js` is loaded (`Sources` tab).
-3. Run all UI-driven demos and verify demo presentation render correctly.
-4. Open the [Demo Page](http://192.168.254.x:8000/browser/index.html) on iPhone & test.
+Create `demo.cjs`:
 
-### Web Worker API
-
-1. Open the [Web Worker Demo Page](localhost:8000/browser/worker_test.html).
-2. Note: Use Chrome (Safari *will not work*)
-3. Run the test; verify result & library version
-
-### Microsoft 365 Check
-
-1. Upload the full demo output from above to M365/Office/OneDrive.
-2. Use web viewer to validate file
-
----
-
-## 📦 Node.js Tests
-
-**Purpose:** Validate functionality of CommonJS module in pure Node environments.
-
-### CLI Tests
-
-Run the following test commands:
-
-```bash
-cd demos/node
-npm run demo
-npm run demo-all
+```js
+const pptxgen = require('@neo-ma/pptxgenjs')
+const pptx = new pptxgen()
+const slide = pptx.addSlide()
+slide.addText('Node CJS smoke test', { x: 1, y: 1, w: 6, h: 1, fontSize: 24, color: '0088CC' })
+slide.addChart(pptx.ChartType.bar, [{ name: 'Sales', labels: ['Q1', 'Q2'], values: [10, 20] }], { x: 1, y: 2.5, w: 6, h: 3 })
+slide.addTable([['A', 'B'], ['1', '2']], { x: 1, y: 6, w: 6 })
+pptx.writeFile({ fileName: 'node-test.pptx' }).then(name => console.log(`wrote ${name}`))
 ```
 
-1. Confirm console output and exported PPTX files are correct.
+1. Run `node demo.cjs` and confirm the console output.
+2. Open `node-test.pptx` in PowerPoint: it must open without a repair prompt and render correctly.
 
-### Stream Test
+### Stream test
 
-```bash
-npm run demo-stream
-```
+Swap the write call for `pptx.stream()` and serve the returned buffer from a small HTTP handler.
 
-1. Confirm stream download PPTX file is correct.
-2. Open the [Stream URL](http://192.168.254.x:3000/) on iPhone & test.
+1. Confirm the streamed PPTX download is correct.
+2. Open the stream URL on a mobile device and verify the download.
 
----
+## Vite + TypeScript tests
 
-## ⚛️ Vite + TypeScript Tests
+Purpose: validate integration with modern front-end toolchains (Vite, TypeScript, React-compatible).
 
-**Purpose:** Validate integration in modern front-end SPA toolchains (Vite, TypeScript, React-compatible).
-
-Ensure the latest files below are copied to local `node_modules`:
-
-- `dist/pptxgen.es.js`
-- `types/index.d.ts`
-
-1. Update `package.json` (and `package-lock.json` if needed) in `demos/vite-demo/`
-2. Check for TS errors in files:
-
-- Open `src/tstest/Test.tsx`
-- Use IntelliSense to autocomplete things like `pptxgen.ChartType.`
-
-Start the app:
+No Vite application is checked in, as a pinned SPA becomes outdated between releases. Scaffold a fresh application and link this repository:
 
 ```bash
-cd demos/vite-demo
-npm install (?)
+npm create vite@latest pptxgenjs-vite-test -- --template react-ts
+cd pptxgenjs-vite-test
+npm install
+npm install /path/to/this/repo   # installs @neo-ma/pptxgenjs from the local checkout
 npm run dev
 ```
 
-From your network:
+1. In a component, `import pptxgen from "@neo-ma/pptxgenjs"` and export a test slide.
+2. Verify that IntelliSense autocompletes, for example, `pptxgen.ChartType.` (types resolve correctly).
+3. Export a PowerPoint file and confirm it renders correctly.
+4. Delete the scaffold when finished; nothing is retained.
 
-- MacBook..: [Demo](http://localhost:8080/PptxGenJS/)
-- iPhone...: [Demo](http://192.168.254.x:8080/PptxGenJS/)
-- Android..: [Demo](http://192.168.254.x:8080/PptxGenJS/)
+## Completion checklist
 
-1. Run test slides, export PowerPoint files.
-2. Open files on each device to verify:
+Record the result of each test before release:
 
-- MIME type is valid
-- File renders as expected in PowerPoint or previewer
-
----
-
-## 🚀 Build for gh-pages (Manual)
-
-After confirming the above:
-
-```bash
-npm run build
-```
-
-1. Copy the entire `dist` folder from `demos/vite-demo/` to a safe location.
-2. Use this copy when updating the `gh-pages` branch after the release.
-
-> ⚠️ DO NOT use the "deploy" script displayed onscreen by Vite. Manual copying ensures full control over final content.
-
----
-
-## 🏁 Test Completion Checklist
-
-| Dist File         | Test       | Tested Via             | Result |
-| ----------------- | ---------- | ---------------------- | ------ |
-| pptxgen.es.js     | Webpack 4  | SPFx (v1.16.1) project | ✅?🟡    |
-| pptxgen.es.js     | Webpack 5  | SPFx (v1.19.1) project | ✅?🟡    |
-| pptxgen.es.js     | Rollup 4   | Vite (v6) demo         | ✅?🟡    |
-| pptxgen.es.js     | Webworkers | worker_test demo       | ✅?🟡    |
-| pptxgen.cjs.js    | Node/CJS   | Node demo              | ✅?🟡    |
-| pptxgen.bundle.js | Script     | Browser demo (desktop) | ✅?🟡    |
-| pptxgen.bundle.js | Script     | Browser demo (iOS)     | ✅?🟡    |
+| Dist File      | Test      | Tested Via             | Result |
+| -------------- | --------- | ---------------------- | ------ |
+| pptxgen.es.js  | Webpack 4 | SPFx (v1.16.1) project |        |
+| pptxgen.es.js  | Webpack 5 | SPFx (v1.19.1) project |        |
+| pptxgen.es.js  | Rollup 4  | Vite (v6) scaffold     |        |
+| pptxgen.cjs.js | Node/CJS  | Node scaffold          |        |

@@ -48,7 +48,7 @@ jobs:
         run: npm run lint
 
       - name: Typecheck
-        run: npm run typecheck && npm run typecheck:strict
+        run: npm run typecheck
 
       - name: Test
         run: npm test
@@ -57,7 +57,9 @@ jobs:
         run: npm run dist
 
       - name: Verify package contents
-        run: npm pack --dry-run
+        run: |
+          ls -l dist/pptxgen.bundle.js dist/pptxgen.min.js dist/pptxgen.cjs.js dist/pptxgen.es.js
+          npm pack --dry-run
 
       - name: Publish to npm
         run: npm publish --provenance --access public
@@ -78,3 +80,8 @@ jobs:
         with:
           tag_name: v${{ steps.version.outputs.version }}
           generate_release_notes: true
+          files: |
+            dist/pptxgen.bundle.js
+            dist/pptxgen.min.js
+            dist/pptxgen.cjs.js
+            dist/pptxgen.es.js

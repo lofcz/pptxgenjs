@@ -14,8 +14,6 @@ demo
 dist/
 demos/browser/js/pptxgen.bundle.js*
 
-### docusaurus
-.docusaurus
-build
-docs
-static
+### VitePress docs (source lives in ./docs and IS committed; only build artifacts are ignored)
+docs/.vitepress/dist/
+docs/.vitepress/cache/

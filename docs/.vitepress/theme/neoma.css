@@ -1,0 +1,37 @@
+/* NEOMA corporate identity (neo-ma.de)
+   accent #00bfd9 (hover #00b4cc), ink #17191a, navy #002940, Roboto */
+:root {
+	--neoma-accent: #00bfd9;
+	--neoma-accent-hover: #00b4cc;
+	--neoma-ink: #17191a;
+	--neoma-navy: #002940;
+
+	--vp-c-brand-1: #009cb2; /* darkened accent: AA contrast for links on white */
+	--vp-c-brand-2: var(--neoma-accent-hover);
+	--vp-c-brand-3: var(--neoma-accent);
+	--vp-c-brand-soft: rgba(0, 191, 217, 0.14);
+
+	/* cyan buttons need dark text for contrast - same as neo-ma.de CTAs */
+	--vp-button-brand-bg: var(--neoma-accent);
+	--vp-button-brand-text: var(--neoma-ink);
+	--vp-button-brand-border: var(--neoma-accent);
+	--vp-button-brand-hover-bg: var(--neoma-accent-hover);
+	--vp-button-brand-hover-text: var(--neoma-ink);
+	--vp-button-brand-hover-border: var(--neoma-accent-hover);
+	--vp-button-brand-active-bg: var(--neoma-accent-hover);
+	--vp-button-brand-active-text: var(--neoma-ink);
+	--vp-button-brand-active-border: var(--neoma-accent-hover);
+
+	--vp-font-family-base: 'Roboto', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+	--vp-home-hero-name-color: transparent;
+	--vp-home-hero-name-background: linear-gradient(120deg, var(--neoma-accent) 30%, var(--neoma-navy));
+}
+
+.dark {
+	--vp-c-brand-1: var(--neoma-accent);
+	--vp-c-brand-2: var(--neoma-accent-hover);
+	--vp-c-bg: var(--neoma-ink);
+	--vp-c-bg-alt: #101112;
+	--vp-home-hero-name-background: linear-gradient(120deg, var(--neoma-accent) 30%, #7fe7f2);
+}

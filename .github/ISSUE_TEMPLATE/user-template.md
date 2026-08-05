@@ -1,13 +1,13 @@
 ---
 name: User Template
-about: Used for general issues, feature requests, etc.
+about: Template for general issues, feature requests, and related reports.
 title: "[BUG|FEATURE]"
 labels: ''
 assignees: ''
 
 ---
 
-We appreciate your feedback - to help the team understand your needs please complete the following template to ensure we have the details to help.
+Complete the following template in full. Providing all requested details enables the team to assess and address your report efficiently.
 
 ### Submission Guidelines
 
@@ -24,9 +24,9 @@ We appreciate your feedback - to help the team understand your needs please comp
 
 ### Product Versions
 
-- Please specify what version of the library you are using......: [        ]
-- Please specify what version(s) of PowerPoint you are targeting: [        ]
-- Please specify what web browser you are using.................: [        ]
+- Specify the version of the library you are using..............: [        ]
+- Specify the version(s) of PowerPoint you are targeting........: [        ]
+- Specify the web browser you are using.........................: [        ]
 
 ### Desired Behavior
 <!--- If you are reporting an issue please describe the expected behavior. -->

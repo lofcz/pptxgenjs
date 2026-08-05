@@ -51,6 +51,14 @@ declare class PptxGenJS {
 	 */
 	rtlMode: boolean
 
+	/**
+	 * Zip compression for exported files - applied by every export method
+	 * - 'none': store uncompressed (fastest), 'fast': DEFLATE level 1, 'best': DEFLATE level 9
+	 * @default 'none'
+	 * @since v4.1.0
+	 */
+	compression: PptxGenJS.CompressionLevel
+
 	// Presentation Metadata
 	/**
 	 * Author name
@@ -129,7 +137,7 @@ declare class PptxGenJS {
 	 * @param {PresLayout} layout an object with user-defined w/h
 	 * @example pptx.defineLayout({ name:'A3', width:16.5, height:11.7 });
 	 */
-	defineLayout(layout: PptxGenJS.PresLayout): void
+	defineLayout(layout: PptxGenJS.DefineLayoutProps): void
 	/**
 	 * Create a new slide master [layout] for the Presentation
 	 * @param {SlideMasterProps} props layout definition
@@ -934,9 +942,15 @@ declare namespace PptxGenJS {
 
 		// TODO: add `transparency` prop to Borders (0-100%)
 
-		// TODO: add `width` - deprecate `pt`
+		/**
+		 * Border width (points)
+		 * - same name and unit as `ShapeLineProps.width`
+		 * @default 1
+		 */
+		width?: number
 		/**
 		 * Border size (points)
+		 * @deprecated v4.1.0 - use `width`
 		 * @default 1
 		 */
 		pt?: number
@@ -1322,6 +1336,11 @@ declare namespace PptxGenJS {
 		 */
 		flipV?: boolean
 		hyperlink?: HyperlinkProps
+		/**
+		 * Image outline/border (a picture frame)
+		 * @example { color: '696969', width: 2 } // 2pt dim-gray border
+		 */
+		line?: ShapeLineProps
 		/**
 		 * Placeholder type
 		 * - values: 'body' | 'header' | 'footer' | 'title' | et. al.
@@ -1753,6 +1772,43 @@ declare namespace PptxGenJS {
 		 */
 		rowH?: number | number[]
 		/**
+		 * Apply special formatting to the first row (header emphasis)
+		 * - only renders when a table style is in effect (see `tableStyleId`)
+		 * @default false
+		 */
+		firstRow?: boolean
+		/**
+		 * Apply special formatting to the last row (totals emphasis)
+		 * @default false
+		 */
+		lastRow?: boolean
+		/**
+		 * Apply special formatting to the first column
+		 * @default false
+		 */
+		firstCol?: boolean
+		/**
+		 * Apply special formatting to the last column
+		 * @default false
+		 */
+		lastCol?: boolean
+		/**
+		 * Band (alternate the fill of) the rows
+		 * @default false
+		 */
+		bandRow?: boolean
+		/**
+		 * Band (alternate the fill of) the columns
+		 * @default false
+		 */
+		bandCol?: boolean
+		/**
+		 * Table style id (GUID of a built-in PowerPoint table style)
+		 * - required for `bandRow`/`firstRow`/etc. to have a visible effect
+		 * @example '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}' // "Medium Style 2 - Accent 1"
+		 */
+		tableStyleId?: string
+		/**
 		 * DEV TOOL: Verbose Mode (to console)
 		 * - tell the library to provide an almost ridiculous amount of detail during auto-paging calculations
 		 * @default false // obviously
@@ -1977,9 +2033,12 @@ declare namespace PptxGenJS {
 		 */
 		values?: number[]
 		/**
-		 * Override `chartColors`
+		 * Series color - overrides the `chartColors` cycle for this series only
+		 * - hex color or the string `'transparent'`
+		 * - pie/doughnut charts colour each data point rather than each series: use `chartColors` for those
+		 * @example 'FF0000' // this series is red, the rest follow `chartColors`
 		 */
-		//color?: string // TODO: WIP: (Pull #727)
+		color?: string
 	}
 	export interface OptsChartGridLine {
 		/**
@@ -2248,8 +2307,16 @@ declare namespace PptxGenJS {
 		valLabelFormatCode?: string
 	}
 	export interface IChartPropsChartBar {
-		bar3DShape?: string
-		barDir?: string
+		/**
+		 * 3D bar shape
+		 * @default 'box'
+		 */
+		bar3DShape?: 'box' | 'cone' | 'coneToMax' | 'cylinder' | 'pyramid' | 'pyramidToMax'
+		/**
+		 * Bar direction - horizontal bars or vertical columns
+		 * @default 'col'
+		 */
+		barDir?: 'bar' | 'col'
 		barGapDepthPct?: number
 		/**
 		 * MS-PPT > Format chart > Format Data Point > Series Options >  "Gap Width"
@@ -2258,7 +2325,11 @@ declare namespace PptxGenJS {
 		 * @default 150
 		 */
 		barGapWidthPct?: number
-		barGrouping?: string
+		/**
+		 * Bar grouping
+		 * @default 'clustered'
+		 */
+		barGrouping?: 'clustered' | 'percentStacked' | 'stacked' | 'standard'
 		/**
 		 * MS-PPT > Format chart > Format Data Point > Series Options >  "Series Overlap"
 		 * - overlap (percent)
@@ -2358,7 +2429,17 @@ declare namespace PptxGenJS {
 		 */
 		dataLabelFormatCode?: string
 		dataLabelFormatScatter?: 'custom' | 'customXY' | 'XY'
-		dataLabelPosition?: 'b' | 'bestFit' | 'ctr' | 'l' | 'r' | 't' | 'inEnd' | 'outEnd'
+		/**
+		 * Data label position
+		 * - friendly names are translated to their OOXML codes; the codes themselves are still accepted
+		 * - valid values differ per chart type: a value the chart type does not support is dropped with a
+		 *   console warning rather than producing a file PowerPoint asks to repair
+		 * @example 'outsideEnd' // bar/column, pie
+		 * @example 'top' // line, scatter, radar
+		 */
+		dataLabelPosition?:
+		| 'bottom' | 'center' | 'left' | 'right' | 'top' | 'insideEnd' | 'insideBase' | 'outsideEnd' | 'bestFit'
+		| 'b' | 'ctr' | 'l' | 'r' | 't' | 'inEnd' | 'inBase' | 'outEnd'
 	}
 	export interface IChartPropsDataTable {
 		dataTableFontSize?: number
@@ -2432,11 +2513,21 @@ declare namespace PptxGenJS {
 
 	// Core
 	// ====
+	/**
+	 * Zip compression applied to the exported file
+	 * - 'none': store uncompressed (fastest)
+	 * - 'fast': DEFLATE level 1 (quick, decent savings)
+	 * - 'best': DEFLATE level 9 (smallest file, slowest)
+	 * @since v4.1.0
+	 */
+	export type CompressionLevel = 'none' | 'fast' | 'best'
+
 	export interface WriteBaseProps {
 		/**
 		 * Whether to compress export (can save substantial space, but takes a bit longer to export)
 		 * @default false
 		 * @since v3.5.0
+		 * @deprecated v4.1.0 - set `compression` on the presentation instead (`pptx.compression = 'best'`)
 		 */
 		compression?: boolean
 	}
@@ -2481,6 +2572,24 @@ declare namespace PptxGenJS {
 		width: number
 		height: number
 	}
+	/**
+	 * Argument to `defineLayout()` - dimensions may be given as `width`/`height` or as `w`/`h`
+	 */
+	export interface DefineLayoutProps {
+		/**
+		 * Layout name
+		 * @example 'A3'
+		 */
+		name: string
+		/** Layout width (inches) - or use `w` */
+		width?: number
+		/** Layout height (inches) - or use `h` */
+		height?: number
+		/** Layout width (inches) - alias of `width` */
+		w?: number
+		/** Layout height (inches) - alias of `height` */
+		h?: number
+	}
 	export interface SlideNumberProps extends PositionProps, TextBaseProps {
 		/**
 		 * margin (points)
@@ -2501,6 +2610,10 @@ declare namespace PptxGenJS {
 			| { rect: ShapeProps }
 			| { roundRect: ShapeProps }
 			| { text: TextProps }
+			/** any of the 180+ shape types (`line`/`rect` above are shorthands) */
+			| { shape: { type: SHAPE_NAME, options?: ShapeProps } }
+			| { table: { rows: TableRow[], options?: TableProps } }
+			| { media: MediaProps }
 			| {
 				placeholder: {
 					options: PlaceholderProps

@@ -1,9 +1,8 @@
 # Submission Guidelines
 
-- Only modify the `src/*.ts` files (do not submit `dist` or `src/bld` files)
-- New and updated properties must be added to `src/core-interfaces.ts` and `types/index.d.ts`
-- New and updated features must be included in the corresponding `demos/modules/*.mjs` file
-- Review previously accepted changes for examples on what to provide
+- Modify only the `src/*.ts` files (do not submit `dist` or `src/bld` files)
+- Add new and updated properties to `src/core-interfaces.ts` and `types/index.d.ts`
+- Review previously accepted changes for examples of what to provide
 
 ## Change Summary
 <!--- Required: Provide a general summary of your changes -->
@@ -26,14 +25,13 @@
 
 ## Checklist before requesting a review
 
-- [ ] If it is a core feature, I have added new code under `/demos/modules/`
 - [ ] My code follows the style guidelines of this project
 - [ ] My changes generate no new eslint warnings
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have included code/tests that prove my fix is effective or that my feature works
-- [ ] I have used the "Run All Demos" feature on the [browser demo](/demos/browser/index.html) and no errors were found
+- [ ] `npm run check` passes (lint, typecheck, tests)
 
 ## Screenshots / Sample Code (if appropriate)
 
-Thanks for your contribution!
+Thank you for your contribution.

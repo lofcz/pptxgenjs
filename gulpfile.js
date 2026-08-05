@@ -76,45 +76,16 @@ gulp.task('es', () => {
 		.pipe(gulp.dest('./dist/'))
 })
 
-gulp.task('reactTestCode', () => {
-	return gulp
-		.src(['./dist/pptxgen.es.js'])
-		.pipe(gulp.dest('./demos/vite-demo/node_modules/pptxgenjs/dist'))
-})
-
-gulp.task('reactTestDefs', () => {
-	return gulp
-		.src(['./types/index.d.ts'])
-		.pipe(gulp.dest('./demos/vite-demo/node_modules/pptxgenjs/types'))
-})
-
-gulp.task('nodeTestCjs', () => {
-	return gulp
-		.src(['./dist/pptxgen.cjs.js'])
-		.pipe(gulp.dest('./demos/node/node_modules/pptxgenjs/dist'))
-})
-
-gulp.task('nodeTestEs', () => {
-	return gulp
-		.src(['./dist/pptxgen.es.js'])
-		.pipe(gulp.dest('./demos/node/node_modules/pptxgenjs/dist'))
-})
-
-// Produce ./dist/* only (no demo-copy steps) - safe to run on a clean checkout / CI / publish
+// Produce ./dist/* only - safe to run on a clean checkout / CI / publish
+// (demos consume the library via `file:../..` deps now; no copy-into-node_modules steps)
 gulp.task('dist', gulp.series('build', 'min', 'cjs', 'es', 'bundle'))
 
 // Build/Deploy (ad-hoc, no watch)
-gulp.task( 'ship',
-	gulp.series('build', 'min', 'cjs', 'es', 'bundle', 'reactTestCode', 'reactTestDefs', 'nodeTestCjs', 'nodeTestEs'), () => {
-	console.log('... ./dist/*.js files created!')
-})
-// Build/Deploy
-gulp.task('default',
-	gulp.series('build', 'min', 'cjs', 'es', 'bundle', 'reactTestCode', 'reactTestDefs', 'nodeTestCjs', 'nodeTestEs'), () => {
+gulp.task('ship', gulp.series('dist'), () => {
 	console.log('... ./dist/*.js files created!')
 })
 
 // Watch
 exports.default = function() {
-	watch('src/*.ts', series('build', 'min', 'cjs', 'es', 'bundle', 'nodeTest'))
+	watch('src/*.ts', series('dist'))
 }

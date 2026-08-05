@@ -1,0 +1,125 @@
+---
+title: Images
+---
+
+Images of most common types can be added to Slides.
+
+## Usage
+
+```typescript
+// Image from remote URL
+slide.addImage({ path: "https://upload.wikimedia.org/wikipedia/en/a/a9/Example.jpg" });
+
+// Image by local URL
+slide.addImage({ path: "images/chart_world_peace_near.png" });
+
+// Image by data (pre-encoded base64)
+slide.addImage({ data: "image/png;base64,iVtDafDrBF[...]=" });
+```
+
+### Usage Notes
+
+Either provide a URL location or base64 data to create an image.
+
+- `path` - URL: relative or full
+- `data` - base64: string representing an encoded image
+
+### Supported Formats and Notes
+
+- Standard image types: png, jpg, gif, et al.
+- Animated gifs: only shown animated on Microsoft 365/Office365 and the newest desktop versions, older versions will animate them in presentation mode only
+- SVG images: supported in the newest version of desktop PowerPoint or Microsoft 365/Office365
+
+### Performance Considerations
+
+Reading and encoding images consumes CPU time. The more images a presentation includes and the larger they are, the longer generation takes.
+
+- Eliminate the read/encode time entirely by pre-encoding images
+- Pre-encode images into base64 strings and use the `data` option value instead of `path`
+- This removes the dependency on external image assets and improves performance, since no time is spent reading and encoding the image at generation time
+
+## Base Properties
+
+### Position/Size Props (`PositionProps`)
+
+| Option | Type   | Default | Description            | Possible Values                              |
+| :----- | :----- | :------ | :--------------------- | :------------------------------------------- |
+| `x`    | number | `1.0`   | hor location (inches)  | 0-n                                          |
+| `x`    | string |         | hor location (percent) | 'n%'. (Ex: `{x:'50%'}` middle of the Slide)  |
+| `y`    | number | `1.0`   | ver location (inches)  | 0-n                                          |
+| `y`    | string |         | ver location (percent) | 'n%'. (Ex: `{y:'50%'}` middle of the Slide)  |
+| `w`    | number | `1.0`   | width (inches)         | 0-n                                          |
+| `w`    | string |         | width (percent)        | 'n%'. (Ex: `{w:'50%'}` 50% the Slide width)  |
+| `h`    | number | `1.0`   | height (inches)        | 0-n                                          |
+| `h`    | string |         | height (percent)       | 'n%'. (Ex: `{h:'50%'}` 50% the Slide height) |
+
+### Data/Path Props (`DataOrPathProps`)
+
+| Option | Type   | Default | Description         | Possible Values                                                            |
+| :----- | :----- | :------ | :------------------ | :------------------------------------------------------------------------- |
+| `data` | string |         | image data (base64) | base64-encoded image string. (either `data` or `path` is required)         |
+| `path` | string |         | image path          | Same as used in an (img src="") tag. (either `data` or `path` is required) |
+
+### Image Props (`ImageProps`)
+
+| Option         | Type                                                        | Default | Description                 | Possible Values                                       |
+| :------------- | :---------------------------------------------------------- | :------ | :-------------------------- | :---------------------------------------------------- |
+| `altText`      | string                                                      |         | alt text value              | description of what image shows                       |
+| `flipH`        | boolean                                                     | `false` | Flip horizontally?          | `true`, `false`                                       |
+| `flipV`        | boolean                                                     | `false` | Flip vertical?              | `true`, `false`                                       |
+| `hyperlink`    | `HyperlinkProps` |         | add hyperlink               | object with `url` or `slide`                          |
+| `placeholder`  | string                                                      |         | image placeholder           | Placeholder location: `title`, `body`                 |
+| `rotate`       | integer                                                     | `0`     | rotation (degrees)          | Rotation degress: `0`-`359`                           |
+| `rounding`     | boolean                                                     | `false` | image rounding              | Shapes an image into a circle                         |
+| `sizing`       | object                                                      |         | transforms image            | See [Image Sizing](#sizing-properties)                |
+| `transparency` | number                                                      | `0`     | changes opacity of an image | `0`-`100` where `0` means image is completely visible |
+
+## Sizing Properties
+
+The `sizing` option provides cropping and scaling an image to a specified area. The property expects an object with the following structure:
+
+| Property | Type   | Unit   | Default          | Description                                   | Possible Values                    |
+| :------- | :----- | :----- | :--------------- | :-------------------------------------------- | :--------------------------------- |
+| `type`   | string |        |                  | sizing algorithm                              | `'crop'`, `'contain'` or `'cover'` |
+| `w`      | number | inches | `w` of the image | area width                                    | 0-n                                |
+| `h`      | number | inches | `h` of the image | area height                                   | 0-n                                |
+| `x`      | number | inches | `0`              | area horizontal position related to the image | 0-n (effective for `crop` only)    |
+| `y`      | number | inches | `0`              | area vertical position related to the image   | 0-n (effective for `crop` only)    |
+
+### Sizing Types
+
+- `contain` works as CSS property `background-size` — shrinks the image (ratio preserved) to the area given by `w` and `h` so that the image is completely visible. If the area's ratio differs from the image ratio, an empty space will surround the image.
+- `cover` works as CSS property `background-size` — shrinks the image (ratio preserved) to the area given by `w` and `h` so that the area is completely filled. If the area's ratio differs from the image ratio, the image is centered to the area and cropped.
+- `crop` cuts off a part specified by image-related coordinates `x`, `y` and size `w`, `h`.
+
+### Sizing Notes
+
+- If you specify an area size larger than the image for the `contain` and `cover` type, then the image will be stretched, not shrunken.
+- In case of the `crop` option, if the specified area reaches out of the image, then the covered empty space will be a part of the image.
+- When the `sizing` property is used, its `w` and `h` values represent the effective image size. For example, in the following snippet, width and height of the image will both equal to 2 inches and its top-left corner will be located at `[1 inch, 1 inch]`:
+
+## Shadow Properties (`ShadowProps`)
+
+The `ShadowProps` property adds a shadow to an image.
+
+## Examples
+
+### Image Types Examples
+
+![Image Types Examples](./assets/ex-image-types.gif)
+
+### Data/Path Examples
+
+![Image Paths Examples](./assets/ex-image-paths.png)
+
+### Rotate Examples
+
+![Image Rotate Examples](./assets/ex-image-rotate.png)
+
+### Shadow Examples
+
+![Image Shadow Examples](./assets/ex-image-shadow.png)
+
+### Sizing Examples
+
+![Image Sizing Examples](./assets/ex-image-sizing.png)

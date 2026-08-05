@@ -5,6 +5,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
+	debugLog,
+	isDebugEnabled,
 	getSmartParseNumber,
 	getUuid,
 	encodeXmlEntities,
@@ -127,4 +129,33 @@ test('correctShadowOptions', () => {
 	assert.equal(correctShadowOptions({ type: 'outer', angle: 400 } as ShadowProps)?.angle, 270, 'out-of-range angle corrected')
 	assert.equal(correctShadowOptions({ type: 'outer', opacity: 2 } as ShadowProps)?.opacity, 0.75, 'out-of-range opacity corrected')
 	assert.equal(correctShadowOptions({ type: 'outer', color: '#FF0000' } as ShadowProps)?.color, 'FF0000', 'strips leading #')
+})
+
+test('debugLog: silent unless PPTXGENJS_DEBUG or NODE_DEBUG is set', () => {
+	const { PPTXGENJS_DEBUG, NODE_DEBUG } = process.env
+	const calls: unknown[][] = []
+	const orig = console.debug
+	console.debug = (...args: unknown[]) => calls.push(args)
+	try {
+		delete process.env.PPTXGENJS_DEBUG
+		delete process.env.NODE_DEBUG
+		assert.equal(isDebugEnabled(), false)
+		debugLog('quiet')
+		assert.equal(calls.length, 0)
+
+		process.env.NODE_DEBUG = 'http,pptxgenjs'
+		assert.equal(isDebugEnabled(), true)
+		debugLog('loud')
+		assert.deepEqual(calls, [['[pptxgenjs]', 'loud']])
+
+		process.env.NODE_DEBUG = 'http'
+		assert.equal(isDebugEnabled(), false, 'NODE_DEBUG matched on a partial section name')
+
+		process.env.PPTXGENJS_DEBUG = '1'
+		assert.equal(isDebugEnabled(), true)
+	} finally {
+		console.debug = orig
+		if (PPTXGENJS_DEBUG === undefined) delete process.env.PPTXGENJS_DEBUG; else process.env.PPTXGENJS_DEBUG = PPTXGENJS_DEBUG
+		if (NODE_DEBUG === undefined) delete process.env.NODE_DEBUG; else process.env.NODE_DEBUG = NODE_DEBUG
+	}
 })
