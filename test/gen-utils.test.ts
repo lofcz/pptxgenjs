@@ -114,7 +114,43 @@ test('genXmlColorSelection', () => {
 		genXmlColorSelection({ type: 'solid', color: 'FF0000', transparency: 50 }),
 		'<a:solidFill><a:srgbClr val="FF0000"><a:alpha val="50000"/></a:srgbClr></a:solidFill>'
 	)
-	assert.equal(genXmlColorSelection({ type: 'gradient' as 'solid', color: 'FF0000' }), '', 'non-solid fills are not emitted')
+	// Gradient with too few stops degrades to a solid fill (PowerPoint repairs files with <2-stop gsLst)
+	const orig = console.warn
+	console.warn = () => {}
+	try {
+		assert.equal(genXmlColorSelection({ type: 'gradient', color: 'FF0000' }), '<a:solidFill><a:srgbClr val="FF0000"/></a:solidFill>')
+	} finally {
+		console.warn = orig
+	}
+	// Valid 2-stop linear gradient
+	assert.equal(
+		genXmlColorSelection({
+			type: 'gradient',
+			gradient: {
+				type: 'linear',
+				angle: 90,
+				stops: [
+					{ color: 'FF0000', pos: 0 },
+					{ color: '0000FF', pos: 100, transparency: 50 },
+				],
+			},
+		}),
+		'<a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:srgbClr val="FF0000"/></a:gs><a:gs pos="100000"><a:srgbClr val="0000FF"><a:alpha val="50000"/></a:srgbClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill>'
+	)
+	// Radial gradient
+	assert.equal(
+		genXmlColorSelection({
+			type: 'gradient',
+			gradient: {
+				type: 'radial',
+				stops: [
+					{ color: 'FFFFFF', pos: 0 },
+					{ color: '000000', pos: 100 },
+				],
+			},
+		}),
+		'<a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:srgbClr val="FFFFFF"/></a:gs><a:gs pos="100000"><a:srgbClr val="000000"/></a:gs></a:gsLst><a:path path="circle"></a:path></a:gradFill>'
+	)
 })
 
 test('getNewRelId', () => {
