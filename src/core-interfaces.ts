@@ -1294,6 +1294,13 @@ export interface OptsChartData {
 	 * @example 'FF0000' // this series is red, the rest follow `chartColors`
 	 */
 	color?: string
+	/**
+	 * Per-point custom data label text (replaces the numeric value label for that index)
+	 * - sparse arrays are allowed: only defined string entries emit a custom label
+	 * @example ['Q1', 'Q2', 'Q3', 'Q4']
+	 * @since v4.1.2
+	 */
+	dataLabels?: string[]
 }
 // Used internally, probably shouldn't be used by end users
 export interface IOptsChartData extends OptsChartData {

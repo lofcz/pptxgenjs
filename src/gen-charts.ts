@@ -790,6 +790,37 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
  * @example '<c:lineChart>'
  * @return {string} XML chart
  */
+/**
+ * Rich-text body for a custom chart data label (`c:tx` / `c:rich`).
+ * Escapes text and applies data-label font options.
+ */
+function genXmlDataLabelRichText (text: string, opts: IChartOptsLib): string {
+	const sz = Math.round((opts.dataLabelFontSize || DEF_FONT_SIZE) * 100)
+	const lang = opts.lang || 'en-US'
+	let xml = '<c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r>'
+	xml += `<a:rPr lang="${lang}" dirty="0" sz="${sz}" b="${opts.dataLabelFontBold ? 1 : 0}" i="${opts.dataLabelFontItalic ? 1 : 0}">`
+	xml += `<a:solidFill>${createColorElement(opts.dataLabelColor || DEF_FONT_COLOR)}</a:solidFill>`
+	xml += `<a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>`
+	xml += '</a:rPr>'
+	xml += `<a:t>${encodeXmlEntities(text)}</a:t>`
+	xml += '</a:r></a:p></c:rich></c:tx>'
+	return xml
+}
+
+/**
+ * Per-point custom data label (`c:dLbl`) — used when series `dataLabels[i]` replaces the numeric label.
+ * showVal is off so the custom text is not concatenated with the calculated value.
+ */
+function genXmlCustomDataLabel (text: string, idx: number, opts: IChartOptsLib): string {
+	let xml = '<c:dLbl>'
+	xml += `<c:idx val="${idx}"/>`
+	xml += genXmlDataLabelRichText(text, opts)
+	if (opts.dataLabelPosition) xml += `<c:dLblPos val="${opts.dataLabelPosition}"/>`
+	xml += '<c:showLegendKey val="0"/><c:showVal val="0"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/>'
+	xml += '</c:dLbl>'
+	return xml
+}
+
 function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: IChartOptsLib, valAxisId: string, catAxisId: string, _isMultiTypeChart: boolean): string {
 	// NOTE: "Chart Range" (as shown in "select Chart Area dialog") is calculated.
 	// ....: Ensure each X/Y Axis/Col has same row height (esp. applicable to XY Scatter where X can often be larger than Y's)
@@ -906,6 +937,12 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 				// NOTE: [20190117] Adding these to RADAR chart causes unrecoverable corruption!
 				if (chartType !== CHART_TYPE.RADAR) {
 					strXml += '<c:dLbls>'
+					// Per-point custom labels (series.dataLabels) — sparse arrays OK; other points keep series defaults
+					if (obj.dataLabels) {
+						obj.dataLabels.forEach((value, i) => {
+							if (typeof value === 'string') strXml += genXmlCustomDataLabel(value, i, opts)
+						})
+					}
 					strXml += `<c:numFmt formatCode="${encodeXmlEntities(opts.dataLabelFormatCode) || 'General'}" sourceLinked="0"/>`
 					if (opts.dataLabelBkgrdColors) strXml += `<c:spPr><a:solidFill>${createColorElement(seriesColor)}</a:solidFill></c:spPr>`
 					strXml += '<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr>'
@@ -1577,9 +1614,12 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 			// 3: "Data Label" block for every data Label
 			strXml += '<c:dLbls>'
 			chartDataLabels[0].forEach((_label, idx) => {
+				const customLabel = optsChartData.dataLabels?.[idx]
+				const isCustom = typeof customLabel === 'string'
 				strXml += '<c:dLbl>'
 				strXml += ` <c:idx val="${idx}"/>`
-				strXml += `  <c:numFmt formatCode="${encodeXmlEntities(opts.dataLabelFormatCode) || 'General'}" sourceLinked="0"/>`
+				if (isCustom) strXml += genXmlDataLabelRichText(customLabel, opts)
+				else strXml += `  <c:numFmt formatCode="${encodeXmlEntities(opts.dataLabelFormatCode) || 'General'}" sourceLinked="0"/>`
 				strXml += '  <c:spPr/><c:txPr>'
 				strXml += '   <a:bodyPr/><a:lstStyle/>'
 				strXml += '   <a:p><a:pPr>'
@@ -1592,10 +1632,11 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 				strXml += '    </c:txPr>'
 				if (opts.dataLabelPosition) strXml += `<c:dLblPos val="${opts.dataLabelPosition}"/>`
 				strXml += '    <c:showLegendKey val="0"/>'
-				strXml += '    <c:showVal val="' + (opts.showValue ? '1' : '0') + '"/>'
-				strXml += '    <c:showCatName val="' + (opts.showLabel ? '1' : '0') + '"/>'
-				strXml += '    <c:showSerName val="' + (opts.showSerName ? '1' : '0') + '"/>'
-				strXml += '    <c:showPercent val="' + (opts.showPercent ? '1' : '0') + '"/>'
+				// Custom text replaces the value — keep show* flags off so they are not concatenated
+				strXml += '    <c:showVal val="' + (isCustom ? '0' : (opts.showValue ? '1' : '0')) + '"/>'
+				strXml += '    <c:showCatName val="' + (isCustom ? '0' : (opts.showLabel ? '1' : '0')) + '"/>'
+				strXml += '    <c:showSerName val="' + (isCustom ? '0' : (opts.showSerName ? '1' : '0')) + '"/>'
+				strXml += '    <c:showPercent val="' + (isCustom ? '0' : (opts.showPercent ? '1' : '0')) + '"/>'
 				strXml += '    <c:showBubbleSize val="0"/>'
 				strXml += '  </c:dLbl>'
 			})

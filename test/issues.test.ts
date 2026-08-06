@@ -310,6 +310,48 @@ test('pie: dataLabelPosition outEnd is honored (was hardcoded to ctr)', async ()
 	assert.ok(!chart.includes('<c:dLblPos val="ctr"/>'), 'pie still forced center labels')
 })
 
+test('custom dataLabels: bar series emits escaped rich-text dLbl per point', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.bar,
+		[{
+			name: 'Sales',
+			labels: ['A', 'B', 'C'],
+			values: [10, 20, 30],
+			dataLabels: ['Q1 & Co', 'Q2', 'Q3'],
+		}],
+		{ x: 0.5, y: 0.5, w: 6, h: 4, showValue: true, dataLabelFontSize: 12, dataLabelPosition: 'outEnd' },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('<c:dLbl>'), 'missing per-point dLbl')
+	assert.ok(chart.includes('<c:tx><c:rich>'), 'missing rich-text custom label')
+	assert.ok(chart.includes('<a:t>Q1 &amp; Co</a:t>'), 'custom label text was not XML-escaped')
+	assert.ok(chart.includes('sz="1200"'), 'dataLabelFontSize not applied to custom label')
+	assert.ok(chart.includes('<c:dLblPos val="outEnd"/>'), 'dataLabelPosition not applied to custom label')
+	// Custom labels must not force showVal=1 (would concatenate value + custom text)
+	const firstDlbl = /<c:dLbl>[\s\S]*?<\/c:dLbl>/.exec(chart)?.[0] ?? ''
+	assert.ok(firstDlbl.includes('<c:showVal val="0"/>'), 'custom dLbl should keep showVal off')
+})
+
+test('custom dataLabels: pie slice uses series dataLabels text', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.pie,
+		[{
+			name: 'Share',
+			labels: ['A', 'B', 'C'],
+			values: [30, 50, 20],
+			dataLabels: ['Alpha', 'Beta', 'Gamma'],
+		}],
+		{ x: 0.5, y: 0.5, w: 4, h: 3, showPercent: true },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('<a:t>Alpha</a:t>'), 'pie custom label missing')
+	assert.ok(chart.includes('<a:t>Beta</a:t>'), 'pie custom label missing')
+})
+
 test('#31: `compression` is honoured for every outputType, not just STREAM', async () => {
 	const build = async (compression: boolean): Promise<number> => {
 		const pptx = new pptxgen()
