@@ -296,6 +296,20 @@ test('#28: a dataLabelPosition invalid for the chart type is dropped with a warn
 	}
 })
 
+test('pie: dataLabelPosition outEnd is honored (was hardcoded to ctr)', async () => {
+	// rvntone/bugfix/pie_outEnd — series-level dLblPos for pie was always "ctr"
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.pie,
+		[{ name: 'Share', labels: ['A', 'B', 'C'], values: [30, 50, 20] }],
+		{ x: 0.5, y: 0.5, w: 4, h: 3, showPercent: true, dataLabelPosition: 'outsideEnd' },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('<c:dLblPos val="outEnd"/>'), 'pie outEnd was not emitted')
+	assert.ok(!chart.includes('<c:dLblPos val="ctr"/>'), 'pie still forced center labels')
+})
+
 test('#31: `compression` is honoured for every outputType, not just STREAM', async () => {
 	const build = async (compression: boolean): Promise<number> => {
 		const pptx = new pptxgen()
