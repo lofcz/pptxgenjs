@@ -654,9 +654,20 @@ test('addFont: embeds fntdata + presentation embeddedFontLst', async () => {
 	assert.ok(presentation.includes('saveSubsetFonts="true"'), 'missing saveSubsetFonts')
 	assert.ok(presentation.includes('<p:embeddedFontLst>'), 'missing embeddedFontLst')
 	assert.ok(presentation.includes('typeface="IBM Plex Sans"'), 'font typeface missing from presentation.xml')
+	// Regression: ensureEmbeddedFontLst must not corrupt the following defaultTextStyle tag
+	assert.ok(presentation.includes('<p:defaultTextStyle>'), 'defaultTextStyle opening tag corrupted (missing >)')
+	assert.ok(!presentation.includes('<p:defaultTextStyle<'), 'defaultTextStyle merged with embeddedFontLst')
 	assert.ok(contentTypes.includes('Extension="fntdata"'), 'Content_Types missing fntdata Default')
 	assert.ok(rels.includes('/relationships/font"'), 'presentation rels missing font relationship')
 	assert.ok(Object.keys(zip.files).some(name => name.startsWith('ppt/fonts/') && name.endsWith('.fntdata')), 'missing ppt/fonts/*.fntdata')
+
+	// Regression: fsType restricted/preview flags must be cleared so PowerPoint
+	// never shows the "restricted fonts / read-only" dialog for addFont fonts.
+	const fntName = Object.keys(zip.files).find(name => name.startsWith('ppt/fonts/') && name.endsWith('.fntdata'))
+	const eot = await zip.file(fntName).async('uint8array')
+	const dv = new DataView(eot.buffer, eot.byteOffset, eot.byteLength)
+	const headerFsType = dv.getUint16(4 + 4 + 4 + 4 + 10 + 1 + 1 + 4, true) // EOT header fsType (LE)
+	assert.strictEqual(headerFsType & 0x000f, 0, `EOT header fsType restricted bits set: 0x${headerFsType.toString(16)}`)
 })
 
 test('#1430: line chart worksheet keeps zero values (opeepl/line-chart-cutoff-fix)', async () => {

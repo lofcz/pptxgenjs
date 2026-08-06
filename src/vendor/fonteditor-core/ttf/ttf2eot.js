@@ -60,6 +60,8 @@ export default function ttf2eot(ttfBuffer, options = {}) {
     eot.head.Padding1 = 0;
 
     const ttfReader = new Reader(ttfBuffer);
+    // 需要重写 fsType 时的 TTF 副本（默认关闭受限位时惰性创建）
+    let patchedTtf = null;
     // 读取ttf表个数
     const numTables = ttfReader.readUint16(4);
 
@@ -91,6 +93,20 @@ export default function ttf2eot(ttfBuffer, options = {}) {
             eot.head.Italic = ttfReader.readUint16(tableEntry.offset + 62);
             eot.head.Weight = ttfReader.readUint16(tableEntry.offset + 4);
             eot.head.fsType = ttfReader.readUint16(tableEntry.offset + 8);
+            // PowerPoint gates editing on fsType: restricted(0x2)/preview(0x4) fonts
+            // open read-only. PptxGenJS only embeds fonts the caller deliberately
+            // registered via addFont(), so clear the restricted/preview flags by default
+            // (opt out with options.preserveFsType).
+            if (!options.preserveFsType) {
+                eot.head.fsType = eot.head.fsType & ~0x000F;
+                // PowerPoint enforces the fsType in the appended raw TTF too — patch it.
+                // Operate on a copy so we never mutate the caller's buffer.
+                if (!patchedTtf) {
+                    patchedTtf = ttfBuffer.slice(0);
+                    const pv = new DataView(patchedTtf);
+                    pv.setUint16(tableEntry.offset + 8, eot.head.fsType, false); // big-endian
+                }
+            }
             eot.head.UnicodeRange = ttfReader.readBytes(tableEntry.offset + 42, 16);
             eot.head.CodePageRange = ttfReader.readBytes(tableEntry.offset + 78, 8);
             tblReaded += 0x2;
@@ -153,7 +169,7 @@ export default function ttf2eot(ttfBuffer, options = {}) {
     // write rootstring
     eotWriter.writeUint16(0);
 
-    eotWriter.writeBytes(ttfBuffer, eot.head.FontDataSize);
+    eotWriter.writeBytes(patchedTtf || ttfBuffer, eot.head.FontDataSize);
 
     return eotWriter.getBuffer();
 }
