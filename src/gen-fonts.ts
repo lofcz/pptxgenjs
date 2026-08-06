@@ -115,9 +115,11 @@ function ensureEmbeddedFontLst (presentationXml: string, fonts: PreparedFont[]):
 		// Replace existing list wholesale (export always owns the registered set)
 		return presentationXml.replace(/<p:embeddedFontLst[\s\S]*?<\/p:embeddedFontLst>/i, lst)
 	}
-	// ISO 29500: embeddedFontLst precedes defaultTextStyle
-	if (/<p:defaultTextStyle[\s>]/i.test(presentationXml)) {
-		return presentationXml.replace(/<p:defaultTextStyle[\s>]/i, `${lst}<p:defaultTextStyle`)
+	// ISO 29500: embeddedFontLst precedes defaultTextStyle.
+	// Insert after the full opening tag (match consumes `>` or attrs so it's preserved).
+	const dtsOpen = presentationXml.match(/<p:defaultTextStyle(?:\s[^>]*)?>/i)
+	if (dtsOpen) {
+		return presentationXml.replace(dtsOpen[0], `${lst}${dtsOpen[0]}`)
 	}
 	// Fallback: before closing presentation
 	return presentationXml.replace(/<\/p:presentation>/i, `${lst}</p:presentation>`)
