@@ -4,7 +4,7 @@ import stylistic from '@stylistic/eslint-plugin'
 
 export default tseslint.config({
 	// Build output (`src/bld`) and emitted decls (`out`) are generated — never lint them
-	ignores: ['src/bld/**', 'out/**'],
+	ignores: ['src/bld/**', 'out/**', 'src/vendor/**'],
 }, {
 	plugins: {
 		'@stylistic': stylistic

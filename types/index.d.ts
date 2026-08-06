@@ -128,7 +128,6 @@ declare class PptxGenJS {
 	 * - Call before `write` / `writeFile` / `stream`
 	 * - Use the same `fontFace` name on text/shape options
 	 * @example await pptx.addFont({ fontFace: 'MyFont', fontFile: ttfBuffer, fontType: 'ttf' })
-	 * @see https://github.com/liyao1520/pptx-embed-fonts
 	 */
 	addFont(options: PptxGenJS.AddFontOptions): Promise<void>
 	/**
@@ -1846,6 +1845,13 @@ declare namespace PptxGenJS {
 		 */
 		extn?: string
 		/**
+		 * Animation configuration
+		 * - Can be a simple animation name or full configuration object
+		 * @example 'fadein'
+		 * @example { type: 'flyin', direction: 'left', duration: 1000 }
+		 */
+		animation?: string | AnimationConfig
+		/**
 		 * video embed link
 		 * - works with YouTube
 		 * - other sites may not show correctly in PowerPoint
@@ -2516,10 +2522,12 @@ declare namespace PptxGenJS {
 		 */
 		cap?: ChartLineCap
 		/**
-		 * Gridline color (hex)
+		 * Gridline color (`HexColor`, `ThemeColor`, or `ModifiedThemeColor`)
+		 * - widened to `Color` so `IChartOpts` can extend both this and `IChartPropsTitle`
+		 *   (`TextBaseProps.color` is also `Color` after theme-color support)
 		 * @example 'FF3399'
 		 */
-		color?: HexColor
+		color?: Color
 		/**
 		 * Gridline size (points)
 		 */
@@ -3013,7 +3021,6 @@ declare namespace PptxGenJS {
 
 	/**
 	 * Options for `pptx.addFont()` — embeds a custom font into the exported PPTX
-	 * @see https://github.com/liyao1520/pptx-embed-fonts
 	 */
 	export interface AddFontOptions {
 		/** Font family name referenced by `fontFace` on text/shapes */

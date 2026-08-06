@@ -30,7 +30,7 @@ Use the bundled or minified version via [jsDelivr](https://www.jsdelivr.com/pack
 Advanced: separate files, direct download.
 
 ```html
-<script src="PptxGenJS/libs/jszip.min.js"></script>
+<script src="PptxGenJS/libs/jszip.min.js"></script><!-- @node-projects/jszip + pako 3 -->
 <script src="PptxGenJS/dist/pptxgen.min.js"></script>
 ```
 

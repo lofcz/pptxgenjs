@@ -14,14 +14,20 @@
 		"noImplicitAny": false,
 		"outDir": "./out",
 		"rootDir": "./src", // ponytail: TS6 no longer infers this
+		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
 		"strictNullChecks": true,
-		"target": "es2016"
+		"target": "es2016",
+		"types": ["node"]
 	},
 	"display": "Recommended",
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"include": [
 		"src/**/*"
+	],
+	"exclude": [
+		"src/bld/**",
+		"src/vendor/fonteditor-core/**/*.js"
 	]
 }

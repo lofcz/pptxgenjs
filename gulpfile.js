@@ -22,7 +22,7 @@ gulp.task('build', () => {
 				format: 'iife',
 				name: 'PptxGenJS',
 				globals: {
-					jszip: 'JSZip'
+					'@node-projects/jszip': 'JSZip'
 				},
 				sourcemap: true
 			})

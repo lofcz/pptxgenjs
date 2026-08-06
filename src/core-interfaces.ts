@@ -1033,6 +1033,13 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 */
 	extn?: string
 	/**
+	 * Animation configuration
+	 * - Can be a simple animation name or full configuration object
+	 * @example 'fadein'
+	 * @example { type: 'flyin', direction: 'left', duration: 1000 }
+	 */
+	animation?: string | AnimationConfig
+	/**
 	 * video embed link
 	 * - works with YouTube
 	 * - other sites may not show correctly in PowerPoint
@@ -1731,10 +1738,12 @@ export interface OptsChartGridLine {
 	 */
 	cap?: ChartLineCap
 	/**
-	 * Gridline color (hex)
+	 * Gridline color (`HexColor`, `ThemeColor`, or `ModifiedThemeColor`)
+	 * - widened to `Color` so `IChartOpts` can extend both this and `IChartPropsTitle`
+	 *   (`TextBaseProps.color` is also `Color` after theme-color support)
 	 * @example 'FF3399'
 	 */
-	color?: HexColor
+	color?: Color
 	/**
 	 * Gridline size (points)
 	 */
@@ -2274,12 +2283,11 @@ export interface ISlideObject {
  */
 export type CompressionLevel = 'none' | 'fast' | 'best'
 
-/** Font file formats supported by embedded TrueType fonts (via pptx-embed-fonts) */
+/** Font file formats supported by embedded TrueType fonts (`addFont`) */
 export type EmbedFontType = 'ttf' | 'otf' | 'woff' | 'eot'
 
 /**
  * Options for `pptx.addFont()` — embeds a custom font into the exported PPTX
- * @see https://github.com/liyao1520/pptx-embed-fonts
  */
 export interface AddFontOptions {
 	/** Font family name referenced by `fontFace` on text/shapes */

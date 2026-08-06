@@ -12,7 +12,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import JSZip from 'jszip'
+import { JSZip } from '@node-projects/jszip'
 import { XMLValidator } from 'fast-xml-parser'
 import pptxgen from '../src/pptxgen'
 

@@ -10,7 +10,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import JSZip from 'jszip'
+import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
 
 const SNAP_DIR = join(dirname(fileURLToPath(import.meta.url)), '__snapshots__')

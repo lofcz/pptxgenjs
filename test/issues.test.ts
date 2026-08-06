@@ -8,7 +8,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import JSZip from 'jszip'
+import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
 
 /** 4x2 px PNG - non-square on purpose, so a 1x1 inch default is obvious */
@@ -637,7 +637,7 @@ test('lawtontom: autoPage table cells never emit empty text arrays', async () =>
 	}
 })
 
-test('addFont: embeds fntdata + presentation embeddedFontLst (pptx-embed-fonts)', async () => {
+test('addFont: embeds fntdata + presentation embeddedFontLst', async () => {
 	const buf = readFileSync(join(process.cwd(), 'test/fonts/IBMPlexSans-Regular.ttf'))
 	const fontFile = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
 

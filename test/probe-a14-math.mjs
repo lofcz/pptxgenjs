@@ -3,7 +3,7 @@
  * Run: npx tsx test/probe-a14-math.mjs
  */
 import { createRequire } from 'module'
-import JSZip from 'jszip'
+import { JSZip } from '@node-projects/jszip'
 import fs from 'fs'
 import { execFileSync } from 'child_process'
 import path from 'path'

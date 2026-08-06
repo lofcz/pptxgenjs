@@ -8,7 +8,7 @@
  *
  * Run: npx tsx test/prove-math-renders.mjs
  */
-import JSZip from 'jszip'
+import { JSZip } from '@node-projects/jszip'
 import fs from 'fs'
 import path from 'path'
 import { execFileSync } from 'child_process'

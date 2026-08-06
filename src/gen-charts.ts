@@ -20,7 +20,7 @@ import {
 } from './core-enums'
 import { IChartOptsLib, ISlideRelChart, ShadowProps, IChartPropsTitle, OptsChartGridLine, IOptsChartData, ChartLineCap } from './core-interfaces'
 import { createColorElement, genXmlColorSelection, convertRotationDegrees, encodeXmlEntities, getUuid, valToPts } from './gen-utils'
-import JSZip from 'jszip'
+import { JSZip } from '@node-projects/jszip'
 
 /**
  * Based on passed data, creates Excel Worksheet that is used as a data source for a chart.

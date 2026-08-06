@@ -60,7 +60,7 @@
  * @see https://docs.microsoft.com/en-us/previous-versions/office/developer/office-2010/hh273476(v=office.14)
  */
 
-import JSZip from 'jszip'
+import { JSZip } from '@node-projects/jszip'
 import Slide from './slide'
 import {
 	AlignH,
@@ -621,7 +621,7 @@ export default class PptxGenJS implements IPresentationProps {
 
 			// E: Wait for Promises (if any) then generate the PPTX file
 			return await Promise.all(arrChartPromises).then(async () => {
-				// E2: Embed custom fonts into the zip before packing (liyao1520/pptx-embed-fonts)
+				// E2: Embed custom fonts into the zip before packing (`addFont` → ppt/fonts/*.fntdata)
 				await embedFontsIntoZip(zip, this._embedFonts)
 
 				// Effective level: deprecated per-call boolean (when given) overrides the presentation-level setting.
@@ -725,7 +725,6 @@ export default class PptxGenJS implements IPresentationProps {
 	 * - Use the same `fontFace` name on text/shape options
 	 * @param {AddFontOptions} options - font face, file bytes, and format
 	 * @example await pptx.addFont({ fontFace: 'MyFont', fontFile: ttfBuffer, fontType: 'ttf' })
-	 * @see https://github.com/liyao1520/pptx-embed-fonts
 	 */
 	async addFont (options: AddFontOptions): Promise<void> {
 		if (!options?.fontFace) throw new Error('addFont requires fontFace')

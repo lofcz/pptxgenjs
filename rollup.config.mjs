@@ -12,7 +12,7 @@ export default {
 			file: "./src/bld/pptxgen.js",
 			format: "iife",
 			name: "PptxGenJS",
-			globals: { jszip: "JSZip" },
+			globals: { "@node-projects/jszip": "JSZip" },
 		},
 		{ file: "./src/bld/pptxgen.cjs.js", format: "cjs", exports: "default" },
 		{ file: "./src/bld/pptxgen.es.js", format: "es" },

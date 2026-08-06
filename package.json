@@ -58,9 +58,9 @@
 		"path": false
 	},
 	"dependencies": {
+		"@node-projects/jszip": "^4.2.1",
 		"image-size": "^2.0.2",
-		"jszip": "^3.10.1",
-		"pptx-embed-fonts": "^0.0.6"
+		"pako": "3.0.1"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.25.1",
