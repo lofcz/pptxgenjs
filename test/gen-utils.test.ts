@@ -20,6 +20,10 @@ import {
 	genXmlColorSelection,
 	getNewRelId,
 	correctShadowOptions,
+	resolveThemeColors,
+	DEF_THEME_COLORS,
+	marginToEmu,
+	inch2Emu,
 } from '../src/gen-utils'
 import { PresLayout, PresSlide, ShadowProps } from '../src/core-interfaces'
 
@@ -39,6 +43,12 @@ test('valToPts', () => {
 	assert.equal(valToPts('2'), 25400)
 	assert.equal(valToPts('not-a-number'), 0)
 	assert.equal(valToPts(undefined as unknown as number), 0)
+})
+
+test('marginToEmu: dual-unit like table cells (>=1 points, <1 inches)', () => {
+	assert.equal(marginToEmu(10), valToPts(10), '10 → points')
+	assert.equal(marginToEmu(0.1), inch2Emu(0.1), '0.1 → inches')
+	assert.equal(marginToEmu(0), 0)
 })
 
 test('convertRotationDegrees', () => {
@@ -91,6 +101,73 @@ test('createColorElement: scheme color', () => {
 	assert.equal(createColorElement('accent1'), '<a:schemeClr val="accent1"/>')
 })
 
+test('createColorElement: ModifiedThemeColor tint/shade (percent ×1000)', () => {
+	assert.equal(
+		createColorElement({ baseColor: 'accent1', tint: 40 }),
+		'<a:schemeClr val="accent1"><a:tint val="40000"/></a:schemeClr>'
+	)
+	assert.equal(
+		createColorElement({ baseColor: 'FF0000', shade: 50, alpha: 80 }),
+		'<a:srgbClr val="FF0000"><a:alpha val="80000"/><a:shade val="50000"/></a:srgbClr>'
+	)
+})
+
+test('createColorElement: ModifiedThemeColor hue uses deg×60000 (not ×1000)', () => {
+	assert.equal(
+		createColorElement({ baseColor: 'accent2', hue: 90 }),
+		'<a:schemeClr val="accent2"><a:hue val="5400000"/></a:schemeClr>'
+	)
+	assert.equal(
+		createColorElement({ baseColor: 'accent2', hueOff: 30 }),
+		'<a:schemeClr val="accent2"><a:hueOff val="1800000"/></a:schemeClr>'
+	)
+	// hueMod is a percent, unlike hue/hueOff
+	assert.equal(
+		createColorElement({ baseColor: 'accent2', hueMod: 50 }),
+		'<a:schemeClr val="accent2"><a:hueMod val="50000"/></a:schemeClr>'
+	)
+})
+
+test('createColorElement: ModifiedThemeColor allows lumMod > 100', () => {
+	assert.equal(
+		createColorElement({ baseColor: 'accent1', lumMod: 110 }),
+		'<a:schemeClr val="accent1"><a:lumMod val="110000"/></a:schemeClr>'
+	)
+})
+
+test('genXmlColorSelection: bare ModifiedThemeColor (not mistaken for ShapeFillProps)', () => {
+	assert.equal(
+		genXmlColorSelection({ baseColor: 'accent1', tint: 25 }),
+		'<a:solidFill><a:schemeClr val="accent1"><a:tint val="25000"/></a:schemeClr></a:solidFill>'
+	)
+	assert.equal(
+		genXmlColorSelection({ type: 'solid', color: { baseColor: 'bg1', shade: 10 } }),
+		'<a:solidFill><a:schemeClr val="bg1"><a:shade val="10000"/></a:schemeClr></a:solidFill>'
+	)
+})
+
+test('resolveThemeColors: requires exactly 12 hex colors', () => {
+	assert.deepEqual(resolveThemeColors(undefined), [...DEF_THEME_COLORS])
+	const orig = console.warn
+	console.warn = () => {}
+	try {
+		assert.deepEqual(resolveThemeColors({ themeColors: ['FF0000'] }), [...DEF_THEME_COLORS], 'short array falls back')
+	} finally {
+		console.warn = orig
+	}
+	const custom = [
+		'111111', '222222', '333333', '444444',
+		'555555', '666666', '777777', '888888', '999999', 'AAAAAA',
+		'BBBBBB', 'CCCCCC',
+	]
+	assert.deepEqual(resolveThemeColors({ themeColors: custom }), custom)
+	assert.deepEqual(
+		resolveThemeColors({ themeColors: custom.map(c => `#${c.toLowerCase()}`) }),
+		custom,
+		'strips # and uppercases'
+	)
+})
+
 test('createColorElement: invalid falls back to default font color', () => {
 	const orig = console.warn
 	console.warn = () => {} // silence the expected warning
@@ -137,6 +214,31 @@ test('genXmlColorSelection', () => {
 		}),
 		'<a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:srgbClr val="FF0000"/></a:gs><a:gs pos="100000"><a:srgbClr val="0000FF"><a:alpha val="50000"/></a:srgbClr></a:gs></a:gsLst><a:lin ang="5400000" scaled="0"/></a:gradFill>'
 	)
+	// sambauers/gradients flat API (`type:'linearGradient'`, `position`, tileRect, flip)
+	assert.equal(
+		genXmlColorSelection({
+			type: 'linearGradient',
+			angle: 45,
+			scaled: true,
+			flip: 'x',
+			tileRect: { t: 10, l: 0 },
+			stops: [
+				{ position: 0, color: '000000', transparency: 10 },
+				{ position: 100, color: '333333', transparency: 50 },
+			],
+		}),
+		'<a:gradFill rotWithShape="1" flip="x"><a:gsLst><a:gs pos="0"><a:srgbClr val="000000"><a:alpha val="90000"/></a:srgbClr></a:gs><a:gs pos="100000"><a:srgbClr val="333333"><a:alpha val="50000"/></a:srgbClr></a:gs></a:gsLst><a:lin ang="2700000" scaled="1"/><a:tileRect t="10000" l="0"/></a:gradFill>'
+	)
+	// angle 0 still emits `<a:lin>` (upstream sambauers skipped falsy angle)
+	assert.ok(
+		genXmlColorSelection({
+			type: 'linearGradient',
+			stops: [
+				{ position: 0, color: 'FF0000' },
+				{ position: 100, color: '0000FF' },
+			],
+		}).includes('<a:lin ang="0" scaled="0"/>')
+	)
 	// Radial gradient
 	assert.equal(
 		genXmlColorSelection({
@@ -150,6 +252,18 @@ test('genXmlColorSelection', () => {
 			},
 		}),
 		'<a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:srgbClr val="FFFFFF"/></a:gs><a:gs pos="100000"><a:srgbClr val="000000"/></a:gs></a:gsLst><a:path path="circle"></a:path></a:gradFill>'
+	)
+	// Pattern fill (hakrueger/pattern)
+	assert.equal(
+		genXmlColorSelection({
+			type: 'pattern',
+			pattern: { prst: 'ltHorz', color: 'FF0000', bgColor: '00FF00' },
+		}),
+		'<a:pattFill prst="ltHorz"><a:bgClr><a:srgbClr val="00FF00"/></a:bgClr><a:fgClr><a:srgbClr val="FF0000"/></a:fgClr></a:pattFill>'
+	)
+	assert.equal(
+		genXmlColorSelection({ type: 'pattern', color: '112233' }),
+		'<a:pattFill prst="cross"><a:bgClr><a:srgbClr val="FFFFFF"/></a:bgClr><a:fgClr><a:srgbClr val="112233"/></a:fgClr></a:pattFill>'
 	)
 })
 

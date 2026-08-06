@@ -49,7 +49,7 @@ import {
 	TextPropsOptions,
 } from './core-interfaces'
 import { getSlidesForTableRows } from './gen-tables'
-import { encodeXmlEntities, getNewRelId, getSmartParseNumber, inch2Emu, resolveDataLabelPosition, valToPts, correctShadowOptions, warnDeprecatedOnce } from './gen-utils'
+import { applySvgFillToDataUrl, encodeXmlEntities, getNewRelId, getSmartParseNumber, inch2Emu, marginToEmu, resolveDataLabelPosition, valToPts, correctShadowOptions, warnDeprecatedOnce } from './gen-utils'
 
 /** Valid OOXML preset-geometry strings (the values of `SHAPE_TYPE`) - anything else corrupts the file. */
 const VALID_SHAPE_PRESETS = new Set<string>(Object.values(SHAPE_TYPE))
@@ -426,7 +426,7 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 	const intHeight = opt.h || 0
 	const sizing = opt.sizing || null
 	const objHyperlink = opt.hyperlink || ''
-	const strImageData = opt.data || ''
+	let strImageData = opt.data || ''
 	const strImagePath = opt.path || ''
 	let imageRelId = getNewRelId(target)
 	const objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : `Image ${target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.image).length}`
@@ -479,6 +479,7 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 		h: intHeight || 1,
 		altText: opt.altText || '',
 		rounding: typeof opt.rounding === 'boolean' ? opt.rounding : false,
+		rectRadius: opt.rectRadius,
 		sizing: sizing ?? undefined,
 		placeholder: opt.placeholder,
 		rotate: opt.rotate || 0,
@@ -489,6 +490,9 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 		shadow: opt.shadow ? correctShadowOptions(opt.shadow) : undefined,
 		line: opt.line,
 		_sizeFromImage: !intWidth && !intHeight,
+		// Images build options explicitly (unlike shape/text which pass through opts), so copy animation here
+		animation: opt.animation,
+		appearOnClick: opt.appearOnClick,
 	}
 
 	// STEP 4: Add this image to this Slide Rels (rId/rels count spans all slides! Count all images to get next rId)
@@ -496,6 +500,11 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 		// SVG files consume *TWO* rId's: (a png version and the svg image)
 		// <Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>
 		// <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image2.svg"/>
+		// Martin-N: optional SVG recolor via `fill.color` (hex). Bake into data when already loaded; otherwise stash on the rel for encodeSlideMediaRels.
+		const svgFillColor = typeof opt.fill?.color === 'string' ? opt.fill.color : undefined
+		if (svgFillColor && strImageData) {
+			strImageData = applySvgFillToDataUrl(strImageData, svgFillColor)
+		}
 		target._relsMedia.push({
 			path: strImagePath || strImageData + 'png',
 			type: 'image/png',
@@ -504,6 +513,7 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 			rId: imageRelId,
 			Target: `../media/image-${target._slideNum}-${target._relsMedia.length + 1}.png`,
 			isSvgPng: true,
+			fill: opt.fill,
 			svgSize: { w: getSmartParseNumber(newObject.options?.w, 'X', target._presLayout), h: getSmartParseNumber(newObject.options?.h, 'Y', target._presLayout) },
 		})
 		newObject.imageRid = imageRelId
@@ -514,6 +524,7 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 			data: strImageData || '',
 			rId: imageRelId + 1,
 			Target: `../media/image-${target._slideNum}-${target._relsMedia.length + 1}.${strImgExtn}`,
+			fill: opt.fill,
 		})
 		newObject.imageRid = imageRelId + 1
 		imageRelId++ // NOTE: the SVG branch consumed two rIds - keep the counter on the last one used (issue #19)
@@ -602,6 +613,8 @@ export function addMediaDefinition(target: PresSlide, opt: MediaProps): void {
 	slideData.options.w = intSizeX
 	slideData.options.h = intSizeY
 	slideData.options.objectName = objectName
+	slideData.options.animation = opt.animation
+	slideData.options.appearOnClick = opt.appearOnClick
 
 	// STEP 4: Add this media to this Slide Rels (rId/rels count spans all slides! Count all media to get next rId)
 	/**
@@ -740,6 +753,7 @@ export function addShapeDefinition(target: PresSlide | SlideLayout, shapeName: S
 	}
 
 	// 1: ShapeLineProps defaults
+	const hasConnectorEnds = options.line.sourceId != null || options.line.targetId != null
 	const newLineOpts: ShapeLineProps = {
 		type: options.line.type || 'solid',
 		color: options.line.color || DEF_SHAPE_LINE_COLOR,
@@ -749,6 +763,13 @@ export function addShapeDefinition(target: PresSlide | SlideLayout, shapeName: S
 		dashType: options.line.dashType || 'solid',
 		beginArrowType: options.line.beginArrowType || undefined,
 		endArrowType: options.line.endArrowType || undefined,
+		// ZentoSoft connectors
+		sourceId: options.line.sourceId,
+		targetId: options.line.targetId,
+		sourceAnchorPos: options.line.sourceAnchorPos,
+		targetAnchorPos: options.line.targetAnchorPos,
+		isConnector: options.line.isConnector || hasConnectorEnds,
+		curveadjust: options.line.curveadjust,
 	}
 	if (typeof options.line === 'object' && options.line.type !== 'none') options.line = newLineOpts
 
@@ -1128,7 +1149,23 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 				itemOpts._bodyProp.bIns = inch2Emu(itemOpts.inset)
 			}
 
-			// F: Transform @deprecated props
+			// F: Margin — TRBL order (matches tables + docs). Previously applied as LRBT in gen-xml.
+			// Dual-unit: >=1 points, <1 inches (same rule as table cell margins).
+			// mikemeerschaert/fix-inconsistent-margins (selective: TRBL + definition-time; keep dual-unit)
+			if (itemOpts.margin && Array.isArray(itemOpts.margin)) {
+				itemOpts._bodyProp.tIns = marginToEmu(itemOpts.margin[0] || 0)
+				itemOpts._bodyProp.rIns = marginToEmu(itemOpts.margin[1] || 0)
+				itemOpts._bodyProp.bIns = marginToEmu(itemOpts.margin[2] || 0)
+				itemOpts._bodyProp.lIns = marginToEmu(itemOpts.margin[3] || 0)
+			} else if (typeof itemOpts.margin === 'number') {
+				const emu = marginToEmu(itemOpts.margin)
+				itemOpts._bodyProp.tIns = emu
+				itemOpts._bodyProp.rIns = emu
+				itemOpts._bodyProp.bIns = emu
+				itemOpts._bodyProp.lIns = emu
+			}
+
+			// G: Transform @deprecated props
 			if (typeof itemOpts.underline === 'boolean' && itemOpts.underline === true) itemOpts.underline = { style: 'sng' }
 		}
 

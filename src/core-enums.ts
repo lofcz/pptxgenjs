@@ -326,6 +326,18 @@ export enum AlignV {
 	'bottom' = 'bottom',
 }
 
+/**
+ * Connection site index helpers for connector lines (ZentoSoft connectors)
+ * - Maps to OOXML `stCxn`/`endCxn` `idx` on common rectangular shapes
+ * - Other presets may use different site indices — pass a raw number when needed
+ */
+export enum ANCHOR {
+	TOP = 0,
+	LEFT = 1,
+	BOTTOM = 2,
+	RIGHT = 3,
+}
+
 export enum SHAPE_TYPE {
 	ACTION_BUTTON_BACK_OR_PREVIOUS = 'actionButtonBackPrevious',
 	ACTION_BUTTON_BEGINNING = 'actionButtonBeginning',

@@ -6,6 +6,8 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import JSZip from 'jszip'
 import pptxgen from '../src/pptxgen'
 
@@ -334,6 +336,48 @@ test('custom dataLabels: bar series emits escaped rich-text dLbl per point', asy
 	assert.ok(firstDlbl.includes('<c:showVal val="0"/>'), 'custom dLbl should keep showVal off')
 })
 
+test('Toukyh/fix-custom-label: labelsRange emits c15:datalabelsRange with escaped text', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.bar,
+		[{
+			name: 'Sales',
+			labels: ['A', 'B', 'C'],
+			values: [10, 20, 30],
+			labelsRange: ['10 & up', '20', '30'],
+		}],
+		{ x: 0.5, y: 0.5, w: 6, h: 4, showValue: true },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('c15:datalabelsRange'), 'missing datalabelsRange extension')
+	assert.ok(chart.includes('c15:showDataLabelsRange val="1"'), 'showDataLabelsRange should be on')
+	assert.ok(chart.includes('<c:v>10 &amp; up</c:v>'), 'labelsRange text must be XML-escaped')
+	assert.ok(chart.includes('c16:uniqueId'), 'missing series uniqueId')
+	// schema: series-level datalabelsRange extLst comes after cat/val (dLbls may have its own earlier extLst)
+	const ser = /<c:ser>[\s\S]*?<\/c:ser>/.exec(chart)?.[0] ?? ''
+	const valIdx = ser.lastIndexOf('</c:val>')
+	const rangeExtIdx = ser.indexOf('c15:datalabelsRange')
+	assert.ok(valIdx > 0 && rangeExtIdx > valIdx, 'datalabelsRange extLst must follow cat/val')
+})
+
+test('Toukyh/fix-custom-label: multi-series get distinct uniqueIds', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.line,
+		[
+			{ name: 'A', labels: ['1', '2'], values: [1, 2], labelsRange: ['a1', 'a2'] },
+			{ name: 'B', labels: ['1', '2'], values: [3, 4], labelsRange: ['b1', 'b2'] },
+		],
+		{ x: 0.5, y: 0.5, w: 6, h: 4 },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	const ids = [...chart.matchAll(/c16:uniqueId val="([^"]+)"/g)].map(m => m[1])
+	assert.equal(ids.length, 2, 'expected one uniqueId per series with labelsRange')
+	assert.notEqual(ids[0], ids[1], 'uniqueIds must not be hard-coded duplicates')
+})
+
 test('custom dataLabels: pie slice uses series dataLabels text', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addChart(
@@ -436,7 +480,7 @@ test('#35: images accept a line/outline and emit it in the picture spPr', async 
 	assert.ok(pic.includes('<a:prstDash val="dash"/>'), 'picture outline dash type missing')
 })
 
-test('OMML: text runs with options.omml emit m:oMath and math namespace on the slide', async () => {
+test('OMML: text runs with options.omml emit a14:m + m:oMath (PowerPoint-required wrapper)', async () => {
 	// Minimal OMML fraction a/b (prebuilt — conversion is the host's job)
 	const omml = [
 		'<m:oMath>',
@@ -452,6 +496,7 @@ test('OMML: text runs with options.omml emit m:oMath and math namespace on the s
 		[
 			{ text: 'Speed: ' },
 			{ text: '', options: { omml } },
+			{ text: ' trailing' },
 		],
 		{ x: 0.5, y: 0.5, w: 6, h: 1 },
 	)
@@ -461,11 +506,24 @@ test('OMML: text runs with options.omml emit m:oMath and math namespace on the s
 		xml.includes('xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'),
 		'slide missing math namespace',
 	)
-	assert.ok(xml.includes('<m:oMath>'), 'missing m:oMath')
+	assert.ok(
+		xml.includes('xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"'),
+		'slide missing a14 namespace (required for PowerPoint math)',
+	)
+	assert.ok(xml.includes('mc:Ignorable="a14"'), 'slide missing mc:Ignorable for a14')
+	// Bare m:oMath is silently stripped by PowerPoint — must be inside a14:m
+	assert.ok(/<a14:m[\s>][\s\S]*?<m:oMath[\s>]/.test(xml), 'm:oMath must be wrapped in a14:m')
 	assert.ok(xml.includes('<m:f>'), 'missing fraction')
 	assert.ok(xml.includes('<m:num>'), 'missing numerator')
 	assert.ok(xml.includes('<m:den>'), 'missing denominator')
 	assert.ok(xml.includes('<a:t>Speed: </a:t>'), 'surrounding plain text missing')
+	assert.ok(xml.includes('<a:t> trailing</a:t>'), 'trailing plain text missing')
+	assert.ok(xml.includes('txBox="1"'), 'math text shape should be a text box')
+	// Mixed inline: plain | math | plain in the same paragraph
+	assert.ok(
+		/<a:t>Speed: <\/a:t><\/a:r><a14:m[\s\S]*?<\/a14:m><a:r>[\s\S]*?<a:t> trailing<\/a:t>/.test(xml),
+		'inline math must interleave with plain text runs in one paragraph',
+	)
 })
 
 test('Schema: a paragraph contains at most one a:pPr (ECMA-376 CT_TextParagraph)', async () => {
@@ -504,7 +562,331 @@ test('Schema: a paragraph contains at most one a:pPr (ECMA-376 CT_TextParagraph)
 			assert.ok(body.startsWith('<a:pPr'), 'pPr must be the first child of a:p')
 		}
 	}
-	assert.ok(xml.includes('<m:oMath>'), 'missing m:oMath')
+	assert.ok(/<a14:m[\s>][\s\S]*?<m:oMath[\s>]/.test(xml), 'm:oMath must be wrapped in a14:m')
+})
+
+test('mikemeerschaert/fix-autopage-last-line-text-array-bug: text array without breakLine is not duplicated (#1139)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable(
+		[
+			[
+				{ text: 'column 1 header', options: { bold: true } },
+				{ text: 'column 2 header', options: { bold: true } },
+			],
+			[
+				{
+					text: [
+						{ text: 'this will be duplicated' },
+						{ text: '1', options: { superscript: true } },
+					],
+				},
+				{ text: 'column 2' },
+			],
+		],
+		{ x: 0.5, y: 0.5, w: 9, autoPage: true, fontSize: 14 },
+	)
+
+	const zip = await writeZip(pptx)
+	const slideParts = Object.keys(zip.files).filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+	let joined = ''
+	for (const part of slideParts) {
+		const xml = await readPart(zip, part)
+		// autoPage tokenizes words into separate <a:t> runs — join before matching
+		joined += [...xml.matchAll(/<a:t[^>]*>([^<]*)<\/a:t>/g)].map(m => m[1]).join('')
+		assert.ok(!/<a:tc>\s*<a:txBody>\s*<a:bodyPr[^/]*\/>\s*<a:lstStyle\/>\s*<\/a:txBody>/s.test(xml), `${part} has a cell with no paragraphs`)
+	}
+	const hits = (joined.match(/this will be duplicated/g) || []).length
+	assert.equal(hits, 1, `expected phrase once across slides, got ${hits} (joined=${JSON.stringify(joined)})`)
+	assert.ok(joined.includes('this will be duplicated1'), 'superscript run should stay adjacent to the text array')
+})
+
+test('mikemeerschaert/fix-autopage-last-line-text-array-bug: newline in cell text still splits lines', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable(
+		[[{ text: 'LineA\nLineB' }, { text: 'ok' }]],
+		{ x: 0.5, y: 0.5, w: 8, colW: [4, 4], autoPage: true, fontSize: 18 },
+	)
+
+	const slide = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(slide.includes('LineA'), 'missing LineA')
+	assert.ok(slide.includes('LineB'), 'missing LineB')
+	// Distinct paragraphs (or at least two <a:t> runs) — not collapsed into one token stream
+	const tMatches = slide.match(/<a:t>[^<]*Line[AB][^<]*<\/a:t>/g) || []
+	assert.ok(tMatches.length >= 2, `expected separate LineA/LineB text runs, got ${JSON.stringify(tMatches)}`)
+})
+
+test('lawtontom: autoPage table cells never emit empty text arrays', async () => {
+	const pptx = new pptxgen()
+	// Mix of empty / whitespace cells with tall content that forces autoPage
+	const rows = [
+		[{ text: 'H1' }, { text: 'H2' }, { text: 'H3' }],
+		[{ text: '' }, { text: 'x'.repeat(80) }, { text: '   ' }],
+		[{ text: 'a' }, { text: '' }, { text: 'b'.repeat(80) }],
+		...Array.from({ length: 20 }, (_, i) => [{ text: `R${i}` }, { text: '' }, { text: 'c'.repeat(40) }]),
+	]
+	pptx.addSlide().addTable(rows, { x: 0.5, y: 0.5, w: 8, colW: [2, 3, 3], autoPage: true, fontSize: 18 })
+
+	const zip = await writeZip(pptx)
+	const slideParts = Object.keys(zip.files).filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+	assert.ok(slideParts.length >= 1, 'expected at least one slide')
+	for (const part of slideParts) {
+		const xml = await readPart(zip, part)
+		// Empty <a:t></a:t> is fine; a table cell with zero runs / null text is what PowerPoint repairs
+		assert.ok(xml.includes('<a:tbl>'), `${part} missing table`)
+		assert.ok(!/<a:tc>\s*<a:txBody>\s*<a:bodyPr[^/]*\/>\s*<a:lstStyle\/>\s*<\/a:txBody>/s.test(xml), `${part} has a cell with no paragraphs`)
+	}
+})
+
+test('addFont: embeds fntdata + presentation embeddedFontLst (pptx-embed-fonts)', async () => {
+	const buf = readFileSync(join(process.cwd(), 'test/fonts/IBMPlexSans-Regular.ttf'))
+	const fontFile = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
+
+	const pptx = new pptxgen()
+	await pptx.addFont({ fontFace: 'IBM Plex Sans', fontFile, fontType: 'ttf' })
+	pptx.addSlide().addText('Hello', { x: 0.5, y: 0.5, w: 3, h: 1, fontFace: 'IBM Plex Sans', fontSize: 24 })
+
+	const zip = await writeZip(pptx)
+	const presentation = await readPart(zip, 'ppt/presentation.xml')
+	const contentTypes = await readPart(zip, '[Content_Types].xml')
+	const rels = await readPart(zip, 'ppt/_rels/presentation.xml.rels')
+
+	assert.ok(presentation.includes('embedTrueTypeFonts="true"'), 'missing embedTrueTypeFonts')
+	assert.ok(presentation.includes('saveSubsetFonts="true"'), 'missing saveSubsetFonts')
+	assert.ok(presentation.includes('<p:embeddedFontLst>'), 'missing embeddedFontLst')
+	assert.ok(presentation.includes('typeface="IBM Plex Sans"'), 'font typeface missing from presentation.xml')
+	assert.ok(contentTypes.includes('Extension="fntdata"'), 'Content_Types missing fntdata Default')
+	assert.ok(rels.includes('/relationships/font"'), 'presentation rels missing font relationship')
+	assert.ok(Object.keys(zip.files).some(name => name.startsWith('ppt/fonts/') && name.endsWith('.fntdata')), 'missing ppt/fonts/*.fntdata')
+})
+
+test('#1430: line chart worksheet keeps zero values (opeepl/line-chart-cutoff-fix)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.line,
+		[{ name: 'S', labels: ['A', 'B', 'C'], values: [10, 0, 5] }],
+		{ x: 0.5, y: 0.5, w: 5, h: 3 },
+	)
+
+	const sheet = await readPart(await readEmbeddedXlsx(await writeZip(pptx)), 'xl/worksheets/sheet1.xml')
+	assert.ok(sheet.includes('<v>0</v>'), 'line chart worksheet dropped a legitimate zero (cutoff)')
+	assert.ok(sheet.includes('<v>10</v>') && sheet.includes('<v>5</v>'), 'expected neighboring series values')
+})
+
+test('image rectRadius: roundRect crop (niranjan-uma-shankar/html-to-pptx, selective)', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addImage({ data: PNG_4x2, x: 0.5, y: 0.5, w: 2, h: 2, rectRadius: 0.25 })
+	slide.addImage({ data: PNG_4x2, x: 3, y: 0.5, w: 2, h: 2, rounding: true })
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const pics = [...xml.matchAll(/<p:pic>[\s\S]*?<\/p:pic>/g)].map(m => m[0])
+	assert.equal(pics.length, 2)
+	assert.ok(pics[0].includes('prst="roundRect"'), 'rectRadius should emit roundRect')
+	assert.ok(pics[0].includes('name="adj"'), 'roundRect should include adj guide')
+	assert.ok(pics[1].includes('prst="ellipse"'), 'rounding:true without rectRadius stays ellipse')
+	assert.ok(!pics[1].includes('prst="roundRect"'), 'legacy rounding must not become roundRect')
+})
+
+test('#1436: scatter/bubble X-axis uses catLabelFormatCode (Ben-vD)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.scatter,
+		[{ name: 'S', values: [1, 2, 3] }],
+		{
+			x: 0.5, y: 0.5, w: 5, h: 3,
+			catLabelFormatCode: '0.00',
+			valAxisLabelFormatCode: '0%',
+		},
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	const valAxes = [...chart.matchAll(/<c:valAx>[\s\S]*?<\/c:valAx>/g)].map(m => m[0])
+	assert.ok(valAxes.length >= 2, `expected cat+val as two valAx blocks, got ${valAxes.length}`)
+	// First valAx is the category/X axis for scatter; second is Y
+	assert.ok(valAxes[0].includes('formatCode="0.00"'), `X axis missing catLabelFormatCode: ${valAxes[0].slice(0, 400)}`)
+	assert.ok(valAxes[1].includes('formatCode="0%"'), `Y axis missing valAxisLabelFormatCode: ${valAxes[1].slice(0, 400)}`)
+})
+
+test('#1427: company metadata is XML-encoded in docProps/app.xml (hhulkko)', async () => {
+	const pptx = new pptxgen()
+	pptx.company = 'Acme & Co <Holdings>'
+	pptx.addSlide().addText('t', { x: 0.5, y: 0.5, w: 3, h: 0.5 })
+
+	const app = await readPart(await writeZip(pptx), 'docProps/app.xml')
+	assert.ok(app.includes('<Company>Acme &amp; Co &lt;Holdings&gt;</Company>'), `company not escaped: ${app}`)
+	assert.ok(!app.includes('<Company>Acme & Co'), 'raw ampersand must not appear in Company')
+})
+
+test('LanPodder/master: series errorrate emits c:errBars and packed Excel column', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [
+		{ name: 'A', labels: ['Q1', 'Q2', 'Q3'], values: [10, 20, 30], errorrate: [0.5, 1, 1.5] },
+		{ name: 'B', labels: ['Q1', 'Q2', 'Q3'], values: [4, 5, 6] },
+	], { x: 0.5, y: 0.5, w: 5, h: 3 })
+
+	const zip = await writeZip(pptx)
+	const chart = await readChart(zip)
+	assert.ok(chart.includes('<c:errBars>'), 'missing c:errBars')
+	assert.ok(chart.includes('<c:errValType val="cust"/>'), 'missing custom errValType')
+	assert.ok(chart.includes('<c:errBarType val="both"/>'), 'missing both errBarType')
+	// Layout: A=labels, B=series A, C=series B, D=packed error for A only
+	assert.ok(chart.includes('Sheet1!$D$2:$D$4'), `errBars should reference packed col D: ${chart.match(/<c:errBars>[\s\S]*?<\/c:errBars>/)?.[0]}`)
+	assert.ok(chart.includes('<c:pt idx="0"><c:v>0.5</c:v></c:pt>'), 'errorrate cache missing 0.5')
+	assert.equal((chart.match(/<c:errBars>/g) || []).length, 1, 'only series A has errorrate')
+
+	const xlsx = await readEmbeddedXlsx(zip)
+	const sheet = await readPart(xlsx, 'xl/worksheets/sheet1.xml')
+	assert.ok(sheet.includes('r="D2"'), 'errorrate cell D2 missing')
+	assert.ok(sheet.includes('<v>0.5</v>'), 'errorrate value 0.5 missing from sheet')
+	assert.ok(sheet.includes('<v>1.5</v>'), 'errorrate value 1.5 missing from sheet')
+})
+
+test('LanPodder/master: errorrate column uses AA+ Excel letters when past column Z', async () => {
+	// 1 label + 26 series => last series at col 27 (AA); packed error for series 25 => col 28 (AB)
+	const labels = ['X']
+	const series = Array.from({ length: 26 }, (_, i) => ({
+		name: `S${i}`,
+		labels,
+		values: [i + 1],
+		...(i === 25 ? { errorrate: [0.9] } : {}),
+	}))
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, series, { x: 0.5, y: 0.5, w: 5, h: 3 })
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('Sheet1!$AB$2:$AB$2'), `expected packed error at AB: ${chart.match(/<c:errBars>[\s\S]*?<\/c:errBars>/)?.[0]}`)
+})
+
+test('Martin-N: CRLF split does not force breakLine on the last line', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('Line1\nLine2', { x: 0.5, y: 0.5, w: 4, h: 1, fontSize: 14 })
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('Line1'), 'missing Line1')
+	assert.ok(xml.includes('Line2'), 'missing Line2')
+	// Two paragraphs expected from the CRLF split
+	const paras = xml.match(/<a:p>/g) || []
+	assert.ok(paras.length >= 2, `expected >=2 paragraphs after CRLF split, got ${paras.length}`)
+})
+
+test('Martin-N: table cell vert alias emits tcPr vert', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable(
+		[[{ text: 'V', options: { vert: 'vert270' } }]],
+		{ x: 0.5, y: 0.5, w: 2, h: 2 },
+	)
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('vert="vert270"'), 'missing tcPr vert from Martin-N vert alias')
+})
+
+test('Martin-N: SVG fill.color recolors path fills in embedded SVG', async () => {
+	const svg =
+		'image/svg+xml;base64,' +
+		Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h10v10H0z" fill="#00FF00"/></svg>', 'utf8').toString('base64')
+	const pptx = new pptxgen()
+	pptx.addSlide().addImage({ data: svg, x: 0.5, y: 0.5, w: 1, h: 1, fill: { color: 'FF0000' } })
+
+	const zip = await writeZip(pptx)
+	const svgPart = Object.keys(zip.files).find(n => n.endsWith('.svg'))
+	assert.ok(svgPart, 'missing svg media part')
+	const svgXml = await readPart(zip, svgPart!)
+	assert.ok(svgXml.includes('#FF0000') || svgXml.includes('fill="#FF0000"'), `SVG not recolored: ${svgXml}`)
+	assert.ok(!svgXml.includes('#00FF00'), 'old green fill should be replaced')
+})
+
+test('ZentoSoft/master: connectors emit p:cxnSp with stCxn/endCxn and auto-layout', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addShape(pptx.ShapeType.rect, {
+		sId: 20,
+		x: 0.5, y: 1, w: 2, h: 1,
+		fill: { color: '4472C4' },
+	})
+	slide.addShape(pptx.ShapeType.rect, {
+		sId: 21,
+		x: 5, y: 2, w: 2, h: 1,
+		fill: { color: 'ED7D31' },
+	})
+	slide.addShape(pptx.ShapeType.line, {
+		line: {
+			width: 2,
+			color: '000000',
+			sourceId: 20,
+			targetId: 21,
+			sourceAnchorPos: pptx.anchor.RIGHT,
+			targetAnchorPos: pptx.anchor.LEFT,
+		},
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<p:cxnSp>'), 'missing p:cxnSp connector')
+	assert.ok(xml.includes('id="20"'), 'source shape sId missing')
+	assert.ok(xml.includes('id="21"'), 'target shape sId missing')
+	assert.ok(xml.includes('<a:stCxn id="20"'), 'stCxn sourceId missing')
+	assert.ok(xml.includes('<a:endCxn id="21"'), 'endCxn targetId missing')
+	assert.ok(xml.includes(`idx="${pptx.anchor.RIGHT}"`), 'sourceAnchorPos missing')
+	assert.ok(xml.includes(`idx="${pptx.anchor.LEFT}"`), 'targetAnchorPos missing')
+	// Auto-layout should size the connector between the rects (non-zero extent)
+	assert.ok(/<a:ext cx="[1-9]\d*"/.test(xml), 'connector auto-layout should produce non-zero width')
+})
+
+test('ZentoSoft/master: duplicate sId throws', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addShape(pptx.ShapeType.rect, { sId: 9, x: 0.5, y: 0.5, w: 1, h: 1, fill: { color: 'FF0000' } })
+	slide.addShape(pptx.ShapeType.rect, { sId: 9, x: 2, y: 0.5, w: 1, h: 1, fill: { color: '00FF00' } })
+	await assert.rejects(async () => await writeZip(pptx), /sId 9 is already in use/)
+})
+
+test('MelleB/feat/appear-on-click: appearOnClick emits appear clickEffect timing', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addImage({
+		data: PNG_4x2,
+		x: 1, y: 1, w: 2, h: 1,
+		appearOnClick: true,
+	})
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 4, y: 1, w: 2, h: 1,
+		fill: { color: '4472C4' },
+		appearOnClick: true,
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<p:timing>'), 'missing p:timing')
+	assert.ok(xml.includes('presetID="1"'), 'appear presetID=1 missing')
+	assert.ok(xml.includes('presetClass="entr"'), 'entrance class missing')
+	assert.ok(xml.includes('nodeType="clickEffect"'), 'clickEffect trigger missing')
+	assert.ok(xml.includes('style.visibility'), 'appear visibility set missing')
+	assert.ok(xml.includes('<p:clrMapOvr>'), 'clrMapOvr must remain (not dropped like upstream fork)')
+})
+
+test('animations: slide timing XML is emitted for text/shape/image (BapunHansdah fork)', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText('Hello', {
+		x: 0.5, y: 0.5, w: 3, h: 0.5,
+		animation: 'fadein',
+	})
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 0.5, y: 1.5, w: 2, h: 1,
+		fill: { color: '4472C4' },
+		animation: { type: 'flyin', direction: 'left', duration: 500, trigger: 'withPrevious' },
+	})
+	slide.addImage({
+		data: PNG_4x2,
+		x: 4, y: 0.5, w: 2, h: 1,
+		animation: { type: 'zoom', trigger: 'afterPrevious', duration: 800 },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<p:timing>'), 'missing p:timing')
+	assert.ok(xml.includes('<p:tnLst>'), 'missing p:tnLst')
+	assert.ok(xml.includes('presetID="10"'), 'fadein presetID missing')
+	assert.ok(xml.includes('presetClass="entr"'), 'entrance class missing')
+	assert.ok(xml.includes('xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'), 'math xmlns must stay')
+	assert.ok(xml.trimEnd().endsWith('</p:sld>'), 'timing must be inside p:sld')
 })
 
 test('Content_Types: every slide part has an Override (missing entries corrupt PowerPoint)', async () => {
@@ -525,5 +907,233 @@ test('Content_Types: every slide part has an Override (missing entries corrupt P
 		(types.match(/\/ppt\/slideMasters\/slideMaster\d+\.xml/g) || []).length,
 		1,
 		'expected exactly one slideMaster Override'
+	)
+})
+
+test('mikemeerschaert/fix-placeholder-text-formatting-issues: placeholder gets valign+margin bodyPr', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'PH_BODY_MASTER',
+		objects: [{
+			placeholder: {
+				options: {
+					name: 'body',
+					type: 'body',
+					x: 0.5, y: 1, w: 9, h: 4,
+					valign: 'middle',
+					margin: [10, 0, 0, 20],
+				},
+				text: 'placeholder text',
+			},
+		}],
+	})
+	pptx.addSlide({ masterName: 'PH_BODY_MASTER' })
+
+	const zip = await writeZip(pptx)
+	const layouts = await Promise.all([1, 2].map(async n => await readPart(zip, `ppt/slideLayouts/slideLayout${n}.xml`)))
+	const layout = layouts.find(xml => xml.includes('placeholder text') || xml.includes('type="body"')) ?? ''
+	assert.ok(layout.includes('anchor="ctr"'), `placeholder valign middle → anchor=ctr, got bodyPr context missing in layout`)
+	assert.ok(layout.includes('tIns="127000"'), 'placeholder top margin 10pt')
+	assert.ok(layout.includes('lIns="254000"'), 'placeholder left margin 20pt')
+})
+
+test('mikemeerschaert/fix-placeholder-text-formatting-issues: bullet.type=bullet keeps characterCode', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('Item', {
+		x: 0.5, y: 0.5, w: 4, h: 1,
+		bullet: { type: 'bullet', characterCode: '25CF' },
+	})
+
+	const slide = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(slide.includes('<a:buChar char="&#x25CF;"/>'), 'characterCode must survive type:"bullet"')
+	assert.ok(!slide.includes('<a:buAutoNum'), 'type:"bullet" must not emit numbered bullets')
+})
+
+test('mikemeerschaert/add-color-option-to-bullets: bullet.color emits buClr before bullet glyph', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('Item', {
+		x: 0.5, y: 0.5, w: 4, h: 1,
+		color: 'FF0000',
+		bullet: { characterCode: '25BA', color: '0000FF' },
+	})
+
+	const slide = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(slide.includes('<a:buClr>'), 'bullet.color must emit a:buClr')
+	assert.ok(slide.includes('<a:buClr><a:srgbClr val="0000FF"/>'), 'bullet.color hex must win over text color')
+	const buClrAt = slide.indexOf('<a:buClr>')
+	const buCharAt = slide.indexOf('<a:buChar')
+	assert.ok(buClrAt > -1 && buCharAt > buClrAt, 'buClr must precede buChar (OOXML order)')
+})
+
+test('mikemeerschaert/fix-inconsistent-margins: text margin array is TRBL', async () => {
+	const pptx = new pptxgen()
+	// TRBL: top=10pt, right=0, bottom=0, left=20pt
+	pptx.addSlide().addText('m', {
+		x: 0.5, y: 0.5, w: 3, h: 1,
+		margin: [10, 0, 0, 20],
+		fill: { color: 'EEEEEE' },
+	})
+
+	const slide = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const bodyPr = /<a:bodyPr[^>]*>/.exec(slide)?.[0] ?? ''
+	// 10pt = 127000 EMU, 20pt = 254000 EMU (ONEPT = 12700)
+	assert.ok(bodyPr.includes('tIns="127000"'), `expected top inset for 10pt, got ${bodyPr}`)
+	assert.ok(bodyPr.includes('lIns="254000"'), `expected left inset for 20pt, got ${bodyPr}`)
+	// Must NOT swap top/left the old LRBT way (which would put 10 on left and 20 on top)
+	assert.ok(!bodyPr.includes('tIns="254000"'), 'top must not receive the left value (old LRBT bug)')
+})
+
+test('mikemeerschaert/fix-inconsistent-margins: text margin accepts inches (<1)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('m', {
+		x: 0.5, y: 0.5, w: 3, h: 1,
+		margin: 0.1,
+		fill: { color: 'EEEEEE' },
+	})
+
+	const slide = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const bodyPr = /<a:bodyPr[^>]*>/.exec(slide)?.[0] ?? ''
+	const expected = String(Math.round(914400 * 0.1)) // inch2Emu(0.1)
+	assert.ok(bodyPr.includes(`tIns="${expected}"`), `expected inch margin ${expected} in ${bodyPr}`)
+	assert.ok(bodyPr.includes(`lIns="${expected}"`), 'uniform inch margin on left')
+})
+
+test('istevkovski/prioritize-overlap: barOverlapPct wins over stacked default 100', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [
+		{ name: 'A', labels: ['Q1', 'Q2'], values: [1, 2] },
+		{ name: 'B', labels: ['Q1', 'Q2'], values: [3, 4] },
+	], { x: 1, y: 1, w: 4, h: 3, barGrouping: 'stacked', barOverlapPct: 50 })
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('<c:overlap val="50"/>'), 'explicit barOverlapPct should override stacked 100')
+	assert.ok(!chart.includes('<c:overlap val="100"/>'), 'stacked default overlap must not win')
+})
+
+test('istevkovski/prioritize-overlap: stacked without barOverlapPct still defaults to 100', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [
+		{ name: 'A', labels: ['Q1'], values: [1] },
+		{ name: 'B', labels: ['Q1'], values: [2] },
+	], { x: 1, y: 1, w: 4, h: 3, barGrouping: 'stacked' })
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('<c:overlap val="100"/>'), 'stacked default overlap is 100')
+})
+
+test('christiankiely/fix-categories-google-slides: single-level cats use strRef not multiLvlStrRef', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [
+		{ name: 'Sales', labels: ['Q1', 'Q2', 'Q3'], values: [1, 2, 3] },
+	], { x: 1, y: 1, w: 4, h: 3 })
+
+	const chart = await readChart(await writeZip(pptx))
+	const cat = chart.match(/<c:cat>[\s\S]*?<\/c:cat>/)?.[0] ?? ''
+	assert.ok(cat.includes('<c:strRef>'), 'single-level categories should use strRef for Google Slides')
+	assert.ok(!cat.includes('<c:multiLvlStrRef>'), 'single-level categories must not use multiLvlStrRef')
+	assert.ok(cat.includes('<c:pt idx="0"><c:v>Q1</c:v></c:pt>'), 'category labels present')
+})
+
+test('christiankiely: multi-level cats still use multiLvlStrRef', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [{
+		name: 'West',
+		labels: [
+			['Gear', 'Berg', 'Motr'],
+			['Mech', '', ''],
+		],
+		values: [11, 8, 3],
+	}], { x: 1, y: 1, w: 4, h: 3 })
+
+	const chart = await readChart(await writeZip(pptx))
+	const cat = chart.match(/<c:cat>[\s\S]*?<\/c:cat>/)?.[0] ?? ''
+	assert.ok(cat.includes('<c:multiLvlStrRef>'), 'multi-level categories keep multiLvlStrRef')
+	assert.ok(!cat.includes('<c:strRef>'), 'multi-level categories should not use strRef inside cat')
+})
+
+test('RivaJ-github: firstSlideNum is written to ppt/presentation.xml', async () => {
+	const pptx = new pptxgen()
+	pptx.firstSlideNum = 5
+	pptx.addSlide().addText('hi', { x: 0.5, y: 0.5, w: 3, h: 1 })
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/presentation.xml')
+	assert.ok(xml.includes('firstSlideNum="5"'), 'custom firstSlideNum')
+
+	const pptxDefault = new pptxgen()
+	pptxDefault.addSlide().addText('hi', { x: 0.5, y: 0.5, w: 3, h: 1 })
+	const xmlDefault = await readPart(await writeZip(pptxDefault), 'ppt/presentation.xml')
+	assert.ok(xmlDefault.includes('firstSlideNum="1"'), 'default firstSlideNum is 1')
+})
+
+test('NateRadebaugh/transparent-markers: line marker fill can be transparent (noFill)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.line, [{ name: 'A', labels: ['1', '2'], values: [1, 2] }], {
+		x: 0.5, y: 0.5, w: 4, h: 3,
+		chartColors: ['transparent'],
+		lineDataSymbol: 'circle',
+		lineDataSymbolSize: 10,
+	})
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('<c:marker>'), 'marker present')
+	assert.ok(
+		/<c:marker>[\s\S]*?<c:spPr>\s*<a:noFill\/>/.test(chart),
+		'transparent marker fill emits noFill'
+	)
+	assert.ok(
+		!/<c:marker>[\s\S]*?<c:spPr>\s*<a:solidFill>/.test(chart),
+		'transparent marker must not emit solidFill'
+	)
+})
+
+test('sambauers/gradients: flat linearGradient fill emits gradFill with position stops', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.rect, {
+		x: 0.5, y: 0.5, w: 3, h: 1,
+		fill: {
+			type: 'linearGradient',
+			angle: 45,
+			scaled: true,
+			stops: [
+				{ position: 0, color: '000000', transparency: 10 },
+				{ position: 100, color: '333333', transparency: 50 },
+			],
+		},
+	})
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(slideXml.includes('<a:gradFill'), 'gradFill present')
+	assert.ok(slideXml.includes('<a:lin ang="2700000" scaled="1"/>'), 'linear angle 45°')
+	assert.ok(slideXml.includes('<a:gs pos="0"><a:srgbClr val="000000"><a:alpha val="90000"/>'), 'stop 0')
+	assert.ok(slideXml.includes('<a:gs pos="100000"><a:srgbClr val="333333"><a:alpha val="50000"/>'), 'stop 100')
+})
+
+test('rafalBujok/define_color_theme: theme.themeColors writes clrScheme + ModifiedThemeColor tint', async () => {
+	const pptx = new pptxgen()
+	pptx.defineLayout({ name: 'LAYOUT_16x9', width: 10, height: 5.625 })
+	pptx.layout = 'LAYOUT_16x9'
+	pptx.theme = {
+		themeColors: [
+			'1B1B1B', 'FFFFFF', '2D2D2D', 'F0F0F0',
+			'0B5FFF', 'FF6B00', '6B7280', 'F59E0B', '06B6D4', '10B981',
+			'2563EB', 'BE185D',
+		],
+	}
+	const slide = pptx.addSlide()
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 0.5, y: 0.5, w: 2, h: 1,
+		fill: { type: 'solid', color: { baseColor: 'accent1', tint: 40 } },
+	})
+
+	const zip = await writeZip(pptx)
+	const theme = await readPart(zip, 'ppt/theme/theme1.xml')
+	assert.ok(theme.includes('name="Custom Theme"'), 'custom theme name')
+	assert.ok(theme.includes('<a:accent1><a:srgbClr val="0B5FFF"/></a:accent1>'), 'accent1 from themeColors')
+	assert.ok(theme.includes('<a:dk1><a:sysClr val="windowText" lastClr="1B1B1B"/></a:dk1>'), 'dk1 lastClr')
+
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(
+		slideXml.includes('<a:schemeClr val="accent1"><a:tint val="40000"/></a:schemeClr>'),
+		'ModifiedThemeColor tint on shape fill'
 	)
 })

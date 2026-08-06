@@ -3,7 +3,7 @@
  */
 
 import { EMU, REGEX_HEX_COLOR, DEF_FONT_COLOR, DEF_TEXT_GLOW, ONEPT, SchemeColor, SCHEME_COLORS } from './core-enums'
-import { PresLayout, TextGlowProps, PresSlide, SlideLayout, ShapeFillProps, Color, ShapeLineProps, Coord, ShadowProps, ShapeGradientProps } from './core-interfaces'
+import { PresLayout, TextGlowProps, PresSlide, SlideLayout, ShapeFillProps, Color, ShapeLineProps, Coord, ShadowProps, ShapeGradientProps, ShapePatternProps, ModifiedThemeColor, ThemeProps, HexColor } from './core-interfaces'
 
 /** debug namespace, used for both the log prefix and the `NODE_DEBUG` section name */
 const DEBUG_NS = 'pptxgenjs'
@@ -24,6 +24,42 @@ export function isDebugEnabled (): boolean {
  */
 export function debugLog (...args: unknown[]): void {
 	if (isDebugEnabled()) console.debug(`[${DEBUG_NS}]`, ...args)
+}
+
+/**
+ * Recolor SVG markup for Martin-N `image.fill` (hex only)
+ * - Replaces existing `"#RRGGBB"` / `"#RGB"` attribute values, or adds `fill` on bare `<path>` tags
+ */
+export function applySvgFillColor (svgText: string, color: string | undefined): string {
+	if (!color || typeof color !== 'string') return svgText
+	const hex = color.replace(/^#/, '')
+	if (!/^[0-9A-Fa-f]{3}$|^[0-9A-Fa-f]{6}$/.test(hex)) return svgText
+
+	const hexAttr = /"#[0-9A-Fa-f]{3,6}"/g
+	if (hexAttr.test(svgText)) {
+		return svgText.replace(/"#[0-9A-Fa-f]{3,6}"/g, `"#${hex}"`)
+	}
+	return svgText.replace(/<path(\s)/g, `<path fill="#${hex}"$1`)
+}
+
+/**
+ * Apply `fill.color` to a base64 / data-URL SVG payload; returns unchanged input when not SVG text
+ */
+export function applySvgFillToDataUrl (data: string, color: string | undefined): string {
+	if (!color || !data) return data
+	const hdr = 'base64,'
+	const idx = data.indexOf(hdr)
+	const b64 = idx > -1 ? data.substring(idx + hdr.length) : data
+	if (typeof Buffer === 'undefined') return data
+	try {
+		const svgText = Buffer.from(b64, 'base64').toString('utf8')
+		if (!svgText.includes('<svg') && !svgText.includes('<path')) return data
+		const recolored = applySvgFillColor(svgText, color)
+		const outB64 = Buffer.from(recolored, 'utf8').toString('base64')
+		return idx > -1 ? data.substring(0, idx + hdr.length) + outB64 : outB64
+	} catch {
+		return data
+	}
 }
 
 /** friendly `dataLabelPosition` names mapped to their OOXML `c:dLblPos` codes (the codes stay accepted too) */
@@ -184,6 +220,19 @@ export function valToPts (pt: number | string | undefined): number {
 }
 
 /**
+ * Convert a margin component to EMU (same dual-unit rule as table cells)
+ * - `>= 1` → points (`valToPts`)
+ * - `< 1` → inches (`inch2Emu`)
+ * Used so text margins stay consistent with table margins (mikemeerschaert/fix-inconsistent-margins)
+ * @param {number} val margin component
+ * @returns {number} EMU
+ */
+export function marginToEmu (val: number): number {
+	const n = Number(val) || 0
+	return n >= 1 ? valToPts(n) : inch2Emu(n)
+}
+
+/**
  * Convert degrees (0..360) to PowerPoint `rot` value
  * @param {number} d degrees
  * @returns {number} calculated `rot` value
@@ -214,6 +263,83 @@ export function rgbToHex (r: number, g: number, b: number): string {
 	return (componentToHex(r) + componentToHex(g) + componentToHex(b)).toUpperCase()
 }
 
+/** Office theme defaults: dk1, lt1, dk2, lt2, accent1-6, hlink, folHlink */
+export const DEF_THEME_COLORS: readonly HexColor[] = [
+	'000000', 'FFFFFF', '44546A', 'E7E6E6',
+	'4472C4', 'ED7D31', 'A5A5A5', 'FFC000', '5B9BD5', '70AD47',
+	'0563C1', '954F72',
+]
+
+/**
+ * Validate/normalize `theme.themeColors` to exactly 12 hex RGB values.
+ * Invalid length or entries fall back to Office defaults (with a warning).
+ */
+export function resolveThemeColors (theme?: ThemeProps): HexColor[] {
+	const input = theme?.themeColors
+	if (!input) return [...DEF_THEME_COLORS]
+	if (input.length !== 12) {
+		console.warn(`[pptxgenjs] theme.themeColors must contain exactly 12 hex colors (got ${input.length}); using Office defaults`)
+		return [...DEF_THEME_COLORS]
+	}
+	return input.map((raw, idx) => {
+		const hex = String(raw || '').replace('#', '').toUpperCase()
+		if (!REGEX_HEX_COLOR.test(hex)) {
+			console.warn(`[pptxgenjs] theme.themeColors[${idx}]="${raw}" is not a valid 6-digit hex; using default ${DEF_THEME_COLORS[idx]}`)
+			return DEF_THEME_COLORS[idx]
+		}
+		return hex
+	})
+}
+
+export function isModifiedThemeColor (value: unknown): value is ModifiedThemeColor {
+	return typeof value === 'object' && value !== null && 'baseColor' in value
+}
+
+/** Percent-based OOXML color transforms (0-100 → val*1000) */
+const PERCENT_COLOR_MODIFIERS = [
+	'alpha', 'alphaMod', 'alphaOff',
+	'blue', 'blueMod', 'blueOff',
+	'green', 'greenMod', 'greenOff',
+	'red', 'redMod', 'redOff',
+	'lum', 'lumMod', 'lumOff',
+	'sat', 'satMod', 'satOff',
+	'shade', 'tint',
+	'hueMod', // hue modulation is a percentage, unlike hue/hueOff
+] as const
+
+const FLAG_COLOR_MODIFIERS = ['comp', 'gray', 'inv', 'gamma'] as const
+
+/**
+ * Emit DrawingML color transform children for a ModifiedThemeColor.
+ * Careful vs upstream: hue/hueOff use fixed-angle units (deg×60000), not percent×1000.
+ */
+function handleModifiedColorProps (color: ModifiedThemeColor): string {
+	let output = ''
+
+	// OOXML percent units: API 0–100 → val*1000. Do not clamp — lumMod/satMod etc. routinely exceed 100.
+	for (const modifier of PERCENT_COLOR_MODIFIERS) {
+		const value = color[modifier]
+		if (typeof value === 'number' && !Number.isNaN(value)) {
+			output += `<a:${modifier} val="${Math.round(value * 1000)}"/>`
+		}
+	}
+
+	// ST_PositiveFixedAngle / ST_FixedAngle — degrees × 60000
+	if (typeof color.hue === 'number' && !Number.isNaN(color.hue)) {
+		const deg = ((color.hue % 360) + 360) % 360
+		output += `<a:hue val="${Math.round(deg * 60000)}"/>`
+	}
+	if (typeof color.hueOff === 'number' && !Number.isNaN(color.hueOff)) {
+		output += `<a:hueOff val="${Math.round(color.hueOff * 60000)}"/>`
+	}
+
+	for (const modifier of FLAG_COLOR_MODIFIERS) {
+		if (color[modifier]) output += `<a:${modifier}/>`
+	}
+
+	return output
+}
+
 /**  TODO: FUTURE: TODO-4.0:
  * @date 2022-04-10
  * @tldr this s/b a private method with all current calls switched to `genXmlColorSelection()`
@@ -223,12 +349,19 @@ export function rgbToHex (r: number, g: number, b: number): string {
  */
 /**
  * Create either a `a:schemeClr` - (scheme color) or `a:srgbClr` (hexa representation).
- * @param {string|SCHEME_COLORS} colorStr - hexa representation (eg. "FFFF00") or a scheme color constant (eg. pptx.SchemeColor.ACCENT1)
+ * @param {Color|SCHEME_COLORS} colorInput - hex, scheme token, or ModifiedThemeColor
  * @param {string} innerElements - additional elements that adjust the color and are enclosed by the color element
  * @returns {string} XML string
  */
-export function createColorElement (colorStr: string | SCHEME_COLORS | undefined, innerElements?: string): string {
+export function createColorElement (colorInput: Color | SCHEME_COLORS | undefined, innerElements?: string): string {
+	const base = isModifiedThemeColor(colorInput) ? colorInput.baseColor : colorInput
+	const colorStr = typeof base === 'string' ? base : DEF_FONT_COLOR
 	let colorVal = (colorStr || '').replace('#', '')
+
+	let kids = innerElements || ''
+	if (isModifiedThemeColor(colorInput)) {
+		kids += handleModifiedColorProps(colorInput)
+	}
 
 	if (
 		!REGEX_HEX_COLOR.test(colorVal) &&
@@ -250,7 +383,7 @@ export function createColorElement (colorStr: string | SCHEME_COLORS | undefined
 	const tagName = REGEX_HEX_COLOR.test(colorVal) ? 'srgbClr' : 'schemeClr'
 	const colorAttr = 'val="' + (REGEX_HEX_COLOR.test(colorVal) ? colorVal.toUpperCase() : colorVal) + '"'
 
-	return innerElements ? `<a:${tagName} ${colorAttr}>${innerElements}</a:${tagName}>` : `<a:${tagName} ${colorAttr}/>`
+	return kids ? `<a:${tagName} ${colorAttr}>${kids}</a:${tagName}>` : `<a:${tagName} ${colorAttr}/>`
 }
 
 /**
@@ -292,49 +425,98 @@ export function createGlowElement (glow: ResolvedGlowProps): string {
 }
 
 /**
+ * Normalize nested `type:'gradient'` or flat `type:'linearGradient'` (sambauers) into ShapeGradientProps.
+ */
+function resolveGradientProps (props: ShapeFillProps): ShapeGradientProps | undefined {
+	if (props.type === 'linearGradient') {
+		return {
+			type: 'linear',
+			angle: props.angle,
+			scaled: props.scaled,
+			rotateWithShape: props.rotWithShape ?? props.gradient?.rotateWithShape,
+			rotWithShape: props.rotWithShape,
+			flip: props.flip ?? props.gradient?.flip,
+			tileRect: props.tileRect ?? props.gradient?.tileRect,
+			stops: props.stops ?? props.gradient?.stops ?? [],
+		}
+	}
+	return props.gradient
+}
+
+/**
  * Create a DrawingML gradient fill element (`a:gradFill`)
  * @param {ShapeGradientProps | undefined} gradient gradient definition
- * @param {string} fallbackColor color used if the gradient is unusable (fewer than 2 stops)
+ * @param {Color | string} fallbackColor color used if the gradient is unusable (fewer than 2 stops)
  * @param {string} fallbackInner alpha element(s) for the fallback solid fill
  * @returns {string} XML string
  * @see http://officeopenxml.com/drwSp-GradFill.php
  * @note MS-PPT (CT_GradientStopList) requires a minimum of 2 stops; we degrade to a solid fill rather than emit invalid XML
  */
-function createGradientFillElement (gradient: ShapeGradientProps | undefined, fallbackColor: string, fallbackInner: string): string {
+function createGradientFillElement (gradient: ShapeGradientProps | undefined, fallbackColor: Color | string, fallbackInner: string): string {
 	const stops = (gradient?.stops ?? [])
 		.filter(stop => stop && stop.color !== undefined && stop.color !== null)
-		.map(stop => ({
-			color: stop.color,
-			// @note `pos` is clamped: ST_PositiveFixedPercentage only permits 0-100000 (0-100%)
-			pos: Math.round(Math.min(100, Math.max(0, Number(stop.pos) || 0)) * 1000),
-			transparency: stop.transparency,
-		}))
+		.map(stop => {
+			const pct = stop.pos ?? stop.position ?? 0
+			return {
+				color: stop.color,
+				// @note `pos` is clamped: ST_PositiveFixedPercentage only permits 0-100000 (0-100%)
+				pos: Math.round(Math.min(100, Math.max(0, Number(pct) || 0)) * 1000),
+				transparency: stop.transparency,
+			}
+		})
 		// @note MS-PPT renders stops in document order, so sort ascending to make `pos` authoritative
 		.sort((a, b) => a.pos - b.pos)
 
 	if (stops.length < 2) {
 		// @note fall back rather than emit `<a:gsLst>` with too few stops, which MS-PPT flags as needing repair
 		console.warn('`gradient.stops` requires at least 2 stops! A solid fill was used instead.')
-		const soleColor = stops.length === 1 ? String(stops[0].color) : fallbackColor
+		const soleColor = stops.length === 1 ? stops[0].color : fallbackColor
 		return soleColor ? `<a:solidFill>${createColorElement(soleColor, fallbackInner)}</a:solidFill>` : ''
 	}
 
 	const gsLst = stops
 		.map(stop => {
 			const inner = typeof stop.transparency === 'number' ? `<a:alpha val="${Math.round((100 - Math.min(100, Math.max(0, stop.transparency))) * 1000)}"/>` : ''
-			return `<a:gs pos="${stop.pos}">${createColorElement(String(stop.color), inner)}</a:gs>`
+			return `<a:gs pos="${stop.pos}">${createColorElement(stop.color, inner)}</a:gs>`
 		})
 		.join('')
 
-	const rotateWithShape = gradient?.rotateWithShape === false ? 0 : 1
+	const rotateWithShape = gradient?.rotateWithShape === false || gradient?.rotWithShape === false ? 0 : 1
+	const flip = gradient?.flip && gradient.flip !== 'none' ? ` flip="${gradient.flip}"` : ''
+
+	let tileRectXml = ''
+	const tr = gradient?.tileRect
+	if (tr && (typeof tr.t === 'number' || typeof tr.r === 'number' || typeof tr.b === 'number' || typeof tr.l === 'number')) {
+		const attrs: string[] = []
+		if (typeof tr.t === 'number') attrs.push(`t="${Math.round(tr.t * 1000)}"`)
+		if (typeof tr.r === 'number') attrs.push(`r="${Math.round(tr.r * 1000)}"`)
+		if (typeof tr.b === 'number') attrs.push(`b="${Math.round(tr.b * 1000)}"`)
+		if (typeof tr.l === 'number') attrs.push(`l="${Math.round(tr.l * 1000)}"`)
+		tileRectXml = `<a:tileRect ${attrs.join(' ')}/>`
+	}
+
 	const geometry = gradient?.type === 'radial'
 		? '<a:path path="circle"></a:path>'
 		: (() => {
 			// @note `ang` is ST_PositiveFixedAngle (0 to 21599999, in 60000ths of a degree), so normalize into 0-359 first
+			// Always emit `<a:lin>` (unlike sambauers, which skipped angle 0 / falsy)
 			const degrees = ((Number(gradient?.angle) || 0) % 360 + 360) % 360
-			return `<a:lin ang="${Math.round(degrees * 60000)}" scaled="${gradient?.scaled === true ? 1 : 0}"/>`
+			// truthy so sambauers demos using `scaled: 1` still work
+			return `<a:lin ang="${Math.round(degrees * 60000)}" scaled="${gradient?.scaled ? 1 : 0}"/>`
 		})()
-	return `<a:gradFill rotWithShape="${rotateWithShape}"><a:gsLst>${gsLst}</a:gsLst>${geometry}</a:gradFill>`
+	return `<a:gradFill rotWithShape="${rotateWithShape}"${flip}><a:gsLst>${gsLst}</a:gsLst>${geometry}${tileRectXml}</a:gradFill>`
+}
+
+/**
+ * Create a DrawingML pattern fill element (`a:pattFill`)
+ * Selective port of hakrueger/pattern — uses createColorElement so theme colors work.
+ * @see http://officeopenxml.com/drwSp-patternFill.php
+ */
+function createPatternFillElement (pattern: ShapePatternProps | undefined, fallbackFg: string): string {
+	const prst = pattern?.prst || 'cross'
+	const fg = String(pattern?.color || fallbackFg || '000000')
+	const bg = String(pattern?.bgColor || 'FFFFFF')
+	return `<a:pattFill prst="${prst}"><a:bgClr>${createColorElement(bg)}</a:bgClr><a:fgClr>${createColorElement(fg)}</a:fgClr></a:pattFill>`
 }
 
 /**
@@ -344,13 +526,17 @@ function createGradientFillElement (gradient: ShapeGradientProps | undefined, fa
  */
 export function genXmlColorSelection (props: Color | ShapeFillProps | ShapeLineProps | undefined): string {
 	let fillType = 'solid'
-	let colorVal = ''
+	let colorVal: Color = ''
 	let internalElements = ''
 	let outText = ''
 
 	if (props) {
-		if (typeof props === 'string') colorVal = props
-		else {
+		// ModifiedThemeColor as a bare Color value (must not be treated as ShapeFillProps)
+		if (typeof props === 'string') {
+			colorVal = props
+		} else if (isModifiedThemeColor(props)) {
+			colorVal = props
+		} else {
 			if (props.type) fillType = props.type
 			if (props.color) colorVal = props.color
 			if (props.alpha) internalElements += `<a:alpha val="${Math.round((100 - props.alpha) * 1000)}"/>` // DEPRECATED: @deprecated v3.3.0
@@ -362,7 +548,18 @@ export function genXmlColorSelection (props: Color | ShapeFillProps | ShapeLineP
 				outText += `<a:solidFill>${createColorElement(colorVal, internalElements)}</a:solidFill>`
 				break
 			case 'gradient':
-				outText += createGradientFillElement(typeof props === 'string' ? undefined : props.gradient, colorVal, internalElements)
+			case 'linearGradient':
+				outText += createGradientFillElement(
+					typeof props === 'string' || isModifiedThemeColor(props) ? undefined : resolveGradientProps(props),
+					colorVal || '',
+					internalElements,
+				)
+				break
+			case 'pattern':
+				outText += createPatternFillElement(
+					typeof props === 'string' || isModifiedThemeColor(props) ? undefined : props.pattern,
+					typeof colorVal === 'string' ? colorVal : String(colorVal.baseColor),
+				)
 				break
 			default: // @note need a statement as having only "break" is removed by rollup, then tiggers "no-default" js-linter
 				outText += ''

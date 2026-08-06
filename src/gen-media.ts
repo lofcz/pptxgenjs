@@ -5,6 +5,7 @@
 import { imageSize } from 'image-size'
 import { IMG_BROKEN, SLIDE_OBJECT_TYPES } from './core-enums'
 import { PresSlide, SlideLayout, ISlideRelMedia } from './core-interfaces'
+import { applySvgFillColor, applySvgFillToDataUrl } from './gen-utils'
 
 /** Images are measured in pixels; PowerPoint slide dimensions are inches at 96 DPI */
 const IMAGE_DPI = 96
@@ -102,8 +103,18 @@ export function encodeSlideMediaRels(layout: PresSlide | SlideLayout): Array<Pro
 					// ────────────  NODE LOCAL FILE  ────────────
 					if (isNode && fs && relPath.indexOf('http') !== 0) {
 						try {
-							const bitmap = fs.readFileSync(relPath)
-							rel.data = Buffer.from(bitmap).toString('base64')
+							const svgFill = typeof rel.fill?.color === 'string' ? rel.fill.color : undefined
+							// Martin-N: SVG recolor needs UTF-8 text, not binary
+							if (svgFill && (rel.type === 'image/svg+xml' || rel.extn === 'svg')) {
+								const svgText = applySvgFillColor(fs.readFileSync(relPath, 'utf8'), svgFill)
+								rel.data = Buffer.from(svgText, 'utf8').toString('base64')
+							} else {
+								const bitmap = fs.readFileSync(relPath)
+								rel.data = Buffer.from(bitmap).toString('base64')
+								if (svgFill && typeof rel.data === 'string') {
+									rel.data = applySvgFillToDataUrl(rel.data, svgFill)
+								}
+							}
 							candidateRels
 								.filter(dupe => dupe.isDuplicate && dupe.path === rel.path)
 								.forEach(dupe => (dupe.data = rel.data))

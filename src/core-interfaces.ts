@@ -47,6 +47,22 @@ export interface PositionProps {
 	 */
 	w?: Coord
 }
+
+/**
+ * Convenience entrance animation: appear on click
+ * - Alias for `animation: { type: 'appear', trigger: 'onClick' }`
+ * - Ignored when `animation` is also set
+ * @see MelleB/feat/appear-on-click (PR #1202)
+ */
+export interface AppearOnClickProps {
+	/**
+	 * Appear on click
+	 * @default false
+	 * @example true // entrance "Appear" triggered by click
+	 */
+	appearOnClick?: boolean
+}
+
 /**
  * Either `data` or `path` is required
  */
@@ -85,10 +101,202 @@ export interface BackgroundProps extends DataOrPathProps, ShapeFillProps {
  */
 export type HexColor = string
 export type ThemeColor = 'tx1' | 'tx2' | 'bg1' | 'bg2' | 'accent1' | 'accent2' | 'accent3' | 'accent4' | 'accent5' | 'accent6'
-export type Color = HexColor | ThemeColor
+/**
+ * Color value: hex RGB, scheme token, or a scheme/hex color with OOXML transforms
+ * (selective port of rafalBujok/define_color_theme + allow_modified_color_theme)
+ */
+export type Color = HexColor | ThemeColor | ModifiedThemeColor
 export type Margin = number | [number, number, number, number]
 export type HAlign = 'left' | 'center' | 'right' | 'justify'
 export type VAlign = 'top' | 'middle' | 'bottom'
+
+/**
+ * Theme/hex color with DrawingML color transforms (`a:tint`, `a:shade`, `a:lumMod`, …)
+ * - Percent fields are 0-100 (written as OOXML 0-100000)
+ * - `hue` / `hueOff` are degrees (written as OOXML fixed-angle = deg × 60000)
+ * @example { baseColor: 'accent1', tint: 40 }
+ * @example { baseColor: 'FF0000', shade: 50, alpha: 80 }
+ */
+export interface ModifiedThemeColor {
+	baseColor: HexColor | ThemeColor
+	/** Opacity percent 0-100 (OOXML `a:alpha`) */
+	alpha?: number
+	alphaMod?: number
+	alphaOff?: number
+	blue?: number
+	blueMod?: number
+	blueOff?: number
+	green?: number
+	greenMod?: number
+	greenOff?: number
+	red?: number
+	redMod?: number
+	redOff?: number
+	/** Hue in degrees 0-359 (OOXML `a:hue`) */
+	hue?: number
+	/** Hue modulation percent 0-100 */
+	hueMod?: number
+	/** Hue offset in degrees */
+	hueOff?: number
+	lum?: number
+	lumMod?: number
+	lumOff?: number
+	sat?: number
+	satMod?: number
+	satOff?: number
+	shade?: number
+	tint?: number
+	comp?: boolean
+	gray?: boolean
+	inv?: boolean
+	gamma?: boolean
+}
+
+/**
+ * Animation Properties
+ * @see https://github.com/BapunHansdah/PptxGenJS/tree/release/pptxgenjs-animations
+ */
+export type AnimationTrigger = 'onClick' | 'withPrevious' | 'afterPrevious'
+
+export type EntranceAnimation =
+	| 'appear' | 'fadein' | 'flyin' | 'floatin' | 'split' | 'wipe'
+	| 'shape' | 'wheel' | 'randombars' | 'zoom'
+	| 'growandturn' | 'swivel' | 'bounce'
+
+export type EmphasisAnimation =
+	| 'pulse' | 'colorpulse' | 'teeter' | 'spin' | 'growshrink'
+	| 'desaturate' | 'darken' | 'lighten' | 'transparency'
+	| 'objectcolor' | 'complementarycolor' | 'linecolor' | 'fillcolor'
+
+export type ExitAnimation =
+	| 'disappear' | 'fadeout' | 'flyout' | 'floatout' | 'splitexit'
+	| 'wipeexit' | 'shapeexit' | 'wheelexit' | 'randombarsexit'
+	| 'shrinkandturn' | 'zoomexit' | 'swivelexit' | 'bounceexit'
+
+export type PathAnimation =
+	| 'pathdown' | 'patharcdown' | 'pathturnright' | 'pathcircle' | 'pathzigzag'
+
+export type AnimationType = EntranceAnimation | EmphasisAnimation | ExitAnimation | PathAnimation
+
+export type FlyDirection =
+	| 'top' | 'bottom' | 'left' | 'right'
+	| 'topLeft' | 'topRight'
+	| 'bottomLeft' | 'bottomRight'
+
+export type SplitDirection = 'horizontalIn' | 'horizontalOut' | 'verticalIn' | 'verticalOut'
+/** Matches PowerPoint wipe presetSubtype directions used by gen-animations */
+export type WipeDirection = 'bottom' | 'top' | 'left' | 'right'
+export type ShapeMaskType = 'circle' | 'box' | 'diamond' | 'plus'
+export type ShapeDirection = 'in' | 'out'
+export type FloatDirection = 'floatUp' | 'floatDown'
+export type ZoomDirection = 'slideCenter' | 'objectCenter'
+export type SpinDirection = 'clockwise' | 'counterClockwise'
+export type SpinAmount = 'quarterSpin' | 'halfSpin' | 'fullSpin' | 'twoSpins'
+export type GrowShrinkDirection = 'horizontal' | 'vertical' | 'both'
+export type GrowShrinkAmount = 'tiny' | 'smaller' | 'larger' | 'huge'
+export type TransparencyLevel = '25%' | '50%' | '75%' | '100%' | number
+
+export interface BaseAnimationConfig {
+	type: AnimationType
+	trigger?: AnimationTrigger
+	/** Duration in milliseconds */
+	duration?: number
+	/** Delay in milliseconds */
+	delay?: number
+	/** Advanced: override animation class */
+	class?: 'entr' | 'emph' | 'exit' | 'path'
+	/** Advanced: override PowerPoint preset ID */
+	presetID?: number
+	/** Advanced: override PowerPoint preset subtype */
+	presetSubtype?: number
+}
+
+export interface FlyAnimationConfig extends BaseAnimationConfig {
+	type: 'flyin' | 'flyout'
+	direction?: FlyDirection
+}
+
+export interface FloatAnimationConfig extends BaseAnimationConfig {
+	type: 'floatin' | 'floatout'
+	direction?: FloatDirection
+}
+
+export interface SplitAnimationConfig extends BaseAnimationConfig {
+	type: 'split' | 'splitexit'
+	direction?: SplitDirection
+}
+
+export interface WipeAnimationConfig extends BaseAnimationConfig {
+	type: 'wipe' | 'wipeexit'
+	direction?: WipeDirection
+}
+
+export interface ShapeAnimationConfig extends BaseAnimationConfig {
+	type: 'shape' | 'shapeexit'
+	shape?: ShapeMaskType
+	direction?: ShapeDirection
+}
+
+export interface WheelAnimationConfig extends BaseAnimationConfig {
+	type: 'wheel' | 'wheelexit'
+	spokes?: 1 | 2 | 3 | 4 | 8
+}
+
+export interface RandomBarsAnimationConfig extends BaseAnimationConfig {
+	type: 'randombars' | 'randombarsexit'
+	direction?: 'horizontal' | 'vertical'
+}
+
+export interface ZoomAnimationConfig extends BaseAnimationConfig {
+	type: 'zoom' | 'zoomexit'
+	direction?: ZoomDirection
+}
+
+export interface SpinAnimationConfig extends BaseAnimationConfig {
+	type: 'spin'
+	direction?: SpinDirection
+	amount?: SpinAmount
+}
+
+export interface GrowShrinkAnimationConfig extends BaseAnimationConfig {
+	type: 'growshrink'
+	direction?: GrowShrinkDirection
+	amount?: GrowShrinkAmount
+}
+
+export interface ColorAnimationConfig extends BaseAnimationConfig {
+	type: 'colorpulse' | 'objectcolor' | 'linecolor' | 'fillcolor'
+	/** Hex color without '#', e.g. 'FFFF00' */
+	color?: string
+}
+
+export interface TransparencyAnimationConfig extends BaseAnimationConfig {
+	type: 'transparency'
+	level?: TransparencyLevel
+}
+
+export type AnimationConfig =
+	| BaseAnimationConfig
+	| FlyAnimationConfig
+	| FloatAnimationConfig
+	| SplitAnimationConfig
+	| WipeAnimationConfig
+	| ShapeAnimationConfig
+	| WheelAnimationConfig
+	| RandomBarsAnimationConfig
+	| ZoomAnimationConfig
+	| SpinAnimationConfig
+	| GrowShrinkAnimationConfig
+	| ColorAnimationConfig
+	| TransparencyAnimationConfig
+
+/** Internal: object index + resolved animation for slide timing XML */
+export interface SlideObjectAnimation {
+	objectIndex: number
+	/** DrawingML `cNvPr` id (honors explicit `sId` when set) */
+	shapeId: number
+	animation: AnimationConfig
+}
 
 // used by charts, shape, text
 export interface BorderProps {
@@ -181,11 +389,49 @@ export interface ShadowProps {
 	 */
 	rotateWithShape?: boolean
 }
+/**
+ * OOXML preset pattern values for `a:pattFill`
+ * @see ECMA-376 ST_PresetPatternVal
+ * @see https://github.com/hakrueger/PptxGenJS/tree/pattern
+ */
+export type PresetPatternValues =
+	| 'cross' | 'dkDnDiag' | 'dkHorz' | 'dkUpDiag' | 'dkVert'
+	| 'dashDnDiag' | 'dashHorz' | 'dashUpDiag' | 'dashVert'
+	| 'diagBrick' | 'diagCross' | 'divot' | 'dotGrid' | 'dotDmnd'
+	| 'dnDiag' | 'horz' | 'horzBrick' | 'lgCheck' | 'lgConfetti' | 'lgGrid'
+	| 'ltDnDiag' | 'ltHorz' | 'ltUpDiag' | 'ltVert' | 'narHorz' | 'narVert'
+	| 'openDmnd' | 'pct5' | 'pct10' | 'pct20' | 'pct25' | 'pct30' | 'pct40'
+	| 'pct50' | 'pct60' | 'pct70' | 'pct75' | 'pct80' | 'pct90'
+	| 'plaid' | 'shingle' | 'smCheck' | 'smConfetti' | 'smGrid' | 'solidDmnd'
+	| 'sphere' | 'trellis' | 'upDiag' | 'vert' | 'wave' | 'weave'
+	| 'wdDnDiag' | 'wdUpDiag' | 'zigZag'
+
+export interface ShapePatternProps {
+	/**
+	 * Preset pattern
+	 * @default 'cross'
+	 */
+	prst?: PresetPatternValues
+	/**
+	 * Foreground (pattern) color
+	 * - falls back to top-level `ShapeFillProps.color` when omitted
+	 * @example '000000'
+	 */
+	color?: Color
+	/**
+	 * Background color
+	 * @default 'FFFFFF'
+	 * @example 'FFFFFF'
+	 */
+	bgColor?: Color
+}
+
 // used by: shape, table, text
 export interface ShapeFillProps {
 	/**
 	 * Fill color
 	 * - `HexColor` or `ThemeColor`
+	 * - for `type:'pattern'`, used as the foreground color when `pattern.color` is omitted
 	 * @example 'FF0000' // hex color (red)
 	 * @example pptx.SchemeColor.text1 // Theme color (Text1)
 	 */
@@ -200,20 +446,59 @@ export interface ShapeFillProps {
 	/**
 	 * Fill type
 	 * @default 'solid'
+	 * - `'gradient'` — nested definition via `gradient` (linear + radial)
+	 * - `'linearGradient'` — flat sambauers/gradients API (`stops`/`angle`/… on this object)
+	 * - `'pattern'` — pattern fill via `pattern`
 	 */
-	type?: 'none' | 'solid' | 'gradient'
+	type?: 'none' | 'solid' | 'gradient' | 'linearGradient' | 'pattern'
 	/**
 	 * Gradient fill definition
 	 * - required when `type` is `'gradient'` (ignored otherwise)
 	 * @example { type:'gradient', gradient:{ angle:90, stops:[{pos:0,color:'FF0000'},{pos:100,color:'0000FF'}] } }
 	 */
 	gradient?: ShapeGradientProps
+	/**
+	 * Pattern fill definition (from hakrueger/pattern)
+	 * - used when `type` is `'pattern'`
+	 * @example { type:'pattern', pattern:{ prst:'ltHorz', color:'000000', bgColor:'FFFFFF' } }
+	 */
+	pattern?: ShapePatternProps
+
+	/**
+	 * Flat linear-gradient stops (`type: 'linearGradient'`, sambauers/gradients)
+	 * @example { type:'linearGradient', angle:45, stops:[{position:0,color:'000000'},{position:100,color:'333333'}] }
+	 */
+	stops?: ShapeGradientStopProps[]
+	/** Linear gradient angle in degrees (`type: 'linearGradient'`) */
+	angle?: number
+	/** Whether the gradient angle scales with the fill region (`type: 'linearGradient'`) */
+	scaled?: boolean
+	/**
+	 * Whether the gradient rotates with its shape (`type: 'linearGradient'`)
+	 * @default true
+	 */
+	rotWithShape?: boolean
+	/** Gradient flip (`type: 'linearGradient'` / nested `gradient.flip`) */
+	flip?: ShapeGradientFlip
+	/** Tile rectangle percents 0-100 (`type: 'linearGradient'` / nested `gradient.tileRect`) */
+	tileRect?: ShapeGradientTileRect
 
 	/**
 	 * Transparency (percent)
 	 * @deprecated v3.3.0 - use `transparency`
 	 */
 	alpha?: number
+}
+export type ShapeGradientFlip = 'none' | 'x' | 'xy' | 'y'
+export interface ShapeGradientTileRect {
+	/** Top inset percent 0-100 */
+	t?: number
+	/** Right inset percent 0-100 */
+	r?: number
+	/** Bottom inset percent 0-100 */
+	b?: number
+	/** Left inset percent 0-100 */
+	l?: number
 }
 export interface ShapeGradientStopProps {
 	/**
@@ -225,7 +510,12 @@ export interface ShapeGradientStopProps {
 	 * Stop position along the gradient (percent)
 	 * - range: 0-100 (values outside the range are clamped)
 	 */
-	pos: number
+	pos?: number
+	/**
+	 * Alias of `pos` (sambauers/gradients API)
+	 * - range: 0-100
+	 */
+	position?: number
 	/**
 	 * Stop transparency (percent)
 	 * - range: 0-100
@@ -257,9 +547,23 @@ export interface ShapeGradientProps {
 	 */
 	rotateWithShape?: boolean
 	/**
+	 * Alias of `rotateWithShape` (sambauers/gradients API)
+	 * @default true
+	 */
+	rotWithShape?: boolean
+	/**
+	 * Gradient flip direction (DrawingML `a:gradFill@flip`)
+	 * @default 'none'
+	 */
+	flip?: ShapeGradientFlip
+	/**
+	 * Tile rectangle insets (percent 0-100) — DrawingML `a:tileRect`
+	 */
+	tileRect?: ShapeGradientTileRect
+	/**
 	 * Gradient color stops
 	 * - MS-PPT requires **at least 2 stops**; fewer degrades to a solid fill
-	 * - stops are sorted by `pos` before being written
+	 * - stops are sorted by `pos`/`position` before being written
 	 */
 	stops: ShapeGradientStopProps[]
 }
@@ -284,6 +588,33 @@ export interface ShapeLineProps extends ShapeFillProps {
 	 * @since v3.3.0
 	 */
 	endArrowType?: 'none' | 'arrow' | 'diamond' | 'oval' | 'stealth' | 'triangle'
+	/**
+	 * Emit as a PowerPoint connector (`p:cxnSp`) attached to other shapes
+	 * - Auto-set when `sourceId` / `targetId` are provided
+	 * @see ZentoSoft/PptxGenJS connectors
+	 */
+	isConnector?: boolean
+	/**
+	 * Connected source shape id (`cNvPr` / `sId` of the start shape)
+	 */
+	sourceId?: number
+	/**
+	 * Connected target shape id (`cNvPr` / `sId` of the end shape)
+	 */
+	targetId?: number
+	/**
+	 * Source connection site index (see `pptx.anchor` for rect helpers)
+	 */
+	sourceAnchorPos?: number
+	/**
+	 * Target connection site index (see `pptx.anchor` for rect helpers)
+	 */
+	targetAnchorPos?: number
+	/**
+	 * Preset geometry adjustment values for bent/curved connectors
+	 * @example [50000] // mid bend for bentConnector3
+	 */
+	curveadjust?: number[]
 	// FUTURE: beginArrowSize (1-9)
 	// FUTURE: endArrowSize (1-9)
 
@@ -348,6 +679,12 @@ export interface TextBaseProps {
 		 * @example '25BA' // 'BLACK RIGHT-POINTING POINTER' (U+25BA)
 		 */
 		characterCode?: string
+		/**
+		 * Bullet color (`HexColor`, `ThemeColor`, or `ModifiedThemeColor`)
+		 * @example 'FF0000' // red
+		 * @example pptx.SchemeColor.accent1
+		 */
+		color?: Color
 		/**
 		 * Indentation (space between bullet and text) (points)
 		 * @since v3.3.0
@@ -464,7 +801,7 @@ export interface TextBaseProps {
 	 * `wordArtVert` = stacked
 	 * @default 'horz'
 	 */
-	textDirection?: 'horz' | 'vert' | 'vert270' | 'wordArtVert'
+	textDirection?: 'eaVert' | 'horz' | 'mongolianVert' | 'vert' | 'vert270' | 'wordArtVert' | 'wordArtVertRtl'
 	/**
 	 * Transparency (percent)
 	 * - MS-PPT > Format Shape > Text Options > Text Fill & Outline > Text Fill > Transparency
@@ -522,6 +859,14 @@ export interface ObjectNameProps {
 	 * @example 'Antenna Design 9'
 	 */
 	objectName?: string
+	/**
+	 * Explicit DrawingML shape id (`p:cNvPr@id`)
+	 * - Required when other shapes attach connectors via `line.sourceId` / `line.targetId`
+	 * - Must be unique on the slide; defaults to `slideObjectIndex + 2` when omitted
+	 * @see ZentoSoft/PptxGenJS connectors
+	 * @example 20
+	 */
+	sId?: number
 }
 export interface ThemeProps {
 	/**
@@ -536,12 +881,18 @@ export interface ThemeProps {
 	 * @default 'Calibri'
 	 */
 	bodyFontFace?: string
+	/**
+	 * Custom theme color scheme — exactly 12 hex colors, in order:
+	 * dk1, lt1, dk2, lt2, accent1–6, hlink, folHlink
+	 * @example ['1B1B1B','FFFFFF','44546A','E7E6E6','0B5FFF','ED7D31','A5A5A5','FFC000','5B9BD5','70AD47','0563C1','954F72']
+	 */
+	themeColors?: HexColor[]
 }
 
 // image / media ==================================================================================
 export type MediaType = 'audio' | 'online' | 'video'
 
-export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNameProps {
+export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNameProps, AppearOnClickProps {
 	/**
 	 * Alt Text value ("How would you describe this object and its contents to someone who is blind?")
 	 * - PowerPoint: [right-click on an image] > "Edit Alt Text..."
@@ -578,10 +929,18 @@ export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 */
 	rotate?: number
 	/**
-	 * Enable image rounding
+	 * Enable elliptical (circle/oval) image cropping
+	 * - When `rectRadius` is set, that takes precedence (rounded rectangle)
 	 * @default false
 	 */
 	rounding?: boolean
+	/**
+	 * Crop image to a rounded rectangle (from niranjan-uma-shankar/feature/html-to-pptx)
+	 * - values: 0.0 to 1.0 (0 = sharp corners, 1 = maximum rounding)
+	 * - when set, emits `prst="roundRect"` with an adjustment guide
+	 * @example 0.2 // 20% corner radius
+	 */
+	rectRadius?: number
 	/**
 	 * Shadow Props
 	 * - MS-PPT > Format Picture > Shadow
@@ -636,12 +995,25 @@ export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 * @example 25 // 25% transparent
 	 */
 	transparency?: number
+	/**
+	 * Recolor SVG paths (Martin-N)
+	 * - Hex `color` only; replaces existing `#RRGGBB` fills, or adds `fill` on bare `<path>` elements
+	 * @example { color: 'FF0000' }
+	 */
+	fill?: ShapeFillProps
+	/**
+	 * Animation configuration
+	 * - Can be a simple animation name or full configuration object
+	 * @example 'fadein'
+	 * @example { type: 'flyin', direction: 'left', duration: 1000 }
+	 */
+	animation?: string | AnimationConfig
 }
 /**
  * Add media (audio/video) to slide
  * @requires either `link` or `path`
  */
-export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNameProps {
+export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNameProps, AppearOnClickProps {
 	/**
 	 * Media type
 	 * - Use 'online' to embed a YouTube video (only supported in recent versions of PowerPoint)
@@ -677,7 +1049,7 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 
 // shapes =========================================================================================
 
-export interface ShapeProps extends PositionProps, ObjectNameProps {
+export interface ShapeProps extends PositionProps, ObjectNameProps, AppearOnClickProps {
 	/**
 	 * Horizontal alignment
 	 * @default 'left'
@@ -782,6 +1154,13 @@ export interface ShapeProps extends PositionProps, ObjectNameProps {
 	 * @deprecated v3.10.0 - use `objectName`
 	 */
 	shapeName?: string
+	/**
+	 * Animation configuration
+	 * - Can be a simple animation name or full configuration object
+	 * @example 'fadein'
+	 * @example { type: 'flyin', direction: 'left', duration: 1000 }
+	 */
+	animation?: string | AnimationConfig
 }
 
 // tables =========================================================================================
@@ -913,8 +1292,13 @@ export interface TableCellProps extends TextBaseProps {
 	 * Cell rowspan
 	 */
 	rowspan?: number
+	/**
+	 * Text direction (Martin-N alias of `textDirection`)
+	 * @deprecated use `textDirection`
+	 */
+	vert?: 'eaVert' | 'horz' | 'mongolianVert' | 'vert' | 'vert270' | 'wordArtVert' | 'wordArtVertRtl'
 }
-export interface TableProps extends PositionProps, TextBaseProps, ObjectNameProps {
+export interface TableProps extends PositionProps, TextBaseProps, ObjectNameProps, AppearOnClickProps {
 	_arrObjTabHeadRows?: TableRow[]
 
 	/**
@@ -1031,6 +1415,13 @@ export interface TableProps extends PositionProps, TextBaseProps, ObjectNameProp
 	 */
 	tableStyleId?: string
 	/**
+	 * Animation configuration
+	 * - Can be a simple animation name or full configuration object
+	 * @example 'fadein'
+	 * @example { type: 'flyin', direction: 'left', duration: 1000 }
+	 */
+	animation?: string | AnimationConfig
+	/**
 	 * @deprecated v3.3.0 - use `autoPageSlideStartY`
 	 */
 	newSlideStartY?: number
@@ -1075,7 +1466,7 @@ export interface TextGlowProps {
 	size: number
 }
 
-export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBaseProps, ObjectNameProps {
+export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBaseProps, ObjectNameProps, AppearOnClickProps {
 	_bodyProp?: {
 		// Note: Many of these duplicated as user options are transformed to _bodyProp options for XML processing
 		autoFit?: boolean
@@ -1147,14 +1538,15 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 * @since v3.5.0
 	 */
 	lineSpacingMultiple?: number
-	// TODO: [20220219] powerpoint uses inches but library has always been pt... @future @deprecated - update in v4.0? [range: 0.0-22.0]
 	/**
-	 * Margin (points)
-	 * - PowerPoint: Format Shape > Shape Options > Size & Properties > Text Box > Left/Right/Top/Bottom margin
-	 * @default "Normal" margin in PowerPoint [3.5, 7.0, 3.5, 7.0] // (this library sets no value, but PowerPoint defaults to "Normal" [0.05", 0.1", 0.05", 0.1"])
-	 * @example 0 // Top/Right/Bottom/Left margin 0 [0.0" in powerpoint]
-	 * @example 10 // Top/Right/Bottom/Left margin 10 [0.14" in powerpoint]
-	 * @example [10,5,10,5] // Top margin 10, Right margin 5, Bottom margin 10, Left margin 5
+	 * Text box margin — array is **TRBL** (top, right, bottom, left), same as table margins
+	 * - values `>= 1` are points; values `< 1` are inches (same dual-unit rule as table cells)
+	 * - PowerPoint: Format Shape > Shape Options > Size & Properties > Text Box > margins
+	 * @example 0 // no margin
+	 * @example 10 // 10pt on all sides
+	 * @example 0.1 // 0.1" on all sides
+	 * @example [10, 5, 10, 5] // T=10pt R=5pt B=10pt L=5pt
+	 * @example [0.05, 0.1, 0.05, 0.1] // inches (PowerPoint "Normal")
 	 */
 	margin?: Margin
 	outline?: { color: Color, size: number }
@@ -1202,8 +1594,9 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	wrap?: boolean
 	/**
 	 * Prebuilt Office Math (OMML) fragment for this text run.
-	 * When set, the run is emitted as `<m:oMath>…</m:oMath>` (or the provided
-	 * `m:oMath` / `m:oMathPara` root) instead of a plain `<a:r>` text run.
+	 * Emitted as PowerPoint math: `<a14:m><m:oMath>…</m:oMath></a14:m>` interleaved
+	 * with surrounding `<a:r>` text runs. Bare `m:oMath` (without `a14:m`) is
+	 * silently stripped by PowerPoint on open — the library wraps it for you.
 	 * Callers convert LaTeX/MathML → OMML themselves (e.g. MathLive + mathml2omml).
 	 * Use `text: ''` for math-only runs; surrounding runs can still hold plain text.
 	 * @example { text: '', options: { omml: '<m:oMath xmlns:m="…">…</m:oMath>' } }
@@ -1243,6 +1636,13 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 * @deprecated v3.3.0 - use `line.endArrowType`
 	 */
 	lineTail?: 'none' | 'arrow' | 'diamond' | 'oval' | 'stealth' | 'triangle'
+	/**
+	 * Animation configuration
+	 * - Can be a simple animation name or full configuration object
+	 * @example 'fadein'
+	 * @example { type: 'flyin', direction: 'left', duration: 1000 }
+	 */
+	animation?: string | AnimationConfig
 }
 export interface TextProps {
 	text?: string
@@ -1288,6 +1688,14 @@ export interface OptsChartData {
 	 */
 	values?: number[]
 	/**
+	 * Per-point custom Y error-bar magnitudes (symmetric plus/minus)
+	 * - emits DrawingML `<c:errBars>` with `errValType="cust"`
+	 * - values are packed into columns after all series in the embedded workbook
+	 * @example [0.5, 0.3, 0.8]
+	 * @see LanPodder/master
+	 */
+	errorrate?: number[]
+	/**
 	 * Series color - overrides the `chartColors` cycle for this series only
 	 * - hex color or the string `'transparent'`
 	 * - pie/doughnut charts colour each data point rather than each series: use `chartColors` for those
@@ -1297,10 +1705,19 @@ export interface OptsChartData {
 	/**
 	 * Per-point custom data label text (replaces the numeric value label for that index)
 	 * - sparse arrays are allowed: only defined string entries emit a custom label
+	 * - emits rich-text `<c:dLbl>` overrides
 	 * @example ['Q1', 'Q2', 'Q3', 'Q4']
 	 * @since v4.1.2
 	 */
 	dataLabels?: string[]
+	/**
+	 * "Value From Cells" data labels (DrawingML `c15:datalabelsRange`)
+	 * - PowerPoint: Chart Design > Add Chart Element > Data Labels > More Options > Value From Cells
+	 * - distinct from `dataLabels` (rich-text `<c:dLbl>`); use this for the Excel-linked range path
+	 * @example ['10 units', '20 units', '30 units']
+	 * @see Toukyh/fix-custom-label
+	 */
+	labelsRange?: string[]
 }
 // Used internally, probably shouldn't be used by end users
 export interface IOptsChartData extends OptsChartData {
@@ -1361,7 +1778,12 @@ export interface IChartPropsBase {
 	 * Axis position
 	 */
 	axisPos?: 'b' | 'l' | 'r' | 't'
-	chartColors?: HexColor[]
+	/**
+	 * Series / marker colors
+	 * - use `'transparent'` for no fill on series and line/radar/scatter markers
+	 * @example ['4472C4', 'transparent', 'ED7D31']
+	 */
+	chartColors?: Color[]
 	/**
 	 * opacity (0 - 100)
 	 * @example 50 // 50% opaque
@@ -1369,7 +1791,7 @@ export interface IChartPropsBase {
 	chartColorsOpacity?: number
 	dataBorder?: BorderProps
 	displayBlanksAs?: string
-	invertedColors?: HexColor[]
+	invertedColors?: Color[]
 	lang?: string
 	layout?: PositionProps
 	shadow?: ShadowProps
@@ -1378,6 +1800,13 @@ export interface IChartPropsBase {
 	 */
 	showLabel?: boolean
 	showLeaderLines?: boolean
+	/**
+	 * Show "Value From Cells" data labels (`c15:showDataLabelsRange`)
+	 * - auto-enabled when a series has `labelsRange`
+	 * @default false
+	 * @see Toukyh/fix-custom-label
+	 */
+	showDataLabelsRange?: boolean
 	/**
 	 * @default false
 	 */
@@ -1765,6 +2194,13 @@ export interface IChartOpts
 	 * - PowerPoint: [right-click on a chart] > "Edit Alt Text..."
 	 */
 	altText?: string
+	/**
+	 * Animation configuration
+	 * - Can be a simple animation name or full configuration object
+	 * @example 'fadein'
+	 * @example { type: 'flyin', direction: 'left', duration: 1000 }
+	 */
+	animation?: string | AnimationConfig
 }
 export interface IChartOptsLib extends IChartOpts {
 	_type?: CHART_NAME | IChartMulti[] // TODO: v3.4.0 - move to `IChartOpts`, remove `IChartOptsLib`
@@ -1803,6 +2239,8 @@ export interface ISlideRelMedia {
 	/** used to indicate that a media file has already been read/enocded (PERF) */
 	isDuplicate?: boolean
 	isSvgPng?: boolean
+	/** SVG path recolor (Martin-N) — applied when encoding SVG media */
+	fill?: ShapeFillProps
 	svgSize?: { w: number, h: number }
 	rId: number
 	Target: string
@@ -1835,6 +2273,22 @@ export interface ISlideObject {
  * - 'best': DEFLATE level 9 (smallest file, slowest)
  */
 export type CompressionLevel = 'none' | 'fast' | 'best'
+
+/** Font file formats supported by embedded TrueType fonts (via pptx-embed-fonts) */
+export type EmbedFontType = 'ttf' | 'otf' | 'woff' | 'eot'
+
+/**
+ * Options for `pptx.addFont()` — embeds a custom font into the exported PPTX
+ * @see https://github.com/liyao1520/pptx-embed-fonts
+ */
+export interface AddFontOptions {
+	/** Font family name referenced by `fontFace` on text/shapes */
+	fontFace: string
+	/** Raw font file bytes */
+	fontFile: ArrayBuffer
+	/** Source font format */
+	fontType: EmbedFontType
+}
 
 export interface WriteBaseProps {
 	/**
@@ -2048,6 +2502,13 @@ export interface PresentationProps {
 	 * @default false
 	 */
 	rtlMode: boolean
+	/**
+	 * Starting slide number written to `ppt/presentation.xml` (`firstSlideNum`)
+	 * - PowerPoint: Design > Slide Size > Custom Slide Size > Number slides from
+	 * @default 1
+	 * @example 0 // first slide displays as "0"
+	 */
+	firstSlideNum: number
 	subject: string
 	theme?: ThemeProps
 	title: string

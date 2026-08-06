@@ -73,12 +73,14 @@ import {
 	EMU,
 	OutputType,
 	SCHEME_COLOR_NAMES,
+	ANCHOR,
 	SHAPE_TYPE,
 	SchemeColor,
 	ShapeType,
 	WRITE_OUTPUT_TYPE,
 } from './core-enums'
 import {
+	AddFontOptions,
 	AddSlideProps,
 	CompressionLevel,
 	DefineLayoutProps,
@@ -96,6 +98,7 @@ import {
 	WriteProps,
 } from './core-interfaces'
 import * as genCharts from './gen-charts'
+import { embedFontsIntoZip, PendingEmbedFont } from './gen-fonts'
 import * as genObj from './gen-objects'
 import * as genMedia from './gen-media'
 import * as genTable from './gen-tables'
@@ -230,6 +233,25 @@ export default class PptxGenJS implements IPresentationProps {
 	}
 
 	/**
+	 * Starting slide number (`p:presentation@firstSlideNum`)
+	 * @default 1
+	 * @example pptx.firstSlideNum = 0
+	 */
+	private _firstSlideNum = 1
+	public get firstSlideNum (): number {
+		return this._firstSlideNum
+	}
+
+	public set firstSlideNum (value: number) {
+		const n = Number(value)
+		if (!Number.isInteger(n) || n < 0) {
+			console.warn(`[pptxgenjs] firstSlideNum must be an integer >= 0 (got ${String(value)}); keeping ${this._firstSlideNum}`)
+			return
+		}
+		this._firstSlideNum = n
+	}
+
+	/**
 	 * Zip compression for exported files - document config applied by every export method
 	 * @default 'none'
 	 * @since v4.1.0
@@ -273,6 +295,9 @@ export default class PptxGenJS implements IPresentationProps {
 	}
 
 	private LAYOUTS: { [key: string]: PresLayout }
+
+	/** Fonts registered via addFont() — embedded into the PPTX on export */
+	private readonly _embedFonts: PendingEmbedFont[] = []
 
 	// Exposed class props
 	private readonly _alignH = AlignH
@@ -332,6 +357,16 @@ export default class PptxGenJS implements IPresentationProps {
 	private readonly _shapes = SHAPE_TYPE
 	public get shapes(): typeof SHAPE_TYPE {
 		return this._shapes
+	}
+
+	/** Connection-site helpers for connectors (`line.sourceAnchorPos` / `targetAnchorPos`) — ZentoSoft */
+	private readonly _anchor = ANCHOR
+	public get anchor(): typeof ANCHOR {
+		return this._anchor
+	}
+	/** Alias of `anchor` (PascalCase, matches `ShapeType`) */
+	public get Anchor(): typeof ANCHOR {
+		return this._anchor
 	}
 
 	constructor() {
@@ -586,6 +621,9 @@ export default class PptxGenJS implements IPresentationProps {
 
 			// E: Wait for Promises (if any) then generate the PPTX file
 			return await Promise.all(arrChartPromises).then(async () => {
+				// E2: Embed custom fonts into the zip before packing (liyao1520/pptx-embed-fonts)
+				await embedFontsIntoZip(zip, this._embedFonts)
+
 				// Effective level: deprecated per-call boolean (when given) overrides the presentation-level setting.
 				// `legacy` = boolean `true`, kept on JSZip's default DEFLATE level so existing callers see no perf change.
 				let level: CompressionLevel | 'legacy' = this._compression
@@ -680,6 +718,27 @@ export default class PptxGenJS implements IPresentationProps {
 	}
 
 	// PRESENTATION METHODS
+
+	/**
+	 * Register a custom font to embed in the exported PPTX
+	 * - Call before `write` / `writeFile` / `stream`
+	 * - Use the same `fontFace` name on text/shape options
+	 * @param {AddFontOptions} options - font face, file bytes, and format
+	 * @example await pptx.addFont({ fontFace: 'MyFont', fontFile: ttfBuffer, fontType: 'ttf' })
+	 * @see https://github.com/liyao1520/pptx-embed-fonts
+	 */
+	async addFont (options: AddFontOptions): Promise<void> {
+		if (!options?.fontFace) throw new Error('addFont requires fontFace')
+		if (!options.fontFile) throw new Error('addFont requires fontFile (ArrayBuffer)')
+		if (!options.fontType || !['ttf', 'otf', 'woff', 'eot'].includes(options.fontType)) {
+			throw new Error('addFont requires fontType: ttf | otf | woff | eot')
+		}
+		this._embedFonts.push({
+			fontFace: options.fontFace,
+			fontFile: options.fontFile,
+			fontType: options.fontType,
+		})
+	}
 
 	/**
 	 * Add a new Section to Presentation

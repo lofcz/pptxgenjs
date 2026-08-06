@@ -16,7 +16,6 @@ import {
 	DEF_FONT_SIZE,
 	DEF_FONT_TITLE_SIZE,
 	DEF_SHAPE_SHADOW,
-	LETTERS,
 	ONEPT,
 } from './core-enums'
 import { IChartOptsLib, ISlideRelChart, ShadowProps, IChartPropsTitle, OptsChartGridLine, IOptsChartData, ChartLineCap } from './core-interfaces'
@@ -39,6 +38,9 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 		// NOTE: chart data arrays are always populated at render time; guarded locals keep this null-safe without changing output
 		const firstDataLabels = data[0]?.labels ?? []
 		const firstDataValues = data[0]?.values ?? []
+		// Packed errorrate columns sit after all series value columns (LanPodder/master, layout fixed)
+		const errSeriesCount = countErrorrateSeries(data)
+		const barSheetCols = firstDataLabels.length + data.length + errSeriesCount
 
 		// A: Add folders
 		zipExcel.folder('_rels')
@@ -221,14 +223,23 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 					strTableXml += `<tableColumn id="${idx + 1}" name="${idx === 0 ? 'X-Values' : 'Y-Value '}${idx}"/>`
 				})
 			} else {
-				strTableXml += `<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="1" name="Table1" displayName="Table1" ref="A1:${getExcelColName(data.length + firstDataLabels.length)}${firstDataLabels[0].length + 1}" totalsRowShown="0">`
-				strTableXml += `<tableColumns count="${data.length + firstDataLabels.length}">`
+				strTableXml += `<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="1" name="Table1" displayName="Table1" ref="A1:${getExcelColName(barSheetCols)}${firstDataLabels[0].length + 1}" totalsRowShown="0">`
+				strTableXml += `<tableColumns count="${barSheetCols}">`
 				firstDataLabels.forEach((_labelsGroup, idx) => {
 					strTableXml += `<tableColumn id="${idx + 1}" name="Column${idx + 1}"/>`
 				})
 				data.forEach((obj, idx) => {
 					strTableXml += `<tableColumn id="${idx + firstDataLabels.length + 1}" name="${encodeXmlEntities(obj.name)}"/>`
 				})
+				// Packed errorrate columns (only series that provide non-empty errorrate)
+				{
+					let errColId = firstDataLabels.length + data.length + 1
+					data.forEach(obj => {
+						if (!seriesHasErrorrate(obj)) return
+						strTableXml += `<tableColumn id="${errColId}" name="${encodeXmlEntities(obj.name || 'Series')}_errorrate"/>`
+						errColId++
+					})
+				}
 			}
 			strTableXml += '</tableColumns>'
 			strTableXml += '<tableStyleInfo showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/>'
@@ -248,7 +259,7 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 			} else if (chartObject.opts._type === CHART_TYPE.SCATTER) {
 				strSheetXml += `<dimension ref="A1:${getExcelColName(data.length)}${firstDataValues.length + 1}"/>`
 			} else {
-				strSheetXml += `<dimension ref="A1:${getExcelColName(data.length + firstDataLabels.length)}${firstDataValues.length + 1}"/>`
+				strSheetXml += `<dimension ref="A1:${getExcelColName(barSheetCols)}${(firstDataLabels[0]?.length ?? firstDataValues.length) + 1}"/>`
 			}
 
 			strSheetXml += '<sheetViews><sheetView tabSelected="1" workbookViewId="0"><selection activeCell="B1" sqref="B1"/></sheetView></sheetViews>'
@@ -364,8 +375,8 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 				*/
 
 				if (!IS_MULTI_CAT_AXES) {
-					// A: Create header row first
-					strSheetXml += `<row r="1" spans="1:${data.length + firstDataLabels.length}">`
+					// A: Create header row first (series names only; errorrate cols are values-only to keep shared-string indices stable)
+					strSheetXml += `<row r="1" spans="1:${barSheetCols}">`
 					firstDataLabels.forEach((_labelsGroup, idx) => {
 						strSheetXml += `<c r="${getExcelColName(idx + 1)}1" t="s"><v>0</v></c>`
 					})
@@ -376,7 +387,7 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 
 					// B: Add data row(s) for each category
 					firstDataLabels[0].forEach((_cat, idx) => {
-						strSheetXml += `<row r="${idx + 2}" spans="1:${data.length + firstDataLabels.length}">`
+						strSheetXml += `<row r="${idx + 2}" spans="1:${barSheetCols}">`
 						// Leading cols are reserved for the label groups
 						for (let idx2 = firstDataLabels.length - 1; idx2 >= 0; idx2--) {
 							strSheetXml += `<c r="${getExcelColName(firstDataLabels.length - idx2)}${idx + 2}" t="s">`
@@ -388,11 +399,22 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 							const cellVal = (data[idy].values ?? [])[idx]
 							strSheetXml += `<c r="${getExcelColName(firstDataLabels.length + idy + 1)}${idx + 2}"><v>${cellVal || cellVal === 0 ? cellVal : ''}</v></c>`
 						}
+						// Packed errorrate columns after all series values
+						{
+							let errPacked = 0
+							for (let idy = 0; idy < data.length; idy++) {
+								if (!seriesHasErrorrate(data[idy])) continue
+								const errVal = (data[idy].errorrate ?? [])[idx]
+								const errCol = firstDataLabels.length + data.length + 1 + errPacked
+								strSheetXml += `<c r="${getExcelColName(errCol)}${idx + 2}"><v>${errVal || errVal === 0 ? errVal : ''}</v></c>`
+								errPacked++
+							}
+						}
 						strSheetXml += '</row>'
 					})
 				} else {
 					// A: create header row: one blank cell per label level, then one cell per series
-					strSheetXml += `<row r="1" spans="1:${data.length + firstDataLabels.length}">`
+					strSheetXml += `<row r="1" spans="1:${barSheetCols}">`
 					for (let idx = 0; idx < firstDataLabels.length; idx++) {
 						strSheetXml += `<c r="${getExcelColName(idx + 1)}1" t="s"><v>0</v></c>`
 					}
@@ -500,7 +522,7 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 
 					// C: Iterate across labels/cats as these are the <row>'s
 					for (let idx = 0; idx < TOT_CAT; idx++) {
-						strSheetXml += `<row r="${idx + 2}" spans="1:${TOT_SER + TOT_LVL}">`
+						strSheetXml += `<row r="${idx + 2}" spans="1:${barSheetCols}">`
 
 						// C-1: add a col for each label level (blank labels are covered by the merge above)
 						arrLabelStrIdx.forEach((grpIdx, idy) => {
@@ -513,6 +535,18 @@ export async function createExcelWorksheet (chartObject: ISlideRelChart, zip: JS
 							// NOTE: Preserve 0 (a valid value); `|| ''` would blank it out in the embedded worksheet (issue #1430)
 							const cellVal = (data[idy].values ?? [])[idx]
 							strSheetXml += `<c r="${getExcelColName(TOT_LVL + idy + 1)}${idx + 2}"><v>${typeof cellVal === 'number' ? cellVal : ''}</v></c>`
+						}
+
+						// C-3: packed errorrate columns after all series values
+						{
+							let errPacked = 0
+							for (let idy = 0; idy < TOT_SER; idy++) {
+								if (!seriesHasErrorrate(data[idy])) continue
+								const errVal = (data[idy].errorrate ?? [])[idx]
+								const errCol = TOT_LVL + TOT_SER + 1 + errPacked
+								strSheetXml += `<c r="${getExcelColName(errCol)}${idx + 2}"><v>${typeof errVal === 'number' ? errVal : ''}</v></c>`
+								errPacked++
+							}
 						}
 
 						strSheetXml += '</row>'
@@ -638,10 +672,10 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 			const valAxisId = options.secondaryValAxis ? AXIS_ID_VALUE_SECONDARY : AXIS_ID_VALUE_PRIMARY
 			const catAxisId = options.secondaryCatAxis ? AXIS_ID_CATEGORY_SECONDARY : AXIS_ID_CATEGORY_PRIMARY
 			usesSecondaryValAxis = usesSecondaryValAxis || (options.secondaryValAxis ?? false)
-			strXml += makeChartType(type.type, type.data, options, valAxisId, catAxisId, true)
+			strXml += makeChartType(type.type, type.data, options, valAxisId, catAxisId, true, rel.data)
 		})
 	} else if (rel.opts._type) {
-		strXml += makeChartType(rel.opts._type, rel.data, rel.opts, AXIS_ID_VALUE_PRIMARY, AXIS_ID_CATEGORY_PRIMARY, false)
+		strXml += makeChartType(rel.opts._type, rel.data, rel.opts, AXIS_ID_VALUE_PRIMARY, AXIS_ID_CATEGORY_PRIMARY, false, rel.data)
 	}
 
 	// B: Axes -----------------------------------------------------------
@@ -715,7 +749,9 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 		strXml += '  <c:spPr>'
 
 		// OPTION: Fill
-		strXml += rel.opts.plotArea?.fill?.color ? genXmlColorSelection(rel.opts.plotArea?.fill) : '<a:noFill/>'
+		strXml += rel.opts.plotArea?.fill && (rel.opts.plotArea.fill.type === 'gradient' || rel.opts.plotArea.fill.type === 'linearGradient' || rel.opts.plotArea.fill.type === 'pattern' || rel.opts.plotArea.fill.color)
+			? genXmlColorSelection(rel.opts.plotArea.fill)
+			: '<a:noFill/>'
 
 		// OPTION: Border
 		strXml += rel.opts.plotArea?.border
@@ -762,7 +798,9 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 
 	// D: CHARTSPACE SHAPE PROPS
 	strXml += '<c:spPr>'
-	strXml += rel.opts.chartArea?.fill?.color ? genXmlColorSelection(rel.opts.chartArea?.fill) : '<a:noFill/>'
+	strXml += rel.opts.chartArea?.fill && (rel.opts.chartArea.fill.type === 'gradient' || rel.opts.chartArea.fill.type === 'linearGradient' || rel.opts.chartArea.fill.type === 'pattern' || rel.opts.chartArea.fill.color)
+		? genXmlColorSelection(rel.opts.chartArea.fill)
+		: '<a:noFill/>'
 	strXml += rel.opts.chartArea?.border
 		? `<a:ln w="${valToPts(rel.opts.chartArea?.border?.pt)}" cap="flat">${genXmlColorSelection(rel.opts.chartArea?.border?.color)}</a:ln>`
 		: '<a:ln><a:noFill/></a:ln>'
@@ -821,7 +859,61 @@ function genXmlCustomDataLabel (text: string, idx: number, opts: IChartOptsLib):
 	return xml
 }
 
-function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: IChartOptsLib, valAxisId: string, catAxisId: string, _isMultiTypeChart: boolean): string {
+/**
+ * `c15:showDataLabelsRange` inside series `<c:dLbls>` (Toukyh/fix-custom-label).
+ * Only emit when Value-From-Cells labels are in play.
+ */
+function genXmlShowDataLabelsRangeExt (enabled: boolean): string {
+	return (
+		'<c:extLst>' +
+		'<c:ext uri="{CE6537A1-D6FC-4f65-9D91-7224C49458BB}" xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart">' +
+		`<c15:showDataLabelsRange val="${enabled ? '1' : '0'}"/>` +
+		'<c15:showLeaderLines val="0"/>' +
+		'</c:ext>' +
+		'</c:extLst>'
+	)
+}
+
+/**
+ * Series-level Value-From-Cells extension (`c15:datalabelsRange` + `c16:uniqueId`).
+ * Fixes vs upstream Toukyh:
+ * - XML-encode label text
+ * - unique `c16:uniqueId` per series (upstream hard-coded one GUID for all)
+ * - placed after cat/val (CT_*Ser schema), not mid-series after dLbls
+ */
+function genXmlDataLabelsRangeSerExt (labelsRange: string[], formula: string): string {
+	const pts = labelsRange
+		.map((value, idx) => `<c:pt idx="${idx}"><c:v>${encodeXmlEntities(String(value ?? ''))}</c:v></c:pt>`)
+		.join('')
+	const uniqueId = `{${getUuid('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx').toUpperCase()}}`
+	return (
+		'<c:extLst>' +
+		'<c:ext uri="{02D57815-91ED-43cb-92C2-25804820EDAC}" xmlns:c15="http://schemas.microsoft.com/office/drawing/2012/chart">' +
+		'<c15:datalabelsRange>' +
+		`<c15:f>${formula}</c15:f>` +
+		'<c15:dlblRangeCache>' +
+		`<c:ptCount val="${labelsRange.length}"/>` +
+		pts +
+		'</c15:dlblRangeCache>' +
+		'</c15:datalabelsRange>' +
+		'</c:ext>' +
+		'<c:ext uri="{C3380CC4-5D6E-409C-BE32-E72D297353CC}" xmlns:c16="http://schemas.microsoft.com/office/drawing/2014/chart">' +
+		`<c16:uniqueId val="${uniqueId}"/>` +
+		'</c:ext>' +
+		'</c:extLst>'
+	)
+}
+
+function makeChartType (
+	chartType: CHART_NAME,
+	data: IOptsChartData[],
+	opts: IChartOptsLib,
+	valAxisId: string,
+	catAxisId: string,
+	_isMultiTypeChart: boolean,
+	/** Full workbook series list (may be wider than `data` for multi-type charts) */
+	sheetData: IOptsChartData[],
+): string {
 	// NOTE: "Chart Range" (as shown in "select Chart Area dialog") is calculated.
 	// ....: Ensure each X/Y Axis/Col has same row height (esp. applicable to XY Scatter where X can often be larger than Y's)
 	let colorIndex = -1 // Maintain the color index by region
@@ -935,6 +1027,8 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 
 				// Data Labels per series
 				// NOTE: [20190117] Adding these to RADAR chart causes unrecoverable corruption!
+				const labelsRange = obj.labelsRange?.length ? obj.labelsRange : undefined
+				const useDataLabelsRange = Boolean(labelsRange) || Boolean(opts.showDataLabelsRange)
 				if (chartType !== CHART_TYPE.RADAR) {
 					strXml += '<c:dLbls>'
 					// Per-point custom labels (series.dataLabels) — sparse arrays OK; other points keep series defaults
@@ -957,6 +1051,8 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 					strXml += `<c:showVal val="${opts.showValue ? '1' : '0'}"/>`
 					strXml += `<c:showCatName val="0"/><c:showSerName val="${opts.showSerName ? '1' : '0'}"/><c:showPercent val="0"/><c:showBubbleSize val="0"/>`
 					strXml += `<c:showLeaderLines val="${opts.showLeaderLines ? '1' : '0'}"/>`
+					// Toukyh/fix-custom-label: Value From Cells toggle (only when in use)
+					if (useDataLabelsRange) strXml += genXmlShowDataLabelsRangeExt(Boolean(labelsRange) || Boolean(opts.showDataLabelsRange))
 					strXml += '</c:dLbls>'
 				}
 
@@ -966,7 +1062,13 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 					strXml += '  <c:symbol val="' + opts.lineDataSymbol + '"/>'
 					if (opts.lineDataSymbolSize) strXml += `<c:size val="${opts.lineDataSymbolSize}"/>` // Defaults to "auto" otherwise (but this is usually too small, so there is a default)
 					strXml += '  <c:spPr>'
-					strXml += `    <a:solidFill>${createColorElement(obj.color ?? chartColors[dataIndex + 1 > chartColors.length ? Math.floor(Math.random() * chartColors.length) : dataIndex])}</a:solidFill>`
+					// NateRadebaugh/transparent-markers: `'transparent'` → noFill (same as series fill)
+					{
+						const markerColor = obj.color ?? chartColors[dataIndex + 1 > chartColors.length ? Math.floor(Math.random() * chartColors.length) : dataIndex]
+						strXml += markerColor === 'transparent'
+							? '    <a:noFill/>'
+							: `    <a:solidFill>${createColorElement(markerColor)}</a:solidFill>`
+					}
 					strXml += `    <a:ln w="${opts.lineDataSymbolLineSize}" cap="flat"><a:solidFill>${createColorElement(opts.lineDataSymbolLineColor || seriesColor)}</a:solidFill><a:prstDash val="solid"/><a:round/></a:ln>`
 					strXml += '    <a:effectLst/>'
 					strXml += '  </c:spPr>'
@@ -993,15 +1095,9 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 						if (opts.lineSize === 0) {
 							strXml += '<a:ln><a:noFill/></a:ln>'
 						} else if (chartType === CHART_TYPE.BAR) {
-							strXml += '<a:solidFill>'
-							strXml += '  <a:srgbClr val="' + arrColors[index % arrColors.length] + '"/>'
-							strXml += '</a:solidFill>'
+							strXml += `<a:solidFill>${createColorElement(arrColors[index % arrColors.length])}</a:solidFill>`
 						} else {
-							strXml += '<a:ln>'
-							strXml += '  <a:solidFill>'
-							strXml += '   <a:srgbClr val="' + arrColors[index % arrColors.length] + '"/>'
-							strXml += '  </a:solidFill>'
-							strXml += '</a:ln>'
+							strXml += `<a:ln><a:solidFill>${createColorElement(arrColors[index % arrColors.length])}</a:solidFill></a:ln>`
 						}
 						strXml += createShadowElement(resolveShadowOptions(opts.shadow))
 						strXml += '    </c:spPr>'
@@ -1022,6 +1118,16 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 						objLabels[0].forEach((label, idx) => (strXml += `<c:pt idx="${idx}"><c:v>${encodeXmlEntities(label)}</c:v></c:pt>`))
 						strXml += '    </c:numCache>'
 						strXml += '  </c:numRef>'
+					} else if (objLabels.length === 1) {
+						// Single-level cats: use strRef (Google Sheets/Slides ignore multiLvlStrRef with one level)
+						// christiankiely/fix-categories-google-slides
+						strXml += '  <c:strRef>'
+						strXml += `    <c:f>Sheet1!$A$2:$${getExcelColName(objLabels.length)}$${objLabels[0].length + 1}</c:f>`
+						strXml += '    <c:strCache>'
+						strXml += `      <c:ptCount val="${objLabels[0].length}"/>`
+						objLabels[0].forEach((label, idx) => (strXml += `<c:pt idx="${idx}"><c:v>${encodeXmlEntities(label)}</c:v></c:pt>`))
+						strXml += '    </c:strCache>'
+						strXml += '  </c:strRef>'
 					} else {
 						strXml += '  <c:multiLvlStrRef>'
 						strXml += `    <c:f>Sheet1!$A$2:$${getExcelColName(objLabels.length)}$${objLabels[0].length + 1}</c:f>`
@@ -1055,6 +1161,21 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 				// Option: `smooth`
 				if (chartType === CHART_TYPE.LINE) strXml += '<c:smooth val="' + (opts.lineSmooth ? '1' : '0') + '"/>'
 
+				// LanPodder/master: custom Y error bars (symmetric plus/minus from `errorrate`)
+				if (seriesHasErrorrate(obj)) {
+					const errCol = getErrorrateExcelCol(sheetData, objLabels.length, dataIndex)
+					const lastRow = (objLabels[0]?.length ?? 0) + 1
+					strXml += genXmlErrBars(obj.errorrate ?? [], errCol, lastRow)
+				}
+
+				// Toukyh/fix-custom-label: series extLst after cat/val(/smooth) per CT_*Ser
+				// Formula matches the series values column (same as upstream); cache carries the display text.
+				if (labelsRange) {
+					const col = getExcelColName(dataIndex + objLabels.length + 1)
+					const lastRow = (objLabels[0]?.length ?? labelsRange.length) + 1
+					strXml += genXmlDataLabelsRangeSerExt(labelsRange, `Sheet1!$${col}$2:$${col}$${lastRow}`)
+				}
+
 				// 4: Close "SERIES"
 				strXml += '</c:ser>'
 			})
@@ -1087,7 +1208,17 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 			// 4: Add more chart options (gapWidth, line Marker, etc.)
 			if (chartType === CHART_TYPE.BAR) {
 				strXml += `  <c:gapWidth val="${opts.barGapWidthPct}"/>`
-				strXml += `  <c:overlap val="${(opts.barGrouping || '').includes('tacked') ? 100 : opts.barOverlapPct ? opts.barOverlapPct : 0}"/>`
+				// istevkovski/prioritize-overlap: honor barOverlapPct even when grouping is stacked
+				// (also treat 0 as explicit — upstream used a truthy check that skipped 0)
+				{
+					const overlap =
+						typeof opts.barOverlapPct === 'number'
+							? opts.barOverlapPct
+							: (opts.barGrouping || '').includes('tacked')
+								? 100
+								: 0
+					strXml += `  <c:overlap val="${overlap}"/>`
+				}
 			} else if (chartType === CHART_TYPE.BAR3D) {
 				strXml += `  <c:gapWidth val="${opts.barGapWidthPct}"/>`
 				strXml += `  <c:gapDepth val="${opts.barGapDepthPct}"/>`
@@ -1169,7 +1300,13 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 						strXml += `<c:size val="${opts.lineDataSymbolSize}"/>`
 					}
 					strXml += '<c:spPr>'
-					strXml += `<a:solidFill>${createColorElement(obj.color ?? chartColors[idx + 1 > chartColors.length ? Math.floor(Math.random() * chartColors.length) : idx])}</a:solidFill>`
+					// NateRadebaugh/transparent-markers: `'transparent'` → noFill (same as series fill)
+					{
+						const markerColor = obj.color ?? chartColors[idx + 1 > chartColors.length ? Math.floor(Math.random() * chartColors.length) : idx]
+						strXml += markerColor === 'transparent'
+							? '<a:noFill/>'
+							: `<a:solidFill>${createColorElement(markerColor)}</a:solidFill>`
+					}
 					strXml += `<a:ln w="${opts.lineDataSymbolLineSize}" cap="flat"><a:solidFill>${createColorElement(opts.lineDataSymbolLineColor || obj.color || chartColors[colorIndex % chartColors.length])}</a:solidFill><a:prstDash val="solid"/><a:round/></a:ln>`
 					strXml += '<a:effectLst/>'
 					strXml += '</c:spPr>'
@@ -1312,9 +1449,7 @@ function makeChartType (chartType: CHART_NAME, data: IOptsChartData[], opts: ICh
 						if (opts.lineSize === 0) {
 							strXml += '<a:ln><a:noFill/></a:ln>'
 						} else {
-							strXml += '<a:solidFill>'
-							strXml += ' <a:srgbClr val="' + arrColors[index % arrColors.length] + '"/>'
-							strXml += '</a:solidFill>'
+							strXml += `<a:solidFill>${createColorElement(arrColors[index % arrColors.length])}</a:solidFill>`
 						}
 						strXml += createShadowElement(resolveShadowOptions(opts.shadow))
 						strXml += '    </c:spPr>'
@@ -2036,25 +2171,67 @@ function genXmlTitle (opts: IChartPropsTitle, chartX?: number, chartY?: number):
 }
 
 /**
- * Calc and return excel column name for a given column length
- * @param colIndex column index
+ * Calc and return excel column name for a given 1-based column index
+ * @param colIndex column index (1 = A)
  * @return column name
  * @example 1 returns 'A'
  * @example 27 returns 'AA'
+ * @example 703 returns 'AAA'
+ * @see LanPodder/master — previously capped at ZZ (52+)
  */
 function getExcelColName (colIndex: number): string {
-	let colStr = ''
-	const colIdx = colIndex - 1 // Subtract 1 so `LETTERS[columnIndex]` returns "A" etc
-
-	if (colIdx <= 25) {
-		// A-Z
-		colStr = LETTERS[colIdx]
-	} else {
-		// AA-ZZ (ZZ = index 702)
-		colStr = `${LETTERS[Math.floor(colIdx / LETTERS.length - 1)]}${LETTERS[colIdx % LETTERS.length]}`
+	let n = colIndex
+	let name = ''
+	while (n > 0) {
+		const rem = (n - 1) % 26
+		name = String.fromCharCode(65 + rem) + name
+		n = Math.floor((n - 1) / 26)
 	}
+	return name
+}
 
-	return colStr
+function seriesHasErrorrate (obj: IOptsChartData | undefined): boolean {
+	return Array.isArray(obj?.errorrate) && (obj?.errorrate?.length ?? 0) > 0
+}
+
+function countErrorrateSeries (data: IOptsChartData[]): number {
+	let n = 0
+	for (const obj of data) if (seriesHasErrorrate(obj)) n++
+	return n
+}
+
+/**
+ * 1-based Excel column for a series' packed errorrate column.
+ * Layout: label levels | series values | packed errorrate columns (only series with errorrate).
+ */
+function getErrorrateExcelCol (data: IOptsChartData[], labelLevels: number, serIdx: number): number {
+	let packed = 0
+	for (let i = 0; i < serIdx; i++) if (seriesHasErrorrate(data[i])) packed++
+	return labelLevels + data.length + 1 + packed
+}
+
+/** Symmetric custom Y error bars (`c:errBars`) referencing a packed workbook column */
+function genXmlErrBars (errorrate: number[], sheetCol: number, lastRow: number): string {
+	const col = getExcelColName(sheetCol)
+	const numRef =
+		'<c:numRef>' +
+		`<c:f>Sheet1!$${col}$2:$${col}$${lastRow}</c:f>` +
+		'<c:numCache>' +
+		'<c:formatCode>General</c:formatCode>' +
+		`<c:ptCount val="${errorrate.length}"/>` +
+		errorrate.map((value, idx) => `<c:pt idx="${idx}"><c:v>${value || value === 0 ? value : ''}</c:v></c:pt>`).join('') +
+		'</c:numCache>' +
+		'</c:numRef>'
+	return (
+		'<c:errBars>' +
+		'<c:errDir val="y"/>' +
+		'<c:errBarType val="both"/>' +
+		'<c:errValType val="cust"/>' +
+		'<c:noEndCap val="0"/>' +
+		`<c:plus>${numRef}</c:plus>` +
+		`<c:minus>${numRef}</c:minus>` +
+		'</c:errBars>'
+	)
 }
 
 /**
@@ -2120,7 +2297,7 @@ function createGridLineElement (glOpts: OptsChartGridLine): string {
 	let strXml = '<c:majorGridlines>'
 	strXml += ' <c:spPr>'
 	strXml += `  <a:ln w="${valToPts(glOpts.size || DEF_CHART_GRIDLINE.size)}" cap="${createLineCap(glOpts.cap || DEF_CHART_GRIDLINE.cap)}">`
-	strXml += '  <a:solidFill><a:srgbClr val="' + (glOpts.color || DEF_CHART_GRIDLINE.color) + '"/></a:solidFill>' // should accept scheme colors as implemented in [Pull #135]
+	strXml += `  <a:solidFill>${createColorElement(glOpts.color || DEF_CHART_GRIDLINE.color)}</a:solidFill>`
 	strXml += '   <a:prstDash val="' + (glOpts.style || DEF_CHART_GRIDLINE.style) + '"/><a:round/>'
 	strXml += '  </a:ln>'
 	strXml += ' </c:spPr>'

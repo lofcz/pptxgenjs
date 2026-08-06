@@ -114,9 +114,12 @@ function parseTextToLines(cell: TableCell, colWidth: number): TableCell[][] {
 	}
 
 	// STEP 3: Tokenize every text object into words (then it's really easy to assemble lines below without having to break text, add its `options`, etc.)
+	// mikemeerschaert/fix-autopage-last-line-text-array-bug: keep consecutive text-array runs (no breakLine)
+	// in one token buffer so autoPage doesn't split them into phantom lines / null cells.
+	// Flush after each cell that ends with breakLine so "\n"-split parts stay separate lines.
+	let lineCells: TableCell[] = []
 	inputLines1.forEach(line => {
 		line.forEach(cell => {
-			const lineCells: TableCell[] = []
 			const cellTextStr = String(cell.text) // force convert to string (compiled JS is better with this than a cast)
 			const lineWords = cellTextStr.split(' ')
 
@@ -127,9 +130,15 @@ function parseTextToLines(cell: TableCell, colWidth: number): TableCell[][] {
 				lineCells.push({ _type: SLIDE_OBJECT_TYPES.tablecell, text: word + (idx + 1 < lineWords.length ? ' ' : ''), options: cellProps })
 			})
 
-			inputLines2.push(lineCells)
+			if (lineCells.length > 0 && lineCells[lineCells.length - 1].options?.breakLine) {
+				inputLines2.push(lineCells)
+				lineCells = []
+			}
 		})
 	})
+	if (lineCells.length > 0) {
+		inputLines2.push(lineCells)
+	}
 	if (isDebugEnabled()) {
 		debugLog(`[3/4] inputLines2 (${inputLines2.length})`)
 		inputLines2.forEach(line => debugLog(`[3/4] line: ${JSON.stringify(line)}`))
@@ -435,7 +444,21 @@ export function getSlidesForTableRows(tableRows: TableCell[][] = [], tableProps:
 		let emuLineMaxH = 0
 		let isDone = false
 
+		/**
+		 * Empty text arrays produce invalid table cell XML ("PowerPoint found a problem with content").
+		 * lawtontom/master moved this fill to after the line-assembly loop so cells that stayed empty
+		 * still get a placeholder; we also run it before every flush (incl. mid-row slide splits).
+		 */
+		function ensureTableCellsHaveText (row: TableRow): void {
+			row.forEach(cell => {
+				if (Array.isArray(cell.text) && cell.text.length === 0) {
+					cell.text.push({ _type: SLIDE_OBJECT_TYPES.tablecell, text: '' })
+				}
+			})
+		}
+
 		function flushCurrentRowToSlide(tableSlide: TableRowSlide, rowToAdd: TableRow) {
+			ensureTableCellsHaveText(rowToAdd)
 			const tableHeaderRowsCount = (tableProps.addHeaderToEach || tableProps.autoPageRepeatHeader) && tableProps._arrObjTabHeadRows ? tableProps._arrObjTabHeadRows.length : 0
 			/*
 			 * this fixed ISSUE#1231. When row span to auto created slides, first row doesn't have enough columns
