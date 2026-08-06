@@ -165,6 +165,43 @@ test('#39: auto-paged tables account for cell margins', async () => {
 	assert.ok(pageCount(0.5) > pageCount(0), 'large cell margins did not increase the page count')
 })
 
+test('#1231: rowspan + autoPage keeps column alignment on overflow slides', async () => {
+	// Without the fix, overflow slides drop rowspan columns and PowerPoint misaligns the table.
+	const long = Array.from({ length: 40 }, (_, idx) => `line ${idx}`).join('\n')
+	const rows = [
+		[
+			{ text: 'span', options: { rowspan: 3 } },
+			{ text: long },
+			{ text: 'c' },
+		],
+		[{ text: 'r2b' }, { text: 'r2c' }],
+		[{ text: 'r3b' }, { text: 'r3c' }],
+		[{ text: 'r4a' }, { text: 'r4b' }, { text: 'r4c' }],
+	]
+
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable(rows, {
+		x: 0.5,
+		y: 0.5,
+		w: 9,
+		colW: [1, 4, 4],
+		autoPage: true,
+		fontSize: 18,
+	})
+
+	assert.ok(pptx.slides.length > 1, 'expected autoPage to create overflow slides')
+
+	const zip = await writeZip(pptx)
+	const slideNames = Object.keys(zip.files).filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name)).sort()
+	assert.equal(slideNames.length, pptx.slides.length)
+
+	for (const name of slideNames) {
+		const xml = await readPart(zip, name)
+		const gridCols = (xml.match(/<a:gridCol /g) || []).length
+		assert.equal(gridCols, 3, `${name} lost columns (got ${gridCols})`)
+	}
+})
+
 test('#29: BorderProps accepts `width` (points) alongside the deprecated `pt`', async () => {
 	const cellXml = async (border: Record<string, unknown>): Promise<string> => {
 		const pptx = new pptxgen()
