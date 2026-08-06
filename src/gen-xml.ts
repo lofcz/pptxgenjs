@@ -86,8 +86,11 @@ const ImageSizingXml = {
  * @return {string} XML
  */
 function genXmlTblPr (opts: TableProps): string {
+	// ISSUE#1299: PowerPoint accessibility treats `firstRow="1"` as the semantic table header.
+	// When headers are repeated via autoPage, mark the first row unless the caller overrides.
+	const firstRow = opts.firstRow ?? (opts.autoPageRepeatHeader ? true : undefined)
 	const flags: Array<[string, boolean | undefined]> = [
-		['firstRow', opts.firstRow],
+		['firstRow', firstRow],
 		['lastRow', opts.lastRow],
 		['firstCol', opts.firstCol],
 		['lastCol', opts.lastCol],

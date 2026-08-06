@@ -336,6 +336,39 @@ test('#36: tables without style options still emit an empty a:tblPr', async () =
 	assert.ok((await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')).includes('<a:tblPr/>'))
 })
 
+test('#1299: autoPageRepeatHeader marks firstRow for accessibility', async () => {
+	// PowerPoint's accessibility checker requires firstRow="1" for a semantic table header.
+	// Visually repeating headers via autoPageRepeatHeader must also set that flag.
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable(
+		[
+			['Header A', 'Header B'],
+			...Array.from({ length: 40 }, (_, idx) => [`R${idx}A`, `R${idx}B`]),
+		],
+		{ x: 0.5, y: 0.5, w: 8, autoPage: true, autoPageRepeatHeader: true, fontSize: 18 },
+	)
+
+	const zip = await writeZip(pptx)
+	assert.ok(pptx.slides.length > 1, 'expected autoPage overflow slides')
+	const slideNames = Object.keys(zip.files).filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name)).sort()
+	for (const name of slideNames) {
+		const xml = await readPart(zip, name)
+		assert.ok(/<a:tblPr[^>]*\bfirstRow="1"/.test(xml), `${name} missing firstRow="1" for accessibility`)
+	}
+
+	// Explicit firstRow:false must still win over the autoPageRepeatHeader default
+	const pptxOverride = new pptxgen()
+	pptxOverride.addSlide().addTable([['H1', 'H2'], ['A', 'B']], {
+		x: 0.5,
+		y: 0.5,
+		w: 8,
+		autoPageRepeatHeader: true,
+		firstRow: false,
+	})
+	const overrideXml = await readPart(await writeZip(pptxOverride), 'ppt/slides/slide1.xml')
+	assert.ok(/<a:tblPr[^>]*\bfirstRow="0"/.test(overrideXml), 'explicit firstRow:false was ignored')
+})
+
 test('#35: images accept a line/outline and emit it in the picture spPr', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addImage({ data: PNG_4x2, x: 1, y: 1, w: 2, h: 1, line: { color: 'FF0000', width: 2, dashType: 'dash' } })
