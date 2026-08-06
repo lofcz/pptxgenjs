@@ -932,7 +932,7 @@ test('mikemeerschaert/fix-placeholder-text-formatting-issues: placeholder gets v
 	const zip = await writeZip(pptx)
 	const layouts = await Promise.all([1, 2].map(async n => await readPart(zip, `ppt/slideLayouts/slideLayout${n}.xml`)))
 	const layout = layouts.find(xml => xml.includes('placeholder text') || xml.includes('type="body"')) ?? ''
-	assert.ok(layout.includes('anchor="ctr"'), `placeholder valign middle → anchor=ctr, got bodyPr context missing in layout`)
+	assert.ok(layout.includes('anchor="ctr"'), 'placeholder valign middle → anchor=ctr, got bodyPr context missing in layout')
 	assert.ok(layout.includes('tIns="127000"'), 'placeholder top margin 10pt')
 	assert.ok(layout.includes('lIns="254000"'), 'placeholder left margin 20pt')
 })
