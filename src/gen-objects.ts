@@ -525,9 +525,9 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 			type: 'image/png',
 			extn: 'png',
 			data: strImageData || '',
-		rId: imageRelId,
-		Target: `../media/${imageTargetStem(target)}.png`,
-		isSvgPng: true,
+			rId: imageRelId,
+			Target: `../media/${imageTargetStem(target)}.png`,
+			isSvgPng: true,
 			fill: opt.fill,
 			svgSize: { w: getSmartParseNumber(newObject.options?.w, 'X', target._presLayout), h: getSmartParseNumber(newObject.options?.h, 'Y', target._presLayout) },
 		})
@@ -537,9 +537,9 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 			type: 'image/svg+xml',
 			extn: strImgExtn,
 			data: strImageData || '',
-		rId: imageRelId + 1,
-		Target: `../media/${imageTargetStem(target)}.${strImgExtn}`,
-		fill: opt.fill,
+			rId: imageRelId + 1,
+			Target: `../media/${imageTargetStem(target)}.${strImgExtn}`,
+			fill: opt.fill,
 		})
 		newObject.imageRid = imageRelId + 1
 		imageRelId++ // NOTE: the SVG branch consumed two rIds - keep the counter on the last one used (issue #19)
@@ -561,8 +561,8 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 			extn: strImgExtn,
 			data: strImageData || '',
 			rId: imageRelId,
-		isDuplicate: !!(dupeItem?.Target),
-		Target: dupeItem?.Target ? dupeItem.Target : `../media/${imageTargetStem(target)}.${strImgExtn}`,
+			isDuplicate: !!(dupeItem?.Target),
+			Target: dupeItem?.Target ? dupeItem.Target : `../media/${imageTargetStem(target)}.${strImgExtn}`,
 		})
 		newObject.imageRid = imageRelId
 	}
@@ -1248,12 +1248,12 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 			itemOpts._bodyProp.vert = itemOpts.vert || undefined // VALS: [eaVert,horz,mongolianVert,vert,vert270,wordArtVert,wordArtVertRtl]
 			itemOpts._bodyProp.wrap = typeof itemOpts.wrap === 'boolean' ? itemOpts.wrap : true
 
-		// Text columns: `columns` (count) + optional `columnGap` (inches) -> numCol/spcCol on <a:bodyPr>
-		// ECMA-376 §5.1.5.1.4 CT_TextBodyProperties@numCol/@spcCol (issue #1320)
-		if (itemOpts.columns && itemOpts.columns > 1) {
-			itemOpts._bodyProp.numCol = Math.floor(itemOpts.columns)
-			itemOpts._bodyProp.spcCol = inch2Emu(itemOpts.columnGap || 0)
-		}
+			// Text columns: `columns` (count) + optional `columnGap` (inches) -> numCol/spcCol on <a:bodyPr>
+			// ECMA-376 §5.1.5.1.4 CT_TextBodyProperties@numCol/@spcCol (issue #1320)
+			if (itemOpts.columns && itemOpts.columns > 1) {
+				itemOpts._bodyProp.numCol = Math.floor(itemOpts.columns)
+				itemOpts._bodyProp.spcCol = inch2Emu(itemOpts.columnGap || 0)
+			}
 
 			// E: Inset
 			// @deprecated 3.10.0 (`inset` - use `margin`)

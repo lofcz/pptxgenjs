@@ -4,7 +4,7 @@ This document describes how to set up a development environment and submit chang
 
 ## Development setup
 
-Requires Node.js **20 or newer** (matches CI and the `engines` field).
+Requires Node.js **24 or newer** (matches CI and the `engines` field).
 
 ```bash
 npm ci        # install exact locked dependencies

@@ -9,7 +9,7 @@
  * carries the comment text in a DrawingML `a:txBody`. Replies nest under `replyLst` (§2.16.3.7).
  */
 import { encodeXmlEntities, getUuid } from './gen-utils'
-import type { CommentAuthorProps, CommentProps, PresSlide } from './core-interfaces'
+import type { CommentAuthorProps, PresSlide } from './core-interfaces'
 
 const P188_NS = 'http://schemas.microsoft.com/office/powerpoint/2018/8/main'
 const PC_NS = 'http://schemas.microsoft.com/office/powerpoint/2013/main/command'
@@ -63,7 +63,7 @@ export function makeXmlSlideComments (slide: PresSlide, authors: CommentAuthorPr
 	const sldId = slide._slideId
 
 	let xml =
-		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n` +
+		'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n' +
 		`<p188:cmLst xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:p188="${P188_NS}" xmlns:pc="${PC_NS}">`
 
 	comments.forEach(cm => {
@@ -87,7 +87,7 @@ export function makeXmlSlideComments (slide: PresSlide, authors: CommentAuthorPr
 			pos +
 			replies +
 			txBody(cm.text) +
-			`</p188:cm>`
+			'</p188:cm>'
 	})
 
 	return xml + '</p188:cmLst>'

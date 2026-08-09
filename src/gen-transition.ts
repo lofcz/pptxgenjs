@@ -128,19 +128,19 @@ export function genXmlTransition(slide: PresSlide): string {
 		const prefix = ns === P16_NS ? 'p16' : ns === P15_NS ? 'p15' : 'p14'
 		const inner =
 			kind === 'side' ? `<${prefix}:${type}${dir(['l', 'r', 'u', 'd'], t, 'l')}/>`
-			: kind === 'orient' ? `<${prefix}:${type}${dir(['horz', 'vert'], t, 'horz')}/>`
-			: kind === 'eight' ? `<${prefix}:${type}${dir(['l', 'r', 'u', 'd', 'lu', 'ru', 'ld', 'rd'], t, 'l')}/>`
-			: kind === 'inout' ? `<${prefix}:${type}${dir(['in', 'out'], t, 'out')}/>`
-			: `<${prefix}:${type}/>`
+				: kind === 'orient' ? `<${prefix}:${type}${dir(['horz', 'vert'], t, 'horz')}/>`
+					: kind === 'eight' ? `<${prefix}:${type}${dir(['l', 'r', 'u', 'd', 'lu', 'ru', 'ld', 'rd'], t, 'l')}/>`
+						: kind === 'inout' ? `<${prefix}:${type}${dir(['in', 'out'], t, 'out')}/>`
+							: `<${prefix}:${type}/>`
 		const [fbName, fbKind] = BASE[fallbackType]
 		const fallback = baseInner(fbName, fbKind, { type: fallbackType as TRANSITION_TYPE })
 		return (
 			`<mc:AlternateContent xmlns:mc="${MC_NS}" xmlns:${prefix}="${ns}">` +
 			`<mc:Choice Requires="${prefix}">` +
 			`<p:transition${attrs}>${inner}</p:transition>` +
-			`</mc:Choice>` +
+			'</mc:Choice>' +
 			`<mc:Fallback><p:transition${attrs}>${fallback}</p:transition></mc:Fallback>` +
-			`</mc:AlternateContent>`
+			'</mc:AlternateContent>'
 		)
 	}
 

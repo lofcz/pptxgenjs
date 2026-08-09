@@ -91,11 +91,11 @@ export function applyNaturalImageSizes(layout: PresSlide | SlideLayout): void {
 			// to its natural pixel dims instead would collapse it to ~px/96 inches (issue #996).
 			if (obj.options.placeholder) return
 			try {
-			const dims = imageDimensions(base64ToBytes(strData))
-			if (dims.width && dims.height) {
-				obj.options.w = dims.width / IMAGE_DPI
-				obj.options.h = dims.height / IMAGE_DPI
-			}
+				const dims = imageDimensions(base64ToBytes(strData))
+				if (dims.width && dims.height) {
+					obj.options.w = dims.width / IMAGE_DPI
+					obj.options.h = dims.height / IMAGE_DPI
+				}
 			} catch (_ex) {
 				// Unreadable/unsupported image: keep the 1x1 inch default
 			}

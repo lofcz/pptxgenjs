@@ -408,7 +408,7 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 
 		// B: Add OBJECT to the current Slide
 		switch (slideItemObj._type) {
-			case SLIDE_OBJECT_TYPES.table:
+			case SLIDE_OBJECT_TYPES.table: {
 				arrTabRows = slideItemObj.arrTabRows ?? []
 				objTabOpts = slideItemObj.options
 				intColCnt = 0
@@ -644,6 +644,7 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				// LAST: Increment counter
 				intTableNum++
 				break
+			}
 
 			case SLIDE_OBJECT_TYPES.text:
 			case SLIDE_OBJECT_TYPES.placeholder: {
@@ -905,7 +906,7 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += '   </p:ext>'
 					// MS-PPTX §2.2.14 Narration: isNarration flag on the media shape's nvPr.
 					if (slideItemObj.options.isNarration)
-						strSlideXml += `   <p:ext uri="{42D2F446-02D8-4167-A562-619A0277C38B}"><p15:isNarration xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main" val="1"/></p:ext>`
+						strSlideXml += '   <p:ext uri="{42D2F446-02D8-4167-A562-619A0277C38B}"><p15:isNarration xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main" val="1"/></p:ext>'
 					strSlideXml += '  </p:extLst>'
 					strSlideXml += ' </p:nvPr>'
 					strSlideXml += ' </p:nvPicPr>'
@@ -914,60 +915,60 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += `  <a:xfrm${locationAttr}><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>`
 					strSlideXml += '  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
 					strSlideXml += ' </p:spPr>'
-				strSlideXml += '</p:pic>'
-			}
-			break
+					strSlideXml += '</p:pic>'
+				}
+				break
 
-		case SLIDE_OBJECT_TYPES.zoom: {
+			case SLIDE_OBJECT_TYPES.zoom: {
 			// MS-PPTX §2.2.15: mc:AlternateContent { Choice p16:{sldZm|sectionZm|summaryZm} | Fallback }.
-			const zOpts = slideItemObj.options
-			const zKind = slideItemObj.zoomKind ?? 'slide'
-			const zRid = slideItemObj.zoomRid ?? 0
-			const zId = getUuid('{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}')
-			const zRet = zOpts.returnToParent === false ? '0' : '1'
-			const zShowBg = zOpts.showBg === false ? '0' : '1'
-			const zDur = typeof zOpts.transitionDur === 'number' ? ` p14:transitionDur="${Math.round(zOpts.transitionDur)}"` : ''
-			const zGeom = `<a:xfrm${locationAttr}><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`
-			const zFill = `<p:blipFill><a:blip r:embed="rId${zRid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>`
-			const zmPr = `<p166:zmPr id="${zId}" returnToParent="${zRet}" showBg="${zShowBg}" imageType="preview"${zDur}>${zFill}<p:spPr>${zGeom}</p:spPr></p166:zmPr>`
-			const nsMap = {
-				slide: 'http://schemas.microsoft.com/office/powerpoint/2016/slidezoom',
-				section: 'http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom',
-				summary: 'http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom',
-			}
-			const zNs = nsMap[zKind]
+				const zOpts = slideItemObj.options
+				const zKind = slideItemObj.zoomKind ?? 'slide'
+				const zRid = slideItemObj.zoomRid ?? 0
+				const zId = getUuid('{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}')
+				const zRet = zOpts.returnToParent === false ? '0' : '1'
+				const zShowBg = zOpts.showBg === false ? '0' : '1'
+				const zDur = typeof zOpts.transitionDur === 'number' ? ` p14:transitionDur="${Math.round(zOpts.transitionDur)}"` : ''
+				const zGeom = `<a:xfrm${locationAttr}><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`
+				const zFill = `<p:blipFill><a:blip r:embed="rId${zRid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>`
+				const zmPr = `<p166:zmPr id="${zId}" returnToParent="${zRet}" showBg="${zShowBg}" imageType="preview"${zDur}>${zFill}<p:spPr>${zGeom}</p:spPr></p166:zmPr>`
+				const nsMap = {
+					slide: 'http://schemas.microsoft.com/office/powerpoint/2016/slidezoom',
+					section: 'http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom',
+					summary: 'http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom',
+				}
+				const zNs = nsMap[zKind]
 
-			strSlideXml += '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
-			strSlideXml += `<mc:Choice Requires="p16" xmlns:p16="${zNs}" xmlns:p166="http://schemas.microsoft.com/office/powerpoint/2016/6/main" xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">`
-			if (zKind === 'slide') {
-				const zSldId = 255 + (slideItemObj.zoomSlideNum ?? 1)
-				strSlideXml += `<p16:sldZm><p16:sldZmObj sldId="${zSldId}">${zmPr}</p16:sldZmObj></p16:sldZm>`
-			} else if (zKind === 'section') {
-				strSlideXml += `<p16:sectionZm><p16:sectionZmObj sectionId="${slideItemObj.zoomSectionId}">${zmPr}</p16:sectionZmObj></p16:sectionZm>`
-			} else {
+				strSlideXml += '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
+				strSlideXml += `<mc:Choice Requires="p16" xmlns:p16="${zNs}" xmlns:p166="http://schemas.microsoft.com/office/powerpoint/2016/6/main" xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">`
+				if (zKind === 'slide') {
+					const zSldId = 255 + (slideItemObj.zoomSlideNum ?? 1)
+					strSlideXml += `<p16:sldZm><p16:sldZmObj sldId="${zSldId}">${zmPr}</p16:sldZmObj></p16:sldZm>`
+				} else if (zKind === 'section') {
+					strSlideXml += `<p16:sectionZm><p16:sectionZmObj sectionId="${slideItemObj.zoomSectionId}">${zmPr}</p16:sectionZmObj></p16:sectionZm>`
+				} else {
 				// §2.11 CT_SummaryZoom: summaryZmObj(s) + required layout choice (gridLayout/fixedLayout).
-				const szTitle = zOpts.zoomTitle ? ` title="${encodeXmlEntities(zOpts.zoomTitle)}"` : ''
-				const szDescr = zOpts.zoomDescr ? ` descr="${encodeXmlEntities(zOpts.zoomDescr)}"` : ''
-				const szOff = (typeof zOpts.offsetFactorX === 'number' ? ` offsetFactorX="${Math.round(zOpts.offsetFactorX)}"` : '') + (typeof zOpts.offsetFactorY === 'number' ? ` offsetFactorY="${Math.round(zOpts.offsetFactorY)}"` : '')
-				const szScale = (typeof zOpts.scaleFactorX === 'number' ? ` scaleFactorX="${Math.round(zOpts.scaleFactorX)}"` : '') + (typeof zOpts.scaleFactorY === 'number' ? ` scaleFactorY="${Math.round(zOpts.scaleFactorY)}"` : '')
-				strSlideXml += `<p16:summaryZm><p16:summaryZmObj sectionId="${slideItemObj.zoomSectionId}"${szTitle}${szDescr}${szOff}${szScale}>${zmPr}</p16:summaryZmObj><p16:gridLayout/></p16:summaryZm>`
+					const szTitle = zOpts.zoomTitle ? ` title="${encodeXmlEntities(zOpts.zoomTitle)}"` : ''
+					const szDescr = zOpts.zoomDescr ? ` descr="${encodeXmlEntities(zOpts.zoomDescr)}"` : ''
+					const szOff = (typeof zOpts.offsetFactorX === 'number' ? ` offsetFactorX="${Math.round(zOpts.offsetFactorX)}"` : '') + (typeof zOpts.offsetFactorY === 'number' ? ` offsetFactorY="${Math.round(zOpts.offsetFactorY)}"` : '')
+					const szScale = (typeof zOpts.scaleFactorX === 'number' ? ` scaleFactorX="${Math.round(zOpts.scaleFactorX)}"` : '') + (typeof zOpts.scaleFactorY === 'number' ? ` scaleFactorY="${Math.round(zOpts.scaleFactorY)}"` : '')
+					strSlideXml += `<p16:summaryZm><p16:summaryZmObj sectionId="${slideItemObj.zoomSectionId}"${szTitle}${szDescr}${szOff}${szScale}>${zmPr}</p16:summaryZmObj><p16:gridLayout/></p16:summaryZm>`
+				}
+				strSlideXml += '</mc:Choice>'
+				// Fallback for older readers: pic for slide/section zoom; grpSp for summary zoom (§2.2.15).
+				if (zKind === 'summary') {
+					strSlideXml += `<mc:Fallback><p:grpSp><p:nvGrpSpPr><p:cNvPr id="${shapeId}" name="${zOpts.objectName}"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:grpSp></mc:Fallback>`
+				} else {
+					strSlideXml += '<mc:Fallback><p:pic><p:nvPicPr>'
+					strSlideXml += `<p:cNvPr id="${shapeId}" name="${zOpts.objectName}" descr="${encodeXmlEntities(zOpts.altText || '')}"/>`
+					strSlideXml += '<p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>'
+					strSlideXml += zFill
+					strSlideXml += `<p:spPr>${zGeom}</p:spPr></p:pic></mc:Fallback>`
+				}
+				strSlideXml += '</mc:AlternateContent>'
+				break
 			}
-			strSlideXml += '</mc:Choice>'
-			// Fallback for older readers: pic for slide/section zoom; grpSp for summary zoom (§2.2.15).
-			if (zKind === 'summary') {
-				strSlideXml += `<mc:Fallback><p:grpSp><p:nvGrpSpPr><p:cNvPr id="${shapeId}" name="${zOpts.objectName}"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:grpSp></mc:Fallback>`
-			} else {
-				strSlideXml += '<mc:Fallback><p:pic><p:nvPicPr>'
-				strSlideXml += `<p:cNvPr id="${shapeId}" name="${zOpts.objectName}" descr="${encodeXmlEntities(zOpts.altText || '')}"/>`
-				strSlideXml += '<p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>'
-				strSlideXml += zFill
-				strSlideXml += `<p:spPr>${zGeom}</p:spPr></p:pic></mc:Fallback>`
-			}
-			strSlideXml += '</mc:AlternateContent>'
-			break
-		}
 
-		case SLIDE_OBJECT_TYPES.chart:
+			case SLIDE_OBJECT_TYPES.chart:
 				strSlideXml += '<p:graphicFrame>'
 				strSlideXml += ' <p:nvGraphicFramePr>'
 				strSlideXml += `   <p:cNvPr id="${shapeId}" name="${slideItemObj.options.objectName}" descr="${encodeXmlEntities(slideItemObj.options.altText || '')}"/>`
@@ -2073,7 +2074,7 @@ export function makeXmlNotesMaster (): string {
 	// ECMA-376 §4.4.1.24 CT_NotesMaster = cSld + EG_TopLevelSlide(clrMap) + hf? + notesStyle? + extLst?
 	// No placeholder shapes are required. PowerPoint's repair strips <p:ph> placeholder <p:sp> shapes from a
 	// notesMaster (issue #1443), so emit a spec-compliant empty spTree: bg + clrMap + notesStyle only.
-	const notesStyle = `<p:notesStyle><a:lvl1pPr marL="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl1pPr></p:notesStyle>`
+	const notesStyle = '<p:notesStyle><a:lvl1pPr marL="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl1pPr></p:notesStyle>'
 	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}<p:notesMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>${notesStyle}</p:notesMaster>`
 }
 
@@ -2359,7 +2360,7 @@ export function makeXmlPresProps (pres?: IPresentationProps): string {
 	if (pres?.discardImageEditData)
 		exts.push(`<p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}"><p14:discardImageEditData xmlns:p14="${P14_NS}" val="1"/></p:ext>`)
 	if (pres?.readonlyRecommended)
-		exts.push(`<p:ext uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"><p1710:readonlyRecommended xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main" val="1"/></p:ext>`)
+		exts.push('<p:ext uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"><p1710:readonlyRecommended xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main" val="1"/></p:ext>')
 
 	const extLst = exts.length > 0 ? `<p:extLst>${exts.join('')}</p:extLst>` : ''
 	return (
