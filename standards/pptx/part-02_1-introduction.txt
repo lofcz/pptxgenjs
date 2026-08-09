@@ -1,0 +1,170 @@
+<!-- 1 Introduction | pages 12-15 of 170 -->
+
+The PowerPoint (.pptx) Extensions to the Office Open XML File Format specifies elements and
+attributes that extend the XML vocabulary for representing PresentationML documents described in the
+[ISO/IEC29500-1:2016] specification. The new elements and attributes are presented using the
+extensibility mechanisms provided by the [ISO/IEC29500-1:2016] specification.
+
+Sections 1.7 and 2 of this specification are normative. All other sections and examples in this
+specification are informative.
+
+1.1  Glossary
+
+This document uses the following terms:
+
+  comment: An annotation that is associated with a cell, text, or other object to provide context-
+       specific information or reviewer feedback.
+
+  Coordinated Universal Time (UTC): A high-precision atomic time standard that approximately
+      tracks Universal Time (UT). It is the basis for legal, civil time all over the Earth. Time zones
+     around the world are expressed as positive and negative offsets from UTC. In this role, it is also
+      referred to as Zulu time (Z) and Greenwich Mean Time (GMT). In these specifications, all
+      references to UTC refer to the time at UTC-0 (or GMT).
+
+  Designer Service: A service that provides design suggestions for a presentation.
+
+   globally unique identifier (GUID): A term used interchangeably with universally unique
+       identifier (UUID) in Microsoft protocol technical documents (TDs). Interchanging the usage of
+      these terms does not imply or require a specific algorithm or mechanism to generate the value.
+       Specifically, the use of this term does not imply or require that the algorithms described in
+     [RFC4122] or [C706] have to be used for generating the GUID. See also universally unique
+       identifier (UUID).
+
+   ink: A process of entering text in handwritten form. Instead of converting handwritten text to
+     typed text, ink is converted to an object and displayed exactly as it was written.
+
+  master unit: A unit of linear measurement that is equal to 1/576 inch.
+
+   presentation: A collection of slides that are intended to be viewed by an audience.
+
+   presentation slide: A slide that contains the content that can be displayed during a slide show. A
+      presentation slide can derive formatting and content from a main master slide or a title master
+       slide.
+
+  shape: A collection of qualifiers, such as names, and quantifiers, such as coordinates, that is used
+      to represent a geometric object. A shape can be contained in a document, file structure, run-
+     time structure, or other medium.
+
+  shape identifier: An integer that corresponds to a shape object or an instantiation of a shape
+      object.
+
+   slide show: A delivery of a sequence of presentation slides, typically to an audience.
+
+  time node: A record or parent node that stores the information that is necessary to cause a time-
+      or action-based effect to occur. Each time node has a corresponding object to which an effect is
+      applied. It can be used randomly, simultaneously, or sequentially, and it can be used to specify
+      certain time-based effects between objects that are being animated. Effects include visual and
+     media behaviors.
+      8.
+
+  XML: The Extensible Markup Language, as described in [XML1.0].
+
+  Zoom: An object that links to a slide or section that shows a transition when navigating to the slide
+      or section.
+
+  MAY, SHOULD, MUST, SHOULD NOT, MUST NOT: These terms (in all caps) are used as defined
+       in [RFC2119]. All statements of optional behavior use either MAY, SHOULD, or SHOULD NOT.
+
+1.2  References
+
+Links to a document in the Microsoft Open Specifications library point to the correct section in the
+most recently published version of the referenced document. However, because individual documents
+in the library are not updated at the same time, the section numbers in the documents may not
+match. You can confirm the correct section numbering by checking the Errata.
+
+1.2.1 Normative References
+
+We conduct frequent surveys of the normative references to assure their continued availability. If you
+have any issue with finding a normative reference, please contact dochelp@microsoft.com. We will
+assist you in finding the relevant information.
+
+[ISO/IEC-29500-4] International Organization for Standardization, "Information technology --
+Document description and processing languages -- Office Open XML File Formats -- Part 4:
+Transitional Migration Features", ISO/IEC 29500-4:2016, https://www.iso.org/standard/71692.html
+
+[ISO/IEC29500-1:2016] ISO/IEC, "Information technology -- Document description and processing
+languages -- Office Open XML File Formats -- Part 1: Fundamentals and Markup Language Reference",
+ISO/IEC 29500-1:2016, https://www.iso.org/standard/71691.html
+
+[ISO/IEC29500-2:2012] ISO/IEC, "Information technology -- Document description and processing
+languages -- Office Open XML File Formats -- Part 2: Open Packaging Conventions", ISO/IEC 29500-
+2:2012, http://www.iso.org/iso/home/store/catalogue_ics/catalogue_detail_ics.htm?csnumber=61796
+
+[ISO/IEC29500-3:2015] ISO/IEC, "Information technology -- Document description and processing
+languages -- Office Open XML File Formats -- Part 3: Markup Compatibility and Extensibility",
+https://www.iso.org/standard/65533.html
+
+[ISO/IEC29500-4:2016] ISO/IEC, "Information technology -- Document description and processing
+languages -- Office Open XML File Formats -- Part 4: Transitional Migration Features",
+https://www.iso.org/standard/71692.html
+
+[MS-DTYP] Microsoft Corporation, "Windows Data Types".
+
+[MS-ODRAWXML] Microsoft Corporation, "Office Drawing Extensions to Office Open XML Structure".
+
+[MS-OWEXML] Microsoft Corporation, "Office Web Extensibility Extensions to Office Open XML
+Structure Specification".
+
+[RFC2119] Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC
+2119, March 1997, https://www.rfc-editor.org/info/rfc2119
+
+[RFC5234] Crocker, D., Ed., and Overell, P., "Augmented BNF for Syntax Specifications: ABNF", STD
+68, RFC 5234, January 2008, https://www.rfc-editor.org/info/rfc5234
+[XMLSCHEMA2/2] Biron, P., and Malhotra, A., Eds., "XML Schema Part 2: Datatypes Second Edition",
+W3C Recommendation, October 2004, https://www.w3.org/TR/2004/REC-xmlschema-2-20041028/
+
+[XMLSCHEMA2] Biron, P.V., Ed. and Malhotra, A., Ed., "XML Schema Part 2: Datatypes", W3C
+Recommendation, May 2001, https://www.w3.org/TR/2001/REC-xmlschema-2-20010502/
+
+1.2.2 Informative References
+
+None.
+
+1.3  Overview
+
+This structure provides an extended XML vocabulary for a PresentationML document. The extended
+elements and attributes allow the format to indicate further information about a document, or content
+and formatting of parts of the document beyond the elements and attributes described in
+[ISO/IEC29500-1:2016]. Because these elements and attributes are meant as extensions, their intent
+and usage varies.
+
+The extensions support new functionality involving slide transitions (section 2.2.1), slide animations
+(section 2.2.2), content parts (section 2.2.3), media (section 2.2.4), sections (section 2.2.5), slide
+show (section 2.2.6), images (section 2.2.7), math (section 2.2.8), change tracking (section 2.2.9),
+comments (section 2.2.10), guides (section 2.2.11), and charts (section 2.2.12).
+
+The extensions in this format are integrated into [ISO/IEC29500-1:2016] by means of the Markup
+Compatibility and Extensibility features as described in [ISO/IEC29500-3:2015]. Specifically, the
+Ignorable attribute ([ISO/IEC29500-3:2015] section 7.2), the AlternateContent element
+([ISO/IEC29500-3:2015] section 7.5), and application-defined extension elements are used to
+maintain compatibility with [ISO/IEC29500-1:2016] implementations when integrating the extensions
+from this format. Using these extensions as described in this document will result in a PresentationML
+document that is conformant to [ISO/IEC29500-1:2016].
+
+1.4  Relationship to Protocols and Other Structures
+
+The structures described in this document are incorporated into PresentationML documents as
+described in [ISO/IEC29500-1:2016] using the Markup Compatibility and Extensibility features as
+described in [ISO/IEC29500-3:2015]. The global elements described in this format appear as optional
+child elements of certain elements described in [ISO/IEC29500-1:2016] as described in section 2.3.
+The global attributes described in this format appear as optional attributes on certain elements
+described in [ISO/IEC29500-1:2016] as described in section 2.4. Some of the elements, attributes,
+simple types and complex types here also refer to complex or simple types described in
+[ISO/IEC29500-4:2016].
+
+1.5  Applicability Statement
+
+This document specifies a set of structures to extend the XML vocabulary of [ISO/IEC29500-1:2016]
+PresentationML documents. The extensions specified in this document allow for expressing additional
+document content and properties, and are not applicable as a stand-alone file format. Each structure
+specified in this document is integrated with [ISO/IEC29500-1:2016] PresentationML documents in a
+particular way, as specified in the description of that structure. All structures are integrated into
+PresentationML documents in such a way that maintains compatibility with [ISO/IEC29500-1:2016]
+implementations.
+1.6  Versioning and Localization
+
+None.
+
+1.7  Vendor-Extensible Fields
+
+None.

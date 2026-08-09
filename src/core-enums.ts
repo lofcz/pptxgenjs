@@ -42,6 +42,19 @@ export type WRITE_OUTPUT_TYPE = JSZIP_OUTPUT_TYPE | 'STREAM'
 export type CHART_NAME = 'area' | 'bar' | 'bar3D' | 'bubble' | 'bubble3D' | 'doughnut' | 'line' | 'pie' | 'radar' | 'scatter'
 export type SCHEME_COLORS = 'tx1' | 'tx2' | 'bg1' | 'bg2' | 'accent1' | 'accent2' | 'accent3' | 'accent4' | 'accent5' | 'accent6'
 
+/**
+ * Slide transition type.
+ * Base set is ECMA-376 §19.3.1.50; the rest are MS-PPTX §2.2.1 modern transitions (emitted via mc:AlternateContent).
+ */
+export type TRANSITION_TYPE =
+	// ECMA-376 base
+	| 'blinds' | 'checker' | 'circle' | 'comb' | 'cover' | 'cut' | 'diamond' | 'dissolve' | 'fade'
+	| 'newsflash' | 'none' | 'plus' | 'pull' | 'push' | 'random' | 'randomBar' | 'split' | 'strips'
+	| 'wedge' | 'wheel' | 'wipe' | 'zoom'
+	// MS-PPTX 2010+ modern (mc:AlternateContent + base fallback)
+	| 'conveyor' | 'doors' | 'ferris' | 'flash' | 'flip' | 'flythrough' | 'gallery' | 'glitter' | 'honeycomb'
+	| 'morph' | 'pan' | 'prism' | 'reveal' | 'ripple' | 'shred' | 'switch' | 'vortex' | 'warp' | 'wheelReverse' | 'window'
+
 export const LETTERS: string[] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 export const BARCHART_COLORS: string[] = [
 	'C0504D',
@@ -756,6 +769,7 @@ export enum SLIDE_OBJECT_TYPES {
 	'tablecell' = 'tablecell',
 	'text' = 'text',
 	'notes' = 'notes',
+	'zoom' = 'zoom',
 }
 export enum PLACEHOLDER_TYPES {
 	'title' = 'title',

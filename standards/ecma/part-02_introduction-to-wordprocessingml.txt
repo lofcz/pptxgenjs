@@ -1,0 +1,3545 @@
+<!-- Introduction to WordprocessingML | pages 323-413 of 6045 -->
+
+ 1   2.  Introduction to WordprocessingML
+
+
+ 2    This clause is informative.
+
+ 3    This clause contains a detailed introduction to the structure of a WordprocessingML document.
+
+ 4   2.1    Stories
+
+ 5   A WordprocessingML document is composed of a collection of stories. Each story represents a distinct region
+ 6    of text within the document. The following kinds of region exist: comment (§2.14.5), endnote (§2.12.2),
+ 7    footer (§2.11.2), footnote (§2.12.1), frame, glossary document (§2.13), header (§2.11.1), main story (§2.2),
+ 8   subdocument (§2.18.2), and text box (§2.18.1).
+
+ 9   With one exception (a glossary document), all stories in a document utilize a common set of properties that
+10   determine the presentation of the contents of each story. These properties include font information, style
+11    definitions, numbering definitions, and document settings.
+
+12   2.2    Basic Document Structure
+
+13   The main document story of the simplest WordprocessingML document consists of the following XML
+14    elements:
+
+15         document — The root element for a WordprocessingML's main document part, which defines the
+16          main document story.
+17         body — The container for the collection of block-level structures that comprise the main story.
+18         p — A paragraph.
+19          r — A run.
+20          t — A range of text.
+
+21   A run is a region of text in a story with a common set of properties. The text in a WordprocessingML document
+22   must be contained within one or more runs. A paragraph is a collection of one or more runs that is displayed
+23    as a unit. A run must be contained within a paragraph.
+
+24    Consider the following Main Document XML for a simple WordprocessingML document:
+ 1     <?xml version="1.0"?>
+ 2     <w:document xmlns:w="…">
+ 3       <w:body>
+ 4         <w:p>
+ 5           <w:r>
+ 6             <w:t>Hello, world.</w:t>
+ 7           </w:r>
+ 8         </w:p>
+ 9       </w:body>
+10     </w:document>
+
+11   2.3   Main Document Story
+
+12   The contents of the main document story—the only story that is required in a valid WordprocessingML
+13   document—are encapsulated within the body element. The content of the main document body is a collection
+14    of block-level structures, which are those WordprocessingML elements that can contain and/or be sibling
+15   elements with a WordprocessingML paragraph.
+
+16    Within the document body, the valid set of block level content is:
+
+17          Paragraphs
+18          Tables
+19         Custom markup (custom XML, structured document tags)
+20          Section properties
+21          Annotations (comments, revision markers, range permission markers)
+22          Alternate format chunks
+
+23   Each of these block-level content constructs (the 'building blocks' of WordprocessingML) is defined in the
+24    following subclauses.
+
+25   2.3.1    Document Backgrounds
+26   As well as containing a body, a document element can also contain the definition of the document's
+27   background via the background element and its contents. This background applies to all printed pages within
+28    this document. A document background in WordprocessingML can have a single color, as well as the
+29    application of various drawing effects such as color gradient or pattern, and a tiled or stretched image. All
+30   background information in a WordprocessingML document is stored using the Vector Markup Language (VML)
+31    syntax. The single exception to this is the background color, which is stored natively in WordprocessingML
+32    using the bgColor attribute.
+
+33    Consider a simple background in WordprocessingML, which consists of a single color with a gradient fill
+34    applied:
+ 1     <w:background w:bgColor="5C83B4">
+ 2       <v:background id="_x0000_s1025" o:bwmode="white" fillcolor="#5c83b4
+ 3         [3204] o:targetscreensize="800,600">
+ 4         <v:fill color2="fill darken(118) method="linear sigma" focus="100%"
+ 5           type="gradient"/>
+ 6       </v:background>
+ 7     </w:bgPict>
+
+ 8   The background consists of two components: a background fill color of RGB value 5C83B4, and the background
+ 9    gradient stored as a VML transformation.
+
+10   2.4    Paragraphs and Rich Formatting
+
+11   2.4.1     Paragraphs
+
+12   The most basic unit of block-level content within a WordprocessingML document, paragraphs are stored using
+13    the p element. A paragraph defines a distinct division of content that begins on a new line. A paragraph can
+14    contain three pieces of information: optional paragraph properties, inline content (typically runs), and a set of
+15    optional revision IDs used to compare the content of two documents.
+
+16    Consider the paragraph fragment "The quick brown fox jumped …" which is centered on a paragraph. As all the
+17    text in the paragraph is emphasized using italics, in the XML, the contents of the paragraph will have the
+18    justify-center property, and each run within the paragraph (as well as the run properties for the paragraph
+19   mark) stores the italics property; for example:
+
+20     <w:p>
+21       <w:pPr>
+22         <w:jc w:val="center"/>
+23         <w:rPr>
+24           <w:i/>
+25         </w:rPr>
+26       </w:pPr>
+27       <w:r>
+28         <w:rPr>
+29           <w:i/>
+30         </w:rPr>
+31         <w:t>The quick brown fox jumped…</w:t>
+32       </w:r>
+33     </w:p>
+
+34    Notice that each run specifies the character formatting information for its contents, and the paragraph
+35    specifies the paragraph level formatting (the center-justification). It is also notable that since leading and
+36     trailing whitespace is not normally significant in XML, some runs require a designating specifying that their
+37    whitespace is significant via the xml:space element.
+ 1   A paragraph's properties are specified via the pPr element. Some examples of paragraph properties are
+ 2    alignment, border, hyphenation override, indentation, line spacing, shading, text direction, and widow/orphan
+ 3    control.
+
+ 4      It should also be noted that a pPr element may contain a set of run properties within a rPr element – these
+ 5    properties are applied to the run which contains the glyph which represents the paragraph mark and not the
+ 6    entire paragraph.
+
+ 7   2.4.2    Runs
+
+ 8   The next level of the document hierarchy is the run, which defines a region of text with a common set of
+ 9    properties, represented by the r element. An r element allows the producer to combine breaks, styles, or
+10    formatting properties, applying the same information to all the parts of the run.
+
+11    Just as a paragraph can have properties, so too can a run. All of the elements inside an r element have their
+12    properties controlled by a corresponding optional rPr run properties element, which must be the first child of
+13    the r element. In turn, the rPr element is a container for a set of property elements that are applied to the rest
+14    of the children of the r element. The elements inside the rPr container element allow the consumer to control
+15   whether the text in the following t elements is bold, underlined, or visible, for example. Some examples of run
+16    properties are bold, border, character style, color, font, font size, italic, kerning, disable spelling/grammar
+17    check, shading, small caps, strikethrough, text direction, and underline.
+
+18    Consider the following run within a WordprocessingML document:
+
+19     <w:r>
+20       <w:rPr>
+21         <w:b/>
+22         <w:i/>
+23       </w:rPr>
+24       <w:t>quick</w:t>
+25     </w:r>
+
+26   The run specifies two formatting properties in its run contents: bold and italic. These properties are therefore
+27    applied to all content within this run.
+
+28   A producer can break a run into an arbitrary number of smaller runs, provided each smaller run uses the same
+29    set of properties, without changing the content of the document.
+
+30    Consider the content "only one word is emphasized" in a WordprocessingML document. An efficient producer
+31    could choose to output this content using two runs, as follows:
+
+32     <w:r>
+33       <w:t xml:space="preserve">only one word is </w:t>
+34     </w:r>
+ 1     <w:r>
+ 2       <w:rPr>
+ 3         <w:i/>
+ 4       <w:rPr>
+ 5       <w:t>emphasized</w:t>
+ 6     </w:r>
+
+ 7   However, a less efficient producer might use four runs, as follows:
+
+ 8     <w:r>
+ 9       <w:t>only one</w:t>
+10     </w:r>
+11     <w:r>
+12       <w:t xml:space="preserve"> word is </w:t>
+13     </w:r>
+14     <w:r>
+15       <w:rPr>
+16         <w:i/>
+17       <w:rPr>
+18       <w:t>empha</w:t>
+19     </w:r>
+20     <w:r>
+21       <w:rPr>
+22         <w:i/>
+23       <w:rPr>
+24       <w:t>sized</w:t>
+25     </w:r>
+
+26    Although the latter example uses four runs rather than two, the net run information applied to each region of
+27    text is identical, and both are equally valid.
+
+28   Of course, a run might need to be broken. For example, the properties of only some the text in that run are
+29    changed, requiring the changed part to be put into its own run. Another example involves the insertion of
+30   some sort of marker into the middle of an existing run. That requires the run be broken into two with the
+31   marker inserted between them.
+
+32   The following run contains two sentences:
+
+33     <w:r>
+34       <w:t>Hello, world. How are you, today?</w:t>
+35     </w:r>
+
+36      If the first two words are bolded in these sentences, the run will need to be broken into two runs in order to
+37    store the formatting, as follows:
+ 1     <w:r>
+ 2       <w:rPr>
+ 3         <w:b/>
+ 4       </w:rPr>
+ 5       <w:t xml:space="preserve">Hello, world. </w:t>
+ 6     </w:r>
+ 7     <w:r>
+ 8       <w:t>How are you, today?</w:t>
+ 9     </w:r>
+
+10    Apart from text, a run can also contain numerous kinds of textual content (§2.4.3) A run can also contain a set
+11    of revision IDs used for document "merge and compare".
+
+12   2.4.3    Run Content
+
+13   The lowest level of this hierarchy is run content, that content that can be stored within a single run in a
+14   document. In WordprocessingML, the types of run content include:
+
+15          Text
+16          Deleted text
+17          Soft line breaks
+18          Field codes
+19          Deleted field codes
+20         Footnote/endnote reference marks
+21          Simple fields
+22         Page numbers
+23         Tabs
+24         Ruby text
+25         DrawingML content
+26         Embedded objects
+27          Pictures
+
+28    2.4.3.1       Text
+29   The most common run content is the t element, which is the container for the text that makes up the
+30   document's content. A t element can contain an arbitrary amount of text, up to and including the entire
+31   document's contents. However, typically, long runs of text are broken up into paragraphs and strings of text
+32    having different formats, or are interrupted by line breaks, graphics, tables, and other items. A t element must
+33   be enclosed within an r element; i.e., a run of text. An r element can contain multiple t elements, interspersed
+34   among other elements.
+
+35    Aside from the t element, there are three types of text in WordprocessingML:
+
+36          delText - Deleted text
+37          instrText - Field codes
+ 1          delInstrText - Deleted field codes
+
+ 2   These four types of text are defined using unique elements in WordprocessingML so that simple consumers
+ 3   can determine the text of the document simply by grabbing the contents of the t node, without needing to
+ 4    check where revisions start and end, etc. to determine the state of the text contents.
+
+ 5      It is also notable that these are the only elements in a WordprocessingML document's main document part
+ 6    that can contain a XML text node.
+
+ 7   2.4.4     Formatting Property Values
+ 8   Most of the children of an rPr or pPr element have a single val attribute that is limited to a specific set of
+ 9    values. For example, the b (bold) element causes the text that follows it to be bold when the b element has a
+10    val attribute with value on. If the val attribute isn't present for the b element, it defaults to "on". Therefore,
+11   <w:b/> is equivalent to <w:b w:val="on"/>.
+
+12    Aside from the default values, which are documented with each element, this is particularly important when
+13    specifying the difference between omitting a formatting property and explicitly turning it off.
+
+14    For example, consider the following run:
+
+15     <w:r>
+16       <w:rPr>
+17         <w:b w:val="off"/>
+18       </w:rPr>
+19       <w:t xml:space="preserve">Hello, world. </w:t>
+20     </w:r>
+
+21    This run explicitly declares that the bold property is turned off for this text, as opposed to the following run:
+
+22     <w:r>
+23       <w:t xml:space="preserve">Hello, world. </w:t>
+24     </w:r>
+
+25    This run says nothing about the bold property. This distinction is particularly important when dealing with
+26    content that is formatting using styles - if the content was not contained in a styled paragraph, both would be
+27    identical. However, in the case where the paragraph is styled, the former would never be bold regardless of
+28    the style information, whereas the latter would express the bold property as set by the style, since it's
+29    omission of the bold property means "whatever the underlying formatting is".
+
+30   Some elements have val attributes that offer a richer set of choices than on and off; the u (underline) element
+31     is one such element. In this case, the same rules apply, the omission of the property simply means use the
+32    underlying properties.
+ 1   2.5    Tables
+
+ 2   Another type of block-level content in WordprocessingML, A table is a set of paragraphs (and other block-level
+ 3    content) arranged in rows and columns.
+
+ 4   2.5.1     Introduction
+ 5    Tables in WordprocessingML are defined via the tbl element, which is analogous to the HTML <table> tag.
+ 6   The table element specifies the location of a table present in the document.
+
+ 7   A tbl element has two elements that define its properties: tblPr, which defines the set of table-wide properties
+ 8    (such as style and width), and tblGrid, which defines the grid layout of the table. A tbl element can also
+ 9    contain an arbitrary non-zero number of rows, where each row is specified with a tr element. Each tr element
+10   can contain an arbitrary non-zero number of cells, where each cell is specified with a tc element.
+
+11    Consider an empty one-cell table (i.e.,; a table with one row, one column) and 1 point borders on all sides:
+
+
+13    This table is represented by the following WordprocessingML:
+
+14     <w:tbl>
+15       <w:tblPr>
+16         <w:tblW w:w="5000" w:type="pct"/>
+17         <w:tblBorders>
+18           <w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+19           <w:left w:val="single" w:sz="4 w:space="0" w:color="auto"/>
+20           <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+21           <w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+22         </w:tblBorders>
+23       </w:tblPr>
+24       <w:tblGrid>
+25         <w:gridCol w:w="10296"/>
+26       </w:tblGrid>
+27       <w:tr>
+28         <w:tc>
+29           <w:tcPr>
+30             <w:tcW w:w="0" w:type="auto"/>
+31           </w:tcPr>
+32           <w:p/>
+33         </w:tc>
+34       </w:tr>
+35     </w:tbl>
+ 1    This table specifies table-wide properties of 100% of page width (tblW's type attribute specifies how the width
+ 2    value in the w attribute shall be interpreted—pct specifies a measurement of fiftieths of a percent) and the
+ 3    set of table borders (tblBorders), the table grid which defines a set of shared vertical edges within the table
+ 4    (discussed later), and a single row.
+
+ 5   2.5.2     Table Properties
+ 6   The tblPr element defines table-wide properties, properties which are applied to each row and cell in the
+ 7    table. The complete set of table-wide properties can be found on the definition for the tblPr element.
+
+ 8    Consider the following simple WordprocessingML table:
+
+
+10    This table defines outside and inside table borders, etc; and is set to 100% of page width - both table-wide
+11    properties. The resulting table is represented by the following WordprocessingML:
+
+12     <w:tbl>
+13       <w:tblPr>
+14         <w:tblW w:w="0" w:type="auto"/>
+15         <w:tblBorders>
+16           <w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+17           <w:left w:val="single" w:sz="4 w:space="0" w:color="auto"/>
+18           <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+19           <w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+20           <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+21           <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+22         </w:tblBorders>
+23       </w:tblPr>
+24       <w:tblGrid>
+25         ...
+26       </w:tblGrid>
+27       <w:tr>
+28         ...
+29       </w:tr>
+30     </w:tbl>
+
+31    In this example, the tblW element defines the total width of the table, which, in this case, is set to a type of
+32   auto, which specifies that the table should be sized to fit its contents. The tblBorders element specifies each
+33    of the table's borders, and specifies a one point border on the top, left, bottom, right and inside horizontal and
+34    vertical border. The table-wide properties can be overwritten on an individual row basis by specifying table
+35    property overrides within the table row properties.
+ 1   2.5.3     Table Grid
+ 2   The tblGrid element defines the grid for the table. All columns in the table (including the space before and
+ 3    after a row) reference this grid. Each gridCol defines a single grid column within the table’s layout, which is
+ 4   used to define the presence of a vertical line within the table. A tblGrid element can contain an arbitrary
+ 5   number of gridCol elements, where each gridCol element represents one grid column in the table and defines
+ 6   a single grid entry. When cells are laid out within this table, as discussed below, all cells will be forced to snap
+ 7    the shared column edges defined by this grid.
+
+ 8    Returning to the earlier 'one-cell empty table' example, the table has one column with a width of 10,296
+ 9    twentieths of a point. This measurement (twentieths of a point, or twips) is frequently used in
+10   WordprocessingML, and translates to 1/1440th of an inch (one-twentieth of a point, which is itself 1/72nd of
+11   an inch):.
+
+12     <w:tblGrid>
+13       <w:gridCol w:w="10296"/>
+14     </w:tblGrid>
+
+15    Consider the following, more complex table that has two rows and two columns; the columns are not aligned:
+
+
+17    This table is represented by laying out the cells on a table grid consisting of three table grid columns, each grid
+18   column representing a logical vertical column in the table:
+
+
+20   The dashed lines represent the virtual vertical continuations of each table grid column, and the resulting table
+21    grid is represented as the following in WordprocessingML:
+
+22     <w:tblGrid>
+23       <w:gridCol w:w="2952"/>
+24       <w:gridCol w:w="4416"/>
+25       <w:gridCol w:w="1488"/>
+26     </w:tblGrid>
+ 1     <w:tr>
+ 2       <w:tc>
+ 3         <w:tcPr>
+ 4           <w:tcW w:w="7368" w:type="dxa"/>
+ 5           <w:gridSpan w:val=‛2‛/>
+ 6         </w:tcPr>
+ 7         <w:p/>
+ 8       </w:tc>
+ 9       <w:tc>
+10         <w:tcPr>
+11           <w:tcW w:w="1488" w:type="dxa"/>
+12         </w:tcPr>
+13         <w:p/>
+14       </w:tc>
+15     </w:tr>
+16     <w:tr>
+17       <w:tc>
+18          <w:tcPr>
+19           <w:tcW w:w="2952" w:type="dxa"/>
+20         </w:tcPr>
+21         <w:p/>
+22       </w:tc>
+23       <w:tc>
+24         <w:tcPr>
+25           <w:tcW w:w="5904" w:type="dxa"/>
+26           <w:gridSpan w:val=‛2‛/>
+27         </w:tcPr>
+28         <w:p/>
+29       </w:tc>
+30     </w:tr>
+
+31    Notice that each of the cells which do not span one grid column (i.e., span two adjacent vertical lines) must
+32    specify this fact by supplying a gridSpan element with a value which determines how many grid columns this
+33     cell will span. Each gridCol element represents a shared 'column' in a table (to which the cells will snap) even
+34      if it doesn’t appear visually.
+
+35   2.5.4     Table Rows and Cells
+36   A table row is defined using a tr element, which is analogous to the HTML <tr> tag. The tr element acts as a
+37    container for a row of cells with the table’s content.
+
+38   A tr element has one formatting child element, trPr, which defines the row properties (such as the row’s
+39    width) and whether it can split across a page. Each property is defined by an individual child element under the
+40    trPr element. The complete set of table row properties can be found on the definition for the trPr element. As
+ 1    well, a table row can contain two types of content: custom markup (custom XML or structured document
+ 2    tags), and table cells.
+
+ 3   The cells in a row contain the table’s content and are defined by tc elements, which are analogous to HTML
+ 4   <td> tags.
+
+ 5   A tc element has one formatting child element, tcPr, which defines the properties for the cell. Each unique
+ 6    property is specified by a child element of this element. The complete set of table cell properties can be found
+ 7   on the definition for the tcPr element. As well, a table cell can contain any valid block-level content, which
+ 8    allows for the nesting of paragraphs and tables within table cells.
+
+ 9    In the example below, the tcW element defines the width of the cell, where the attribute w is the value in
+10    twips. Here the width of the cell is 8,856 units, where units are defined by the attribute type. In this case, dxa
+11    represents twips.
+
+12     <w:tr>
+13       <w:tc>
+14         <w:tcPr>
+15           <w:tcW w:w="8856" w:type="dxa"/>
+16         </w:tcPr>
+17         <w:p/>
+18       </w:tc>
+19     </w:tr>
+
+20   The tc element contains the cell's content, which, in this case, is an empty p element.
+
+21    Consider a table having one cell, which contains the text “Hello, world”:
+
+      Hello, world
+
+
+23    This table's content is represented by the following XML:
+
+24     <w:tr>
+25       <w:tc>
+26         <w:tcPr>
+27           <w:tcW w:w="1770" w:type="dxa"/>
+28         </w:tcPr>
+29         <w:p>
+30           <w:r>
+31             <w:t>Hello, World</w:t>
+32           </w:r>
+33         </w:p>
+34       </w:tc>
+35     </w:tr>
+ 1    At both the row and cell levels, the properties must also specify how the rows and cells will be placed on the
+ 2    table grid.
+
+ 3   The trPr element contains information about the number of grid units which should be omitted ('skipped')
+ 4    before and after the row is complete using the gridBefore and gridAfter elements, allowing rows to start at
+ 5    different columns on the grid, as well as a preferred width for that leading/trailing space using the wBefore
+ 6   and wAfter elements. The tcPr element also contains grid information pertaining to how many grids a cell
+ 7    spans using the gridSpan element, which determines how many grid units are consumed by the current cell,
+ 8    as well as a preferred width for that cell using the tcW element.
+
+ 9    In the earlier complex table having two rows of two differently sized cells, a consumer shall represent that
+10    table containing three grid columns (one per distinct vertical line). Consider the following XML for the first row
+11    of that table:
+
+12     <w:tr>
+13       …
+14       <w:tc>
+15         <w:tcPr>
+16           <w:tcW w:w="5145" w:type="dxa" />
+17           <w:gridSpan w:val="2" />
+18         </w:tcPr>
+19         <w:p />
+20       </w:tc>
+21       <w:tc>
+22         <w:tcPr>
+23           <w:tcW w:w="2145" w:type="dxa" />
+24         </w:tcPr>
+25         <w:p/>
+26       </w:tc>
+27     </w:tr>
+
+28    Again, the gridSpan element is the number of grid columns that cell spans when being laid out on the table
+29    grid. In this example, the first cell of the first row contains two grid columns. As well, the cell specifies its
+30    preferred width using the tcW element, which tells the consumer the width desired by that cell at layout time.
+
+31      It is important to note that every width in a table is a preferred width - because the table must satisfy the grid
+32    at all times, conflicting table properties must be resolved by overriding preferred widths in a specific manner,
+33   shown below.
+
+34   2.5.5     Table Layout
+
+35   Given the information shown in the table shown above, the table is specified as a series of properties:
+
+36          Table-level properties (e.g., preferred width)
+37          Table column grid
+ 1          Row-level properties (e.g., grid units before/after row start/end)
+ 2          Cell-level properties (e.g., number of grid units spanned)
+
+ 3    In order to manipulate this set of properties into a table, the following logics are used, depending on the type
+ 4    of table:
+
+ 5   2.5.6     Fixed Width Tables
+
+ 6   The first type of table is a fixed width table, a table that does not dynamically resize based on its contents. In a
+ 7    fixed width table, the table information is used in the following manner:
+
+ 8         The table grid is used to create the set of shared columns in the table and their initial widths as defined
+ 9             in the tblGrid element
+10         The table’s total width is defined based on the tblW property – if it is set to auto or nil, then the
+11           width is not yet determined and will be specified using the row and cell information.
+12         The first table row is read and the initial number of grid units before the row starts is skipped. The
+13           width of the skipped grid columns is set using the wBefore property.
+14         The first cell is placed on the grid, and the width of the specified grid column span set by gridSpan is
+15            set based on the tcW property.
+16         Each additional cell is placed on the grid.
+17           If at any stage, the preferred width requested for the cells exceeds the preferred width of the table,
+18          then each grid column is proportionally reduced in size to fit the table width.
+19           If the grid is exceeded (e.g., tblGrid specifies three grid columns, but the second cell has a gridSpan of
+20            three), the grid is dynamically increased with a default width for the new grid column.
+21          For each subsequent row, cells are placed on the grid, and each grid column is adjusted to be the
+22        maximum value of the requested widths (if the widths do not agree) by adding width to the last cell
+23            that ends with that grid column. Again, if at any point, the space requested for the cells exceeds the
+24           width of the table, then each grid column is proportionally reduced in size to fit the table width.
+
+25   2.5.7     AutoFit Tables
+
+26    In an AutoFit table (one which specifies that it should “AutoFit to table contents”), the table information is
+27   used in the following manner:
+
+28         Perform the steps above to lay out the fixed width version of the table.
+29          Calculate the minimum content width - the width of the cell's contents including all possible line
+30           breaking locations (or the cell's width, if the width of the content is smaller), and the maximum
+31           content width -the width of the cell's contents (assuming no line breaking not generated by explicit
+32             line breaks).
+33         The minimum and maximum content width of all cells that span a single grid column is the minimum
+34          and maximum content width of that column.
+35          For cells which span multiple grid columns, enlarge all cells which it spans as needed to meet that cell's
+36         minimum width.
+ 1           If any cell in a grid column has a preferred width, the first such width overrides the maximum width of
+ 2           the column's contents.
+ 3          Place the text in the cells in the table, respecting the minimum content width of each cell's content. If
+ 4          a cell's minimum content width exceeds the cell's current width, preferences are overridden as
+ 5            follows:
+ 6          First, override the column widths by making all other grid columns proportionally smaller until each it
+ 7            at its minimum width. This cell may then grow to any width between its own minimum and maximum
+ 8           width.
+ 9          Next, override the preferred table width until the table reaches the page width.
+10          Finally, force a line break in each cell's contents as needed
+
+11   2.5.8    Complex Table Example
+
+12   The properties above are best illustrated by example:
+
+13   As shown above, table cells can be merged horizontally. This is represented with a single table cell whose
+14   gridSpan property defines the number of grid units consumed by that table cell for the current row. Consider
+15    the following fixed width table, which makes extensive use of resized and merged cells on what is actually just
+16   a seven-column grid. (The arrows point to each (invisible) vertical line of the grid and the numbers refer to the
+17    grid columns):
+
+
+19        1         2    3 4      5            6                 7
+
+20    Although the table is visually complex, the standard rules apply: the first cell in the table is simply a cell which
+21    spans four grid units horizontally, as specified in the gridSpan element, and whose preferred with is 2952
+22    twips, specified in the tcW element:
+
+23     <w:tc>
+24       <w:tcPr>
+25         <w:tcW w:w="2952" w:type="dxa"/>
+26         <w:gridSpan w:val="4"/>
+27       </w:tcPr>
+28       <w:p/>
+29     </w:tc>
+
+30    Similarly, all cells indented from the stand and end of the grid specify that indent using the gridBefore and
+31    gridAfter elements. For example, the XML for the second row in the table shows that that row starts three
+32    grid units into the table:
+ 1     <w:tr>
+ 2       <w:trPr>
+ 3         <w:gridBefore w:val="3"/>
+ 4         <w:wBefore w:w="2748" w:type="dxa"/>
+ 5       </w:trPr>
+ 6       …
+ 7     </w:tr>
+
+ 8      If we take this fixed width table and introduce a long string into the single cell in row 3, we see that the
+ 9    presence of this text does not affect cell widths:
+
+
+                      longte
+                         xtstrin
+                    gwithn
+                    obreak
+                     ingcha
+                       racters
+
+
+11      If we now turn on the AutoFit property and type into the cell in row three, which spans only grid column two,
+12   we see that the algorithm for this AutoFit table causes all cells in grid column two to increase in size,
+13    proportionally decreasing the other grid columns’ size to accommodate the long non-breaking string in the last
+14     cell:
+
+
+                longtextstringwithnobreakingcharacters
+
+
+16   Each of the other grid columns was reduced, but since all columns are not at their minimum size, the table
+17   width is not increased even though the table is not yet at the page width.
+
+18   2.5.9      Vertically Merged Cells
+
+19    Although the previous examples may have implied that tables have strict definition of rows, table cells can also
+20   be merged vertically. The tcPr element may contain the vmerge element that defines the extent of vertically
+21   merged grid columns within a table. A vmerge element with its val attribute set to restart marks the start of
+22   a vertically merged cell range. A vmerge element with the val attribute set to continue (the default value)
+ 1   marks the continuation of a vertically merged grid column. Cells between the first and last merged cell that are
+ 2    part of the vertical merge each must have a vmerge element to continue the vertical merge.
+
+ 3    For example, consider a table with two rows and two columns:
+
+       First cell, first row                               Last cell, first row
+
+       First cell, second row                            Last cell, second row
+
+
+ 5   Merging the two rows in the second column will result in the following table:
+
+       First cell, first row                               Last cell, first row
+                                                       Last cell, second row
+       First cell, second row
+
+
+ 7   The last cell in the first row starts a merge that is completed in the cell below it, resulting in the following
+ 8   WordprocessingML:
+
+ 9     <w:tr>
+10       <w:tc>
+11         <w:p>
+12           <w:r>
+13             <w:t>First cell, first row</w:t>
+14           </w:r>
+15         </w:p>
+16       </w:tc>
+17       <w:tc>
+18         <w:tcPr>
+19           <w:vmerge w:val="restart"/>
+20         </w:tcPr>
+21         <w:p>
+22           <w:r>
+23             <w:t>Last cell, first row</w:t>
+24           </w:r>
+25         </w:p>
+26         <w:p>
+27           <w:r>
+28             <w:t>Last cell, second row</w:t>
+29           </w:r>
+30         </w:p>
+31       </w:tc>
+32     </w:tr>
+ 1     <w:tr>
+ 2       <w:tc>
+ 3         <w:p>
+ 4           <w:r>
+ 5             <w:t>First cell, second row</w:t>
+ 6           </w:r>
+ 7         </w:p>
+ 8       </w:tc>
+ 9       <w:tc>
+10         <w:tcPr>
+11           <w:vmerge/>
+12         </w:tcPr>
+13         <w:p/>
+14       </w:tc>
+15     </w:tr>
+
+16   As shown, the vmerge with a value of restart begins (or restarts) a merged region, and the cell with no
+17    value is merged with the one above.
+
+18   2.6   Custom Markup
+
+19    Within a WordprocessingML document, it is often necessary for specific documents to contain semantic
+20    information beyond the presentation information specified by this Office Open XML specification. For example,
+21   an invoice document may wish to specify that a particular sentence of text is a customer name, in order for
+22    that information to be easily extracted from the document without the need to parse the text using regular
+23    expression matching or similar. For those cases, multiple facilities are provided for the insertion and round-
+24    tripping of customer defined semantics within a WordprocessingML document.
+
+25   There are three distinct forms in which customer-defined semantics can be inserted into a WordprocessingML
+26   document, each with their own specific intended usage:
+
+27         Smart tags
+28         Custom XML markup
+29          Structured document tags (content controls)
+
+30   The usage and presentation of each of these forms is described in the following sections.
+
+31   2.6.1    Smart Tags
+
+32   The first example of customer-defined semantics which can be embedded in a WordprocessingML document
+33    are smart tags. Smart tags allow semantic information to be added around an arbitrary run or set of runs
+34    within a document to provide information about the type of data contained within.
+
+35    Consider the following text in a WordprocessingML document, with a smart tag around the stock symbol
+36    'CNTS' (where the smart tag is displayed using a purple dotted underline):
+ 2    This text would translate to the following WordprocessingML markup:
+
+ 3     <w:p w:rsidR="00672474" w:rsidRDefault="00672474">
+ 4       <w:r>
+ 5         <w:t xml:space="preserve">This is a stock symbol: </w:t>
+ 6       </w:r>
+ 7       <w:smartTag w:uri="http://schemas.openxmlformats.org/2006/smarttags"
+ 8          w:element="stockticker">
+ 9         <w:r>
+10           <w:t>MSFT</w:t>
+11         </w:r>
+12       </w:smartTag>
+13     </w:p>
+
+14   As shown above, the smart tag is delimited by the smartTag element, which surrounds the run (or runs) which
+15    contain the text which is part of the smart tag.
+
+16   The smart tag itself carries two required pieces of information, which together contain the customer semantics
+17    for this smart tag.
+
+18   The first of these is the namespace for this smart tag (contained in the uri attribute). This allows the smart tag
+19    to specify a URI which should be round-tripped with this smart tag and be available to a consumer. It is
+20    intended to be used to specify a family of smart tags to which this one belongs – for example, in the sample
+21    above, the smart tag belongs to the http://schemas.openxmlformats.org/2006/smarttags namespace.
+
+22   The second of these is the element name for this smart tag (contained in the element attribute). This allows
+23    the smart tag to specify a name which should be round-tripped with this smart tag and again available to a
+24   consumer. It is intended to be used to specify a unique name for this type of smart tag – for example, in the
+25   sample above, the smart tag specifies that its data is of type stockticker.
+
+26   As well as the required information specified above, a smart tag can also contain any number of additional
+27    properties in namespace/name/value sets by adding them to the smart tag’s property bag.
+
+28    Using the example above, adding a new property called fullCompanyName with no namespace and value
+29   Microsoft Corporation to the smart tag would mean augmenting the output to add the smartTagPr
+30   element with this new property as follows:
+ 1       <w:smartTag w:uri="http://schemas.openxmlformats.org/2006/smarttags"
+ 2          w:element="stockticker">
+ 3       <w:smartTagPr>
+ 4         <w:attr w:name="fullCompanyName" w:val="Microsoft Corporation"/>
+ 5       </w:smartTagPr>
+ 6       <w:r>
+ 7         <w:t>MSFT</w:t>
+ 8       </w:r>
+ 9     </w:smartTag>
+
+10   The resulting XML, as seen above, simply adds an attr element which specifies the property and value for the
+11    property bag.
+
+12   A producer can embed a smart tag around any run-level content in a WordprocessingML document in order to
+13   embed additional information about the family and type of the data contained within. This allows ‘tagging’ of
+14    specific regions of a document with these semantics without need to provide context beyond the information
+15    provided in the uri and element attributes.
+
+16   A consumer can read this smart tag data and provide additional functionality around these
+17   namespace/element pairs, which may or may not be specific to that smart tag type in the document. Examples
+18    of this functionality include: the ability to add/remove this markup via a user interface, ability to provide
+19    actions to operating in the context of this data type, etc.
+
+20   2.6.2    Custom XML Markup
+
+21   The next example of customer-defined semantics which can be embedded in a WordprocessingML document
+22     is custom XML markup. Custom XML markup allows the application of the XML elements defined in any valid
+23   XML Schema file to be applied to the contents of a WordprocessingML document in one of two locations:
+24   around a paragraph or set of paragraphs (at the block level); or around an arbitrary run or set of runs within a
+25   document (at the inline level) to provide semantics to that content within the context and structures defined
+26   by the associated XML Schema definition file.
+
+27   The distinction between custom XML markup and smart tags is based on the fact that custom XML markup
+28    corresponds with the contents of a custom XML schema; which means that as shown below, custom XML
+29   markup can be used at the block-level to mark up the contents of a document on levels beyond that of one or
+30   more runs as well as on the inline (run) level. It can also be validated against a custom XML schema by a
+31    producer at run time.
+
+32    Consider a simple XML Schema which defines two elements: a root element of invoice, and a child element of
+33   customerName - the first defining that this file's contents are an invoice, and the second specifying that the
+34    enclosed text as a customer's name:
+ 2    This output would translate to the following WordprocessingML markup:
+
+ 3     <w:customXml w:uri="http://www.contoso.com/2006/invoice" w:element="invoice">
+ 4       <w:p>
+ 5         <w:r>
+ 6           <w:t>This is an invoice.</w:t>
+ 7         </w:r>
+ 8       </w:p>
+ 9       <w:p>
+10         <w:r>
+11           <w:t xml:space="preserve">And this is a customer name: </w:t>
+12         </w:r>
+13         <w:customXml w:uri="http://www.contoso.com/2006/invoice"
+14     w:element="customerName">
+15           <w:r>
+16             <w:t>Tristan Davis</w:t>
+17           </w:r>
+18         </w:customXml>
+19       </w:p>
+20     </w:customXml>
+
+21   As shown above, each of the XML elements from the customer-supplied XML schema is represented within the
+22   document output as a customXml element.
+
+23    Similar to the smart tag example above, a custom XML element in a document has two required attributes.
+
+24   The first is the uri attribute, whose contents specify the namespace of the custom XML element in the
+25   document. In the example above, the elements each belong to the
+26   http://www.contoso.com/2006/invoice namespace.
+
+27   The second is the element attribute, whose contents specify the name of the custom XML element at this
+28    location in the document. In the example above, the root element is called invoice and the child element is
+29    called customerName.
+
+30   As well as the required information specified above, custom XML elements can also specify any number of
+31    attributes (as specified in the associated XML Schema) on the element. To add this information, the
+32   customXmlPr (properties on the custom XML element) specify one or more attr elements.
+
+33    Using the example above, we can add a type attribute to the customerName element as follows:
+ 1     <w:customXml w:uri="http://www.contoso.com/2006/invoice"
+ 2     w:element="customerName">
+ 3       <w:customXmlPr>
+ 4         <w:attr w:uri="http://www.contoso.com/2006/invoice" w:name="type"
+ 5     w:val="individual"/>
+ 6       </w:customXmlPr>
+ 7       <w:r>
+ 8         <w:t>Tristan Davis</w:t>
+ 9       </w:r>
+10     </w:customXml>
+
+11   The resulting XML, as seen above, simply adds an attr element which specifies the attribute for the custom
+12   XML element.
+
+13   A producer can embed a custom XML element around or with block-level or run-level content in a
+14   WordprocessingML document in order to embed the structure of the customer-defined XML Schema within
+15    the WordprocessingML content. This allows ‘tagging’ of specific regions of a document with the semantics
+16   from this schema, while ensuring that the resulting file can be validated to the WordprocessingML schemas.
+
+17   A consumer can read this custom XML markup and provide additional functionality around this customer-
+18    defined XML markup, which may or may not be specific to that type of XML in the document. Examples of this
+19    functionality include: the ability to add/remove this XML markup via a user interface, ability to provide actions
+20    to operating in the context of this data type, etc.
+
+21   Each custom XML element is analogous to an XML element in the specified XML schema, and can be nested
+22    arbitrarily to any depth in the document. This facility is limited only by the XML Schema file itself, and the
+23    contents of the current document.
+
+24   2.6.3     Structured Document Tags
+
+25   The final example of customer-defined semantics which can be embedded in a WordprocessingML document
+26     is the structured document tag (SDT).
+
+27   As shown above, smart tags and custom XML markup each provide a facility for embedding customer-defined
+28    semantics into the document: smart tags, via the ability to provide a basic namespace/name for a run or set of
+29    runs within a documents; and custom XML markup, via the ability to tag the document with XML elements and
+30    attributes specified by any valid XML Schema file.
+
+31   However, each of these techniques, while they each provide a way to add the desired semantic information,
+32   does not provide a way to affect the presentation or interaction within the document. To bridge these two
+33    worlds, structured document tags allow both the specification of customer semantics as well as the ability to
+34    influence the presentation of that data in the document.
+ 1    This means that the customer can define the semantics and context of the tag, but can then use a rich set of
+ 2    pre-defined properties to define its behavior and appearance within the WordprocessingML document's
+ 3    presentation.
+
+ 4    Consider a region which should be tagged with the semantic of "birthday", for the user to enter their date or
+ 5    birth into the document. Ideally, this region would also utilize a date picker to allow the user to enter the date
+ 6   from a calendar::
+
+
+ 8    This content would translate to the following WordprocessingML markup:
+
+ 9     <w:sdt>
+10       <w:sdtPr>
+11         <w:alias w:val="Birthday"/>
+12         <w:id w:val="8775518"/>
+13         <w:placeholder>
+14           <w:docPart w:val="DefaultPlaceholder_22479095"/>
+15         </w:placeholder>
+16         <w:showingPlcHdr/>
+17         <w:date>
+18           <w:dateFormat w:val="M/d/yyyy"/>
+19           <w:lid w:val="EN-US"/>
+20         </w:date>
+21       </w:sdtPr>
+22       <w:sdtContent>
+23         <w:p>
+24           <w:r>
+25             <w:rPr>
+26               <w:rStyle w:val="PlaceholderText"/>
+27             </w:rPr>
+28             <w:t>Click here to enter a date...</w:t>
+29           </w:r>
+30         </w:p>
+31       </w:sdtContent>
+32     </w:sdt>
+
+33   As shown above, each of the structured document tags in the WordprocessingML file is represented using the
+34    sdt element.
+ 1    Within a structured document tag, there are two child elements which contain the definition and the content
+ 2    of this SDT. The first of these is the sdtPr element, which contains the set of properties specified for this
+ 3    structured document tag. The second is the sdtContent element, which contains all the content which is
+ 4    contained within this structured document tag.
+
+ 5    2.6.3.1        Structured Document Tag Properties
+
+ 6    Within the SDT’s properties, various properties can be set which affect the appearance and behavior of this
+ 7    content in the document. These properties can be divided into four groups:
+
+ 8         Shared properties
+ 9          Locking properties
+10          Structured document tag type
+11          Type-specific properties
+
+12   The complete set of properties for a structured document tag are found on the sdtPr element.
+
+13   The first group is properties shared by all types of SDTs. These include, but are not limited to, the semantic
+14   name for the SDT, a unique ID (as an integer) that is round-tripped and allows the control to be uniquely
+15    identified across sessions, and a reference to a document building block that should be displayed as
+16    placeholder text.
+
+17   The next group is the locking properties for the tag – these specify whether any consumer should allow the
+18    contents of the SDT to be edited, or the SDT itself to be deleted from the document.
+
+19   The next group, the structured document tag’s type, specifies how the content should be expressed in a
+20   document. These types include: plain text (all contents are of one formatting), rich text, date picker, combo
+21    box, drop-down list, and image. Each of the types provides user interface restrictions that restrict the contents
+22    to only those specified by the type (e.g., the picture cannot contain text).
+
+23     Finally, the type-specific properties contain properties that are sensible in the context of that type. For
+24    example, the date format for a date picker or the drop-down list entries for a drop-down list/combo box. Type-
+25    specific properties are stored as children of the type’s element.
+
+26    Referring to the example above, the date properties are stored underneath the date element, as follows:
+
+27     <w:sdtPr>
+28       ...
+29       <w:date>
+30         <w:dateFormat w:val="M/d/yyyy"/>
+31         <w:lid w:val="EN-US"/>
+32       </w:date>
+33     </w:sdtPr>
+
+34    This ensures that these properties are only available in the appropriate context(s).
+ 1    2.6.3.2        Structured Document Tag Content
+ 2   The second child of the sdt element is the sdtContent element, which contains all the content which is
+ 3    contained within this structured document tag.
+
+ 4    2.6.3.3     XML Mapping
+
+ 5   An additional property for SDTs allows their contents to be stored in another part (in particular, in the custom
+ 6   XML data storage within the file). The presence of the dataBinding element specifies that the contents of this
+ 7   SDT are simply a cache of the data stored at a particular XML element in a particular custom XML data storage
+ 8    part.
+
+ 9   2.7    Sections
+
+10    Within the main document story, there is also often a need for groupings of content on a basis larger than a
+11    paragraph (for example, ensuring that a specific set of paragraphs and tables are printed in landscape view,
+12    while ensuring that the remainder of the document is printed in portrait view). In order to group this content,
+13   a document can be divided into multiple sections, each of which defines a region of content in the document
+14   and allows the application of a set of section-level properties.
+
+15    Consider a WordprocessingML document with two paragraphs of content, the first of which should be
+16    displayed on a page printed in portrait view, and the second of which should be displayed on a page printed in
+17    landscape view (the page content should be rotated 90 degrees to the left on the underlying page).
+
+18    In order to have each of these paragraphs on different pages having different page orientation characteristics,
+19    this document would be split into two sections. Looking at the WordprocessingML for the example above:
+
+20     <w:body>
+21       <w:p>
+22         <w:pPr>
+23           <w:sectPr>
+24             <w:pgSz w:w="12240" w:h="15840"/>
+25             <w:pgMar w:top="1440" w:right="1800" w:bottom="1440"
+26               w:left="1800" w:header="720" w:footer="720" w:gutter="0"/>
+27             <w:cols w:space="720"/>
+28             <w:docGrid w:linePitch="360"/>
+29           </w:sectPr>
+30         </w:pPr>
+31         <w:r>
+32           <w:t>This is sentence one.</w:t>
+33         </w:r>
+34       </w:p>
+ 1       <w:p>
+ 2         <w:r>
+ 3           <w:t>This is sentence two.</w:t>
+ 4         </w:r>
+ 5       </w:p>
+ 6       <w:sectPr>
+ 7         <w:pgSz w:w="15840" w:h="12240" w:orient="landscape"/>
+ 8         <w:pgMar w:top="1800" w:right="1440" w:bottom="1800"
+ 9           w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>
+10         <w:cols w:space="720"/>
+11         <w:docGrid w:linePitch="360"/>
+12       </w:sectPr>
+13     </w:body>
+
+14    This syntax defines two sections using two distinct sectPr elements: the first has a page size of 12,240
+15    twentieths of a point wide and 15,640 twentieths of a point tall; the second has a page size of 15,640
+16    twentieths of a point wide and 12,240 twentieths of a point tall, and is oriented in landscape mode.
+
+17   2.7.1     Section Properties
+
+18   As shown above, the end of a section is defined as a set of properties applied to the last paragraph in that
+19    section—converting that paragraph mark into a section break (i.e., a paragraph that closes a section).
+
+20   Those properties are contained in a sectPr element, which is located within the paragraph properties (the
+21   pPr element) for the final paragraph in that section. Within the definition of section properties, the properties
+22    to be applied to that section (including, but not limited to, page size and orientation, line numbering settings,
+23    margins, and columns) are specified. The complete set of section properties is located on the definition for the
+24    sectPr element.
+
+25   The only exception to this rule is the final set of section properties in this document. These are stored as the
+26     last child of the body element. This is done because the document’s last paragraph must specify paragraph
+27    properties, and this syntax enforces that the final set of section properties are specified.
+
+28   Going back to our example, the first section break is defined within the last paragraph for that section, but the
+29     last section properties are stored after the final paragraph.
+ 1     <w:body>
+ 2       <w:p
+ 3         <w:pPr>
+ 4           <w:sectPr>
+ 5             <w:pgSz w:w="12240" w:h="15840"/>
+ 6             <w:pgMar w:top="1440" w:right="1800" w:bottom="1440"
+ 7               w:left="1800" w:header="720" w:footer="720" w:gutter="0"/>
+ 8             <w:cols w:space="720"/>
+ 9             <w:docGrid w:linePitch="360"/>
+10           </w:sectPr>
+11         </w:pPr>
+12         <w:r>
+13           <w:t>This is sentence one.</w:t>
+14         </w:r>
+15       </w:p>
+16       <w:p>
+17         <w:r>
+18           <w:t>This is sentence two.</w:t>
+19         </w:r>
+20       </w:p>
+21       <w:sectPr>
+22         <w:pgSz w:w="15840" w:h="12240" w:orient="landscape"/>
+23         <w:pgMar w:top="1800" w:right="1440" w:bottom="1800"
+24           w:left="1440" w:header="720" w:footer="720" w:gutter="0"/>
+25         <w:cols w:space="720"/>
+26         <w:docGrid w:linePitch="360"/>
+27       </w:sectPr>
+28     </w:body>
+
+29   2.7.2     Section Breaks
+30   As well as specifying the section's properties, the type of section break is specified using the type element.
+31   WordprocessingML supports four distinct types of section breaks:
+
+32         Next page section breaks (the default if type is not specified), which begin the new section on the
+33            following page.
+34         Odd page section breaks, which begin the new section on the next odd-numbered page.
+35         Even page section breaks, which begin the new section on the next even-numbered page.
+36          Continuous section breaks, which begin the new section on the following paragraph. This means that
+37           continuous section breaks might not specify certain page-level section properties, since they must be
+38            inherited from the following section. These breaks, however, can specify other section properties, such
+39           as line numbering and footnote/endnote settings.
+ 1   2.8    Styles
+
+ 2    After looking at the primary elements of block-level content in a WordprocessingML file, it is now necessary to
+ 3    look at the information stored in the document that affects how this content is displayed.
+
+ 4   The first such group of information is styles. Within a WordprocessingML file, styles are predefined sets of
+ 5    paragraph and/or character properties which can be applied to text within the document. This allows the
+ 6    formatting properties to be stored and managed independently from the content, allowing the look of
+ 7   document content to be changed in a single location (e.g., the look of all first-level headings is changed by
+ 8    changing the style with styleId Heading1 rather than looking for and changing each paragraph in the
+ 9   document).
+
+10   The Normal paragraph style in a word processing document can have any number of formatting properties,
+11     e.g., font face = Times New Roman; font size = 12pt; paragraph justification = left). All paragraphs that
+12    reference this paragraph style would automatically inherit these properties.
+
+13   2.8.1      Styles Part
+
+14    Style information in a WordprocessingML document is stored in the Styles part within the package, which is
+15    stored via an implicit relationship from the Main Document or Glossary Document part of relationship type
+16   http://schemas.openxmlformats.org/wordprocessingml/2006/styles and has a content type of
+17   vnd-openxmlformats.officedocument.wordprocessingml-styles+xml.
+
+18   The styles part stores two types of style information for the document:
+
+19          Style definitions
+20          Latent style information
+
+21   2.8.2      Style Definitions
+
+22   Each style defined within a WordprocessingML document requires a style definition. The style definition
+23    contains all of the information needed by a consumer to store and display that style within a
+24   WordprocessingML document, and is defined using the style element. The style definition for any style in
+25   WordprocessingML can be divided into three segments (Note: the complete definition of style properties can
+26   be found on the reference for the style element):
+
+27         Common style properties
+28          Style ‘types’
+29         Type specific properties
+
+30   Common style properties refer to the set of properties which can be used regardless of the type of style; for
+31    example, the style name, additional aliases for the style, a style ID (used by the document content to refer to
+32    the style), if style is hidden, if style is locked, etc.
+
+33    Consider a style called Heading 1 in a document as follows:
+ 1     <w:style w:type="paragraph" w:styleId="Heading1">
+ 2       <w:name w:val="heading 1"/>
+ 3       <w:basedOn w:val="Normal"/>
+ 4       <w:next w:val="Normal"/>
+ 5       <w:link w:val="Heading1Char"/>
+ 6       <w:priority w:val="1"/>
+ 7       <w:qformat/>
+ 8       <w:rsid w:val="00F303CE"/>
+ 9       …
+10     </w:style>
+
+11   Above the formatting information specific to this style type are a set of common style properties which define
+12    information shared by all style types.
+
+13    Style types refer to the property on a style that defines the type of style created with this style definition.
+14   WordprocessingML supports six types of style definitions:
+
+15          Paragraph styles
+16          Character styles
+17          Linked styles (paragraph + character)
+18          Table styles
+19         Numbering styles
+20          Default paragraph + character properties
+
+21    Consider a style called Heading 1 in a document as follows:
+
+22     <w:style w:type="paragraph" w:styleId="Heading1">
+23       <w:name w:val="heading 1"/>
+24       <w:basedOn w:val="Normal"/>
+25       <w:next w:val="Normal"/>
+26       <w:link w:val="Heading1Char"/>
+27       <w:priority w:val="1"/>
+28       <w:qformat/>
+29       <w:rsid w:val="00F303CE"/>
+30       …
+31     </w:style>
+
+32   The type attribute has a value of paragraph, which indicates that the following style definition is a paragraph
+33     style.
+
+34   2.8.3     Paragraph Styles
+
+35   The first type of style definition, paragraph styles are styles that apply to the contents of an entire paragraph
+36    as well as the paragraph mark. This definition implies that the style can define both character properties
+37    (properties that apply to text within the document) as well as paragraph properties (properties which apply to
+ 1    the positioning and appearance of the paragraph). Paragraph styles cannot be referenced by runs within a
+ 2   document, they must be referenced by the pStyle element within a paragraph’s paragraph properties (pPr)
+ 3    element.
+
+ 4   A paragraph style has three defining type-specific characteristics:
+
+ 5         The type attribute on the style has a value of paragraph, which indicates that the following style
+ 6            definition is a paragraph style.
+ 7         The next element defines an editing behavior which supplies the paragraph style to be automatically
+ 8           applied to the next paragraph when ENTER is pressed at the end of a paragraph of this style.
+ 9         The style specifies both paragraph-level and character-level properties using the pPr and rPr
+10           elements, respectively. In this case, the run properties are the set of properties applied to each run in
+11           the paragraph.
+
+12   The paragraph style is then applied to paragraphs by referencing the styleId attribute value for this style in the
+13    paragraph properties’ pStyle element.
+
+14    Consider a paragraph style titled "Test Paragraph Style" which defines: paragraph spacing = double, paragraph
+15    indent = 1” (first line only); font = Algerian, font color = red, font size = 20 points. The resulting style definition
+16   would be:
+
+17     <w:style w:type="paragraph" w:styleId="TestParagraphStyle">
+18       <w:name w:val="Test Paragraph Style"/>
+19       <w:qformat/>
+20       <w:rsid w:val="00F85845"/>
+21       <w:pPr>
+22         <w:spacing w:line="480" w:lineRule="auto"/>
+23         <w:ind w:firstLine="1440"/>
+24       </w:pPr>
+25       <w:rPr>
+26         <w:rFonts w:ascii="Algerian" w:hAnsi="Algerian"/>
+27         <w:color w:val="ED1C24"/>
+28         <w:sz w:val="40"/>
+29       </w:rPr>
+30     </w:style>
+
+31    Notice that the character properties for the style are under the rPr element, and the paragraph properties are
+32   under the pPr element.
+
+33   The document content for a paragraph of this style would be:
+ 1     <w:p>
+ 2       <w:pPr>
+ 3         <w:pStyle w:val="TestParagraphStyle"/>
+ 4       </w:pPr>
+ 5       <w:r>
+ 6         <w:t xml:space="preserve">Here is some fancy Text</w:t>
+ 7       </w:r>
+ 8     </w:p>
+
+ 9   The pStyle element links the paragraph with the style definition.
+
+10   2.8.4     Character Styles
+
+11   The next type of style definition, character styles are styles which apply to the contents of one or more runs of
+12    text within a document’s contents. This definition implies that the style can only define character properties
+13    (properties which apply to text within a paragraph) because it cannot be applied to paragraphs. Character
+14    styles can only be referenced by runs within a document, and they must be referenced by the rStyle element
+15    within a run’s run properties element.
+
+16   A character style has two defining type-specific characteristics:
+
+17         The type attribute on the style has a value of character, which indicates that the following style
+18            definition is a character style.
+19         The style specifies only character-level properties using the rPr element. In this case, the run
+20            properties are the set of properties applied to each run which is of this style.
+
+21   The character style is then applied to runs by referencing the styleId attribute value for this style in the run
+22    properties’ rStyle element.
+
+23    Consider a character style titled "Test Character Style" which defines; font = Courier New, font color = yellow;
+24    underline. The resulting style definition would be:
+
+25     <w:style w:type="character" w:styleId="TestCharacterStyle">
+26       <w:name w:val="Test Character Style"/>
+27       <w:priority w:val="99"/>
+28       <w:qformat/>
+29       <w:rsid w:val="00E77BF0"/>
+30       <w:rPr>
+31         <w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/>
+32         <w:color w:val="FFF200"/>
+33         <w:u w:val="single"/>
+34       </w:rPr>
+35     </w:style>
+
+36    Notice that the character properties applied using this style are under the rPr element. The document content
+37    for a paragraph with a run of this style would be:
+ 1     <w:p>
+ 2       <w:r>
+ 3         <w:t xml:space="preserve">The following text is in the </w:t>
+ 4       </w:r>
+ 5       <w:r>
+ 6         <w:rPr>
+ 7           <w:rStyle w:val="TestCharacterStyle"/>
+ 8         </w:rPr>
+ 9         <w:t>character style</w:t>
+10       </w:r>
+11       <w:r>
+12         <w:t>.</w:t>
+13       </w:r>
+14     </w:p>
+
+15   The rStyle element in the second run links that run with the style definition, inheriting the formatting
+16    properties for that run.
+
+17   2.8.5     Linked Styles
+
+18   The next type of style definition, linked styles are actually a paired combination of styles which can be applied
+19    to the contents of one or more runs of text within a document’s contents or the entire contents of one or
+20   more paragraphs in a WordprocessingML document. This definition implies that the style can define both a set
+21    of character properties (properties which apply to text within a paragraph) as well as a set of paragraph
+22    properties (properties which apply to the positioning and appearance of the paragraph) because it must be
+23    possible to apply the style to paragraphs as well as characters.
+
+24    In order to accomplish these dual uses, a linked style is actually a pairing of a paragraph style and a character
+25    style in the WordprocessingML document. Each style exists uniquely within the styles part, but are linked by
+26    the link element, which specifies that these styles are each half of a linked style definition and should be
+27    treated as one style at runtime.
+
+28   A typical example of the use of a linked style is a quote style - if the style is applied to a paragraph, the quoted
+29    text should be indented additionally to create a block quote effect, but if the style is applied to text in a
+30    paragraph, only the character level effects should be applied.
+
+31    Consider the following two styles which comprise a linked style pairing:
+
+32     <w:style w:type="paragraph" w:styleId="TestLinkedStyle">
+33       <w:name w:val="Test Linked Style"/>
+34       <w:link w:val="TestLinkedStyleChar"/>
+35       <w:qformat/>
+36       <w:rsid w:val="009C1646"/>
+ 1       <w:pPr>
+ 2         <w:spacing w:line="480" w:lineRule="auto"/>
+ 3         <w:ind w:left="1440"/>
+ 4       </w:pPr>
+ 5       <w:rPr>
+ 6         <w:rFonts w:ascii="Arial" w:hAnsi="Arial"/>
+ 7         <w:color w:val="22B14C"/>
+ 8       </w:rPr>
+ 9     </w:style>
+10     <w:style w:type="character" w:styleId="TestLinkedStyleChar">
+11       <w:name w:val="Test Linked Style Char"/>
+12       <w:link w:val="TestLinkedStyle"/>
+13       <w:rsid w:val="009C1646"/>
+14       <w:rPr>
+15         <w:rFonts w:ascii="Arial" w:hAnsi="Arial"/>
+16         <w:color w:val="22B14C"/>
+17       </w:rPr>
+18     </w:style>
+
+19   The link element in the paragraph style specifies TestLinkedStyleChar, the styleId of the paired character
+20     style, and the link element in the character style specifies TestLinkedStyle, the styleId of the paired
+21    paragraph style, creating a linked style combination.
+
+22    Paragraph-level instances of linked styles can only be referenced by paragraphs within a document, and they
+23   must be referenced by the pStyle element within the paragraph’s paragraph properties element (pPr), which
+24   must referrence the paragraph version of the linked style. Character-level instances of linked styles can only be
+25    referenced by a run's run properties element (rPr) within a document, and they must be referenced by the
+26    rStyle element within the run properties element which must reference the character version of the linked
+27     style.
+
+28    Consider a linked style titled "Test Linked Style" which defines; font = Arial, font color = green; paragraph
+29    spacing = double, indent = 1” left. The resulting style definitions would be:
+
+30     <w:style w:type="paragraph" w:styleId="TestLinkedStyle">
+31       <w:name w:val="Test Linked Style"/>
+32       <w:link w:val="TestLinkedStyleChar"/>
+33       <w:qformat/>
+34       <w:rsid w:val="009C1646"/>
+35       <w:pPr>
+36         <w:pStyle w:val="TestLinkedStyle"/>
+37         <w:spacing w:line="480" w:lineRule="auto"/>
+38         <w:ind w:left="1440"/>
+39       </w:pPr>
+ 1       <w:rPr>
+ 2         <w:rFonts w:ascii="Arial" w:hAnsi="Arial"/>
+ 3         <w:color w:val="22B14C"/>
+ 4       </w:rPr>
+ 5     </w:style>
+ 6     <w:style w:type="character" w:styleId="TestLinkedStyleChar">
+ 7       <w:name w:val="Test Linked Style Char"/>
+ 8       <w:link w:val="TestLinkedStyle"/>
+ 9       <w:rsid w:val="009C1646"/>
+10       <w:rPr>
+11         <w:rFonts w:ascii="Arial" w:hAnsi="Arial"/>
+12         <w:color w:val="22B14C"/>
+13       </w:rPr>
+14     </w:style>
+
+15    Notice that the linked style definition is composed of the paragraph style, which specifies both the run and
+16    paragraph properties, and the character style, which specifies only the run properties. The document content
+17    for a paragraph with this linked style would be:
+
+18     <w:p>
+19       <w:pPr>
+20         <w:pStyle w:val="TestLinkedStyle"/>
+21       </w:pPr>
+22       <w:r>
+23         <w:t xml:space="preserve">A para version of Test Linked Style.</w:t>
+24       </w:r>
+25     </w:p>
+
+26   The pStyle element in the paragraph’s properties links the paragraph with the paragraph version of the linked
+27    style definition.
+
+28   The document content for a paragraph with a run of this linked style would be:
+
+29     <w:p>
+30       <w:r>
+31           <w:t xml:space="preserve">Next run is character version of </w:t>
+32       </w:r>
+33       <w:r>
+34         <w:rPr>
+35           <w:rStyle w:val="TestLinkedStyleChar"/>
+36         </w:rPr>
+37         <w:t>Test Linked Style</w:t>
+38       </w:r>
+ 1       <w:r>
+ 2         <w:t>.</w:t>
+ 3       </w:r>
+ 4     </w:p>
+
+ 5   The rStyle element in the second run’s properties links the run with the character version of the linked style
+ 6    definition.
+
+ 7   2.8.6    Numbering Styles
+
+ 8   Numbering styles are style definitions which specify common style properties for a multi-level numbering
+ 9    format within a document. This means that a numbering style defines only a single paragraph property: a
+10    reference to a numbering definition stored in the document’s numbering part, using the numPr element.
+
+11    Unlike paragraph and character styles, numbering styles are never directly referenced by content in the
+12   document – instead, an abstract numbering definition (covered in the numbering topic of this section)
+13    specifies that it is actually the underlying numbering information for a numbering style.
+
+14    Consider a numbering style “Test Numbering Style”:
+
+15     <w:style w:type="numbering" w:styleId="TestNumberingStyle">
+16       <w:name w:val="Test Numbering Style" />
+17       <w:priority w:val="99" />
+18       <w:rsid w:val="0045009F" />
+19       <w:pPr>
+20         <w:numPr>
+21           <w:numId w:val="1" />
+22         </w:numPr>
+23       </w:pPr>
+24     </w:style>
+
+25   The only information specified in the numbering style definition is a reference to the numbering definition for
+26    the numbering information which is defined by this numbering style.
+
+27   2.8.7     Table Styles
+
+28   The last conventional type of style definition, table styles are styles which apply to the contents of zero or
+29   more tables within a document. This definition implies that the style can only define table properties
+30    (properties which apply to the table and its constituent rows and cells), however a table style can also define
+31    paragraph properties (properties which apply to the positioning and appearance of paragraphs) as well as
+32    character properties (properties which apply to runs) for all of the paragraphs and runs within the specified
+33    table in the document. Table styles can only be referenced by tables within a document, and they must be
+34    referenced by the tblStyle element within a table’s table properties (tblPr) element.
+1    Like the style definitions discussed above, table styles specify all of the properties that can be applied to a
+2    table, as well as paragraph and character properties for the table’s contents. However, unlike other style
+3    definitions, table styles allow for the definition of conditional formats for different regions of the table.
+
+4   These table conditional formats are applied to different regions of the table as follows:
+
+
+6     All rows in the table can also have conditional formatting on an alternating row/column basis as well as
+7    follows:
+ 1   When specified, these conditional formats are applied in the following order (therefore subsequent formats
+ 2    override properties on previous formats):
+
+ 3         Whole table
+ 4         Banded columns, even column banding
+ 5         Banded rows, even row banding
+ 6          First row, last row
+ 7          First column, last column
+ 8         Top left, top right, bottom left, bottom right
+
+ 9    Consider a table style “Test Table Style” defined as follows: all cells with 1pt table borders on all sides, 0.1” cell
+10    margins on left and right of cells, and 0” cell margins on top and bottom of cells, as well as header row specific
+11    formatting of: red shading, bold text as follows:
+
+12     <w:style w:type="table" w:styleId="TestTableStyle">
+13       <w:name w:val="Test Table Style"/>
+14       <w:basedOn w:val="TableNormal"/>
+15       <w:priority w:val="99"/>
+16       <w:rsid w:val="00340CC4"/>
+17       <w:tblPr>
+18         <w:tblBorders>
+19           <w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+20           <w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+21           <w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+22           <w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+23           <w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+24           <w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/>
+25         </w:tblBorders>
+26         <w:tblCellMar>
+27           <w:top w:w="0" w:type="dxa"/>
+28           <w:left w:w="108" w:type="dxa"/>
+29           <w:bottom w:w="0" w:type="dxa"/>
+30           <w:right w:w="108" w:type="dxa"/>
+31         </w:tblCellMar>
+32       </w:tblPr>
+33       <w:tblStylePr w:type="firstRow">
+34         <w:rPr>
+35           <w:b/>
+36         </w:rPr>
+37         <w:tcPr>
+38           <w:shd w:val="clear" w:color="auto" w:fill="ED1C24"/>
+39         </w:tcPr>
+40       </w:tblStylePr>
+41     </w:style>
+ 1   The tblPr element holds the formatting which is applied to the entire table, and the tblStylePr element with a
+ 2   type attribute value of firstRow holds the formatting for the first table row, specifically the bold run
+ 3    property and red cell shading.
+
+ 4   An individual instance of a table defines an association with a table style using the tblStyle element in the
+ 5    table’s properties (tblPr), as discussed above. However, individual tables can choose whether to apply the
+ 6    following aspects of the table’s conditional formats individually:
+
+ 7          First row
+ 8          Last row
+ 9          First column
+10          Last column
+11         Row banding
+12         Column banding
+
+13   The use or omission conditional formats are specified using the tblLook element, which contains a bitmask
+14    representing which properties are applied and omitted.
+
+15    Consider two tables using the table style "Style2"; one which specifies that it should only use the header row
+16   and footer row conditional formatting properties from the table style, and the other which specifies that it
+17    should use the header row, footer row, and banded row conditional formatting:
+
+18     <w:tbl>
+19       <w:tblPr>
+20         <w:tblStyle w:val="Style2"/>
+21         <w:tblW w:w="0" w:type="auto"/>
+22         <w:tblLook w:val="0660"/>
+23       </w:tblPr>
+24       …
+25     </w:tbl>
+26     …
+27     <w:tbl>
+28       <w:tblPr>
+29         <w:tblStyle w:val="Style2"/>
+30         <w:tblW w:w="0" w:type="auto"/>
+31         <w:tblLook w:val="0460"/>
+32       </w:tblPr>
+33       …
+34     </w:tbl>
+
+35   The tables each specify the appropriate set of conditional formats using the tblLook element, as seen by the
+36    identical table styles in the tblStyle element, and different tblLook values.
+ 1   2.8.8     Default Document Paragraph and Character Properties
+
+ 2   The final type of style in a WordprocessingML document is the default paragraph and character properties for
+ 3    the document. Although this is not a style in the strict sense of the word (because this property set cannot
+ 4    directly be applied to text) it defines the basic set of formatting properties which are inherited by paragraphs
+ 5   and runs in the document.
+
+ 6   The following section, entitled Style Inheritance, explains exactly how the default document paragraph and
+ 7    character properties influence the appearance of all content in the document.
+
+ 8   2.8.9      Style Inheritance
+
+ 9    In order to compile the complete set of paragraph and character properties specified by any given style (as
+10    appropriate), a consumer must follow the rule of style inheritance to determine each property in that set.
+
+11    Style inheritance states that styles of any given type may inherit from other styles of that type, and therefore a
+12   consumer must ‘build up’ the style information by following the inheritance tree. This inheritance is defined via
+13    the basedOn element, which specifies the styleId of the parent style.
+
+14   The “Tristan Test” paragraph style can inherit properties from the “Heading 1” paragraph style, which itself can
+15    inherit properties from the “Normal” paragraph style.
+
+16   To build up the resulting style, a consumer must trace the hierarchy (following each basedOn value) back to a
+17    style which has no basedOn element (is not based on another style). The resulting style is then constructed by
+18    following each level in the tree, applying the specified paragraph and/or character properties as appropriate.
+19   When properties conflict, they are overridden by each subsequent level (this includes turning OFF a property
+20    set at an earlier level). Properties which are not specified simply do not change those specified at earlier levels.
+
+21    Consider a character style “Green” which specifies only that the text color is green, but inherits from another
+22    character style “Base” which defines a font face of Arial, as well as bold:
+
+23     <w:style w:type="character" w:styleId="Green">
+24       <w:name w:val="Green" />
+25       <w:basedOn w:val="Base" />
+26       <w:rPr>
+27         <w:color w:val="22B14C" />
+28       </w:rPr>
+29     </w:style>
+30       …
+31     ../Local Settings/Temp/styles.xml<w:style w:type="character" w:styleId="Base">
+32       <w:name w:val="Base" />
+33       <w:rPr>
+34         <w:rFonts w:ascii="Arial" w:hAnsi="Arial" />
+35         <w:b />
+36       </w:rPr>
+37     </w:style>
+ 1   The definition of the Green character style has a basedOn element which specifies the Base style. This means
+ 2    that any use of the Green style is defined as bold, green, Arial text.
+
+ 3    Conversely, a producer should not output any property on a style which has already been set by a previous
+ 4    level of the style hierarchy, as well as those which match the document defaults. This means that if the
+ 5   document defaults or any previous level in a style’s hierarchy specify a property which is unchanged at this
+ 6     level, that property should not be part of the style definition in the resulting WordprocessingML. Adding a
+ 7    property at multiple levels in the style hierarchy is not invalid, but unnecessarily duplicative as the setting is
+ 8    already applied to the text, resulting in an unnecessary increase to file size.
+
+ 9      If the document default font is Bauhaus 93 and the Heading 1 style also specifies the Bauhaus 93 font, then
+10   a producer should not output any rFonts element for the Heading 1 style definition, because that formatting
+11     is inherited from the document defaults.
+
+12   2.8.10    Style Application
+
+13   With the various flavors of styles available, multiple style types can be applied to the same content within a
+14     file, which means that properties must be applied in a specific deterministic order. As with inheritance, the
+15    resulting formatting properties set by one type can be unchanged, removed, or altered by following types.
+
+16   The following table illustrates the order of application of these defaults, and which properties are impacted by
+17    each:
+ 1    This process can be described as follows: First, the document defaults are applied to all runs and paragraphs in
+ 2    the document. Next, the table style properties are applied to each table in the document, following the
+ 3    conditional formatting inclusions and exclusions specified per table. Next, numbered item and paragraph
+ 4    properties are applied to each paragraph formatted with a numbering style. Next, paragraph and run
+ 5    properties are applied to each paragraph as defined by the paragraph style. Next, run properties are applied to
+ 6   each run with a specific character style applied. Finally, we apply direct formatting (paragraph or run
+ 7    properties not from styles).
+
+ 8   2.8.11    Latent Styles
+
+ 9   The final piece of information stored in the styles part in the document, aside from style definition
+10    information, is latent style information.
+
+11    Latent styles are all styles contained in a document’s template which have not yet been instantiated (used) in
+12    the current instance of the document.
+
+13    In WordprocessingML, there are often properties which must be set on all styles in a document template
+14    regardless of whether they are being used: for example, whether or not the style can be applied in the current
+15   document (locked state), UI sorting priority, whether the style should be shown in the user interface, etc. In
+16    order for the document to function correctly, it is essential that this information is stored within the
+17   document, so that a consumer can determine the necessary style information from the document alone
+18    (without access to the template). However, it would be grossly inefficient for the document to store all style
+19    information for all styles simply to store this information, so latent styles are used to store just the necessary
+20    style properties without caching all style information in the document.
+
+21    In order to do this efficiently, the document declares a latentStyles element in the styles part which defines
+22    the default properties applied to all latent styles in the document. All styles whose properties do not match the
+23    default for the set of style properties which must be defined for all styles are explicitly defined using the
+24    lsdException element.
+
+25    Consider the following latent style information stored in a document’s styles part:
+
+26     <w:latentStyles w:defLockedState="off" w:defPriority="99"
+27       w:defSemiHidden="on" w:defUnhideWhenUsed="on" w:defQFormat="off"
+28       w:count="180">
+29       <w:lsdException w:name="Normal" w:unhideWhenUsed="off"
+30         w:qformat="on"/>
+31       <w:lsdException w:name="heading 1" w:semiHidden="off" w:priority="1"/>
+32       <w:lsdException w:name="heading 2" w:priority="1"
+33         w:unhideWhenUsed="on"/>
+34       <w:lsdException w:name="heading 3" w:semiHidden="off/>
+35       <w:lsdException w:name="heading 4" w:priority="1" w:qformat="on"/>
+36       <w:lsdException w:name="heading 5" w:priority="1" w:qformat="on"/>
+ 1       <w:lsdException w:name="heading 6" w:priority="1" w:qformat="on"/>
+ 2       <w:lsdException w:name="heading 7" w:priority="1" w:qformat="on"/>
+ 3       <w:lsdException w:name="heading 8" w:priority="1" w:qformat="on"/>
+ 4       <w:lsdException w:name="heading 9" w:priority="1" w:qformat="on"/>
+ 5       <w:lsdException w:name="Normal Indent" w:priority="6" w:qformat="on"/>
+ 6     </w:latentStyles>
+
+ 7   The attributes on the latentStyles element define the properties applied to all latent styles for this document.
+ 8     All styles whose properties do not match the default latent styles properties are explicitly defined using the
+ 9    values on the lsdException elements.
+
+10   2.9    Fonts
+
+11   2.9.1     Font References
+
+12    Within a WordprocessingML document, font face information can be referenced by any set of run properties,
+13   both as part of a style definition or direct formatting on one or more runs in the document's contents. This
+14    reference is established by referencing the primary name of the font face that is used in the rFonts element of
+15    the run properties, linking that run with the desired font face.
+
+16    For example, consider a run of text that has been directly formatted to use the Arial Black font face. This
+17    setting would be specified as follows on the run's properties:
+
+18     <w:r>
+19       <w:rPr>
+20         <w:rFonts w:ascii="Arial Black" w:hAnsi="Arial Black" />
+21       </w:rPr>
+22       <w:t>This run of text uses the Arial Black font face.</w:t>
+23     </w:r>
+
+24   The rFonts element specifies that the run should be formatted using the Arial Black font face.
+25    Applications can then look up and use the font with primary name of Arial Black when formatting this run.
+
+26   2.9.2     Font Reference Types
+
+27    In the example above, two attributes were present, both referring to the font face with primary name Arial
+28   Black. This simple case illustrates the ability for a WordprocessingML document to store up to four fonts
+29   which may be used on the contents of a run, as follows:
+
+30          ASCII font
+31          High ANSI font
+32          East Asian font
+33         Complex Script font
+
+34   Each of these font faces is used to format the characters in the run that fall under their purview:
+ 1   The ASCII font formats all characters in the ASCII range (character values 0–127). This font is specified using the
+ 2    ascii attribute on the rFonts element.
+
+ 3   The East Asian font formats all characters that belong to Unicode sub ranges for East Asian languages. This font
+ 4     is specified using the eastAsia attribute on the rFonts element.
+
+ 5   The complex script font formats all characters that belong to Unicode sub ranges for complex script languages.
+ 6    This font is specified using the cs attribute on the rFonts element.
+
+ 7   The high ANSI font formats all characters that belong to Unicode sub ranges other than those explicitly
+ 8    included by one of the groups above. This font is specified using the hAnsi attribute on the rFonts element.
+
+ 9    For example, consider a run of text defined as follows:
+
+10     <w:r>
+11       <w:rPr>
+12         <w:rFonts w:ascii="Arial Black" w:hAnsi="Arial Black" w:cs="Arial"
+13           w:eastAsia="SimSun"/>
+14       </w:rPr>
+15       …
+16     </w:r>
+
+17   The rFonts element specifies that the contents of this run are formatted as follows:
+
+18         Complex script characters used the Arial font
+19          East Asian characters used the SimSun font
+20          All other characters used the Arial Black font
+
+21   2.9.3    Ambiguous Characters
+
+22   When classifying characters into one of the four slots defined above, it is likely that the classification of some
+23    characters will be ambiguous (the resulting classification would be equally applicable for one or more font
+24     slots).
+
+25   To handle this, the font face information can also include a hint, which specifies how ambiguous mappings are
+26    resolved into a font slot. This information is stored on the hint attribute on the rFonts element, and specifies
+27    the bucket into which these ambiguous characters fall.
+
+28    For example, if the hint attribute has a value of eastAsia, then all ambiguous characters shall be formatted
+29    using the East Asian font face.
+
+30   2.9.4     Font Table
+
+31    Within a document, the font table contains information about the fonts used in the document to allow:
+
+32          Applications to perform substitution with the most appropriate possible font when the desired font
+33           face is not available on the system. Since some fonts are commercially distributed, it is possible for a
+ 1         document to be formatted with one or more fonts that are not available depending on the machine
+ 2          opening the current system. This information allows the application that cannot locate the desired
+ 3            font to perform the most appropriate possible match.
+ 4         Embedding of fonts in the document to prevent the need for font substitution
+
+ 5   The font table part is stored via an implicit relationship from either the main document part or the glossary
+ 6   document part, and has a relationship type of
+ 7   http://schemas.openxmlformats.org/wordprocessingml/2006/fontTable, and a content type of vnd-
+ 8   openxmlformats.officedocument.wordprocessingml-fontTable+xml.
+
+ 9   2.9.5     Font Substitution Data
+
+10   The first classification of data stored in the font table are an optional set of font metrics which are queried
+11   from the font and stored in the document such that future applications can utilize them when the desired font
+12     is not available. If a particular font face cannot be located on the current system, then this data is used to
+13    substitute a font that most appropriately matches its characteristics.
+
+14    For example, consider the font substitution data stored for the Arial Black font:
+
+15     <w:font w:name="Arial Black">
+16       <w:panose1 w:val="020B0A04020102020204" />
+17       <w:charset w:val="00" />
+18       <w:family w:val="swiss" />
+19       <w:pitch w:val="variable" />
+20       <w:sig w:usb0="00000287" w:usb1="00000000" w:usb2="00000000"
+21         w:usb3="00000000" w:csb0="0000009F" w:csb1="00000000" />
+22     </w:font>
+
+23    This data is linked to the font face with a name of Arial Black via the name attribute, and stores the
+24    following information about the font (see the reference material on fonts for more details):
+
+25         The font's Panose-1 number
+26         The character set of the font
+27         The font's family
+28         The font's pitch
+29         The code pages and Unicode sub ranges supported by the font
+
+30   2.9.6     Font Embedding
+
+31   As well as providing information about the font's metrics, applications may be directed to embed the contents
+32    of a font (partially or as a whole) into a document, a process known as font embedding. Font embedding
+33     literally embeds an obfuscated version of the font into the file so that it may be retrieved and used to view the
+34    contents of this document - but the obfuscation ensures that the font cannot be extracted and used for any
+35    other document (as it may have a commercial license).
+
+36    Within the font table, when a font is embedded there are explicit relationships to each font form needed:
+ 1          Regular
+ 2          Bold
+ 3           Italic
+ 4          Bold + Italic
+
+ 5   Each form is obfuscated using the mechanism described in the reference material on this subject.
+
+ 6   2.9.7    Theme Fonts
+
+ 7   As well as storing standard font face information, run properties may store an abstraction for font face
+ 8    information known as theme fonts. Theme fonts are values that specify that the font face information for a run
+ 9     is not stored in the attribute value using the appropriate font face name, but is rather a reference into the
+10   document's theme part, allowing font face information to be stored and managed centrally as part of the
+11   theme data. It is appropriate to think of theme fonts as a "style for fonts" in the same way in which a style is a
+12    reference to the formatting that is stored centrally in another part.
+
+13   Theme fonts are specified using the theme attribute variants in the rFonts element, rather than storing the
+14    actual font face name.
+
+15    For example, consider a run of text defined as follows:
+
+16     <w:r>
+17       <w:rPr>
+18         <w:rFonts w:asciiTheme="minorHAnsi" w:hAnsiTheme="minorHAnsi" />
+19       </w:rPr>
+20       …
+21     </w:r>
+
+22   The rFonts element's attribute values of asciiTheme and hAnsiTheme both store a reference to a theme font
+23    stored in the document's theme part (i.e., there is no font with the primary name minorHAnsi).
+
+24   Once this information has been established, it is combined with the theme language data stored in the
+25   document's settings to resolve the appropriate theme fonts from the theme part. The syntax and format of the
+26   theme part are stored in the DrawingML syntax and discussed in that section.
+
+27   2.10  Numbering
+
+28   Numbering in WordprocessingML refers to symbols—Arabic numerals, Roman numerals, symbol characters
+29    ("bullets"), text strings, etc.—that are used to label individual paragraphs of text.
+
+30   The following two paragraphs each contain numbering as defined by WordprocessingML: the first uses an
+31    Arabic numeral, the second a symbol character:
+
+32         1.  This is a paragraph with numbering information.
+
+33          This is also a paragraph with numbering information.
+ 1   2.10.1   Numbering Part
+
+ 2   Numbering information in a WordprocessingML document is stored in the Numbering part within the package,
+ 3   which is stored via an implicit relationship from the Main Document part or Glossary Document part of
+ 4    relationship type http://schemas.openxmlformats.org/wordprocessingml/2006/numbering and
+ 5    has a content type of vnd-openxmlformats.officedocument.wordprocessingml-numbering+xml.
+
+ 6   2.10.2   Numbering Definitions
+
+ 7   The specification of a specific set of numbering information is called a numbering definition. Numbering
+ 8    definitions are stored in two components:
+
+ 9          Abstract numbering definitions
+10         Numbering definition instances
+
+11   As shown below, their relationship is (essentially) that of an abstract and an inherited class.
+
+12   2.10.3    Abstract Numbering Definitions
+
+13   An abstract numbering definition is the basis for all numbering information in a WordprocessingML document,
+14    as it defines the appearance and behavior of a specific set of numbered paragraphs in a document, and is
+15    defined using the abstractNum element. Although abstract numbering definitions contain all of the numbering
+16    information for one type of numbering, they cannot be directly referenced by content (hence their abstract
+17    designation), they must be inherited by a numbering definition instance, which itself can be referenced by
+18    content. A specific abstract numbering definition in WordprocessingML can be divided into two parts:
+
+19         Common numbering properties
+20         Numbering levels
+
+21   The complete definition of all abstract numbering properties can be found in the reference for the
+22   abstractNum element.
+
+23   Common numbering properties refer to the properties that can be specified by all abstract numbering
+24    definitions regardless of their contents. Examples of common numbering properties include: a numbering ID
+25    (which uniquely identifies a numbering definition), the numbering definition type (single level, multi-level,
+26    multi-level hybrid), the numbering name, and optional numbering style references, as discussed in detail later
+27    in this subclause.
+
+28    Consider the following example of an abstract numbering definition in a WordprocessingML document:
+
+29     <w:abstractNum w:abstractNumId="4">
+30       <w:nsid w:val="1DE04504" />
+31       <w:multiLevelType w:val="hybridMultilevel" />
+32       <w:lvl w:ilvl="0" w:tplc="0409000F">
+33         …
+34       </w:lvl>
+ 1       <w:lvl w:ilvl="1" w:tplc="04090019">
+ 2         …
+ 3       </w:lvl>
+ 4       <w:lvl w:ilvl="2" w:tplc="04090019">
+ 5         …
+ 6       </w:lvl>
+ 7       <w:lvl w:ilvl="3" w:tplc="0409000F">
+ 8         …
+ 9       </w:lvl>
+10       …
+11     </w:abstractNum>
+
+12    This numbering definition specifies two common properties: a numbering ID (using the nsid element) of
+13   1DE04504, and a list type (using the multiLevelType element) of hybridMultilevel, which specifies that this
+14    abstract numbering definition is more than one level and contains multiple numbering formats.
+
+15   The other part of an abstract numbering definition is the specification of one or more numbering levels, each
+16    of which defines a unique set of formatting properties for one level in this numbering definition.
+
+17    Consider three numbered paragraphs that reference the same numbering definition, but each, in turn,
+18    reference a different level within that list:
+
+
+20    Although the paragraphs each reference the same abstract numbering definition (which is discussed later),
+21   each refers to a separate level within that abstract numbering definition, and therefore each has a unique set
+22    of paragraph and numbering properties.
+
+23      It is important to note that the concept of levels in an abstract numbering definition refers to the levels as
+24    defined in the file format, and in no way the logical indentation of numbered paragraphs within a
+25   WordprocessingML document.
+
+26    Consider another set of numbered paragraphs in WordprocessingML, where each subsequent paragraph is a
+27    different level but references the same abstract numbering definition:
+ 1    In this example, the properties of each level of the numbering definition is such that the paragraphs for each
+ 2    level are indented arbitrarily. However, this is still a completely valid numbering definition, and the paragraphs
+ 3   each represent subsequent levels of the same numbering definition.
+
+ 4    Within an abstract numbering level definition, each numbering level is represented by an lvl element that
+ 5    defines a single level of numbering information. Numbering levels specify the following properties: starting
+ 6   number value, a number format presentation code (e.g., 1 vs. the string literal One), an associated paragraph
+ 7     style, which previous level should cause this numbering level to restart, the numbering text, number
+ 8     justification, a paragraph properties indentation for this level, etc. The complete definition of all numbering
+ 9    level properties can be found on the reference for the lvl element.
+
+10    Consider the following numbering level definition in WordprocessingML:
+
+11     <w:lvl w:ilvl="1">
+12       <w:start w:val="4"/>
+13       <w:nfc w:val="3"/>
+14       <w:pStyle w:val="Heading1"/>
+15       <w:lvlText w:val="BEFORE %2 AFTER %1 END"/>
+16       <w:lvlJc w:val="left"/>
+17       <w:pPr>
+18         <w:tabs>
+19           <w:tab w:val="num" w:pos="2880"/>
+20         </w:tabs>
+21         <w:ind w:left="288" w:firstLine="1152"/>
+22       </w:pPr>
+23     </w:lvl>
+
+24    This particular numbering level defines the following information:
+
+25          This is level 1 (the second level) for this numbering definition
+26          Start at number 4
+27         Use number format 3 (which translates to 1, 2, 3, and so on)
+28         When this level is used, apply the Heading1 style
+29         Use the following level text for the number: BEFORE %2 AFTER %1 END
+30          Left justify the number
+31          Set a left indent of 288 twentieths of a point, and a first line indent of 1152 twentieths of a point
+
+32    This information is used to display the number for paragraphs of level 1 the reference this numbering
+33    definition.
+
+34   Of particular significance is the lvlText element, which defines the content of the number text for each
+35   numbering level. Its syntax allows any string literal to be placed in the number (e.g., the ARTICLE in ARTICLE I,
+36   ARTICLE II, ARTICLE III, and so on), as well as the current value of the number for this or any previous level in
+37    the list.
+ 1    Referring to the numbering level definition above, the lvlText is defined as follows:
+
+ 2     <w:lvlText w:val="BEFORE %2 AFTER %1 END"/>
+
+ 3    This level text specifies three literal strings (BEFORE, AFTER, END) mixed with the current numbering value
+ 4   from level 1 and level 0 in the document. Therefore, assuming level 0 is just a simple number, when inserted it
+ 5   would read:
+
+ 6     1
+ 7       BEFORE 1 AFTER 1 END
+ 8       BEFORE 2 AFTER 1 END
+ 9       BEFORE 3 AFTER 1 END
+10     2
+11       BEFORE 1 AFTER 2 END
+12       BEFORE 2 AFTER 2 END
+13       …
+
+14   The %1 and %2 values correspond to the value for level 0 and 1 of this list, respectively.
+
+15   2.10.4   Numbering Definition Instances
+
+16   A numbering definition instance is a specific instantiation of numbering information that can be referenced by
+17    zero or more paragraphs within the document. A numbering definition instance is defined using the
+18   num element. A specific numbering definition instance in WordprocessingML can be divided into two parts:
+
+19         An abstract numbering reference
+20          (Optional) level overrides
+
+21   The definition of all numbering definition instance properties can be found on the reference for the num
+22    element.
+
+23   The required piece of information in a numbering definition instance, the instance must reference an abstract
+24   numbering definition using the abstractNumId element. This element specifies the value of the
+25   abstractNumId attribute for the inherited abstract numbering definition information.
+
+26    Consider the WordprocessingML for a document with four numbering definition instances, two of which
+27    reference the same underlying abstract numbering definition:
+
+28     <w:numbering>
+29       ...
+30       <w:num w:numId="2">
+31         <w:abstractNumId w:val="0" />
+32       </w:num>
+33       <w:num w:numId="3">
+34         <w:abstractNumId w:val="1" />
+35       </w:num>
+ 1       <w:num w:numId="4">
+ 2         <w:abstractNumId w:val="4" />
+ 3       </w:num>
+ 4       <w:num w:numId="5">
+ 5         <w:abstractNumId w:val="4" />
+ 6       </w:num>
+ 7     </w:numbering>
+
+ 8   As shown above, the first two numbering definition instances reference abstractNumId values of 0 and 1
+ 9    respectively, and the last two both reference the abstract numbering definition with an abstractNumId of 4.
+
+10   The second (and optional) piece of information for a numbering definition instance is one or more numbering
+11    level overrides using the lvlOverride element. This element specifies a set of optional overrides applied to
+12    zero or more levels from the abstract numbering definition inherited by this instance.
+
+13    Consider a numbering definition instance that inherits its information from the abstract numbering definition
+14    with abstractNumId of 4, but wishes to use a different set of properties for level 0 of the numbering
+15    definition. The resulting WordprocessingML would look like:
+
+16     <w:num w:numId="6">
+17       <w:abstractNumId w:val="4" />
+18       <w:lvlOverride w:ilvl="0">
+19         <w:lvl w:ilvl="0">
+20           <w:start w:val="4" />
+21           <w:lvlText w:val="%1)" />
+22           <w:lvlJc w:val="left" />
+23           <w:pPr>
+24             <w:ind w:left="360" w:hanging="360" />
+25           </w:pPr>
+26         </w:lvl>
+27       </w:lvlOverride>
+28     </w:num>
+
+29    This level overrides level 0 of the list with the specified set of numbering properties, replacing those in the
+30    abtract numbering definition.
+
+31   2.10.5    Applying Numbering to Paragraphs
+
+32   Once numbering information is defined in the numbering part, this information must be associated with
+33    paragraphs within the document in order to display numbering on one or more paragraphs of content.
+
+34   To accomplish this, numbered paragraphs are identified by the numPr element within the paragraph's
+35    properties element (the pPr element). The numbering properties within a paragraph are specified using two
+36    specific elements that specify the numbering definition information to use:
+
+37         A numbering definition instance reference
+ 1         A numbering level reference
+
+ 2   The numbering definition instance reference is specified using the numId element. This element contains a
+ 3    reference to the numId attribute in a specific numbering definition instance within the numbering part, which
+ 4    links this paragraph to that numbering definition instance.
+
+ 5   The numbering level reference is specified using the ilvl element. This element contains a reference to the ilvl
+ 6    attribute in the specified numbering definition instance's level information, which specifies the numbering
+ 7    level within the referenced numbering definition instance to be used by this numbered paragraph.
+
+ 8    Consider the following numbered paragraphs in a WordprocessingML document:
+
+
+11   These four numbered paragraphs, all referencing the same numbering definition, produce the following
+12   WordprocessingML:
+
+13     <w:p>
+14       <w:pPr>
+15         <w:numPr>
+16           <w:ilvl w:val="0" />
+17           <w:numId w:val="5" />
+18         </w:numPr>
+19       </w:pPr>
+20       <w:r>
+21         <w:t>Level one item one</w:t>
+22       </w:r>
+23     </w:p>
+ 1     <w:p>
+ 2       <w:pPr>
+ 3         <w:numPr>
+ 4           <w:ilvl w:val="1" />
+ 5           <w:numId w:val="5" />
+ 6         </w:numPr>
+ 7       </w:pPr>
+ 8       <w:r>
+ 9         <w:t>Level two item one</w:t>
+10       </w:r>
+11     </w:p>
+12     <w:p>
+13       <w:pPr>
+14         <w:numPr>
+15           <w:ilvl w:val="0" />
+16           <w:numId w:val="5" />
+17         </w:numPr>
+18       </w:pPr>
+19       <w:r>
+20         <w:t>Level one item two</w:t>
+21       </w:r>
+22     </w:p>
+23     <w:p>
+24       <w:pPr>
+25         <w:numPr>
+26           <w:ilvl w:val="1" />
+27           <w:numId w:val="5" />
+28         </w:numPr>
+29       </w:pPr>
+30       <w:r>
+31         <w:t>Level two item one</w:t>
+32       </w:r>
+33     </w:p>
+
+34    In these numbered paragraphs, level 0 and 1 of the numbering definition are referenced through the ilvl
+35   element with a val attribute of 0 or 1, respectively, however, the numId element always references the
+36   numbering definition instance with a val of 5.
+
+37   The numbering at any particular numbering level is restarted when a paragraph in the current document from
+38    the same numbering definition uses the level specified in the lvlRestart element for this numbering level.
+
+39    Consider a set of numbered paragraphs in a WordprocessingML document where:
+
+40          Level 1 is set to restart after each level 0 (lvlRestart of 1)
+ 1          Level 2 is set to never restart (lvlRestart of 0)
+
+
+ 3   As the example shows, the numbering at level 1 (a, b, c, and so on) restarts after each level 0 is used, but
+ 4    level 2 (i, ii, iii, and so on) never restarts.
+
+ 5   2.10.6   The Complete Story
+ 6   To summarize the use of numbering information in a document, the paragraph properties specify a numPr
+ 7    element, which references a numbering definition instance via the numId element. The numbering definition
+ 8    instance specifies an inherited abstract numbering definition via the abstractNumId element. The paragraph
+ 9   then also specifies the list level from the numbering definition instance using the ilvl element.
+
+10    Consider the following WordprocessingML for a numbered paragraph:
+
+11     <w:p>
+12       <w:pPr>
+13         <w:numPr>
+14           <w:ilvl w:val="0" />
+15           <w:numId w:val="5" />
+16         </w:numPr>
+17       </w:pPr>
+18       <w:r>
+19         <w:t>Numbered paragraph</w:t>
+20       </w:r>
+21     </w:p>
+
+22   Based on the numId of 5, the paragraph uses the numbering definition instance with a numId of 5:
+ 1     <w:numbering>
+ 2       ...
+ 3       <w:num w:numId="5">
+ 4         <w:abstractNumId w:val="4" />
+ 5       </w:num>
+ 6     </w:numbering>
+
+ 7   Based on the abstractNumId of 4, this instance inherits the abstract numbering definition with an
+ 8   abstractNumId of 4:
+
+ 9     <w:numbering>
+10       <w:abstractNum w:abstractNumId="4">
+11         <w:nsid w:val="FFFFFF7F" />
+12         <w:multiLevelType w:val="singleLevel" />
+13         <w:lvl w:ilvl="0">
+14           <w:start w:val="1" />
+15           <w:lvlText w:val="%1." />
+16           <w:lvlJc w:val="left" />
+17           <w:pPr>
+18             <w:tabs>
+19               <w:tab w:val="num" w:pos="720" />
+20             </w:tabs>
+21             <w:ind w:left="720" w:hanging="360" />
+22           </w:pPr>
+23         </w:lvl>
+24       </w:abstractNum>
+25       …
+26     </w:numbering>
+
+27    Since the numbering definition instance does not specify an override for ilvl 0, the definition for the
+28    corresponding level from the abstract numbering definition is applied to the text.
+
+29   2.10.7   Numbering Styles
+
+30   As stated earlier in the styles subclause (§2.8), numbering styles are style definitions which specify common
+31    formatting properties for a multi-level numbering format within a document. This means that a numbering
+32    style definition in the styles part defines only a single property: a reference to a numbering definition instance
+33    stored in the document’s numbering part, using the numId element within the numPr element. That
+34   numbering definition instance specifies an abstract numbering style, which contains the numbering level
+35    information for the numbering style. It also specifies that it is the basis for the numbering style by back-
+36    referencing the numbering style's styleId attribute via the styleLink element.
+
+37    Unlike paragraph and character styles, numbering styles are never directly referenced by content in the
+38   document—instead, an abstract numbering definition specifies that it contains the underlying numbering
+ 1    information for a numbering style, and one or more numbering definition instances reference that abstract
+ 2   numbering definition.
+
+ 3   2.10.8    Referencing Numbering Styles
+
+ 4   To use a numbering style in a document, the paragraph properties for one or more paragraphs again specify a
+ 5   numPr element, which references a numbering definition instance via the numId element. The numbering
+ 6    definition instance itself again specifies an inherited abstract numbering definition via the abstractNumId
+ 7    element.
+
+ 8    At this stage, the abstract numbering definition specifies that it is based on a numbering style via either of the
+ 9    following:
+
+10         The abstract numbering style contains no level data, and simply specifies a reference to the numbering
+11              style's styleId attribute via the numStyleLink element.
+12         The abstract numbering style contains the numbering level information for the numbering style, and
+13             specifies that it is the basis for the numbering style by referencing the numbering style's styleId
+14            attribute via the styleLink element.
+
+15    Although the result of each method is identical, the following two examples illustrate each of the syntaxes:
+
+16    Consider the first numbering style syntax, in which the numbering on a paragraph is based on an abstract
+17   numbering definition which simply references the numbering style via numStyleLink. The contents of the
+18    paragraph would consist of the following:
+
+19     <w:p>
+20       <w:pPr>
+21         <w:numPr>
+22           <w:ilvl w:val="0" />
+23           <w:numId w:val="6" />
+24         </w:numPr>
+25       </w:pPr>
+26       <w:r>
+27         <w:t>This paragraph references a numbering style via numStyleLink.</w:t>
+28       </w:r>
+29     </w:p>
+
+30   The numId element references a numbering definition instance with a value of 6, located in the numbering
+31    part:
+
+32     <w:num w:numId="6">
+33       <w:abstractNumId w:val="0" />
+34     </w:num>
+
+35   Based on the abstractNumId of 0, this instance inherits the abstract numbering definition with an
+36   abstractNumId of 0:
+ 1     <w:abstractNum w:abstractNumId="0">
+ 2       <w:nsid w:val="38901FA4" />
+ 3       <w:multiLevelType w:val="multilevel" />
+ 4       <w:numStyleLink w:val="TestNumberingStyle" />
+ 5     </w:abstractNum>
+
+ 6    This abstract numbering definition contains no numbering information - it simply notes that it inherits the
+ 7   numbering information from the numbering style TestNumberingStyle by referencing the styleId
+ 8    attribute on that style:
+
+ 9     <w:style w:type="numbering" w:styleId="TestNumberingStyle">
+10       <w:name w:val="Test Numbering Style" />
+11       <w:uiPriority w:val="99" />
+12       <w:rsid w:val="00DB3C4B" />
+13       <w:pPr>
+14         <w:numPr>
+15           <w:numId w:val="4" />
+16         </w:numPr>
+17       </w:pPr>
+18     </w:style>
+
+19   The style references a numbering definition instance, again via the numId element:
+
+20     <w:num w:numId="4">
+21       <w:abstractNumId w:val="2" />
+22     </w:num>
+
+23   Based on the abstractNumId of 2, this instance inherits the abstract numbering definition with an
+24   abstractNumId of 2:
+ 1     <w:abstractNum w:abstractNumId="2">
+ 2       <w:nsid w:val="46364EB7" />
+ 3       <w:multiLevelType w:val="multilevel" />
+ 4       <w:styleLink w:val="TestNumberingStyle" />
+ 5       <w:lvl w:ilvl="0">
+ 6         <w:lvlText w:val="%1 %1 %1" />
+ 7         <w:lvlJc w:val="left" />
+ 8         <w:pPr>
+ 9           <w:tabs>
+10             <w:tab w:val="num" w:pos="360" />
+11           </w:tabs>
+12           <w:ind w:left="0" w:firstLine="0" />
+13         </w:pPr>
+14       </w:lvl>
+15       …
+16     </w:abstractNum>
+
+17    This abstract numbering definition defines the properties for each level of the numbering format (levels 1
+18    through 9 omitted for brevity). Since neither of the numbering definition instances specified overrides for
+19    level 0, the properties from abstract numbering format 2 are applied to level 0 in the resulting numbering
+20    definition instance and are applied to the text via the ilvl element.
+
+21    Consider the second numbering style syntax, in which the numbering on a paragraph is based on an abstract
+22   numbering definition which defines the numbering information and references the numbering style via
+23    styleLink. The contents of the paragraph would consist of the following:
+
+24     <w:p>
+25       <w:pPr>
+26         <w:numPr>
+27           <w:ilvl w:val="0" />
+28           <w:numId w:val="4" />
+29         </w:numPr>
+30       </w:pPr>
+31       <w:r>
+32         <w:t>This paragraph references a numbering style via styleLink.</w:t>
+33       </w:r>
+34     </w:p>
+
+35   The numId element references a numbering definition instance with a value of 4, located in the numbering
+36    part:
+
+37     <w:num w:numId="4">
+38       <w:abstractNumId w:val="2" />
+39     </w:num>
+ 1   Based on the abstractNumId of 2, this instance inherits the abstract numbering definition with an
+ 2   abstractNumId of 2:
+
+ 3     <w:abstractNum w:abstractNumId="2">
+ 4       <w:nsid w:val="46364EB7" />
+ 5       <w:multiLevelType w:val="multilevel" />
+ 6       <w:styleLink w:val="TestNumberingStyle" />
+ 7       <w:lvl w:ilvl="0">
+ 8         <w:lvlText w:val="%1 %1 %1" />
+ 9         <w:lvlJc w:val="left" />
+10         <w:pPr>
+11           <w:tabs>
+12             <w:tab w:val="num" w:pos="360" />
+13           </w:tabs>
+14           <w:ind w:left="0" w:firstLine="0" />
+15         </w:pPr>
+16       </w:lvl>
+17       …
+18     </w:abstractNum>
+
+19    This abstract numbering definition defines the properties for each level of the numbering format (levels 1
+20    through 9 omitted for brevity) and specifies that it is the underlying numbering information for a numbering
+21    format by referencing the styleId of that numbering style via the styleLink element. Since the numbering
+22    definition instances specified no override for level 0, the properties from abstract numbering format 2 are
+23    applied to level 0 in the resulting numbering definition instance and are applied to the text via the ilvl
+24    element.
+
+25   2.11  Headers and Footers
+
+26   Headers and footers refer to text, graphics, or data (such as page number, date, document title, and so on)
+27    that can appear at the top or bottom of each page in a WordprocessingML document.
+
+28   A header appears in the top margin (above the main document content on the page), while a footer appears in
+29    the bottom margin of a document page (below the main document content on the page); for example:
+ 2    Since WordprocessingML is a flow-based format, headers and footers are applied by specifying the headers
+ 3   and footers for all pages in a particular section of a document.
+
+ 4   2.11.1   Header Part
+
+ 5   Header information in a WordprocessingML document is stored in a header part within the package, which is
+ 6    stored via an implicit relationship from the Main Document part or the Glossary Document part of relationship
+ 7    type http://schemas.openxmlformats.org/wordprocessingml/2006/header and has a content
+ 8    type of vnd-openxmlformats.officedocument.wordprocessingml-header+xml.
+
+ 9   2.11.2    Footer Part
+
+10    Footer information in a WordprocessingML document is stored in a footer part within the package, which is
+11    stored via an implicit relationship from the Main Document part or the Glossary Document part of relationship
+12    type http://schemas.openxmlformats.org/wordprocessingml/2006/footer and has a content
+13    type of vnd-openxmlformats.officedocument.wordprocessingml-footer+xml.
+
+14   2.11.3   Headers and Footers
+
+15   As described above, header and footer information is stored in one or more header or footer parts within the
+16    package.
+
+17   The hdr element defines a single header for the document, while the ftr element defines a single footer for
+18    the document. Headers and footers are just another document story in WordprocessingML. Within the root
+19   element of the header or footer, the content of the element is similar to the content of the body element, and
+20    contains what is referred to as block-level markup —markup that can exist as a sibling element to paragraphs
+21    in a WordprocessingML document.
+
+22    Within each section of a document there can be up to three different types of headers and footers:
+
+23          First page header/footer
+24         Odd page header/footer
+25         Even page header/footer
+
+26     First page headers and footers specify a unique header or footer that shall appear on the first page of a
+27    section. Odd page headers and footers specify a unique header and footer that shall appear on all odd
+28   numbered pages for a given section. Even page headers and footers specify a unique header and footer that
+29    shall appear on all even numbered pages in a given section.
+
+30    Different headers or footers can be useful for bounded documents like books, as shown in the figure below.
+ 2    Consider the following simple one-page document with one header:
+
+
+ 4    This document defines one header with the text Header. The header's content is stored in a unique Header
+ 5    part. The resulting header is represented by the following WordprocessingML:
+
+ 6     <w:hdr>
+ 7       <w:p>
+ 8         <w:r>
+ 9           <w:t>Header</w:t>
+10         </w:r>
+11       </w:p>
+12     </w:hdr>
+
+13    Since headers are containers of block level contents, all block level contents can be used within them. In this
+14    particular example, the content is a single paragraph.
+
+15    Consider a more complex three-page document with different first, odd, and even page headers defined:
+ 2    This document defines three headers stored in three different header parts. The resulting headers are
+ 3    represented by the following WordprocessingML:
+
+ 4     First page header part:
+
+ 5     <w:hdr>
+ 6       <w:p>
+ 7         <w:r>
+ 8           <w:t>First</w:t>
+ 9         </w:r>
+10       </w:p>
+11     </w:hdr>
+
+12   Even page header part:
+
+13     <w:hdr>
+14       <w:p>
+15         <w:r>
+16           <w:t>Even</w:t>
+17         </w:r>
+18       </w:p>
+19     </w:hdr>
+
+20   Odd page header part:
+
+21     <w:hdr>
+22       <w:p>
+23         <w:r>
+24           <w:t>Odd</w:t>
+25         </w:r>
+26       </w:p>
+27     </w:hdr>
+ 1   2.11.4    Multiple Sections
+
+ 2   Documents are capable of having multiple sections, where each section can define up to three headers and
+ 3    footers. By default, sections other than the first section inherit the previous header and footer references,
+ 4    unless that section specifies header and footer references.
+
+
+ 6    Consider a two-page, two-section document with only the first section header defined. This document defines
+ 7   one header that is referenced in the first section. The document is represented by the following
+ 8   WordprocessingML:
+
+ 9     <w:body>
+10       …
+11       <w:p>
+12         <w:pPr>
+13           <w:sectPr>
+14             <w:headerReference r:id="rId6" />
+15             …
+16           </w:sectPr>
+17         </w:pPr>
+18         …
+19       </w:p>
+20       …
+21       <w:sectPr>
+22         …
+23       </w:sectPr>
+24     </w:body>
+
+25   The second section does not explicitly reference a header. Instead, the second section inherits the header from
+26    the previous section.
+ 1   2.11.5   Empty Header or Footer
+
+ 2   Not specifying a header and footer reference in a section, other than the first section, causes the document to
+ 3    inherit the previous section's header and footer references. In order to declare an empty header or footer, a
+ 4   header or footer reference must be made to a null header or footer relationship, as follows:
+
+ 5     <Relationship Id="rId2" Type="http:// …/header" Target="null" />
+
+ 6   The null attribute value specifies that the header or footer shall not be inherited from the previous section,
+ 7   and a blank header or footer shall explicitly be used.
+
+ 8   2.12   Footnotes and Endnotes
+
+ 9    Footnotes and endnotes are separate text stories used in documents and books to show the source of
+10   borrowed material or to enter explanatory or supplementary information that does not interrupt the normal
+11    reading flow of the document.
+
+12    Footnotes are typically located at the bottom of a page or beneath text being referenced, and endnotes are
+13    typically placed at the end of a document or at the end of a section. If document has been divided up into one
+14    or more sections, each section of a document can contain endnotes.
+
+15   Both footnotes and endnotes consist of two parts:
+
+16         A note reference mark in the body text to indicate that additional information is in a footnote or
+17           endnote, with a numbering system used for each to tell readers whether to look for the note at the
+18         end of the page or the end of the document or section.
+19         The actual footnote or endnote story content.
+
+20    Here's an example of a footnote applied to text in a document:
+ 1   The note reference mark follows the noted text and specifies that there is associated footnote information; the
+ 2    footnote itself is at the bottom of the current page.
+
+ 3    Consider the following example of an endnote applied to text in a document:
+
+
+ 6   The note reference mark follows the noted text and specifies that there is associated endnote information; the
+ 7   endnote itself is at the end of the current section.
+
+ 8   2.12.1    Footnote Part
+
+ 9    Footnote information in a WordprocessingML document is stored in the footnotes part within the package,
+10   which is stored via an implicit relationship from the Main Document part or Glossary Document part of
+11    relationship type http://schemas.openxmlformats.org/wordprocessingml/2006/footnotes and
+12    has a content type of vnd-openxmlformats.officedocument.wordprocessingml-footnotes+xml.
+
+13   2.12.2   Endnote Part
+
+14   Endnote information in a WordprocessingML document is stored in the Endnotes part within the package,
+15   which is stored via an implicit relationship from the Main Document part or Glossary Document part of
+ 1    relationship type http://schemas.openxmlformats.org/wordprocessingml/2006/endnotes and
+ 2    has a content type of vnd-openxmlformats.officedocument.wordprocessingml-endnotes+xml.
+
+ 3   2.12.3    Footnotes and Endnotes
+
+ 4   As described above, footnote and endnote information is stored in the corresponding footnotes and endnotes
+ 5    part within the package. The footnotes element below specifies three or more footnotes, each identified by
+ 6    the footnote element, for the document. The endnotes element specifies three or more endnotes, each
+ 7    identified by the endnote element, for the document. Each footnote or endnote element is associated with a
+ 8   unique ID, specified by the attribute id.
+
+ 9    Consider three different types of footnotes, each identified by a footnote element, defined in the Footnotes
+10    part. The use of each type of footnote is defined in the next subclause:
+
+11     <w:footnotes ...>
+12       <w:footnote w:type="separator" w:id="0">
+13         …
+14       </w:footnote>
+15       <w:footnote w:type="continuationSeparator" w:id="1">
+16         …
+17       </w:footnote>
+18       <w:footnote w:id="2">
+19         …
+20       </w:footnote>
+21     </w:footnotes>
+
+22    Similarly consider three different types of endnotes, each identified by an endnote element, defined in the
+23   Endnotes part. The use of each type of endnote is defined in the next subclause:
+
+24     <w:endnotes ...>
+25       <w:endnote w:type="separator" w:id="0">
+26         …
+27       </w:endnote>
+28       <w:endnote w:type="continuationSeparator" w:id="1">
+29         …
+30       </w:endnote>
+31       <w:endnote w:id="2">
+32         …
+33       </w:endnote>
+34     </w:endnotes>
+
+35    Footnotes and endnotes are just another kind of paragraph in WordprocessingML. Within the footnote or
+36   endnote element, the footnote or endnote may contain any valid block-level content.
+ 1   2.12.4    Footnote and Endnote Types
+
+ 2   There are four different types of footnotes and endnotes:
+
+ 3          Normal – contain the text of any footnote (or endnote) in the document.
+ 4          Separator – define the separator used to separate the footnote (or endnote) from the document text.
+ 5          Continuation separator – define the separator used to separate the footnote (or endnote) from the
+ 6         document text when the footnote or endnote is a continuation from the previous page.
+ 7          Continuation notice – define the notice text to let readers know that the footnote (or endnote) has
+ 8           continued on the next page.
+
+ 9   The attribute type specifies the type of footnote or endnote. Normal footnotes or endnotes are specified by a
+10    type of normal or by omitting type. In conjunction to a normal type, a footnote reference mark, specified by
+11    footnoteRef element, or endnote reference mark, specified by endnoteRef element, must be present within
+12    the footnote or endnote definition.
+
+
+14    Consider the following page in a document, where some text is referenced by a footnote at the end of a page:
+
+15   The footnote text at the bottom of the page is a normal type footnote represented by the following
+16   WordprocessingML:
+
+17     <w:footnote w:id="2">
+18       <w:p>
+19         <w:pPr>
+20           <w:pStyle w:val="FootnoteText" />
+21         </w:pPr>
+ 1         <w:r>
+ 2           <w:rPr>
+ 3             <w:rStyle w:val="FootnoteReference" />
+ 4           </w:rPr>
+ 5           <w:footnoteRef />
+ 6         </w:r>
+ 7         <w:r>
+ 8           <w:t>Cool reference</w:t>
+ 9         </w:r>
+10       </w:p>
+11     </w:footnote>
+
+12   Not specifying any type attribute in the footnote element defaults to being a normal type of footnote. In this
+13    example, the footnote has a unique ID of 2. The text of the footnote is contained in the text run. Like any
+14    paragraph, footnotes can be associated with a particular style, and, in this example, the paragraph uses the
+15   FootnoteText paragraph style. Similarly, like any run, footnotes can be associated with a particular style,
+16    and, in this example, the run uses the FootnoteReference run style.
+
+17    Separator footnotes or endnotes are specified by separator. These types of footnotes or endnotes define the
+18    look of the separator used to separate document text from footnotes or endnotes. In conjunction to
+19   separator type, a footnote or endnote separator reference mark, specified by a separator element must be
+20    present within the footnote or endnote definition.
+
+21    Consider the following page in a document, where some text is referenced by a footnote at the end of a page:
+
+
+24   The line separating the document text from the footnote is represented by the following WordprocessingML:
+ 1     <w:footnote w:type="separator" w:id="0">
+ 2       <w:p>
+ 3         <w:pPr>
+ 4           <w:spacing w:after="0" w:line="240" w:lineRule="auto" />
+ 5         </w:pPr>
+ 6         <w:r>
+ 7           <w:separator />
+ 8         </w:r>
+ 9       </w:p>
+10     </w:footnote>
+
+11    In this example, the footnote has a unique ID of 0. The vertical spacing after the line separator is 0 twentieths
+12    of a point. The vertical spacing between the line separator and text is 240 twentieths of a point.
+
+13    Continuation separator footnotes or endnotes are specified by continuationSeparator. These types of
+14    footnotes or endnotes define the look of the separator used to separate document text from footnotes or
+15   endnotes when the footnote or endnote continues the next page. In conjunction to a
+16   continuationSeparator type, a footnote or endnote continuation separator reference mark, specified by
+17    continuationSeparator element must be present within the footnote or endnote definition.
+
+18    Consider the following two pages in a document, where some text is referenced by a footnote that extends to
+19    the next page:
+
+
+22   The line separating the document text from the footnote that is continued on the next page (circled in red in
+23    the image above) is the continuation separator footnote, and is represented by the following
+24   WordprocessingML:
+ 1     <w:footnote w:type="continuationSeparator" w:id="1">
+ 2       <w:p >
+ 3         <w:pPr>
+ 4           <w:spacing w:after="0" w:line="240" w:lineRule="auto" />
+ 5         </w:pPr>
+ 6         <w:r>
+ 7           <w:continuationSeparator />
+ 8         </w:r>
+ 9       </w:p>
+10     </w:footnote>
+
+11    In this example, the footnote has a unique ID of 1. The vertical spacing after the line separator is 0 twentieths
+12    of a point. The vertical spacing between the line separator and text is 240 twentieths of a point.
+
+13    Continuation notice footnotes or endnotes are specified by continuationNotice. These types of footnotes or
+14   endnotes specify the text to let readers know that the footnote or endnote is continued on the next page.
+
+15    Consider the following two pages in a document, where some text is referenced by a footnote that extends to
+16    the next page. A continuation notice is given to readers to indicate that the footnote extends to the next page:
+
+
+18   The continuation notice text is at the bottom of the footnote indicating that the footnote is continued to the
+19    next page (which reads continued on next page above) and is represented by the following
+20   WordprocessingML:
+
+21     <w:footnote w:type="continuationNotice" w:id="3">
+22       <w:p >
+23         <w:pPr>
+24           <w:spacing w:after="0" w:line="240" w:lineRule="auto" />
+25         </w:pPr>
+ 1         <w:r>
+ 2           <w:t>(continued on next page)</w:t>
+ 3         </w:r>
+ 4       </w:p>
+ 5     </w:footnote>
+
+ 6    In this example, the footnote has a unique ID of 3. The text that shows up after the footnote text is
+ 7   (continued on next page).
+
+ 8   2.12.5    Footnote and Endnote Reference
+
+ 9   Once footnote or endnote information is defined in the footnotes or endnotes part, this information must be
+10    associated with document text within the document in order to display the footnotes or endnotes. Each
+11    footnote or endnote is identified by a unique ID that references footnote or endnote definitions specified in
+12    the footnotes or endnotes part. Footnote or endnote references are identified by the footnoteReference or
+13   endnoteReference element within the text run's element (the r element). The footnoteReference or
+14   endnoteReference element points to the footnote or endnote ID defined in the footnotes or endnotes part.
+
+15    Consider the following one-page document, where some text is referenced by a footnote at the end of the
+16   document page:
+
+
+19   The footnote references text and is represented by the following WordprocessingML:
+
+20     <w:p>
+21       <w:r>
+22         <w:t>Some referenced text</w:t>
+23       </w:r>
+ 1       <w:r>
+ 2         <w:rPr>
+ 3           <w:rStyle w:val="FootnoteReference" />
+ 4         </w:rPr>
+ 5         <w:footnoteReference w:id="2" />
+ 6       </w:r>
+ 7     </w:p>
+
+ 8   The footnote references the footnote in the footnotes part with ID equals to 2. Like any run, footnotes can be
+ 9    associated with a particular style, and, in this example, the run uses the FootnoteReference run style. The
+10    style of the footnote defines the look and numbering of the footnote.
+
+11   2.13   Glossary Document
+
+12   The introduction to a WordprocessingML document formally introduced the concept of stories, individual
+13    ranges of a word-processing document containing block-level content like paragraphs and tables. Some
+14   examples of stories in a WordprocessingML document include the following: the main document, headers,
+15    footers, comments, footnotes, and endnotes.
+
+16    At that time, a story was defined by two characteristics:
+
+17           It is a unique region containing block-level content
+18          All document stories shared the same set of properties (e.g., style definitions, numbering definitions,
+19          and settings)
+
+20   The glossary document, although it follows the first rule, actually defies the second.
+
+21    Within a WordprocessingML file, the glossary document is a supplemental storage location for additional
+22   document content which shall travel with the document, but which shall not be displayed for printed as part of
+23    the main document until it is explicitly added to that document by deliberate action.
+
+24   The glossary document shall also be afforded a separate instance of all of the relationships that are provided
+25   on the main document part - this means that the glossary document shall have its own style definitions,
+26   numbering definitions, comments, headers, footers, etc. within the WordprocessingML document.
+
+27    Consider a document that shall include ten optional clauses that may be inserted through a user interface. It is
+28    clearly not desirable to have these ten clauses appear in the main document story's contents before they are
+29     explicitly inserted, therefore each of them may be stored in the glossary document and inserted via the user
+30    interface as needed.
+
+31    Within the glossary document, each distinct region of document content is referred to as a glossary document
+32    entry, and is defined via the docPart element. These document parts may contain any block-level
+33   WordprocessingML element, and may also have a set of classifications and behaviors applied to them via the
+34    glossary document entry's properties.
+ 1    Consider the following definition for the contents of a glossary document part within a WordprocessingML
+ 2   document:
+
+ 3     <w:glossaryDocument>
+ 4       <w:docParts>
+ 5         <w:docPart>
+ 6           <w:docPartPr>
+ 7             …
+ 8           </w:docPartPr>
+ 9           <w:docPartBody>
+10             <w:p>
+11               <w:r>
+12                 <w:t>Sample entry.</w:t>
+13               </w:r>
+14             </w:p>
+15           </w:docPartBody>
+16         </w:docPart>
+17         <w:docPart>
+18           …
+19         </w:docPart>
+20       </w:docParts>
+21     </w:glossaryDocument>
+
+22   The glossaryDocument element defines the contents of the glossary document part. Within the glossary
+23   document, each docPart element contains the definition for one glossary document entry: in this case, there
+24    are two entries in the glossary document, the first of which contains a single paragraph with a single run of
+25    text.
+
+26   Each glossary document entry consists of two components:
+
+27         The entry's properties, specified using the docPartPr element
+28         The entry's contents, specified using the docPartBody element
+
+29   The first specifies information about the entry (e.g., its classification) for when it is inserted, the latter stores
+30    the block level content which constitutes the entry.
+
+31   2.14   Annotations
+
+32   2.14.1    Introduction
+
+33   An annotation is one of various kinds of supplementary markup, which may be stored inside or around a
+34    region of text within the document's contents. The kinds of supplementary information stored within a
+35   document can include comments (§2.14.5), revisions (§2.14.7), spelling and/or grammatical errors (§2.14.10),
+36   bookmark information (§2.14.8), and optional editing permissions (§2.14.9).
+
+37    Within a document's contents, annotations are stored in one of three different forms:
+ 1          Inline
+ 2          Cross-Structure
+ 3          Properties
+
+ 4   These three forms are needed in order to maintain compatibility with both the legacy annotations
+ 5    functionality of current word-processing applications and the requirements of an XML-based format (i.e., well-
+ 6   formedness of the resulting XML markup). These three forms are referenced within the individual annotation
+ 7    types described in subclauses §2.14.2 through §2.14.4.
+
+ 8   2.14.2    Inline Annotations
+
+ 9   An inline annotation is a form of annotation that does not require special handling in order to maintain the
+10   XML well-formedness requirements of the resulting WordprocessingML output. In these cases, a single XML
+11   element shall encapsulate the entire contents of the document content which is being annotated.
+
+12    Consider the following WordprocessingML markup for a paragraph that reads The quick brown fox
+13   jumps over the jet lagged dog., where jet lagged replaced the previous text lazy when the
+14    editing application was tracking revisions:
+
+15     <w:p>
+16       <w:r>
+17         <w:t xml:space="preserve">The quick brown fox jumps over the </w:t>
+18       </w:r>
+19       <w:del … >
+20         <w:r>
+21           <w:delText>lazy</w:delText>
+22         </w:r>
+23       </w:del>
+24       <w:ins … >
+25         <w:r>
+26           <w:t>jet lagged</w:t>
+27         </w:r>
+28       </w:ins>
+29       <w:r>
+30         <w:t xml:space="preserve"> dog.</w:t>
+31       </w:r>
+32     </w:p>
+
+33   The del and ins elements each fully encapsulate the extent of their respective annotations (a marked deletion
+34   and insertion, respectively), as they are inline annotations.
+
+35   2.14.3    Cross-Structure Annotations
+
+36   A cross-structure annotation is a form of annotation that can span portions of WordprocessingML markup.
+37    (Cross-structure annotations may span parts of multiple paragraphs, one half of a custom XML markup
+38    element's contents, and so on.) In these cases, the annotation's region is delimited by two elements, a start
+ 1   element and an end element, which mark the start and end points of the annotated content, respectively, but
+ 2   do not contain it. Matching start and end markers have the same id attribute value.
+
+ 3    Consider the following WordprocessingML markup for two paragraphs, each reading Example Text, where a
+ 4   bookmark has been added spanning the second word in paragraph one, and the first word in paragraph two:
+
+ 5     <w:p>
+ 6       <w:r>
+ 7         <w:t>Example</w:t>
+ 8       </w:r>
+ 9       <w:bookmarkStart w:id="0" w:name="sampleBookmark" />
+10       <w:r>
+11         <w:t xml:space="preserve"> text.</w:t>
+12       </w:r>
+13     </w:p>
+14     <w:p>
+15       <w:r>
+16         <w:t>Example</w:t>
+17       </w:r>
+18       <w:bookmarkEnd w:id="0" />
+19       <w:r>
+20         <w:t xml:space="preserve"> text.</w:t>
+21       </w:r>
+22     </w:p>
+
+23   The bookmarkStart and bookmarkEnd elements specify the location where the bookmark starts and ends,
+24    but cannot contain that bookmark because it spans parts of two paragraphs. They are part of one group
+25   because the id attribute value specifies 0 for both.
+
+26   2.14.4    Property Annotations
+
+27   A property annotation is a form of annotation that is stored as a property on an object (Property annotations
+28   may appear on paragraph properties, run properties, table rows, and so on.) In these cases, the annotation's
+29    semantics are defined by the property, as they can affect content and/or formatting.
+
+30    Consider the following WordprocessingML markup for a paragraph reading Example Text, where the first
+31   word had the bold property applied when the editing application was tracking revisions:
+ 1     <w:p>
+ 2       <w:r>
+ 3         <w:rPr>
+ 4           <w:b/>
+ 5           <w:rPrChange … >
+ 6             <w:rPr/>
+ 7           </w:rPrChange>
+ 8         </w:rPr>
+ 9         <w:t>Example</w:t>
+10       </w:r>
+11       <w:r>
+12         <w:t xml:space="preserve"> text.</w:t>
+13       </w:r>
+14     </w:p>
+
+15   The rPrChange element contains the set of previously applied revision properties associated with a particular
+16    author at a particular time. It is stored itself as a property on the parent run which was modified.
+
+17   2.14.5   Comments
+
+18   A comment is an annotation that is anchored to a region of document content, but which contains an arbitrary
+19   amount of block-level content stored in its own separate document story. Within a WordprocessingML
+20   document, comments are stored in a separate comments part within the document package.
+
+21   A comment in a WordprocessingML document is divided into two components:
+
+22         The comment anchor (the text to which the comment applies)
+23         The comment content (the contents of the comment)
+
+24   The comment anchor is the cross-structure annotation that defines the region of text on which the comment in
+25    anchored. The comment content is the text of the comment.
+
+26    Consider a paragraph in a WordprocessingML document whose second word is annotated with a comment:
+
+
+28   The first component to this comment is the document content, which defines the extents of the comment and
+29    references the specific comment in the comments part:
+
+30     <w:p>
+31       <w:r>
+32         <w:t xml:space="preserve">Some </w:t>
+33       </w:r>
+ 1       <w:commentRangeStart w:id="0" />
+ 2       <w:r>
+ 3         <w:t>text.</w:t>
+ 4       </w:r>
+ 5       <w:commentRangeEnd w:id="0" />
+ 6       <w:r>
+ 7         <w:commentReference w:id="0" />
+ 8       </w:r>
+ 9     </w:p>
+
+10   The commentRangeStart and commentRangeEnd elements delimit the run content to which the comment
+11    with an id of 0 applies (in this case, the single run of text). The commentReference element that follows links
+12    the preceding run content with a comment in the comments part having an id of 0. Without all three of these
+13    elements, the range and comment cannot be linked (although the first two elements are optional, in which
+14    case the comment shall be anchored at the comment reference mark)
+
+15   The second component to this comment is the comment content, which defines the text in the comment:
+
+16     <w:comment w:id="0" w:author="Joe Smith"
+17       w:date="2006-04-06T13:50:00Z" w:initials="User">
+18       <w:p>
+19         <w:pPr>
+20           <w:pStyle w:val="CommentText" />
+21         </w:pPr>
+22         <w:r>
+23           <w:rPr>
+24             <w:rStyle w:val="CommentReference" />
+25           </w:rPr>
+26           <w:annotationRef />
+27         </w:r>
+28         <w:r>
+29           <w:t>comment</w:t>
+30         </w:r>
+31       </w:p>
+32     </w:comment>
+
+33    In this example, the comment specifies that it was inserted by author Joe Smith with the initials User via the
+34   author and date attributes. It is linked to the run content via the id attribute, which matches the value of 0
+35    specified using the commentReference element above. The block-level content of the comment specifies that
+36     its text is comment and the style of the comment content is based off of the character style with the name
+37   CommentReference.
+ 1   2.14.6   Comments Part
+
+ 2   Comment information in a WordprocessingML document is stored in the Comments part within the package,
+ 3   which is stored via an implicit relationship from the Main Document or Glossary Document part of relationship
+ 4    type http://…/comments and has a content type of vnd-
+ 5   openxmlformats.officedocument.wordprocessingml-comments+xml.
+
+ 6   2.14.7    Revisions
+
+ 7   A revision provides a mechanism for storing information about the evolution of the document (i.e., the set of
+ 8    modifications made to a document by one of more authors). When an application adds revisions to the
+ 9    content of a WordprocessingML document, depending on the revision type they are specifying this by storing
+10    either:
+
+11         The current state of the document (a deletion stores the current state of the text as deleted, and
+12            implies that its original state was the content that used to exist)
+13         The initial state of the document (a run's initial properties are explicitly stored in a previous run
+14            properties block, as the current run properties are always those that are the child of the rPr element
+
+15   A revision consists of two required pieces of information:
+
+16         The revision type (specified via the name of the revision element)
+17         A unique revision identifier (used to uniquely identify revisions)
+
+18   As well as optional information:
+
+19         The author of the revision
+20         The date and time of the revision
+
+21   A revision is stored using the inline annotation format or the property annotation format.
+
+22    Consider a paragraph of text in a WordprocessingML document in which one word has been inserted, as
+23    follows:
+
+
+25    This paragraph has the word text marked inserted as a revision, and is represented as the following
+26   WordprocessingML:
+
+27     <w:p>
+28       <w:r>
+29         <w:t>Some</w:t>
+30       </w:r>
+31       <w:ins w:id="0" w:author="Joe Smith" w:date="2006-03-31T12:50:00Z">
+32         <w:r>
+33           <w:t>text</w:t>
+ 1         </w:r>
+ 2       </w:ins>
+ 3     </w:p>
+
+ 4   The ins element contains all of the content that shall be treated as revision marked as inserted (i.e., the word
+ 5    text).
+
+ 6    This means that it contains both required pieces of information: the revision type, specified by the name of the
+ 7    revision element (ins); and a unique revision identifier of 0.
+
+ 8   The element also stores the optional information about the revision: the word text was inserted by Joe
+ 9   Smith on March 31, 2006 at 12:50 pm.
+
+10    Within a WordprocessingML document, the following types of revisions can be used to track the changes to a
+11   document (each annotation's form in parentheses):
+
+12          Insertions (inline annotations for run content, property annotations for tables and paragraphs)
+13          Deletions (inline annotations for run content, property annotations for tables and paragraphs)
+14         Moves (inline annotations)
+15         Changes to run/paragraph/table/numbering/section properties (property annotations)
+16         Changes to custom XML markup (property annotations)
+
+17   2.14.8   Bookmarks
+
+18   A bookmark refers to an arbitrary region of content that is bounded and has a unique name associated with it.
+
+19   Because bookmarks are a legacy word-processing function that predates the concepts of XML and well-
+20    formedness, they can start and end at any location within a document's contents and, therefore, must use the
+21    cross-structure annotation format described in §2.14.3.
+
+22    Consider the following WordprocessingML markup for two paragraphs, each reading Example Text, where a
+23   bookmark has been added spanning the second word in paragraph one and the first word in paragraph two:
+
+24     <w:p>
+25       <w:r>
+26         <w:t>Example</w:t>
+27       </w:r>
+28       <w:bookmarkStart w:id="0" w:name="sampleBookmark" />
+29       <w:r>
+30         <w:t xml:space="preserve"> text.</w:t>
+31       </w:r>
+32     </w:p>
+ 1     <w:p>
+ 2       <w:r>
+ 3         <w:t>Example</w:t>
+ 4       </w:r>
+ 5       <w:bookmarkEnd w:id="0" />
+ 6       <w:r>
+ 7         <w:t xml:space="preserve"> text.</w:t>
+ 8       </w:r>
+ 9     </w:p>
+
+10   The bookmarkStart and bookmarkEnd elements specify the location where the bookmark starts and ends,
+11    but cannot contain it using a single tag because it spans parts of two paragraphs. However, the two tags are
+12    part of one group because the id attribute value specifies 0 for both.
+
+13   2.14.9   Range Permissions
+
+14   A range permission refers to a special type of bookmark used to control which subset(s) of users may edit a
+15    particular region of a document. Range permissions specify the user, or set of users, that are allowed to edit all
+16    content between them whenever the document protection specified by the documentProtection element is
+17   enabled and set to readOnly or comments.
+
+18    Like bookmarks, range permissions are a legacy word-processing function that predates the concepts of XML
+19   and well-formedness, so they can start and end at any location within a document's contents and, therefore,
+20   must use the cross-structure annotation format described in §2.14.3.
+
+21    Consider the following WordprocessingML markup for a single paragraph, where a range permission has been
+22   added spanning the words range permission:
+
+23     <w:p>
+24       <w:r>
+25         <w:t xml:space="preserve">This is a </w:t>
+26       </w:r>
+27       <w:permStart w:id="0" w:edGrp="everyone"/>
+28       <w:r>
+29         <w:t>range permission</w:t>
+30       </w:r>
+31       <w:permEnd w:id="0"/>
+32       <w:r>
+33         <w:t>.</w:t>
+34       </w:r>
+35     </w:p>
+
+36   The permStart and permEnd elements specify the location where the range permission starts and ends. The
+37   two tags are part of one group because the id attribute value specifies 0 for both.
+ 1      If document protection was enabled, then no content in this document shall be editable except for this range
+ 2    permission, which is editable by all users that open the document (specified using an editor group of
+ 3    everyone).
+
+ 4   2.14.10   Spelling and Grammar
+
+ 5   A spelling and grammar error is an annotation used to specify the locations of an existing spelling and/or
+ 6    grammatical error within the contents of a document. Spelling and grammar errors use the cross-structure
+ 7    annotation format.
+
+ 8    Rationale: When a WordprocessingML document is saved, applications may choose to save currently flagged
+ 9    spelling and grammar errors, for two reasons:
+
+10          In order to increase the performance subsequent loads of the document (as those load operations can
+11             rely on the persisted proofing state of the document)
+12          In order to store words which shall not be marked as proofing errors regardless of how they would
+13           normally be flagged by the proofing tools engine (i.e., to store spelling and grammar exceptions).
+
+14    Consider the following paragraph consisting of two misspelled words, where the second word has been
+15     explicitly flagged as not being a spelling error. This paragraph would consist of the following
+16   WordprocessingML markup:
+
+17     <w:p>
+18       <w:proofErr w:val="spellStart"/>
+19       <w:r>
+20         <w:t>erqwt</w:t>
+21       </w:r>
+22       <w:proofErr w:val="spellEnd"/>
+23       <w:r>
+24         <w:t xml:space="preserve"> werewr</w:t>
+25       </w:r>
+26     </w:p>
+
+27   The proofErr elements, with a val attribute value of spellStart and spellEnd, respectively, delimit the start
+28   and end of the content in this paragraph that is stored as a spelling error. Since the second word is not
+29    included in that range, it is not stored as a spelling error.
+
+30   2.15   Mail Merge
+
+31    Mail merge refers to a process by which a WordprocessingML document is connected to and populated with
+32    external data by a conforming hosting application and/or data source access application. A WordprocessingML
+33   document that contains the necessary data to connect to an external data source during a Mail Merge is
+34   known as a source document. In other words, a source document is a WordprocessingML document containing
+35    the elements and attributes necessary to enable the document to connect to an external data source, but not
+36    yet merged with any data.
+ 1    Applications leverage source documents to generate new documents containing the static content contained
+ 2    in the merged document as well as data from the specified external data source. The documents that result
+ 3   from importing external data into a source document are known as merged documents. How source
+ 4   documents and merged documents are specified is explained in the following sections.
+
+ 5   2.15.1    Mail Merge, WordprocessingML, and Hosting Applications
+
+ 6   The two key parts of the mail merge process are:
+
+ 7         1.  Connecting to an external data source
+ 8         2.  Populating mail merge fields with external data
+
+ 9      It is important to note that aspects of the mail merge process outside of connecting to an external data source
+10   and populating mail merge fields with external data, are at the discretion of the hosting application.
+
+11   As an additional example, WordprocessingML provides an element to be used as a flag by hosting applications
+12    to specify action to be taken on the merged documents that are generated by a mail merge. In other words,
+13    performing actions such as:
+
+14          creating a new document for each merged document
+15          generating and sending emails containing merged document
+16          printing merged documents
+
+17   may be specified through WordprocessingML, but what if any specific action is taken on merged documents is
+18   determined by the application.
+
+19   2.15.2    Connecting Documents to an External Data Source
+
+20   As mentioned, a source document is the single WordprocessingML document that contains the data necessary
+21    to be connected to an external data source by a conforming hosting application and/or data source access
+22    application. The presence and parameters of this connection are specified within the mailMerge element. This
+23   element enables WordprocessingML documents to be connected to an external data source by specifying the
+24    following data:
+
+25         Where the external data is located (e.g., file path)
+26         What type of data the external data source contains (e.g., database and spreadsheet)
+27         How the data will be accessed
+
+28    Consider a document containing static WordprocessingML constructs such as paragraphs in addition to two
+29   WordprocessingML mail merge fields calling for Courtesy Title and Last Name data.
+     Dear {MERGEFIELD "Courtesy Title" \m}
+     {MERGEFIELD "Last Name" \m},
+
+        Sample text. Sample text. Sample text.
+     Sample text. Sample text. Sample text. Sample
+      text. Sample text. Sample text. Sample text.
+     Sample text. Sample text. Sample text. Sample
+      text. Sample text. Sample text. Sample text.
+     Sample text. Sample text. Sample text. Sample
+      text. Sample text. Sample text. Sample text.
+     Sample text.
+
+
+      Sincerely,
+
+
+ 2      If the following WordprocessingML was added to this document, this document would become a source
+ 3   document rather than just a standard WordprocessingML document, as the mailMerge element specifies the
+ 4   elements and attributes necessary to enable the hosting applications and/or data source access applications to
+ 5    connect the document to an external data source.
+
+ 6     <w:mailMerge>
+ 7       …
+ 8       <w:dataType w:val="database" />
+ 9       <w:query w:val="SELECT * FROM Table1" />
+10       <w:dataSource r:id="rId1" />
+11       …
+12     </w:mailMerge>
+
+13    Here, the dataType and dataSource elements specify that the given document shall be connected to the
+14    external data source referenced by the r:id attribute's value of rId1. While connected to the external data
+15    source, the merged document together with the hosting application and/or data source access application may
+16    extract data from the external data source as specified by the connectString and query elements.
+
+17   2.15.3    Populating Merged Documents with External Data
+
+18    Before the hosting application can populate merged documents with external data, mail merge fields must be
+19    inserted into the merged document and mapped to the external data. How external data is mapped to given
+20    mail merge fields is determined by the WordprocessingML element fieldMapData.
+ 1    Consider the example merged document from the previous example which contained the two mail merge
+ 2     fields calling for Courtesy Title and Last Name. The WordprocessingML below demonstrates how
+ 3   mapping of the external data to the merged document's mail merge fields occurs:
+
+ 4     <w:fieldMapData>
+ 5       <w:type w:val="dbColumn" />
+ 6       <w:name w:val="Customer Title" />
+ 7       <w:mappedName w:val="Courtesy Title" />
+ 8       <w:column w:val="9" />
+ 9     </w:fieldMapData>
+10     <w:fieldMapData>
+11       <w:type w:val="dbColumn" />
+12       <w:name w:val="Customer Last Name" />
+13       <w:mappedName w:val="Last Name" />
+14       <w:column w:val="10" />
+15     </w:fieldMapData>
+
+16    Within the first fieldMapData element, the child elements column, name, type, and mappedName specify
+17    that the data contained within tenth column titled 'Customer Title', in the specified external database, is to be
+18   mapped to the mail merge field calling for 'Courtesy Title' data, respectively. Within the second fieldMapData
+19    element, the child elements column, name, type, and mappedName specify that the data contained within
+20    eleventh column in the specified external database is to be mapped to the merge field titled Customer Last
+21   Name or the predefined merge field name Last Name.
+
+22   Once a merged document's mail merge fields have been mapped to external data, the hosting application
+23    and/or data source access application may populate the respective fields with applicable external data.
+
+24    Consider a conforming hosting application and/or data source access application that wishes to populate the
+25    mail merge fields within the merged document from the previous example with applicable external data. In
+26    addition, consider that the specified external data source contains two records--one for Mr. John Doe and one
+27    for Ms. Jane Smith. With external data from the Customer Title column mapped to the Mail Merge field
+28    calling for Courtesy Title data, and the Customer Last Name column mapped to the Mail Merge field
+29    calling for Last Name data to populate the fields within this merged document with external data.
+
+30   The mail merge process will then run through the specified external database and populate the mail merge
+31     fields with the data from the Customer Title and Customer Last Name columns in the specified
+32    database, and generate two of merged documents containing the specified external data as well as the static
+33    contents of the source document (illustrated in the table below):
+
+
+            Source Document        Merged document populated with  Merged document populated with
+                                                        first external data source entry    second external data source entry
+            Source Document        Merged document populated with  Merged document populated with
+                                                        first external data source entry    second external data source entry
+
+
+     Dear{MERGEFIELD "Courtesy Title"   Dear Mr. Doe:                    Dear Ms. Smith:
+     \m} {MERGEFIELD "Last Name"
+     \m},                           Sample text. Sample text. Sample    Sample text. Sample text. Sample
+                                                text. Sample text. Sample text.        text. Sample text. Sample text.
+     Sample text. Sample text. Sample    Sample text. Sample text. Sample    Sample text. Sample text. Sample
+      text. Sample text. Sample text.        text. Sample text. Sample text.        text. Sample text. Sample text.
+     Sample text. Sample text. Sample    Sample text. Sample text. Sample    Sample text. Sample text. Sample
+      text. Sample text. Sample text.        text. Sample text. Sample text.        text. Sample text. Sample text.
+     Sample text. Sample text. Sample
+      text. Sample text. Sample text.        Sincerely,                             Sincerely,
+
+      Sincerely,
+
+ 1   2.16   Settings
+
+ 2   A setting specifies a stored preference that shall be used when processing the contents of the document. In
+ 3    other words, settings refer to specified behaviors that shall be applied to WordprocessingML documents on a
+ 4   document by document basis. Just like paragraphs and text runs have properties specified that apply to their
+ 5    contents, entire WordprocessingML documents leverage settings to specify properties and behaviors that
+ 6    apply to the entire document.
+
+ 7   These settings are typically divided into three categories:
+
+ 8         Document Settings — Settings that influence the appearance and behavior of the current document,
+ 9           as well as storing document-level state.
+10          Compatibility Settings — Settings that tell applications to perform behaviors which are designed to
+11           maintain visual output of previous word-processing applications.
+12         Web Settings — Settings that affect how a document shall be handled when it is saved as HTML.
+
+13   2.16.1   Document Settings
+
+14   A document setting specifies a document-level property that affects the handling of a given document, and
+15    influences the appearance and behavior of the current document, as well as the stored document-level state.
+16     All document settings are found in the Document Settings part.
+
+17    Consider a document in which the document setting doNotHyphenateCaps is applied. As a document setting
+18    this element specifies whether words comprised of all capitalized letters shall be hyphenated or not
+19    throughout the given document.. Specifically, if words in ALL CAPITAL LETTERS shall not be hyphenated, this
+20    requirement would be specified by adding the following WordprocessingML to the settings part:
+
+21     <w:doNotHyphenateCaps w:val="true"/>
+
+22    Specifying that words comprised of ALL CAPITAL LETTERS shall be hyphenated, as illustrated below:
+ 2      If this element is omitted, then words in ALL CAPITAL LETTERS shall be hyphenated when the document is
+ 3   hyphenated, as illustrated below:
+
+
+ 5   2.16.2    Compatibility Settings
+
+ 6   A compatibility setting is an optional setting used to mimic behavior of documents created in earlier word-
+ 7    processing applications. It is recommended that new WordprocessingML documents contain no compatibility
+ 8    settings. If compatibility settings are needed, they are stored in the Document Settings part (§2.16.1).
+
+ 9    Consider a document in which the compatibility setting ww11IndentRules is applied. As a compatibility
+10    setting, this element specifies an indentation behavior to be applied throughout the given document to
+11    preserve visual fidelity with an earlier word processing application. Specifically, if the indentation applied to
+12   numbering when positioned next to a wrapped object shall not be suppressed, this requirement would be
+13    specified by adding the following WordprocessingML to the settings part
+
+14     <w:compat>
+15       <w:ww11IndentRules />
+16     </w:compat>
+
+17    Specifying that indentation applied to numbering when positioned next to a wrapped object shall not be
+18    suppressed, as illustrated below:
+
+
+20      If this element is omitted, then indentation applied to numbering when positioned next to a wrapped object
+21    shall be suppressed, as illustrated below:
+ 1   2.16.3   Web Settings
+
+ 2   A web setting is a setting used to specify a document-level property that is applicable when saving a web page
+ 3    as a WordprocessingML document, or when saving a WordprocessingML document as a webpage. Thus, if a
+ 4    given WordprocessingML document was not created from a web page, and will never become a web page, no
+ 5   web settings are needed within the document. If they are needed, web settings are stored in the Web Settings
+ 6    part.
+
+ 7    Consider a document in which the web setting allowPNG is applied. As a web setting this element specifies if
+ 8    the PNG graphics format will be used for persisting images when saving the document as a web page.
+ 9    Specifically, if the PNG graphics format will be used when saving a document as a web page, this requirement
+10   would be specified by adding the following WordprocessingML to the settings part:
+
+11     <w:webSettings>
+12       <w:allowPNG />
+13     </w:webSettings>
+
+14      If this element is omitted, then the JPEG graphics format will be used for persisting images when saving the
+15   document as a web page.
+
+16   2.17   Fields and Hyperlinks
+
+17   2.17.1    Fields
+
+18   Most text in a word processing document is static; that is, unless it is directly changed as the result of editing,
+19     its contents remain the same, no matter how the rest of the document might change. However, certain useful
+20    pieces of information can change value over the life of a document. Consider the case of a reference to a page
+21   number, as in "For more information on this topic, see page 56." Clearly, hard coding the page number as 56
+22   means that that number will need to be manually replaced as the document's size or layout is changed. Even a
+23    simple change to any margin, line spacing, or font size can invalid such references.
+
+24    Fields provide a mechanism for placeholders, such as page reference numbers, that can be added to a
+25   document such that those placeholders are replaced by their corresponding values when the document is
+26   rendered for display or print. Other applications for fields include, but are not limited to, automatic numbering
+27    of tables and figures, document creation and current date and time, document author information, and the
+28   computation of totals for a table column.
+
+29   A field is a set of codes that instructs a WordprocessingML consumer to insert text, graphics, page numbers,
+30   and other material into a document automatically. (The DATE field causes the current date to be inserted.) The
+31    text or graphics inserted into a document when a consumer carries out a field's codes is referred to as the field
+32    result for that field. The act of carrying out a field's codes is referred to as a field update. As to how or when
+33   any field is updated is outside the scope of this standard.
+ 1   2.17.2    Hyperlinks
+
+ 2   As well as allowing for dynamic run content using fields, a WordprocessingML document may contain one or
+ 3   more hyperlinks, which allow for the linking of two disparate regions of WordprocessingML content (analogous
+ 4    to hyperlinks in HTML pages). WordprocessingML hyperlinks can be any of the following:
+
+ 5          Intradocument: A hyperlink can target any bookmark contained within the current WordprocessingML
+ 6          document.
+ 7          Interdocument: A hyperlink can target another WordprocessingML package, as well as specify a
+ 8          bookmark within that package.
+ 9         Other destinations: A hyperlink can target any other valid URI location.
+
+10   2.18   Miscellaneous Topics
+
+11   2.18.1    Text Boxes
+
+12     All VML-based drawing objects (except for connectors) support the addition of rich WordprocessingML content
+13    within their extents. When WordprocessingML contents have been added to a VML drawing object, the
+14    resulting text is contained within a text box.
+
+15   When WordprocessingML content is contained within a text box, it is represented within the object by
+16    specifying the VML textbox element, which contains within it a single txbxContent element that contains all of
+17    the desired WordprocessingML content. Text box content cannot contain references to other document
+18    stories, nor can it contain other txbxContent elements. That is, nested shapes cannot have rich content.
+
+19   2.18.2   Subdocuments
+
+20    Within a WordprocessingML document, it is sometimes necessary to break a large document into two or more
+21    separate WordprocessingML document files, allowing each of these files to be distributed, edited, and handled
+22    independently.
+
+23   A book might consist of five chapters, each edited by a separate author. The editor for the book would
+24    therefore desire to create six WordprocessingML documents - one for each author to work on their chapter,
+25   and a main document which collates the content of the five chapters appropriately.
+
+26   When a WordprocessingML document is composed of other WordprocessingML documents in this way, the
+27    resulting documents are a master document and its subdocuments.
+
+28         A master document is a document which incorporates one or more subdocuments (as well as optional
+29          WordprocessingML content) to create a larger document
+30         A subdocument is a WordprocessingML document—there is no specific information in a document
+31          which classifies it as such
+
+32    Consider a WordprocessingML document, which is being used to write a book:
+ 2   To allow this document to be written by multiple authors, each chapter in the book is placed in a separate file
+ 3    (the sections highlighted in red below):
+
+
+ 5   The result is three WordprocessingML documents:
+
+ 6         A master document (containing the title of the book, the first paragraph, and references to the
+ 7          subdocuments for each chapter)
+ 8         Two subdocuments (one for each chapter)
+
+ 9   2.18.3    Importing External Content
+
+10   When generating WordprocessingML documents, it is sometimes necessary to include existing document
+11    content (henceforth called external content) within the document. External content in a document is typically
+ 1    included because it was stored in a format other than the WordprocessingML format defined by this Office
+ 2   Open XML specification.
+
+ 3    In order to facilitate the inclusion of such content without requiring its conversion as a prerequisite to its
+ 4    inclusion in a document, WordprocessingML includes the facility for applications to implement the import of
+ 5    external content in any format as part of a WordprocessingML document. This functionality, called external
+ 6    content import, allows the inclusion of content of an arbitrary content type within the WordprocessingML
+ 7    package, which can then be opened and merged into the main document when the package is consumed by
+ 8    applications which understand that content type.
+
+ 9    Consider a WordprocessingML document which is being created based on the following existing HTML
+10    content:
+
+11     <html … >
+12       <body style="margin-left:200px;margin-top:50px">
+13         <p>Paragraph one.</p>
+14         <blockquote style="border:5px solid #00FFFF">Paragraph in a
+15     blockquote.</blockquote>
+16         <p>Paragraph two.</p>
+17       </body>
+18     </html>
+
+19    This content can be converted to its WordprocessingML equivalents using the XML syntax defined by this
+20    Office Open XML specification, or a more basic tool can use the external content import to include the HTML
+21   document within a WordprocessingML package, allowing a subsequent consumer of that content to import the
+22    resulting HTML. When the resulting WordprocessingML package is opened, the HTML document it could be
+23    read (if it is an alternate format understood by the consuming application) and migrated into the appropriate
+24    location in the main WordprocessingML document.
+
+25   2.18.4    Roundtripping Alternate Content
+
+26    Office Open XML defines a mechanism for the storage of content which is not defined by this Office Open XML
+27    specification, for example extensions developed by future software applications which leverage the Open XML
+28    formats. This mechanism allows for the storage of a series of alternative representations of content, of which
+29    the consuming application may use the first alternative whose requirements are met.
+
+30    Consider an application which creates a new paragraph property intended to make the colors of its text change
+31   randomly when it is displayed. This functionality is not defined in this Office Open XML specification, and so
+32    the application might choose to create an alternative representation setting a different manual color on each
+33    character for clients which do not understand this extension using an AlternateContent block as follows:
+ 1     <ve:AlternateContent xmlns:ve="…">
+ 2       <ve:Choice Requires="colors" xmlns:colors="urn:randomTextColors">
+ 3         <w:p>
+ 4           <w:pPr>
+ 5             <colors:random colors:val="true" />
+ 6           </w:pPr>
+ 7           <w:r>
+ 8             <w:t>Random colors!</w:t>
+ 9           </w:r>
+10         </w:p>
+11       </ve:Choice>
+12       <ve:Fallback>
+13         <w:p>
+14           <w:r>
+15             <w:rPr>
+16               <w:color w:val="FF0000" />
+17             </w:rPr>
+18             <w:t>R</w:t>
+19           </w:r>
+20           <w:r>
+21             <w:rPr>
+22               <w:color w:val="00FF00" />
+23             </w:rPr>
+24             <w:t>a</w:t>
+25           </w:r>
+26           …
+27         </w:p>
+28       </ve:Fallback>
+29     </ve:AlternateContent>
+
+30   The Choice element that requires the new color extensions uses the random element in its namespace, and
+31    the Fallback element allows clients that do not support this namespace to see an appropriate alternative
+32    representation.
+
+33   These alternate content blocks may occur at any location within a WordprocessingML document, and
+34    applications shall handle and process them appropriately (taking the appropriate choice).
+
+35   However, WordprocessingML does not explicitly define a set of locations where applications shall attempt to
+36    store and roundtrip all non-taken choices whenever possible.
+
+37      If an application does not understand the colors extension, the resulting file (if alternate choices are to be
+38    preserved would appear as follows:
+ 1     <ve:AlternateContent xmlns:ve="…">
+ 2       <ve:Choice Requires="colors" xmlns:colors="urn:randomTextColors">
+ 3         …
+ 4       </ve:Choice>
+ 5       <ve:Fallback>
+ 6         …
+ 7       </ve:Fallback>
+ 8     </ve:AlternateContent>
+
+
+10   The file would then appear as follows after the choice is processed:
+
+11     <w:p>
+12       <w:r>
+13         <w:rPr>
+14           <w:color w:val="FF0000" />
+15         </w:rPr>
+16         <w:t>R</w:t>
+17       </w:r>
+18       <w:r>
+19         <w:rPr>
+20           <w:color w:val="00FF00" />
+21         </w:rPr>
+22         <w:t>a</w:t>
+23       </w:r>
+24       …
+25     </w:p>
+
+26   End of informative text.

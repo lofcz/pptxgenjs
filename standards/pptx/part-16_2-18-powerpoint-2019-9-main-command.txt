@@ -1,0 +1,171 @@
+<!-- 2.18 powerpoint/2019/9/main/command | pages 120-122 of 170 -->
+
+See section 5.16 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.17.3.3     CT_DesignerTagList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2020/02/main
+
+Referenced by: CT_DesignerDrawingProps, designTagLst
+
+A complex type that specifies Designer Service defined metadata regarding changes made to a slide
+or shape made by the Designer Service. <36>
+
+Child Elements:
+
+designTag: A CT_DesignerTag element that specifies a metadata item consisting of a name/value
+pair.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_DesignerTagList">
+      <xsd:sequence>
+        <xsd:element name="designTag" type="CT_DesignerTag" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.16 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.17.4 Simple Types
+
+None.
+
+2.18 http://schemas.microsoft.com/office/powerpoint/2019/9/main/command
+
+2.18.1 Elements
+
+2.18.1.1    cmMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2019/9/main/command
+
+Referenced by: CT_CommentV2Changes
+
+A CT_CommentV2MonikerList element that specifies the content moniker information associated with
+a comment.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="cmMkLst" type="CT_CommentV2MonikerList"/>
+
+
+See section 5.15 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+Referenced by: CT_CommentReplyV2Changes
+
+A CT_CommentReplyV2MonikerList element that specifies the content moniker information associated
+with a comment reply.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="cmRplyMkLst" type="CT_CommentReplyV2MonikerList"/>
+
+
+See section 5.15 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.18.2 Attributes
+
+None.
+
+2.18.3 Complex Types
+
+2.18.3.1    CT_CommentReplyV2Moniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2019/9/main/command
+
+A complex type that specifies the content moniker information associated with a comment reply.
+
+Attributes:
+
+id: A s:ST_Guid ([ISO/IEC-29500-4] section A.8.9) attribute that specifies a uniquely generated ID to
+identify the comment reply.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentReplyV2Moniker">
+      <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.15 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.18.3.2    CT_CommentReplyV2MonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2019/9/main/command
+
+Referenced by: cmRplyMkLst, CT_CommentReplyV2Changes
+
+A complex type that specifies a list of content monikers that together uniquely identify a comment
+reply in a document. The sequence of child elements MUST be a valid
+COMMENTREPLYV2MONIKERLIST as shown in the following ABNF grammar (as specified in
+[RFC5234]).
+
+COMMENTREPLYV2MONIKERLIST = COMMENTV2MONIKERLIST (section 2.18.3.4)
+COMMENTREPLYV2MONIKER
+complex type.
+
+
+    <xsd:complexType name="CT_CommentReplyV2MonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.15 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.18.3.3    CT_CommentV2Moniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2019/9/main/command
+
+A complex type that specifies the content moniker information associated with a comment.
+
+Attributes:
+
+id: A s:ST_Guid ([ISO/IEC-29500-4] section A.8.9) attribute that specifies a uniquely generated ID to
+identify the comment.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentV2Moniker">
+      <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.15 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.18.3.4    CT_CommentV2MonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2019/9/main/command
+
+Referenced by: cmMkLst, CT_CommentV2Changes
+
+A complex type that specifies a list of content monikers that together uniquely identify a comment in a
+document. The sequence of child elements MUST be a valid COMMENTV2MONIKERLIST as specified in
+the shown in the following ABNF grammar (as specified in [RFC5234]).
+
+COMMENTV2MONIKERLIST = SLIDEMONIKERLIST (section 2.12.3.21) COMMENTV2MONIKER
+
+COMMENTV2MONIKER = pc2:cmMK (section 2.18.3.3)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentV2MonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.15 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).

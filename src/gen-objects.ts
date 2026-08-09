@@ -35,6 +35,9 @@ import {
 	ImageProps,
 	MediaProps,
 	ObjectOptions,
+	SectionZoomProps,
+	SummaryZoomProps,
+	ZoomProps,
 	OptsChartGridLine,
 	PresLayout,
 	PresSlide,
@@ -410,6 +413,18 @@ export function addChartDefinition(target: PresSlide | SlideLayout, type: CHART_
  * @note: Remote images (eg: "http://whatev.com/blah"/from web and/or remote server arent supported yet - we'd need to create an <img>, load it, then send to canvas
  * @see: https://stackoverflow.com/questions/164181/how-to-fetch-a-remote-image-to-display-in-a-canvas)
  */
+/**
+ * Media filename stem. Master/layout `_slideNum` values overlap the slide-number range (masters start at
+ * 1000 and slides also reach 1000+), so a layout image `image-1002-1` would collide with slide #1002's
+ * `image-1002-1` and one overwrites the other in the zip (issue #1416). Prefix layout/master media with
+ * `layout-` so the two namespaces can never collide; the slide namespace keeps its plain `image-<n>-<i>`.
+ */
+function imageTargetStem(target: PresSlide | SlideLayout): string {
+	// PresSlide has `_rId`; SlideLayout/master does not. Masters number from 1000 and collide with slide #1000+.
+	if (!('_rId' in target)) return `layout-image-${target._relsMedia.length + 1}`
+	return `image-${target._slideNum}-${target._relsMedia.length + 1}`
+}
+
 export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImageProps): void {
 	const newObject: ISlideObject = {
 		_type: SLIDE_OBJECT_TYPES.image,
@@ -510,9 +525,9 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 			type: 'image/png',
 			extn: 'png',
 			data: strImageData || '',
-			rId: imageRelId,
-			Target: `../media/image-${target._slideNum}-${target._relsMedia.length + 1}.png`,
-			isSvgPng: true,
+		rId: imageRelId,
+		Target: `../media/${imageTargetStem(target)}.png`,
+		isSvgPng: true,
 			fill: opt.fill,
 			svgSize: { w: getSmartParseNumber(newObject.options?.w, 'X', target._presLayout), h: getSmartParseNumber(newObject.options?.h, 'Y', target._presLayout) },
 		})
@@ -522,24 +537,32 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 			type: 'image/svg+xml',
 			extn: strImgExtn,
 			data: strImageData || '',
-			rId: imageRelId + 1,
-			Target: `../media/image-${target._slideNum}-${target._relsMedia.length + 1}.${strImgExtn}`,
-			fill: opt.fill,
+		rId: imageRelId + 1,
+		Target: `../media/${imageTargetStem(target)}.${strImgExtn}`,
+		fill: opt.fill,
 		})
 		newObject.imageRid = imageRelId + 1
 		imageRelId++ // NOTE: the SVG branch consumed two rIds - keep the counter on the last one used (issue #19)
 	} else {
-		// PERF: Duplicate media should reuse existing `Target` value and not create an additional copy
-		const dupeItem = target._relsMedia.filter(item => item.path && item.path === strImagePath && item.type === 'image/' + strImgExtn && !item.isDuplicate)[0]
+		// PERF: Duplicate media should reuse existing `Target` value and not create an additional copy.
+		// OPC (ECMA-376 Part 2) lets many relationships point at one part, so identical image bytes are stored once.
+		// Match on the source path when given, else on identical base64 `data` (issue #1339) - same content, one media file.
+		const imgType = 'image/' + strImgExtn
+		const dupeItem = target._relsMedia.filter(item =>
+			item.type === imgType && !item.isDuplicate && !item.isSvgPng && (
+				(strImagePath && item.path === strImagePath) ||
+				(strImageData && item.data && item.data === strImageData)
+			)
+		)[0]
 
 		target._relsMedia.push({
 			path: strImagePath || 'preencoded.' + strImgExtn,
-			type: 'image/' + strImgExtn,
+			type: imgType,
 			extn: strImgExtn,
 			data: strImageData || '',
 			rId: imageRelId,
-			isDuplicate: !!(dupeItem?.Target),
-			Target: dupeItem?.Target ? dupeItem.Target : `../media/image-${target._slideNum}-${target._relsMedia.length + 1}.${strImgExtn}`,
+		isDuplicate: !!(dupeItem?.Target),
+		Target: dupeItem?.Target ? dupeItem.Target : `../media/${imageTargetStem(target)}.${strImgExtn}`,
 		})
 		newObject.imageRid = imageRelId
 	}
@@ -615,6 +638,11 @@ export function addMediaDefinition(target: PresSlide, opt: MediaProps): void {
 	slideData.options.objectName = objectName
 	slideData.options.animation = opt.animation
 	slideData.options.appearOnClick = opt.appearOnClick
+	// MS-PPTX §2.3.3.14 media extras + §2.2.14 narration flag
+	slideData.options.trim = opt.trim
+	slideData.options.fade = opt.fade
+	slideData.options.bookmarks = opt.bookmarks
+	slideData.options.isNarration = opt.isNarration
 
 	// STEP 4: Add this media to this Slide Rels (rId/rels count spans all slides! Count all media to get next rId)
 	/**
@@ -646,7 +674,7 @@ export function addMediaDefinition(target: PresSlide, opt: MediaProps): void {
 			type: 'image/png',
 			extn: 'png',
 			rId: getNewRelId(target),
-			Target: `../media/image-${target._slideNum}-${target._relsMedia.length + 1}.png`,
+			Target: `../media/${imageTargetStem(target)}.png`,
 		})
 	} else {
 		// PERF: Duplicate media should reuse existing `Target` value and not create an additional copy
@@ -683,11 +711,89 @@ export function addMediaDefinition(target: PresSlide, opt: MediaProps): void {
 			extn: 'png',
 			data: strCover,
 			rId: getNewRelId(target),
-			Target: `../media/image-${target._slideNum}-${target._relsMedia.length + 1}.png`,
+			Target: `../media/${imageTargetStem(target)}.png`,
 		})
 	}
 
 	// LAST
+	target._slideObjects.push(slideData)
+}
+
+/**
+ * Adds a Slide Zoom navigation object to a slide (MS-PPTX §2.10).
+ * Emits an `mc:AlternateContent` block: a `p16:sldZm` Choice plus a `pic` Fallback so older readers
+ * still render the thumbnail. The cover/thumbnail image is a media rel on the slide.
+ * @param {PresSlide} `target` slide object
+ * @param {ZoomProps} `opt` zoom options
+ */
+export function addZoomDefinition(target: PresSlide, opt: ZoomProps): void {
+	pushZoomObject(target, 'slide', opt, obj => {
+		obj.zoomSlideNum = opt.slideNum
+	})
+}
+
+/**
+ * Adds a Section Zoom object (MS-PPTX §2.9) — anchors to a section by title.
+ */
+export function addSectionZoomDefinition(target: PresSlide, opt: SectionZoomProps): void {
+	pushZoomObject(target, 'section', opt, obj => {
+		obj.zoomSectionTitle = opt.sectionTitle
+	})
+}
+
+/**
+ * Adds a Summary Zoom object (MS-PPTX §2.11) — anchors to a section by title, carries layout factors.
+ */
+export function addSummaryZoomDefinition(target: PresSlide, opt: SummaryZoomProps): void {
+	pushZoomObject(target, 'summary', opt, obj => {
+		obj.zoomSectionTitle = opt.sectionTitle
+		if (obj.options) {
+			obj.options.zoomTitle = opt.title
+			obj.options.zoomDescr = opt.descr
+			obj.options.offsetFactorX = opt.offsetFactorX
+			obj.options.offsetFactorY = opt.offsetFactorY
+			obj.options.scaleFactorX = opt.scaleFactorX
+			obj.options.scaleFactorY = opt.scaleFactorY
+		}
+	})
+}
+
+/**
+ * Shared zoom-object builder (slide/section/summary). Registers the cover/thumbnail image rel and
+ * pushes the zoom `ISlideObject`; `configure` applies the zoom-kind-specific fields.
+ */
+function pushZoomObject(target: PresSlide, kind: 'slide' | 'section' | 'summary', opt: ZoomProps | SectionZoomProps | SummaryZoomProps, configure: (obj: ISlideObject) => void): void {
+	const objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : `Zoom ${target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.zoom).length + 1}`
+	const strCover = opt.cover || IMG_PLAYBTN
+	if (!strCover.toLowerCase().includes('base64,')) {
+		throw new Error('addZoom() error: `cover` must be a base64 data URI (Ex: \'data:image/png;base64,iV[...]\')')
+	}
+
+	const slideData: ISlideObject = { _type: SLIDE_OBJECT_TYPES.zoom, zoomKind: kind }
+	slideData.options = {
+		x: opt.x || 0,
+		y: opt.y || 0,
+		w: opt.w || 2,
+		h: opt.h || 1.13,
+		altText: opt.altText || '',
+		objectName,
+		returnToParent: opt.returnToParent,
+		showBg: opt.showBg,
+		transitionDur: opt.transitionDur,
+	} as ObjectOptions
+	configure(slideData)
+
+	// Cover/thumbnail image rel
+	slideData.zoomRid = getNewRelId(target)
+	target._relsMedia.push({
+		path: 'preencoded.png',
+		data: strCover,
+		type: 'image/png',
+		extn: 'png',
+		rId: slideData.zoomRid,
+		Target: `../media/${imageTargetStem(target)}.png`,
+	})
+
 	target._slideObjects.push(slideData)
 }
 
@@ -761,6 +867,7 @@ export function addShapeDefinition(target: PresSlide | SlideLayout, shapeName: S
 		gradient: options.line.gradient,
 		width: options.line.width || 1,
 		dashType: options.line.dashType || 'solid',
+		cap: options.line.cap,
 		beginArrowType: options.line.beginArrowType || undefined,
 		endArrowType: options.line.endArrowType || undefined,
 		// ZentoSoft connectors
@@ -1119,6 +1226,7 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 					gradient: itemOpts.line?.gradient,
 					width: itemOpts.line?.width || 1,
 					dashType: itemOpts.line?.dashType || 'solid',
+					cap: itemOpts.line?.cap,
 					beginArrowType: itemOpts.line?.beginArrowType || undefined,
 					endArrowType: itemOpts.line?.endArrowType || undefined,
 				}
@@ -1139,6 +1247,13 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 			itemOpts._bodyProp.anchor = !itemOpts.placeholder ? TEXT_VALIGN.ctr : undefined // VALS: [t,ctr,b]
 			itemOpts._bodyProp.vert = itemOpts.vert || undefined // VALS: [eaVert,horz,mongolianVert,vert,vert270,wordArtVert,wordArtVertRtl]
 			itemOpts._bodyProp.wrap = typeof itemOpts.wrap === 'boolean' ? itemOpts.wrap : true
+
+		// Text columns: `columns` (count) + optional `columnGap` (inches) -> numCol/spcCol on <a:bodyPr>
+		// ECMA-376 §5.1.5.1.4 CT_TextBodyProperties@numCol/@spcCol (issue #1320)
+		if (itemOpts.columns && itemOpts.columns > 1) {
+			itemOpts._bodyProp.numCol = Math.floor(itemOpts.columns)
+			itemOpts._bodyProp.spcCol = inch2Emu(itemOpts.columnGap || 0)
+		}
 
 			// E: Inset
 			// @deprecated 3.10.0 (`inset` - use `margin`)

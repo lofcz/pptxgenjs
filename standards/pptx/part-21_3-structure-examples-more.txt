@@ -1,0 +1,253 @@
+<!-- 3 Structure Examples (+more) | pages 137-141 of 170 -->
+
+The following sections provide examples of some of the extensions specified in this document. Some
+otherwise required markup has been elided and marked with "..." to focus the example on the
+particular elements being described.
+
+3.1  Slide Transitions
+
+The following shows an example of a ripple transition (section 2.3.1.24):
+
+
+    <p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+
+    ...
+
+       <mc:AlternateContent>
+          <mc:Choice Requires="p14">
+             <p:transition spd="slow" p14:dur="1500">
+                <p14:ripple dir="ld"/>
+             </p:transition>
+          </mc:Choice>
+          <mc:Fallback>
+             <p:transition spd="slow">
+                <p:fade/>
+             </p:transition>
+          </mc:Fallback>
+       </mc:AlternateContent>
+
+    ...
+
+    </p:sld>
+
+
+This example shows a ripple slide transition (section 2.3.1.24). The p14:dur (section 2.3.2.3)
+attribute on the p:transition element ([ISO/IEC29500-1:2016] section 19.3.1.50) has a value of
+1500 and indicates the transition runs for 1.5 seconds. The dir attribute on the p14:ripple element
+(section 2.3.1.24) has a value of "ld" and indicates the ripple will be to the left and down.
+
+3.2  Media
+
+The following shows an example of a media (section 2.3.1.18) extension:
+
+
+                <p:pic>
+                    <p:nvPicPr>
+                        <p:cNvPr id="4" name="video1.wmv" />
+                        <p:cNvPicPr>
+                            <a:picLocks noChangeAspect="1"/>
+                        </p:cNvPicPr>
+                        <p:nvPr>
+                            <a:videoFile r:link="rId1"/>
+                            <p:extLst>
+                                <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">
+                                    <p14:media
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId2">
+                                        <p14:trim st="18374.0515" end="29596.7072"/>
+                                        <p14:fade in="1000"/>
+                                        <p14:bmkLst>
+                                            <p14:bmk name="Bookmark 1" time="53703.3597"/>
+                                        </p14:bmkLst>
+                                    </p14:media>
+                    </p:nvPicPr>
+              </p:pic>
+
+
+This example shows an embedded media that represents a video. The r:embed attribute of the
+p14:media element has a value of "rId2" and indicates the relationship identifier to use to find the
+Media (section 2.3.1.18) part. The st attribute of the p14:trim element has value of 18374.0515 and
+the end attribute has a value of 29596.7072. Together they indicate that the video has been trimmed,
+such that the first frame played is 18.3740515 seconds from the start of the video and the last frame
+played is 29.5967072 seconds from the end of the video. The in attribute of the p14:fade element
+has a value of 1000 and indicates the video will fade in for 1 second of playback. Finally, the p14:bmk
+element indicates a media bookmark. The time attribute has a value of 53703.3597 and indicates the
+bookmark location is 53.7033597 seconds from the start of the video. The bookmark can be used to
+easily jump to a particular point in the video or to trigger a separate animation.
+
+3.3  Sections
+
+The following shows an example of a sectionLst (section 2.3.1.25) extension:
+
+
+    <p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" saveSubsetFonts="1">
+
+    ...
+
+       <p:sldIdLst>
+          <p:sldId id="256" r:id="rId2"/>
+          <p:sldId id="257" r:id="rId3"/>
+          <p:sldId id="259" r:id="rId4"/>
+          <p:sldId id="258" r:id="rId5"/>
+       </p:sldIdLst>
+
+    ...
+
+      <p:extLst>
+         <p:ext uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}">
+             <p14:sectionLst>
+                 <p14:section name="Introduction" id="{01F07B81-39E6-4BBB-9B89-66EA253FBD29}">
+                     <p14:sldIdLst>
+                         <p14:sldId id="256"/>
+                     </p14:sldIdLst>
+                 </p14:section>
+                 <p14:section name="Content" id="{1FEF2C88-0CF2-4176-BA81-0DE6FD9D1274}">
+                     <p14:sldIdLst>
+                         <p14:sldId id="257"/>
+                         <p14:sldId id="259"/>
+                     </p14:sldIdLst>
+                 </p14:section>
+                 <p14:section name="Conclusion" id="{CA1E145A-94F4-4C2D-9BC0-76C4A01D48ED}">
+                     <p14:sldIdLst>
+                         <p14:sldId id="258"/>
+                     </p14:sldIdLst>
+                 </p14:section>
+             </p14:sectionLst>
+         </p:ext>
+       </p:extLst>
+    </p:presentation>
+that the first section encompasses the first presentation slide. The second p14:section element
+represents the second section. Its name attribute has a value of "Content" and indicates the name of
+the second section; it has a child element p14:sldIdLst that has two p14:sldId child elements with
+the values of 257 and 259 and that indicates that the second section encompasses the second and
+third presentation slides. The third p14:section element represents the third section. Its name
+attribute has a value of "Conclusion" and indicates the name of the third section; its child element
+p14:sldIdLst has only one child element p14:sldId with the value of 258 and that indicates that the
+third section encompasses the fourth presentation slide.
+
+3.4  Slide Show
+
+The following shows an example of the laserTraceLst (section 2.3.1.17) and showEvtLst (section
+2.3.1.26) extensions:
+
+
+    <p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">
+       <p:cSld>
+          <p:spTree>
+
+    ...
+
+             <p:pic>
+                <p:nvPicPr>
+                   <p:cNvPr id="4" name="video1.wmv">
+                      <a:hlinkClick r:id="" action="ppaction://media"/>
+                   </p:cNvPr>
+                   <p:cNvPicPr>
+                      <a:picLocks noChangeAspect="1"/>
+                   </p:cNvPicPr>
+                   <p:nvPr>
+                      <a:videoFile r:link="rId2"/>
+                      <p:extLst>
+                         <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">
+                            <p14:media r:embed="rId1">
+                               <p14:bmkLst/>
+                            </p14:media>
+                         </p:ext>
+                      </p:extLst>
+                   </p:nvPr>
+                </p:nvPicPr>
+
+    ...
+
+             </p:pic>
+             <p:sp>
+                <p:nvSpPr>
+                   <p:cNvPr id="6" name="Rectangle 5"/>
+                   <p:cNvSpPr/>
+                   <p:nvPr/>
+                </p:nvSpPr>
+
+    ...
+
+             </p:sp>
+          </p:spTree>
+       </p:cSld>
+
+    ...
+
+       <p:extLst>
+                   <p14:tracePt t="48796" x="6062662" y="3259137"/>
+                   <p14:tracePt t="49796" x="6438900" y="3179762"/>
+                   <p14:tracePt t="50296" x="0" y="0"/>
+                </p14:tracePtLst>
+                <p14:tracePtLst>
+                   <p14:tracePt t="52000" x="1196975" y="2982912"/>
+                   <p14:tracePt t="55000" x="0" y="0"/>
+                </p14:tracePtLst>
+             </p14:laserTraceLst>
+          </p:ext>
+          <p:ext uri="{E180D4A7-C9FB-4DFB-919C-405C955672EB}">
+             <p14:showEvtLst>
+                <p14:triggerEvt type="onClick" time="6950" objId="6"/>
+                <p14:playEvt time="12722" objId="4"/>
+                <p14:pauseEvt time="38839" objId="4"/>
+                <p14:seekEvt time="38839" objId="4" seek="10379"/>
+                <p14:resumeEvt time="38859" objId="4"/>
+                <p14:stopEvt time="49628" objId="4"/>
+             </p14:showEvtLst>
+          </p:ext>
+       </p:extLst>
+    </p:sld>
+
+
+First, the example shows a p14:laserTraceLst (section 2.3.1.17) element with two laser traces. The
+first p14:tracePtLst element indicates the first laser trace which includes three trace points. The first
+p14:tracePt element's t attribute has a value of 48796; its x attribute has a value of 6062662; and
+its y attribute has a value of 3259137. Together they indicate that the laser pointer first appears after
+48.796 seconds at the location (6062662, 3259137). The second p14:tracePt element's t attribute
+has a value of 49796; its x attribute has a value of "6438900"; and its y attribute has a value of
+3179762. Together they indicate that the laser pointer moves to the location (6438900, 3179762)
+after one additional second. The third p14:tracePt element's t attribute has a value of 50296; its x
+attribute has a value of zero; and its y value has a value of zero. Together, they indicate that the laser
+pointer moves to location (0, 0) after an additional 500 milliseconds. At this point, the laser trace ends
+and the laser pointer disappears. The second p14:tracePtLst element indicates the second laser
+trace, which includes two trace points. The first p14:tracePt element's t attribute has a value of
+52000; its x attribute has a value of 1196975; and its y attribute has a value of 2982912. Together
+they indicate that the laser pointer reappears 1.704 seconds later at position (1196975, 2982912).
+The second p14:tracePt element's t attribute has a value of 55000; its x attribute has a value of
+zero; and its y attribute has a value of zero. Together they indicate that the laser pointer moves to
+location (0, 0) after an additional 3 seconds. At this point, the laser trace ends and the laser pointer
+again disappears.
+
+Next, the example shows a p14:showEvtLst (section 2.3.1.26) with six events. The p14:triggerEvt
+element indicates the first event. Its type attribute has a value of "onClick"; its time attribute has a
+value of 6950; and its objId attribute has a value of 6. Together they indicate that the shape with the
+name "Rectangle 5" was clicked at 6.95 seconds. The p14:playEvt element indicates the second
+event. Its time attribute has a value of 12722 and its objId attribute has a value of 4. Together they
+indicate that the video with name "video1.wmv" began playing at 12.722 seconds. The p14:pauseEvt
+element indicates the third event. Its time attribute has a value of 38839 and its objId attribute has
+a value of 4. Together they indicate that the video with name "video1.wmv" was paused at 38.839
+seconds. The p14:seekEvt element indicates the fourth event. Its time attribute has a value of
+38839; its objId attribute has a value of 4; and its seek attribute has a value of 10379. Together
+they indicate that the video with name "video1.wmv" was seeked to 10.379 seconds from the start of
+the video at 38.839 seconds. The p14:resumeEvt element indicates the fifth event. Its time attribute
+has a value of 38859 and its objId attribute has a value of 4. Together they indicate that the video
+with name "video1.wmv" resumed playing at 38.859 seconds. The p14:stopEvt element indicates the
+sixth event. Its time attribute has a value of 49628 and its objId attribute has a value of 4. Together
+they indicate that the video with name "video1.wmv" stopped playing at 49.628 seconds.
+4.1  Security Considerations for Implementers
+
+None.
+
+4.2  Index of Security Parameters
+
+None.

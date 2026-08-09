@@ -1,0 +1,225 @@
+93	Line Gradient Support	2017-05-25T00:09:57Z
+98	Images or shapes inside cell?	2017-06-07T20:45:15Z
+102	How to add gradient fill to shapes?	2017-06-15T09:30:54Z
+146	Master Layouts and Master Slides	2017-08-16T08:47:08Z
+258	Word level formatting with Right align	2017-12-21T09:25:37Z
+275	Advanced Option of Paragraph Spacing (Before After and Line spacing)	2018-01-26T08:52:43Z
+307	How I can group by shapes with PptxGenJS?	2018-03-13T15:06:56Z
+399	New anchor connection feature for shapes and lines	2018-09-11T17:52:39Z
+428	Can we insert images in table	2018-11-09T10:58:47Z
+438	Support `noGrp`, `noRot`, `noMove`, `noResize` options to shape creation	2018-11-21T14:19:01Z
+446	Printing with powerpoint "notes" print layout does not show slide	2018-12-05T00:51:18Z
+453	Layout cleared after save	2018-12-18T23:24:26Z
+458	Hyperlink acts differently in different versions of PowerPoint?	2018-12-19T15:00:25Z
+468	Add ability to set Chart 'x' / 'y' values to a percentage value (eg: '50%')	2019-01-03T16:26:07Z
+481	Code suggestion: flipH, flipV for images	2019-01-21T11:01:58Z
+487	cannot add an array of text objects using addText() for addSlidesForTable()	2019-01-24T03:31:44Z
+493	Support of WaterFall chart	2019-01-27T11:35:28Z
+514	pptxgen JS line and bar chart plot discarding null values 	2019-03-11T11:21:44Z
+519	lineDataSymbol per data set	2019-03-20T13:33:39Z
+548	Option to set Axis Postion to On tick marks	2019-05-29T07:19:15Z
+568	Libroffice and Keynote compatibility (probably others programs too)	2019-07-04T09:52:17Z
+570	Multiple charts does not actually uses Secondary axis	2019-07-15T21:51:24Z
+585	Feature request: Embed 3D models	2019-09-02T15:16:01Z
+599	Need an example for an image placeholder	2019-09-30T04:07:29Z
+604	Overriding scheme colors?	2019-10-05T15:56:04Z
+624	Additional refactor before 3.0	2019-11-29T15:44:38Z
+627	I want to translate document (Chinese) in your Live Demo	2019-12-20T03:24:54Z
+652	Error Bar in Data	2020-01-16T10:17:11Z
+658	Cannot add a new line (shift+enter) in a bullet without it creating another new bullet	2020-01-23T19:15:56Z
+665	Bullet option in placeholder definition not working	2020-02-04T15:21:43Z
+669	AutoPaging Fails in Add Table options	2020-02-12T10:09:45Z
+671	Add SVG media support passing the xml	2020-02-12T17:29:48Z
+676	Calibri font in gen-xml.ts	2020-02-19T11:36:03Z
+680	Merge cells and apply cell coloring to full colspan?	2020-02-25T07:12:56Z
+681	'CatAxis in Y axis' and 'ValAxis in X axis' for scatter chart	2020-02-25T07:27:19Z
+682	Tiny: valGridline in API doc	2020-02-25T11:38:16Z
+699	Decimals are not formatted as percentages in iPad	2020-03-16T03:30:20Z
+731	catAxisLabelFrequency doesn't work with chartColors	2020-05-06T15:32:53Z
+743	Bullets fontSize is not same as text	2020-05-18T12:22:09Z
+744	show  bubble size in  bubble chart	2020-05-18T21:46:29Z
+755	Text Option: rotate: does not work within table cells.	2020-05-27T18:56:57Z
+770	[QUESTION] When to use inset or margin?	2020-06-14T18:07:27Z
+776	How to add a Circle shape in master slide	2020-06-20T17:26:03Z
+782	[ENHANCEMENT] Support end line caps	2020-06-25T16:01:31Z
+783	4 Quadrant in Bubble chart	2020-06-27T10:24:45Z
+785	Custom Label Support in Bubble Chart	2020-06-28T12:28:55Z
+795	Pie chart with unexpected behavior	2020-07-09T03:12:24Z
+798	missing border around bars, columns and legend entries in bar and column charts	2020-07-16T09:14:48Z
+800	Bullet Font changes to support default wingdings arrow 	2020-07-20T20:55:39Z
+801	IChartMulti.data has type any[] as opposed to OptsChartData or a designated type	2020-07-22T11:34:07Z
+842	IT is Possible to add verbiage or image  if value is zero in bar chart of particular category	2020-09-09T06:08:57Z
+850	Feature request: image crop with any shape, not just rect/circle	2020-10-13T04:48:18Z
+856	Adding a table to a placeholder does not work	2020-10-20T10:59:11Z
+882	Is this a misspelling	2021-01-06T11:33:23Z
+894	Can we add meta for charts and other elements we add in?	2021-02-05T04:56:46Z
+898	[Enhancement] Bullet list images	2021-02-09T15:31:41Z
+902	[BUG] - Use type on NodeJs context and Typescript langage	2021-02-12T16:25:51Z
+904	writeFile() does not return	2021-02-16T20:44:12Z
+911	writeFile() after write('base64') corrupts table	2021-02-26T22:26:14Z
+913	Empty Text + No Breakline Triggers Repair Dialog	2021-03-03T19:30:40Z
+945	Suggestion : export common constants for easier code isolation	2021-04-29T13:59:54Z
+948	[QUESTION] Hyperlinks are losts in new slide when autopage is true	2021-05-06T14:31:38Z
+951	How to identify the height of a text line in order to know starting point of next statement?	2021-05-11T11:49:19Z
+953	Adding color modifier support for scheme colors	2021-05-19T01:44:57Z
+961	Does PptxGenJS support Sunburst chart?	2021-06-07T07:28:22Z
+962	Slidemaster Definition with Text Array broken from 3.4.0 => 3.5.0?	2021-06-09T12:21:25Z
+964	How to break html table rows when it gets overflow to new slides?	2021-06-16T17:35:58Z
+967	Chart Customization	2021-06-18T07:32:00Z
+976	catAxisLabelPos in Scatter Charts	2021-07-08T14:54:18Z
+986	border & shadow capability of image	2021-07-31T16:32:48Z
+988	Compatibility With SALEFORCE LWC	2021-08-09T12:42:38Z
+996	image placed in placeholder loses aspect ratio	2021-09-02T16:13:31Z
+1005	addTable: Array expected!	2021-10-01T04:48:21Z
+1006	[QUESTION] Addressing performance issue to export a presentation due to `jszip` poor performance with `GenerateAsync` 	2021-10-03T18:18:21Z
+1011	Apply Shadow in table cell.	2021-10-11T07:01:21Z
+1031	Multiple colors AND multiple data sets	2021-11-15T12:41:53Z
+1044	Slide Number support for startAt	2021-11-30T18:49:52Z
+1048	[BUG] PowerPoint shows "Repair" dialog when auto-paginated cell contains empty value	2021-12-29T05:55:26Z
+1051	word-level formatting with valign not respected	2022-01-13T11:16:25Z
+1055	[QUESTION]cell lost borders when been rowspan	2022-01-18T12:39:39Z
+1075	[QUESTION]Is it possible to adjust the interval of the legend?	2022-03-02T06:29:56Z
+1077	Add text for specific data values on charts	2022-03-03T12:36:23Z
+1118	Add text/icon  to  specific data values in a chart through dataLabelFormatCode	2022-06-02T12:41:07Z
+1128	How to set Opacity in addImage?	2022-07-04T06:56:56Z
+1132	titlePos  Don't work	2022-07-27T08:14:47Z
+1135	how to use placeholder: 'tbl'	2022-07-29T08:55:56Z
+1136	table autopage bug	2022-07-29T09:41:56Z
+1137	SlideMasterProps.margin and  placeholder.options.margin unit is diff.	2022-07-29T16:02:36Z
+1138	Breakline not turning false working for texts with different font styles	2022-07-30T18:15:54Z
+1145	slide.addtable option autopage, line height bug.	2022-08-07T06:22:19Z
+1152	section title enhancement	2022-08-23T09:37:54Z
+1157	[BUG] Custom column with	2022-08-31T09:59:37Z
+1159	[BUG] Slide Number disappear when click on "New Slide" in Powerpoint / Online / Keynote	2022-09-01T15:07:11Z
+1164	[BUG] Title position is not honored in doughnut and 3.11.0	2022-09-15T12:16:17Z
+1165	[BUG] Hyperlink isn't styled or colored based on theme	2022-09-16T00:55:34Z
+1167	Error: node_modules/pptxgenjs/types/index.d.ts:842:31 - error TS1110: Type expected	2022-09-28T06:43:45Z
+1168	[BUG|] Table Auto-Paging Error	2022-09-28T22:37:57Z
+1169	How to get x, y of an table cell.	2022-09-28T23:59:45Z
+1170	Is there a plan to use the existing ppt templates? Creating a master template is an option, but maintaining it as per the branding is a task.	2022-10-03T10:34:22Z
+1173	[FEATURE] Export color schemes with real hex value	2022-10-16T14:39:48Z
+1174	[FEATURE] with duplicate images condition can add more rows and put single image into it ?	2022-10-17T09:04:42Z
+1183	[Feature]  is there is a way to create the semi-circle chart out of the Pie chart ?	2022-11-07T19:35:34Z
+1187	[BUG]	2022-11-16T08:35:03Z
+1188	Pie titleFontItalic	2022-11-22T06:26:04Z
+1190	dataLabelFormatCode for per series's values	2022-11-24T05:30:13Z
+1192	Math equations	2022-12-03T15:11:14Z
+1197	Creating PowerPoint using node JS APIs	2022-12-11T16:34:48Z
+1198	[Question]Coloring bars different colors when plotting 2 series	2022-12-15T06:50:27Z
+1199	[FEATURE] allow user to provide fontScale and lnSpcReduction values with fit: 'shrink'	2022-12-16T07:48:52Z
+1200	tableToSlides autoPaging not working	2022-12-23T14:19:33Z
+1206	[BUG] TableToSlides issue with text on Slides past the first slide generated	2023-01-03T20:53:38Z
+1208	[BUG] Slide Master placeholders do not apply valign on PowerPoint > Add Slide	2023-01-05T11:09:01Z
+1217	Possibility to preserve unknown aspect ratio	2023-01-31T15:22:05Z
+1219	[BUG] Cannot import in es6 with rollup, "stream" bare identifier	2023-02-10T09:17:02Z
+1222	Problem when Try to render Stackbar chart and Barline Graph.	2023-02-16T03:35:05Z
+1223	stacked bar and unstacked bar not possible together	2023-02-16T05:44:07Z
+1224	[BUG] Border style of the first cell adjacent to cells with rowspan	2023-02-21T02:09:28Z
+1226	support image exif.orientation	2023-02-26T03:51:07Z
+1231	[BUG] autopage and rowspan	2023-03-18T17:57:43Z
+1233	[BUG]As soon as the composite chart is used, the repair will pop up when opening the PPT with office	2023-03-20T10:20:09Z
+1234	[BUG] - TableCell does not support hyperlinking the text.	2023-03-21T06:41:13Z
+1235	[Table] border width between 0 to 1 not working	2023-03-24T03:06:59Z
+1236	[BUG] Copying and pasting a line chart within WPS can cause office powerpoint to report errors that need to be fixed	2023-03-29T08:16:08Z
+1239	[BUG] Hyperlink on Image does not work with Special Character like &	2023-04-19T06:41:32Z
+1240	[FEATURE] Make `addText` remove unsupported Unicode characters	2023-04-20T09:17:48Z
+1241	Question: Webp format supported?	2023-04-20T14:40:36Z
+1242	Keynote cannot process the most basic tables [BUG]	2023-04-25T15:38:02Z
+1243	Theme Injection	2023-04-26T05:39:57Z
+1244	Colspan&Rowspan problem	2023-04-26T15:15:40Z
+1245	[BUG] Faulty presentation with ScatterPlot	2023-04-27T17:28:30Z
+1250	[FEATURE] Ability to add hyperlinks in speaker notes	2023-05-05T12:37:48Z
+1251	error in spfx react	2023-05-10T09:24:58Z
+1252	How can i put the bar value at the top?	2023-05-11T08:14:34Z
+1253	I am trying to add shape before each table row but I am not able to position it properly	2023-05-13T09:46:03Z
+1256	Headers Style	2023-05-19T11:01:44Z
+1258	[BUG|FEATURE]	2023-05-31T00:52:27Z
+1259	Paragraph Vertical align?	2023-06-07T19:55:44Z
+1260	Enable showLegend separately for each chart in a mixed chart situation.	2023-06-08T02:32:46Z
+1261	multi-series doughnut chart?	2023-06-09T18:54:09Z
+1262	[BUG] Prop [hyperlink] doesn't work when open with WPS	2023-06-12T08:55:32Z
+1264	Table rendered with Auto Page, renders just a few rows in the first page	2023-06-13T16:29:24Z
+1268	Size difference in PPT generated from library	2023-06-26T10:24:16Z
+1277	ai ppt 	2023-07-24T03:20:15Z
+1278	Jasmine test case failing with error: 'TypeError: pptx.addSlide is not a function'	2023-07-26T13:31:07Z
+1279	Bar chart filled with diagonal line	2023-07-31T14:51:00Z
+1280	[BUG] importing pptxgen.es.js in angular warns about commonjs dependency	2023-08-02T08:55:31Z
+1282	[FEATURE] User-specifiable transform function to modify the slide XML before it's written	2023-08-16T14:02:53Z
+1283	FEATURE: Line and radar charts should support transparent (noFill) lineDataSymbols similar to other charts	2023-08-18T18:23:43Z
+1286	[BUG] Aspect ratio calculation wrong for Images with one dimension above 100 px and one below	2023-08-24T09:09:29Z
+1288	[Question]How to set the east asia theme font	2023-09-07T10:31:24Z
+1289	Getting following error while initializing pptxgen on NodeJs	2023-09-20T00:57:17Z
+1290	Extra table cells generated when using `colspan` > 1 in Node.js	2023-09-29T19:18:33Z
+1291	[BUG|FEATURE] RTL direction for tables	2023-10-05T22:47:21Z
+1293	Inner shadow property breaks pptx file	2023-10-18T10:32:27Z
+1294	[BUG] Inside a table cell, a text mixed with subscript/superscript renders on multiple lines instead of one	2023-10-18T14:15:57Z
+1296	Is it possible to set different layout width for slides	2023-10-19T09:28:34Z
+1298	PPTs failing accessibility test: Missing Slide Title	2023-10-20T19:34:00Z
+1299	PPTs failing accessibility test: Missing Table Header	2023-10-23T15:54:20Z
+1300	[FEATURE] Additional shape parameters	2023-10-25T11:13:05Z
+1301	Text is duplicating for the "Jost Light" font style while creating PPT using PptxGenJs library	2023-10-27T12:34:14Z
+1306	BUG -  Graphs are not shown in Mac Keynote	2023-11-23T13:22:07Z
+1307	Error: blob is not supported by this platform	2023-11-28T00:54:13Z
+1309	FormatCode not working in MSOffice and Google Slides	2023-11-30T13:28:44Z
+1312	Feature Request: support text "caps type"	2023-12-11T21:12:34Z
+1313	Direct HTML code cannot render  to ppt it shows html tag also like head,bold tag etc 	2023-12-12T05:33:16Z
+1316	[BUG] pptxgenjs cannot be used in the Qiankun sub-application	2024-01-24T07:28:53Z
+1317	How to add shape fill with a image	2024-01-27T03:21:09Z
+1318	BUG - Adding border option TOP border doesn't display for specified row	2024-02-07T15:46:25Z
+1319	[BUG| Auto-paging in slide.addTable is not respecting in newly added slide	2024-02-09T11:11:04Z
+1320	Add column support to text body properties	2024-02-16T16:47:14Z
+1322	[BUG] When encountering a text with the 'align' attribute added, the subsequent default attribute text content incorrectly uses the previous 'align' attribute	2024-03-22T05:54:14Z
+1328	Add 'custGeom' to ShapeTypes	2024-05-03T13:36:03Z
+1329	[FEATURE] add Series Line as option to charts	2024-05-05T10:29:09Z
+1339	[FEATURE] Judge whether the image is duplicated by judging the image MD5, and do not regenerate the duplicate image to reduce the generated ppt file size	2024-07-08T01:51:12Z
+1344	ΘÇÜΦ┐çnodeΣ╕ïΦ╜╜ppt∩╝îsvgµûçΣ╗╢µÿ╛τñ║σ╝éσ╕╕	2024-07-17T11:57:25Z
+1348	Scatter plot data label font size not working	2024-08-03T03:23:36Z
+1349	issue with rendering mixed text of RTL and LTR	2024-08-18T10:00:00Z
+1351	[BUG] All images inserted using base64 are forced into 16:9 ratio	2024-09-16T21:53:14Z
+1352	[BUG] addShape : cannot read properties of undefined (reading 'rect')	2024-09-23T13:56:37Z
+1355	[BUG] Combo chart with bar and scatter chart generates malformed pptx	2024-10-15T15:03:54Z
+1357	STACKED BAR CHART CREATING BROKEN PPT	2024-10-22T21:52:13Z
+1359	[BUG] Category names/labels not displaying properly (v 3.12.0)	2024-11-01T17:58:54Z
+1360	Ability to specify nested bullet level styles in slide master	2024-11-08T09:17:03Z
+1363	chart title position centered	2024-11-23T21:10:10Z
+1365	Hello, are there any restrictions on the url of the hyperlink in the option parameter of images?	2024-12-10T03:12:14Z
+1366	[BUG] Text with fill property shadow angle and blur issue	2024-12-18T10:48:02Z
+1368	[BUG] Data labels with smaller values are spaced closer to the pie charts	2025-01-30T14:15:12Z
+1375	[Bug | Issue] How to add the same color of the bar chart to the labels of the bar	2025-03-17T06:41:04Z
+1376	[QUESTION] Seeking a way to set the color for LeaderLines in Pie Chart	2025-03-19T15:08:29Z
+1378	How to load custom fonts?	2025-03-24T03:20:56Z
+1394	[BUG] TS2339: Property  shapes  does not exist on type  PptxGenJS	2025-05-23T05:28:32Z
+1396	[BUG] Charts not showing in Apple Numbers	2025-06-16T08:56:21Z
+1399	Bug: Image with sizing: { type: 'crop' } renders with incorrect container size or fails	2025-06-23T13:58:48Z
+1402	[BUG] Bulletpoint not working as expected in opensource presentation software	2025-07-01T12:36:39Z
+1405	[BUG] Table auto-paging creates slide in wrong section	2025-07-25T13:57:29Z
+1406	[BUG|FEATURE]	2025-07-29T11:10:46Z
+1410	[BUG] svg has gradient download unsatisfactory	2025-08-07T08:00:02Z
+1416	[BUG] Slide master images overwrite	2025-08-25T16:12:30Z
+1417	[FEATURE] Support custom property	2025-08-29T21:17:33Z
+1418	[BUG] Some Shapes does not work	2025-09-09T13:28:52Z
+1419	Getting node related errors when using pptxgenjs latest version in NX Angular Microfrontend setup	2025-09-10T13:58:09Z
+1420	The Chinese font settings for the titles and legends of chart categories are not effective	2025-09-17T02:22:48Z
+1422	How can i set shape for placeholder?	2025-09-23T01:23:09Z
+1423	Editing Excel to add dimensions does not take effect for chart types	2025-09-24T06:59:51Z
+1424	[FEATURE] Line Chart - Ability to apply unique line styles by series	2025-10-02T21:34:15Z
+1425	[FEATURE]	2025-10-17T08:55:46Z
+1430	[BUG] Data Formatting for Currency & Percentage Lost After Editing Slide + Zero Values Shown as Blank	2025-11-21T18:32:08Z
+1432	`bullet: {type: "bullet"}` results in no bullet	2025-12-02T03:37:03Z
+1434	[FEATURE]Add support for setting video loop property	2025-12-23T07:37:44Z
+1436	[BUG] Scatter and bubble chart inherit the same value formatting	2026-01-20T11:15:14Z
+1440	[BUG] Table cell margin produces NaN XML attributes when margin is not a number or array	2026-02-11T02:42:46Z
+1441	[BUG] Shapes without text produce <p:sp> missing <p:txBody>, triggering repair dialog	2026-02-11T02:43:01Z
+1442	[BUG] Solid color background missing <a:effectLst/> in <p:bgPr>, triggers repair dialog	2026-02-11T02:43:14Z
+1443	[BUG] notesMaster placeholder shapes are removed by PowerPoint repair	2026-02-11T02:43:30Z
+1444	[BUG] Content_Types.xml references phantom slideMaster entries for multi-slide presentations	2026-02-11T02:43:45Z
+1446	Pie/doughnut chart global dLbls block ignores dataLabelFontFace and dataLabelFontSize	2026-02-22T20:16:25Z
+1448	[BUG] Combo chart not working	2026-03-17T23:00:34Z
+1449	Multiple errors in PowerPoint that were not in LibreOffice - with workarounds/fixes	2026-03-31T00:51:15Z
+1450	Load existing slide	2026-03-31T14:26:18Z
+1451	Auto-fit table columns to slide width without overflow	2026-04-06T08:48:52Z
+1453	[BUG] Placeholder objects created as TEXT instead of PLACEHOLDER causing "Click to add text" boxes to appear	2026-04-15T20:56:58Z
+1456	Feature request: Native mathematical notation support (LaTeX / OMML)	2026-05-07T18:44:26Z
+1464	Add an automated test suite + CI pipeline	2026-06-23T13:32:42Z
+1466	Charts: flat string categories are always written as <c:multiLvlStrRef>; single-level categories should use <c:strRef> (labels fall back to 1,2,3ΓÇª in some importers)	2026-07-22T12:25:53Z
+1472	BUG: When two tables are set to autopage on the same slide, positioning can be incorrect	2026-08-07T21:11:00Z

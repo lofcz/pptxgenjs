@@ -1,0 +1,110 @@
+<!-- 2.15 powerpoint/2018/4/main | pages 109-110 of 170 -->
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="readonlyRecommended" type="CT_ReadonlyRecommended"/>
+
+
+See section 5.11 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.14.2 Attributes
+
+None.
+
+2.14.3 Complex Types
+
+2.14.3.1    CT_ReadonlyRecommended
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2017/10/main
+
+Referenced by: readonlyRecommended
+
+A complex type that specifies whether the document is opened as read-only with the option to edit.
+
+Attributes:
+
+val: A xsd:boolean ([XMLSCHEMA2/2] section 3.2.2) attribute that specifies whether the document is
+opened in read-only with the option to edit.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_ReadonlyRecommended">
+      <xsd:attribute name="val" type="xsd:boolean" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.11 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.14.4 Simple Types
+
+None.
+
+2.15 http://schemas.microsoft.com/office/powerpoint/2018/4/main
+
+2.15.1 Elements
+
+2.15.1.1     classification
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2018/4/main
+
+A CT_ClassificationOutcome element that specifies whether an item is a classification element. See
+section 2.15.3.1 for how this element integrates with [ISO/IEC29500-1:2016].
+    <xsd:element name="classification" type="CT_ClassificationOutcome"/>
+
+
+See section 5.13 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.15.2 Attributes
+
+None.
+
+2.15.3 Complex Types
+
+2.15.3.1     CT_ClassificationOutcome
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2018/4/main
+
+Referenced by: classification
+
+A complex type that specifies classification element extensions to the
+CT_ApplicationNonVisualDrawingProps complex type ([ISO/IEC29500-4:2016] section A.4).<33>
+
+Attributes:
+
+val: An ST_ClassificationOutcomeType attribute that specifies whether an element is a classification
+element.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_ClassificationOutcome">
+      <xsd:attribute name="val" type="ST_ClassificationOutcomeType"/>
+    </xsd:complexType>
+
+
+See section 5.13 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.15.4 Simple Types
+
+2.15.4.1     ST_ClassificationOutcomeType
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2018/4/main
+
+Referenced by: CT_ClassificationOutcome
+
+A simple type specifying the content classification outcome type.
+
+ Value      Meaning
+
+ none       No classification outcome.
+
+ hdr         Header classification outcome.
+
+  ftr           Footer classification outcome.
+
+ watermark  Watermark classification outcome.

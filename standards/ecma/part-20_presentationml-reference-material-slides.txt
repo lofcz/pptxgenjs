@@ -1,0 +1,3048 @@
+<!-- PresentationML Reference Material - Slides | pages 3797-3859 of 6045 -->
+
+     Attributes                                            Description
+showComments      Specifies whether the slide comments should be shown.
+(Show Comments)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ViewProperties">
+    <sequence minOccurs="0" maxOccurs="1">
+       <element name="normalViewPr" type="CT_NormalViewProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="slideViewPr" type="CT_SlideViewProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="outlineViewPr" type="CT_OutlineViewProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="notesTextViewPr" type="CT_NotesTextViewProperties" minOccurs="0"
+         maxOccurs="1"/>
+       <element name="sorterViewPr" type="CT_SlideSorterViewProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="notesViewPr" type="CT_NotesViewProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="gridSpacing" type="a:CT_PositiveSize2D" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="lastView" type="ST_ViewType" use="optional" default="sldView"/>
+    <attribute name="showComments" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+4.4    Slides
+
+The Slides portion of the PresentationML framework stores all information pertaining specifically to slides of
+various types. These slide types and corresponding parts can be broken down into three distinct parts, namely
+slides, embedded objects, and programmable tags.
+
+4.4.1     Slides
+
+Being the main segment of this section of PresentationML, the slides elements encompass all data that is to be
+contained within a slide. The best way to think of a slide is a container for all data that is to be on that slide. The
+specific shapes, images and relations within a slide will not come into play here. The elements here pertain to
+the six different types of slides that can be described within PresentationML, namely slide, slide layout, slide
+master, handout master, notes master and notes slide.
+
+4.4.1.1       bg (Slide Background)
+
+This element specifies the background appearance information for a slide. The slide background covers the
+entire slide and is visible where no objects exist and as the background for transparent objects.
+
+
+                                          Parent Elements
+cSld (§4.4.1.15)
+
+
+                                         Child Elements                                        Subclause
+bgPr (Background Properties)                                                                        §4.4.1.2
+
+
+                                                                                     3008
+                                         Child Elements                                        Subclause
+bgRef (Background Style Reference)                                                                  §4.4.1.3
+
+
+     Attributes                                            Description
+bwMode (Black and   Specifies that the background should be rendered using only black and white coloring.
+White Mode)         That is, the coloring information for the background should be converted to either black
+                     or white when rendering the picture.
+
+                      [Note: No gray is to be used in rendering this background, only stark black and stark
+                      white. End note]
+
+                   The possible values for this attribute are defined by the ST_BlackWhiteMode simple type
+                        (§5.1.12.10).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Background">
+    <sequence>
+       <group ref="EG_Background"/>
+    </sequence>
+    <attribute name="bwMode" type="a:ST_BlackWhiteMode" use="optional" default="white"/>
+</complexType>
+
+4.4.1.2       bgPr (Background Properties)
+
+This element specifies visual effects used to render the slide background. This includes any fill, image, or effects
+that are to make up the background of the slide.
+
+
+                                          Parent Elements
+bg (§4.4.1.1)
+
+
+                                         Child Elements                                        Subclause
+blipFill (Picture Fill)                                                                              §5.1.10.14
+effectDag (Effect Container)                                                                      §5.1.10.25
+effectLst (Effect Container)                                                                       §5.1.10.26
+extLst (Extension List)                                                                             §4.2.5
+gradFill (Gradient Fill)                                                                           §5.1.10.33
+grpFill (Group Fill)                                                                               §5.1.10.35
+noFill (No Fill)                                                                                   §5.1.10.44
+pattFill (Pattern Fill)                                                                             §5.1.10.47
+solidFill (Solid Fill)                                                                               §5.1.10.54
+
+
+                                                                                     3009
+     Attributes                                            Description
+shadeToTitle         Specifies whether the background of the slide is of a shade to title type. This type of
+(Shade to Title)       gradient fill is on the slide background and changes based on the placement of the slide
+                             title placeholder. An example is shown below.
+
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BackgroundProperties">
+    <sequence>
+       <group ref="a:EG_FillProperties" minOccurs="1" maxOccurs="1"/>
+       <group ref="a:EG_EffectProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="shadeToTitle" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.1.3       bgRef (Background Style Reference)
+This element specifies the slide background is to use a fill style defined in the style matrix. The idx attribute
+refers to the index of a background fill style or fill style within the presentation's style matrix, defined by the
+fmtScheme element. A value of 0 or 1000 indicates no background, values 1-999 refer to the index of a fill style
+within the fillStyleLst element, and values 1001 and above refer to the index of a background fill style within
+the bgFillStyleLst element. The value 1001 corresponds to the first background fill style, 1002 to the second
+background fill style, and so on.
+
+[Example:
+
+  <p:bgRef idx="2">
+    <a:schemeClr val="bg2"/>
+  </p:bgRef>
+
+The above code indicates a slide background with the style's second fill style using the second background color
+of the color scheme.
+
+
+                                                                                     3010
+end example]
+
+[Example:
+
+  <p:bgRef idx="1001">
+    <a:schemeClr val="bg2"/>
+  </p:bgRef>
+
+The above code indicates a slide background with the style's first background fill style using the second
+background color of the color scheme.
+
+end example]
+
+
+                                          Parent Elements
+bg (§4.4.1.1)
+
+
+                                        Child Elements                                        Subclause
+hslClr (Hue, Saturation, Luminance Color Model)                                                    §5.1.2.2.13
+prstClr (Preset Color)                                                                              §5.1.2.2.22
+schemeClr (Scheme Color)                                                                         §5.1.2.2.29
+scrgbClr (RGB Color Model - Percentage Variant)                                                    §5.1.2.2.30
+srgbClr (RGB Color Model - Hex Variant)                                                            §5.1.2.2.32
+sysClr (System Color)                                                                              §5.1.2.2.33
+
+
+     Attributes                                            Description
+idx (Style Matrix       Specifies the style matrix index of the style referred to.
+Index)
+                   The possible values for this attribute are defined by the ST_StyleMatrixColumnIndex
+Namespace:          simple type (§5.1.12.57).
+.../drawingml/200
+6/main
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_StyleMatrixReference">
+    <sequence>
+       <group ref="EG_ColorChoice" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="idx" type="ST_StyleMatrixColumnIndex" use="required"/>
+</complexType>
+
+
+                                                                                     3011
+4.4.1.4         blipFill (Picture Fill)
+
+This element specifies the type of picture fill that the picture object will have. Because a picture has a picture fill
+already by default, it is possible to have two fills specified for a picture object. An example of this is shown
+below.
+
+[Example: Consider the picture below that has a blip fill applied to it. The image used to fill this picture object
+has transparent pixels instead of white pixels.
+
+  <p:pic>
+    ..
+    <p:blipFill>
+      <a:blip r:embed="rId2"/>
+      <a:stretch>
+        <a:fillRect/>
+      </a:stretch>
+    </p:blipFill>
+    ..
+  </p:pic>
+
+
+The above picture object is shown as an example of this fill type. End example]
+
+[Example: Consider now the same picture object but with an additional gradient fill applied within the shape
+properties portion of the picture.
+
+  <p:pic>
+    ..
+    <p:blipFill>
+      <a:blip r:embed="rId2"/>
+      <a:stretch>
+        <a:fillRect/>
+      </a:stretch>
+    </p:blipFill>
+
+
+                                                                                     3012
+    <p:spPr>
+      <a:gradFill>
+        <a:gsLst>
+          <a:gs pos="0">
+            <a:schemeClr val="tx2">
+              <a:shade val="50000"/>
+            </a:schemeClr>
+          </a:gs>
+          <a:gs pos="39999">
+            <a:schemeClr val="tx2">
+              <a:tint val="20000"/>
+            </a:schemeClr>
+          </a:gs>
+          <a:gs pos="70000">
+            <a:srgbClr val="C4D6EB"/>
+          </a:gs>
+          <a:gs pos="100000">
+            <a:schemeClr val="bg1"/>
+          </a:gs>
+        </a:gsLst>
+      </a:gradFill>
+    </p:spPr>
+    ..
+  </p:pic>
+
+
+The above picture object is shown as an example of this double fill type. End example]
+
+
+                                          Parent Elements
+pic (§4.4.1.34)
+
+
+                                                                                     3013
+                                         Child Elements                                        Subclause
+blip (Blip)                                                                                       §5.1.10.13
+srcRect (Source Rectangle)                                                                       §5.1.10.55
+stretch (Stretch)                                                                                 §5.1.10.56
+tile (Tile)                                                                                        §5.1.10.58
+
+
+     Attributes                                            Description
+dpi (DPI Setting)       Specifies the DPI (dots per inch) used to calculate the size of the blip. If not present or
+                       zero, the DPI in the blip is used.
+Namespace:
+.../drawingml/200   [Note: This attribute is primarily used to keep track of the picture quality within a
+6/main             document. There are different levels of quality needed for print than on-screen viewing
+                  and thus a need to track this information. end note]
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+rotWithShape         Specifies that the fill should rotate with the shape. That is, when the shape that has been
+(Rotate With Shape)   filled with a picture and the containing shape (say a rectangle) is transformed with a
+                       rotation then the fill will be transformed with the same rotation.
+Namespace:
+.../drawingml/200   The possible values for this attribute are defined by the XML Schema boolean datatype.
+6/main
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BlipFillProperties">
+    <sequence>
+       <element name="blip" type="CT_Blip" minOccurs="0" maxOccurs="1"/>
+       <element name="srcRect" type="CT_RelativeRect" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_FillModeProperties" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="dpi" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="rotWithShape" type="xsd:boolean" use="optional"/>
+</complexType>
+
+4.4.1.5       bodyStyle (Slide Master Body Text Style)
+
+This element specifies the text formatting style for all body text within a master slide. This formatting will be
+used on all body text within presentation slides related to this master. The text formatting is specified by
+utilizing the DrawingML framework just as within a regular presentation slide. Within the bodyStyle element
+there may be many different types of styles defined as there are different types of text stored within the body of
+a slide.
+
+
+                                          Parent Elements
+
+
+                                                                                     3014
+                                          Parent Elements
+txStyles (§4.4.1.48)
+
+
+                                        Child Elements                                        Subclause
+defPPr (Default Paragraph Style)                                                                     §5.1.5.2.2
+extLst (Extension List)                                                                              §5.1.2.1.15
+lvl1pPr (List Level 1 Text Style)                                                                     §5.1.5.4.13
+lvl2pPr (List Level 2 Text Style)                                                                     §5.1.5.4.14
+lvl3pPr (List Level 3 Text Style)                                                                     §5.1.5.4.15
+lvl4pPr (List Level 4 Text Style)                                                                     §5.1.5.4.16
+lvl5pPr (List Level 5 Text Style)                                                                     §5.1.5.4.17
+lvl6pPr (List Level 6 Text Style)                                                                     §5.1.5.4.18
+lvl7pPr (List Level 7 Text Style)                                                                     §5.1.5.4.19
+lvl8pPr (List Level 8 Text Style)                                                                     §5.1.5.4.20
+lvl9pPr (List Level 9 Text Style)                                                                     §5.1.5.4.21
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TextListStyle">
+    <sequence>
+       <element name="defPPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl1pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl2pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl3pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl4pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl5pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl6pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl7pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl8pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl9pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.6       clrMap (Color Scheme Map)
+
+This element specifies the mapping layer that transforms one color scheme definition to another. Each attribute
+represents a color name that may be referenced in this master, and the value is the corresponding color in the
+theme.
+
+[Example: Consider the following mapping of colors that applies to a slide master:
+
+
+                                                                                     3015
+  <p:clrMap bg1="dk1" tx1="lt1" bg2="dk2" tx2="lt2" accent1="accent1"
+  accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5"
+  accent6="accent6" hlink="hlink" folHlink="folHlink"/>
+
+end example]
+
+
+                                          Parent Elements
+handoutMaster (§4.4.1.21); notesMaster (§4.4.1.24); sldMaster (§4.4.1.39)
+
+
+                                        Child Elements                                        Subclause
+extLst (Extension List)                                                                              §5.1.2.1.15
+
+
+     Attributes                                            Description
+accent1 (Accent 1)    Specifies a color defined which is associated as the accent 1 color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+accent2 (Accent 2)    Specifies a color defined which is associated as the accent 2 color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+accent3 (Accent 3)    Specifies a color defined which is associated as the accent 3 color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+accent4 (Accent 4)    Specifies a color defined which is associated as the accent 4 color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+accent5 (Accent 5)    Specifies a color defined which is associated as the accent 5 color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+accent6 (Accent 6)    Specifies a color defined which is associated as the accent 6 color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+
+
+                                                                                     3016
+     Attributes                                            Description
+6/main
+bg1 (Background 1)  A color defined which is associated as the first background color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+bg2 (Background 2)   Specifies a color defined which is associated as the second background color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+folHlink (Followed    Specifies a color defined which is associated as the color for a followed hyperlink.
+Hyperlink)
+                   The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+Namespace:          type (§5.1.12.14).
+.../drawingml/200
+6/main
+hlink (Hyperlink)      Specifies a color defined which is associated as the color for a hyperlink.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+tx1 (Text 1)            Specifies a color defined which is associated as the first text color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+tx2 (Text 2)            Specifies a color defined which is associated as the second text color.
+
+Namespace:         The possible values for this attribute are defined by the ST_ColorSchemeIndex simple
+.../drawingml/200   type (§5.1.12.14).
+6/main
+
+
+                                                                                     3017
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ColorMapping">
+    <sequence>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="bg1" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="tx1" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="bg2" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="tx2" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="accent1" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="accent2" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="accent3" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="accent4" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="accent5" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="accent6" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="hlink" type="ST_ColorSchemeIndex" use="required"/>
+    <attribute name="folHlink" type="ST_ColorSchemeIndex" use="required"/>
+</complexType>
+
+4.4.1.7       clrMapOvr (Color Scheme Map Override)
+This element provides a mechanism with which to override the color schemes listed within the ClrMap element.
+If the masterClrMapping element is present, the color scheme defined by the master is used.  If the
+overrideClrMapping element is present, it defines a new color scheme specific to the parent notes slide,
+presentation slide, or slide layout.
+
+
+                                          Parent Elements
+notes (§4.4.1.23); sld (§4.4.1.35); sldLayout (§4.4.1.36)
+
+
+                                         Child Elements                                        Subclause
+masterClrMapping (Master Color Mapping)                                                          §5.1.8.6
+overrideClrMapping (Override Color Mapping)                                                      §5.1.8.8
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ColorMappingOverride">
+    <sequence>
+       <choice minOccurs="1" maxOccurs="1">
+           <element name="masterClrMapping" type="CT_EmptyElement"/>
+           <element name="overrideClrMapping" type="CT_ColorMapping"/>
+       </choice>
+    </sequence>
+</complexType>
+
+4.4.1.8       cNvCxnSpPr (Non-Visual Connector Shape Drawing Properties)
+
+This element specifies the non-visual drawing properties specific to a connector shape. This includes
+information specifying the shapes to which the connector shape is connected.
+
+
+                                                                                     3018
+                                          Parent Elements
+nvCxnSpPr (§4.4.1.26)
+
+
+                                        Child Elements                                        Subclause
+cxnSpLocks (Connection Shape Locks)                                                              §5.1.2.1.11
+endCxn (Connection End)                                                                          §5.1.2.1.13
+extLst (Extension List)                                                                              §5.1.2.1.15
+stCxn (Connection Start)                                                                           §5.1.2.1.36
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NonVisualConnectorProperties">
+    <sequence>
+       <element name="cxnSpLocks" type="CT_ConnectorLocking" minOccurs="0" maxOccurs="1"/>
+       <element name="stCxn" type="CT_Connection" minOccurs="0" maxOccurs="1"/>
+       <element name="endCxn" type="CT_Connection" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.9       cNvGraphicFramePr (Non-Visual Graphic Frame Drawing Properties)
+
+This element specifies the non-visual drawing properties for a graphic frame. These non-visual properties are
+properties that the generating application would utilize when rendering the slide surface.
+
+
+                                          Parent Elements
+nvGraphicFramePr (§4.4.1.27)
+
+
+                                        Child Elements                                        Subclause
+extLst (Extension List)                                                                              §5.1.2.1.15
+graphicFrameLocks (Graphic Frame Locks)                                                         §5.1.2.1.19
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NonVisualGraphicFrameProperties">
+    <sequence>
+       <element name="graphicFrameLocks" type="CT_GraphicalObjectFrameLocking" minOccurs="0"
+         maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.10      cNvGrpSpPr (Non-Visual Group Shape Drawing Properties)
+
+This element specifies the non-visual drawing properties for a group shape. These non-visual properties are
+properties that the generating application would utilize when rendering the slide surface.
+
+
+                                                                                     3019
+                                          Parent Elements
+nvGrpSpPr (§4.4.1.28)
+
+
+                                        Child Elements                                        Subclause
+extLst (Extension List)                                                                              §5.1.2.1.15
+grpSpLocks (Group Shape Locks)                                                                   §5.1.2.1.21
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NonVisualGroupDrawingShapeProps">
+    <sequence>
+       <element name="grpSpLocks" type="CT_GroupLocking" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.11      cNvPicPr (Non-Visual Picture Drawing Properties)
+
+This element specifies the non-visual properties for the picture canvas. These properties are to be used by the
+generating application to determine how certain properties are to be changed for the picture object in question.
+
+[Example: Consider the following DrawingML.
+
+  <p:pic>
+    ..
+    <p:nvPicPr>
+      <p:cNvPr id="4" name="Lilly_by_Lisher.jpg"/>
+      <p:cNvPicPr>
+        <a:picLocks noChangeAspect="1"/>
+      </p:cNvPicPr>
+      <p:nvPr/>
+    </p:nvPicPr>
+    ..
+  </p:pic>
+
+end example]
+
+
+                                          Parent Elements
+nvPicPr (§4.4.1.29)
+
+
+                                        Child Elements                                        Subclause
+extLst (Extension List)                                                                              §5.1.2.1.15
+picLocks (Picture Locks)                                                                            §5.1.2.1.31
+
+
+                                                                                     3020
+     Attributes                                            Description
+preferRelativeResi    Specifies if the user interface should show the resizing of the picture based on the
+ze (Relative Resize     picture's current size or its original size. If this attribute is set to true, then scaling will be
+Preferred)             relative to the original picture size as opposed to the current picture size.
+
+Namespace:          [Example: Consider the case where a picture has been resized within a document and is
+.../drawingml/200  now 50% of the originally inserted picture size. Now if the user chooses to make a later
+6/main             adjustment to the size of this picture within the generating application, then the value of
+                         this attribute should be checked.
+
+                                  If this attribute is set to true then a value of 50% will be shown. Similarly, if this attribute
+                              is set to false, then a value of 100% should be shown because the picture has not yet
+                  been resized from its current (smaller) size. end example]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NonVisualPictureProperties">
+    <sequence>
+       <element name="picLocks" type="CT_PictureLocking" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="preferRelativeResize" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+4.4.1.12      cNvPr (Non-Visual Drawing Properties)
+
+This element specifies non-visual canvas properties. This allows for additional information that does not affect
+the appearance of the picture to be stored.
+
+[Example: Consider the following DrawingML.
+
+  <p:pic>
+    ..
+    <p:nvPicPr>
+      <p:cNvPr id="4" name="Lilly_by_Lisher.jpg"/>
+    </p:nvPicPr>
+    ..
+  </p:pic>
+
+End example]
+
+
+                                          Parent Elements
+nvCxnSpPr (§4.4.1.26); nvGraphicFramePr (§4.4.1.27); nvGrpSpPr (§4.4.1.28); nvPicPr (§4.4.1.29); nvSpPr
+(§4.4.1.31)
+
+
+                                                                                     3021
+                                        Child Elements                                        Subclause
+extLst (Extension List)                                                                              §5.1.2.1.15
+hlinkClick (Click Hyperlink)                                                                           §5.1.5.3.5
+hlinkHover (Hyperlink for Hover)                                                                   §5.1.2.1.23
+
+
+     Attributes                                            Description
+descr (Alternative     Specifies alternative text for the current DrawingML object, for use by assistive
+Text for Object)       technologies or applications which will not display the current object.
+
+Namespace:                If this element is omitted, then no alternative text is present for the parent object.
+.../drawingml/200
+6/main              [Example: Consider a DrawingML object defined as follows:
+
+                   <… descr="A picture of a bowl of fruit">
+
+                   The descr attribute contains alternative text which may be used in place of the actual
+                  DrawingML object. end example]
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+hidden (Hidden)       Specifies whether this DrawingML object shall be displayed. When a DrawingML object is
+                      displayed within a document, that object may be hidden (i.e., present, but not visible).
+Namespace:           This attribute shall determine whether the object shall be rendered or made hidden.
+.../drawingml/200   [Note: An application may have settings which allow this object to be viewed. end note]
+6/main
+                                  If this attribute is omitted, then the parent DrawingML object shall be displayed (i.e., not
+                      hidden).
+
+                     [Example: Consider an inline DrawingML object which shall be hidden within the
+                    document's content. This setting would be specified as follows:
+
+                   <… hidden="true" />
+
+                   The hidden attribute has a value of true, which specifies that the DrawingML object is
+                    hidden and not displayed when the document is displayed. end example]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+id (Unique             Specifies a unique identifier for the current DrawingML object within the current
+Identifier)           document. This ID may be used to assist in uniquely identifying this object so that it can
+                  be referred to by other parts of the document.
+Namespace:
+.../drawingml/200     If multiple objects within the same document share the same id attribute value, then the
+6/main            document shall be considered non-conformant.
+
+                     [Example: Consider a DrawingML object defined as follows:
+
+
+                                                                                     3022
+     Attributes                                            Description
+
+
+                   <… id="10" … >
+
+                   The id attribute has a value of 10, which is the unique identifier for this DrawingML
+                       object. end example]
+
+                   The possible values for this attribute are defined by the ST_DrawingElementId simple
+                     type (§5.1.12.19).
+name (Name)         Specifies the name of the object. [Note: Typically, this will be used to store the original
+                              file name of a picture object. end note]
+Namespace:
+.../drawingml/200   [Example: Consider a DrawingML object defined as follows:
+6/main
+                   < … name="foo.jpg" >
+
+                   The name attribute has a value of foo.jpg, which is the name of this DrawingML object.
+                   end example]
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NonVisualDrawingProps">
+    <sequence>
+       <element name="hlinkClick" type="CT_Hyperlink" minOccurs="0" maxOccurs="1"/>
+       <element name="hlinkHover" type="CT_Hyperlink" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="id" type="ST_DrawingElementId" use="required"/>
+    <attribute name="name" type="xsd:string" use="required"/>
+    <attribute name="descr" type="xsd:string" use="optional" default=""/>
+    <attribute name="hidden" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.1.13      cNvSpPr (Non-Visual Drawing Properties for a Shape)
+
+This element specifies the non-visual drawing properties for a shape. These properties are to be used by the
+generating application to determine how the shape should be dealt with
+
+[Example: Consider the shape that has a shape lock applied to it.
+
+  <p:sp>
+    <p:nvSpPr>
+      <p:cNvPr id="2" name="Rectangle 1"/>
+      <p:cNvSpPr>
+        <a:spLocks noGrp="1"/>
+      </p:cNvSpPr>
+     </p:nvSpPr>
+
+
+                                                                                     3023
+     ..
+  </p:sp>
+
+This shape lock is stored within the non-visual drawing properties for this shape. End example]
+
+
+                                          Parent Elements
+nvSpPr (§4.4.1.31)
+
+
+                                        Child Elements                                        Subclause
+extLst (Extension List)                                                                              §5.1.2.1.15
+spLocks (Shape Locks)                                                                             §5.1.2.1.34
+
+
+     Attributes                                            Description
+txBox (Text Box)       Specifies that the corresponding shape is a text box and thus should be treated as such
+                   by the generating application. If this attribute is omitted then it is assumed that the
+Namespace:          corresponding shape is not specifically a text box.
+.../drawingml/200
+6/main               [Note: Because a shape is not specified to be a text box does not mean that it cannot
+                   have text attached to it. A text box is merely a specialized shape with specific properties.
+                   end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NonVisualDrawingShapeProps">
+    <sequence>
+       <element name="spLocks" type="CT_ShapeLocking" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="txBox" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.1.14       controls (List of controls)
+
+This element specifies a list of embedded controls for the corresponding slide. Custom embedded controls may
+be embedded on slides.
+
+
+                                          Parent Elements
+cSld (§4.4.1.15)
+
+
+                                         Child Elements                                        Subclause
+control (Embedded Control)                                                                         §4.4.2.1
+
+
+                                                                                     3024
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ControlList">
+    <sequence>
+       <element name="control" type="CT_Control" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+4.4.1.15       cSld (Common Slide Data)
+
+This element specifies a container for the type of slide information that is relevant to all of the slide types. All
+slides share a common set of properties that is independent of the slide type; the description of these properties
+for any particular slide is stored within the slide's cSld container. Slide data specific to the slide type indicated
+by the parent element is stored elsewhere.
+
+[Note: The actual data in cSld describe only the particular parent slide; it is only the type of information stored
+that is common across all slides. end note]
+
+ [Example: Consider the following PresentationML slide
+
+  <p:sld>
+    <p:cSld>
+      <p:spTree>
+        ..
+      </p:spTree>
+    </p:cSld>
+    ..
+  </p:sld>
+
+As the above example shows, the shape tree of a slide (spTree) is a child element of cSld because all slide types
+may contain a shape tree. Other slide properties specific to the type of slide (such as transitions for sld slides)
+are specified elsewhere. end example]
+
+
+                                          Parent Elements
+handoutMaster (§4.4.1.21); notes (§4.4.1.23); notesMaster (§4.4.1.24); sld (§4.4.1.35); sldLayout (§4.4.1.36);
+sldMaster (§4.4.1.39)
+
+
+                                         Child Elements                                        Subclause
+bg (Slide Background)                                                                                §4.4.1.1
+controls (List of controls)                                                                          §4.4.1.14
+custDataLst (Customer Data List)                                                                   §4.4.1.16
+extLst (Extension List)                                                                              §4.2.5
+spTree (Shape Tree)                                                                               §4.4.1.42
+
+
+                                                                                     3025
+     Attributes                                            Description
+name (Name)         Specifies the slide name property that is used to further identify this unique configuration
+                      of common slide data. This might be used to aid in distinguishing different slide layouts or
+                      various other slide types.
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CommonSlideData">
+    <sequence>
+       <element name="bg" type="CT_Background" minOccurs="0" maxOccurs="1"/>
+       <element name="spTree" type="CT_GroupShape" minOccurs="1" maxOccurs="1"/>
+       <element name="custDataLst" type="CT_CustomerDataList" minOccurs="0" maxOccurs="1"/>
+       <element name="controls" type="CT_ControlList" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="name" type="xsd:string" use="optional" default=""/>
+</complexType>
+
+4.4.1.16      custDataLst (Customer Data List)
+This element allows for the specifying of customer defined data within the PresentationML framework.
+References to custom data or tags may be defined within this list.
+
+
+                                          Parent Elements
+cSld (§4.4.1.15); nvPr (§4.4.1.30); presentation (§4.3.1.24)
+
+
+                                         Child Elements                                        Subclause
+custData (Customer Data)                                                                          §4.2.1
+tags (Customer Data Tags)                                                                         §4.2.9
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CustomerDataList">
+    <sequence minOccurs="0" maxOccurs="1">
+       <element name="custData" type="CT_CustomerData" minOccurs="0" maxOccurs="unbounded"/>
+       <element name="tags" type="CT_TagsData" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.17      cxnSp (Connection Shape)
+This element specifies a connection shape that is used to connect two sp elements. Once a connection is
+specified using a cxnSp, it is left to the generating application to determine the exact path the connector will
+take. That is the connector routing algorithm is left up to the generating application as the desired path might be
+different depending on the specific needs of the application.
+
+
+                                                                                     3026
+[Example: Consider the following connector shape that connects two regular shapes.
+
+  <p:spTree>
+    ..
+    <p:sp>
+      <p:nvSpPr>
+        <p:cNvPr id="1" name="Rectangle 1"/>
+        <p:cNvSpPr/>
+        <p:nvPr/>
+      </p:nvSpPr>
+      ..
+    </p:sp>
+    <p:sp>
+      <p:nvSpPr>
+        <p:cNvPr id="2" name="Rectangle 2"/>
+        <p:cNvSpPr/>
+        <p:nvPr/>
+      </p:nvSpPr>
+      ..
+    </p:sp>
+    <p:cxnSp>
+      <p:nvCxnSpPr>
+        <p:cNvPr id="3" name="Elbow Connector 3"/>
+        <p:cNvCxnSpPr>
+          <a:stCxn id="1" idx="3"/>
+          <a:endCxn id="2" idx="1"/>
+        </p:cNvCxnSpPr>
+        <p:nvPr/>
+      </p:nvCxnSpPr>
+      ..
+    </p:cxnSp>
+  </p:spTree>
+
+End example]
+
+
+                                          Parent Elements
+grpSp (§4.4.1.19); spTree (§4.4.1.42)
+
+
+                                                                                     3027
+                                         Child Elements                                        Subclause
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+nvCxnSpPr (Non-Visual Properties for a Connection Shape)                                          §4.4.1.26
+spPr (Shape Properties)                                                                            §4.4.1.41
+style (Shape Style)                                                                                 §4.4.1.43
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Connector">
+    <sequence>
+       <element name="nvCxnSpPr" type="CT_ConnectorNonVisual" minOccurs="1" maxOccurs="1"/>
+       <element name="spPr" type="a:CT_ShapeProperties" minOccurs="1" maxOccurs="1"/>
+       <element name="style" type="a:CT_ShapeStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.18      graphicFrame (Graphic Frame)
+
+This element specifies the existence of a graphics frame. This frame contains a graphic that was generated by an
+external source and needs a container in which to be displayed on the slide surface.
+
+
+                                          Parent Elements
+grpSp (§4.4.1.19); spTree (§4.4.1.42)
+
+
+                                        Child Elements                                        Subclause
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+graphic (Graphic Object)                                                                           §5.1.2.1.16
+nvGraphicFramePr (Non-Visual Properties for a Graphic Frame)                                    §4.4.1.27
+xfrm (2D Transform for Graphic Frame)                                                            §4.4.1.49
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GraphicalObjectFrame">
+    <sequence>
+       <element name="nvGraphicFramePr" type="CT_GraphicalObjectFrameNonVisual" minOccurs="1"
+         maxOccurs="1"/>
+       <element name="xfrm" type="a:CT_Transform2D" minOccurs="1" maxOccurs="1"/>
+       <element ref="a:graphic" minOccurs="1" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.19      grpSp (Group Shape)
+
+This element specifies a group shape that represents many shapes grouped together. This shape is to be treated
+just as if it were a regular shape but instead of being described by a single geometry it is made up of all the
+
+
+                                                                                     3028
+shape geometries encompassed within it. Within a group shape each of the shapes that make up the group are
+specified just as they normally would. The idea behind grouping elements however is that a single transform can
+apply to many shapes at the same time.
+
+[Example: Consider the following group shape.
+
+  <p:grpSp>
+    <p:nvGrpSpPr>
+      <p:cNvPr id="10" name="Group 9"/>
+      <p:cNvGrpSpPr/>
+      <p:nvPr/>
+    </p:nvGrpSpPr>
+    <p:grpSpPr>
+      <a:xfrm>
+        <a:off x="838200" y="990600"/>
+        <a:ext cx="2426208" cy="978408"/>
+        <a:chOff x="838200" y="990600"/>
+        <a:chExt cx="2426208" cy="978408"/>
+     </a:xfrm>
+    </p:grpSpPr>
+    <p:sp>
+    ..
+    </p:sp>
+    <p:sp>
+    ..
+    </p:sp>
+    <p:sp>
+    ..
+    </p:sp>
+  </p:grpSp>
+
+In the above example we see three shapes specified within a single group. These three shapes have their
+position and sizes specified just as they normally would within the shape tree. The generating application should
+apply the transformation after the bounding box for the group shape has been calculated. End example]
+
+
+                                          Parent Elements
+grpSp (§4.4.1.19); spTree (§4.4.1.42)
+
+
+                                         Child Elements                                        Subclause
+cxnSp (Connection Shape)                                                                         §4.4.1.17
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+graphicFrame (Graphic Frame)                                                                     §4.4.1.18
+
+
+                                                                                     3029
+                                         Child Elements                                        Subclause
+grpSp (Group Shape)                                                                              §4.4.1.19
+grpSpPr (Group Shape Properties)                                                                  §4.4.1.20
+nvGrpSpPr (Non-Visual Properties for a Group Shape)                                               §4.4.1.28
+pic (Picture)                                                                                       §4.4.1.34
+sp (Shape)                                                                                         §4.4.1.40
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GroupShape">
+    <sequence>
+       <element name="nvGrpSpPr" type="CT_GroupShapeNonVisual" minOccurs="1" maxOccurs="1"/>
+       <element name="grpSpPr" type="a:CT_GroupShapeProperties" minOccurs="1" maxOccurs="1"/>
+       <choice minOccurs="0" maxOccurs="unbounded">
+           <element name="sp" type="CT_Shape"/>
+           <element name="grpSp" type="CT_GroupShape"/>
+           <element name="graphicFrame" type="CT_GraphicalObjectFrame"/>
+           <element name="cxnSp" type="CT_Connector"/>
+           <element name="pic" type="CT_Picture"/>
+       </choice>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.20      grpSpPr (Group Shape Properties)
+
+This element specifies the properties that are to be common across all of the shapes within the corresponding
+group. If there are any conflicting properties within the group shape properties and the individual shape
+properties then the individual shape properties should take precedence.
+
+
+                                          Parent Elements
+grpSp (§4.4.1.19); spTree (§4.4.1.42)
+
+
+                                        Child Elements                                        Subclause
+blipFill (Picture Fill)                                                                             §5.1.10.14
+effectDag (Effect Container)                                                                     §5.1.10.25
+effectLst (Effect Container)                                                                      §5.1.10.26
+extLst (Extension List)                                                                              §5.1.2.1.15
+gradFill (Gradient Fill)                                                                           §5.1.10.33
+grpFill (Group Fill)                                                                              §5.1.10.35
+noFill (No Fill)                                                                                  §5.1.10.44
+pattFill (Pattern Fill)                                                                             §5.1.10.47
+scene3d (3D Scene Properties)                                                                     §5.1.4.1.26
+
+
+                                                                                     3030
+                                        Child Elements                                        Subclause
+solidFill (Solid Fill)                                                                              §5.1.10.54
+xfrm (2D Transform for Grouped Objects)                                                           §5.1.9.5
+
+
+     Attributes                                            Description
+bwMode (Black and   Specifies that the group shape should be rendered using only black and white coloring.
+White Mode)         That is the coloring information for the group shape should be converted to either black
+                     or white when rendering the corresponding shapes.
+Namespace:
+.../drawingml/200  No gray is to be used in rendering this image, only stark black and stark white.
+6/main
+                      [Note: This does not mean that the group shapes themselves are stored with only black
+                  and white color information. This attribute instead sets the rendering mode that the
+                    shapes will use when rendering. end note]
+
+                   The possible values for this attribute are defined by the ST_BlackWhiteMode simple type
+                        (§5.1.12.10).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GroupShapeProperties">
+    <sequence>
+       <element name="xfrm" type="CT_GroupTransform2D" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_FillProperties" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_EffectProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="scene3d" type="CT_Scene3D" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="bwMode" type="ST_BlackWhiteMode" use="optional"/>
+</complexType>
+
+4.4.1.21      handoutMaster (Handout Master)
+
+This element specifies an instance of a handout master slide. Within a handout master slide are contained all
+elements that describe the objects and their corresponding formatting for within a handout slide. Within a
+handout master slide the cSld element specifies the common slide elements such as shapes and their attached
+text bodies. There are other properties within a handout master slide but cSld encompasses the majority of the
+intended purpose for a handoutMaster slide.
+
+
+                                          Parent Elements
+
+Root element of PresentationML Handout Master part
+
+
+                                         Child Elements                                        Subclause
+clrMap (Color Scheme Map)                                                                         §4.4.1.6
+
+
+                                                                                     3031
+                                         Child Elements                                        Subclause
+cSld (Common Slide Data)                                                                          §4.4.1.15
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+hf (Header/Footer information for a slide master)                                                   §4.4.1.22
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_HandoutMaster">
+    <sequence>
+       <element name="cSld" type="CT_CommonSlideData" minOccurs="1" maxOccurs="1"/>
+       <group ref="EG_TopLevelSlide" minOccurs="1" maxOccurs="1"/>
+       <element name="hf" type="CT_HeaderFooter" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.22       hf (Header/Footer information for a slide master)
+
+This element specifies the header and footer information for a slide. Headers and footers consist of
+placeholders for text that should be consistent across all slides and slide types, such as a date and time, slide
+numbering, and custom header and footer text.
+
+
+                                          Parent Elements
+handoutMaster (§4.4.1.21); notesMaster (§4.4.1.24); sldLayout (§4.4.1.36); sldMaster (§4.4.1.39)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+
+
+     Attributes                                            Description
+dt (Date/Time         Specifies whether the Date/Time placeholder is enabled for this master. If this attribute is
+Placeholder)         not specified, a value of true should be assumed by the generating application.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+ftr (Footer             Specifies whether the Footer placeholder is enabled for this master. If this attribute is not
+Placeholder)           specified, a value of true should be assumed by the generating application.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+hdr (Header           Specifies whether the Header placeholder is enabled for this master. If this attribute is
+Placeholder)         not specified, a value of true should be assumed by the generating application.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+sldNum (Slide         Specifies whether the slide number placeholder is enabled. If this attribute is not
+Number                specified, a value of true should be assumed by the generating application.
+
+
+                                                                                     3032
+     Attributes                                            Description
+
+Placeholder)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_HeaderFooter">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="sldNum" type="xsd:boolean" use="optional" default="true"/>
+    <attribute name="hdr" type="xsd:boolean" use="optional" default="true"/>
+    <attribute name="ftr" type="xsd:boolean" use="optional" default="true"/>
+    <attribute name="dt" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+4.4.1.23      notes (Notes Slide)
+
+This element specifies the existence of a notes slide along with its corresponding data. Contained within a notes
+slide are all the common slide elements along with addition properties that are specific to the notes element.
+
+[Example: Consider the following PresentationML notes slide
+
+  <p:notes>
+    <p:cSld>
+    ..
+    </p:cSld>
+    ..
+  </p:notes>
+
+In the above example a notes element specifies the existence of a notes slide with all of its parts. Notice the cSld
+element, that specifies the common elements that can appear on any slide type and then any elements specify
+additional non-common properties for this notes slide. end example]
+
+
+                                          Parent Elements
+
+Root element of PresentationML Notes Slide part
+
+
+                                         Child Elements                                        Subclause
+clrMapOvr (Color Scheme Map Override)                                                            §4.4.1.7
+cSld (Common Slide Data)                                                                          §4.4.1.15
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+
+
+     Attributes                                            Description
+
+
+                                                                                     3033
+     Attributes                                            Description
+showMasterPhAni    Specifies whether or not to display animations on placeholders from the master slide.
+m (Show Master
+Placeholder         The possible values for this attribute are defined by the XML Schema boolean datatype.
+Animations)
+showMasterSp        Specifies if shapes on the master slide should be shown on slides or not.
+(Show Master
+Shapes)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NotesSlide">
+    <sequence minOccurs="1" maxOccurs="1">
+       <element name="cSld" type="CT_CommonSlideData" minOccurs="1" maxOccurs="1"/>
+       <group ref="EG_ChildSlide" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attributeGroup ref="AG_ChildSlide"/>
+</complexType>
+
+4.4.1.24      notesMaster (Notes Master)
+
+This element specifies an instance of a handout master slide. Within a handout master slide are contained all
+elements that describe the objects and their corresponding formatting for within a handout slide. Within a
+handout master slide the cSld element specifies the common slide elements such as shapes and their attached
+text bodies. There are other properties within a handout master slide but cSld encompasses the majority of the
+intended purpose for a handoutMaster slide.
+
+
+                                          Parent Elements
+
+Root element of PresentationML Notes Master part
+
+
+                                         Child Elements                                        Subclause
+clrMap (Color Scheme Map)                                                                         §4.4.1.6
+cSld (Common Slide Data)                                                                          §4.4.1.15
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+hf (Header/Footer information for a slide master)                                                   §4.4.1.22
+notesStyle (Notes Text Style)                                                                       §4.4.1.25
+
+
+                                                                                     3034
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NotesMaster">
+    <sequence>
+       <element name="cSld" type="CT_CommonSlideData" minOccurs="1" maxOccurs="1"/>
+       <group ref="EG_TopLevelSlide" minOccurs="1" maxOccurs="1"/>
+       <element name="hf" type="CT_HeaderFooter" minOccurs="0" maxOccurs="1"/>
+       <element name="notesStyle" type="a:CT_TextListStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.25       notesStyle (Notes Text Style)
+
+This element specifies the text formatting style for the all other text within a notes slide. This formatting will be
+used on all text within the corresponding notes slides. The text formatting is specified by utilizing the
+DrawingML framework just as within a regular presentation slide. Within the notesStyle element there may be
+many different types of styles defined as there are different types of text stored within a notes slide.
+
+
+                                          Parent Elements
+notesMaster (§4.4.1.24)
+
+
+                                        Child Elements                                        Subclause
+defPPr (Default Paragraph Style)                                                                     §5.1.5.2.2
+extLst (Extension List)                                                                              §5.1.2.1.15
+lvl1pPr (List Level 1 Text Style)                                                                     §5.1.5.4.13
+lvl2pPr (List Level 2 Text Style)                                                                     §5.1.5.4.14
+lvl3pPr (List Level 3 Text Style)                                                                     §5.1.5.4.15
+lvl4pPr (List Level 4 Text Style)                                                                     §5.1.5.4.16
+lvl5pPr (List Level 5 Text Style)                                                                     §5.1.5.4.17
+lvl6pPr (List Level 6 Text Style)                                                                     §5.1.5.4.18
+lvl7pPr (List Level 7 Text Style)                                                                     §5.1.5.4.19
+lvl8pPr (List Level 8 Text Style)                                                                     §5.1.5.4.20
+lvl9pPr (List Level 9 Text Style)                                                                     §5.1.5.4.21
+
+
+                                                                                     3035
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TextListStyle">
+    <sequence>
+       <element name="defPPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl1pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl2pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl3pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl4pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl5pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl6pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl7pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl8pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl9pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.26      nvCxnSpPr (Non-Visual Properties for a Connection Shape)
+
+This element specifies all non-visual properties for a connection shape. This element is a container for the non-
+visual identification properties, shape properties and application properties that are to be associated with a
+connection shape. This allows for additional information that does not affect the appearance of the connection
+shape to be stored.
+
+
+                                          Parent Elements
+cxnSp (§4.4.1.17)
+
+
+                                         Child Elements                                        Subclause
+cNvCxnSpPr (Non-Visual Connector Shape Drawing Properties)                                       §4.4.1.8
+cNvPr (Non-Visual Drawing Properties)                                                             §4.4.1.12
+nvPr (Non-Visual Properties)                                                                       §4.4.1.30
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ConnectorNonVisual">
+    <sequence>
+       <element name="cNvPr" type="a:CT_NonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+       <element name="cNvCxnSpPr" type="a:CT_NonVisualConnectorProperties" minOccurs="1"
+         maxOccurs="1"/>
+       <element name="nvPr" type="CT_ApplicationNonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.27      nvGraphicFramePr (Non-Visual Properties for a Graphic Frame)
+
+This element specifies all non-visual properties for a graphic frame. This element is a container for the non-visual
+identification properties, shape properties and application properties that are to be associated with a graphic
+
+
+                                                                                     3036
+frame. This allows for additional information that does not affect the appearance of the graphic frame to be
+stored.
+
+
+                                          Parent Elements
+graphicFrame (§4.4.1.18)
+
+
+                                         Child Elements                                        Subclause
+cNvGraphicFramePr (Non-Visual Graphic Frame Drawing Properties)                                 §4.4.1.9
+cNvPr (Non-Visual Drawing Properties)                                                             §4.4.1.12
+nvPr (Non-Visual Properties)                                                                       §4.4.1.30
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GraphicalObjectFrameNonVisual">
+    <sequence>
+       <element name="cNvPr" type="a:CT_NonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+       <element name="cNvGraphicFramePr" type="a:CT_NonVisualGraphicFrameProperties" minOccurs="1"
+         maxOccurs="1"/>
+       <element name="nvPr" type="CT_ApplicationNonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.28      nvGrpSpPr (Non-Visual Properties for a Group Shape)
+
+This element specifies all non-visual properties for a group shape. This element is a container for the non-visual
+identification properties, shape properties and application properties that are to be associated with a group
+shape. This allows for additional information that does not affect the appearance of the group shape to be
+stored.
+
+
+                                          Parent Elements
+grpSp (§4.4.1.19); spTree (§4.4.1.42)
+
+
+                                         Child Elements                                        Subclause
+cNvGrpSpPr (Non-Visual Group Shape Drawing Properties)                                          §4.4.1.10
+cNvPr (Non-Visual Drawing Properties)                                                             §4.4.1.12
+nvPr (Non-Visual Properties)                                                                       §4.4.1.30
+
+
+                                                                                     3037
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GroupShapeNonVisual">
+    <sequence>
+       <element name="cNvPr" type="a:CT_NonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+       <element name="cNvGrpSpPr" type="a:CT_NonVisualGroupDrawingShapeProps" minOccurs="1"
+         maxOccurs="1"/>
+       <element name="nvPr" type="CT_ApplicationNonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.29      nvPicPr (Non-Visual Properties for a Picture)
+
+This element specifies all non-visual properties for a picture. This element is a container for the non-visual
+identification properties, shape properties and application properties that are to be associated with a picture.
+This allows for additional information that does not affect the appearance of the picture to be stored.
+
+[Example: Consider the following PresentationML.
+
+  <p:pic>
+    ..
+    <p:nvPicPr>
+      ..
+    </p:nvPicPr>
+    ..
+  </p:pic>
+
+end example]
+
+
+                                          Parent Elements
+pic (§4.4.1.34)
+
+
+                                         Child Elements                                        Subclause
+cNvPicPr (Non-Visual Picture Drawing Properties)                                                   §4.4.1.11
+cNvPr (Non-Visual Drawing Properties)                                                             §4.4.1.12
+nvPr (Non-Visual Properties)                                                                       §4.4.1.30
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_PictureNonVisual">
+    <sequence>
+       <element name="cNvPr" type="a:CT_NonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+       <element name="cNvPicPr" type="a:CT_NonVisualPictureProperties" minOccurs="1" maxOccurs="1"/>
+       <element name="nvPr" type="CT_ApplicationNonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+
+                                                                                     3038
+4.4.1.30      nvPr (Non-Visual Properties)
+
+This element specifies non-visual properties for objects. These properties include multimedia content associated
+with an object and properties indicating how the object is to be used or displayed in different contexts.
+
+
+                                          Parent Elements
+nvCxnSpPr (§4.4.1.26); nvGraphicFramePr (§4.4.1.27); nvGrpSpPr (§4.4.1.28); nvPicPr (§4.4.1.29); nvSpPr
+(§4.4.1.31)
+
+
+                                         Child Elements                                        Subclause
+audioCd (Audio from CD)                                                                            §5.1.3.1
+audioFile (Audio from File)                                                                          §5.1.3.2
+custDataLst (Customer Data List)                                                                   §4.4.1.16
+extLst (Extension List)                                                                              §4.2.5
+ph (Placeholder Shape)                                                                            §4.4.1.33
+quickTimeFile (QuickTime from File)                                                                 §5.1.3.4
+videoFile (Video from File)                                                                           §5.1.3.6
+wavAudioFile (Audio from WAV File)                                                                §5.1.3.7
+
+
+     Attributes                                            Description
+isPhoto (Is a Photo    Specifies whether the picture belongs to a photo album and should thus be included
+Album)           when editing a photo album within the generating application.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+userDrawn (Is User   Specifies if the corresponding object has been drawn by the user and should thus not be
+Drawn)               deleted. This allows for the flagging of slides that contain user drawn data.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ApplicationNonVisualDrawingProps">
+    <sequence>
+       <element name="ph" type="CT_Placeholder" minOccurs="0" maxOccurs="1"/>
+       <group ref="a:EG_Media" minOccurs="0" maxOccurs="1"/>
+       <element name="custDataLst" type="CT_CustomerDataList" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="isPhoto" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="userDrawn" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+
+                                                                                     3039
+4.4.1.31      nvSpPr (Non-Visual Properties for a Shape)
+
+This element specifies all non-visual properties for a shape. This element is a container for the non-visual
+identification properties, shape properties and application properties that are to be associated with a shape.
+This allows for additional information that does not affect the appearance of the shape to be stored.
+
+
+                                          Parent Elements
+sp (§4.4.1.40)
+
+
+                                         Child Elements                                        Subclause
+cNvPr (Non-Visual Drawing Properties)                                                             §4.4.1.12
+cNvSpPr (Non-Visual Drawing Properties for a Shape)                                               §4.4.1.13
+nvPr (Non-Visual Properties)                                                                       §4.4.1.30
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ShapeNonVisual">
+    <sequence>
+       <element name="cNvPr" type="a:CT_NonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+       <element name="cNvSpPr" type="a:CT_NonVisualDrawingShapeProps" minOccurs="1" maxOccurs="1"/>
+       <element name="nvPr" type="CT_ApplicationNonVisualDrawingProps" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.32       otherStyle (Slide Master Other Text Style)
+
+This element specifies the text formatting style for the all other text within a master slide. This formatting will be
+used on all text not covered by the titleStyle or bodyStyle elements within related presentation slides. The text
+formatting is specified by utilizing the DrawingML framework just as within a regular presentation slide. Within
+the otherStyle element there may be many different types of styles defined as there are different types of text
+stored within a slide.
+
+[Note: The otherStyle element is to be used for specifying the text formatting of text within a slide shape but
+not within a text box. Text box styling is handled from within the bodyStyle element. end note]
+
+
+                                          Parent Elements
+txStyles (§4.4.1.48)
+
+
+                                        Child Elements                                        Subclause
+defPPr (Default Paragraph Style)                                                                     §5.1.5.2.2
+extLst (Extension List)                                                                              §5.1.2.1.15
+lvl1pPr (List Level 1 Text Style)                                                                     §5.1.5.4.13
+lvl2pPr (List Level 2 Text Style)                                                                     §5.1.5.4.14
+
+
+                                                                                     3040
+                                        Child Elements                                        Subclause
+lvl3pPr (List Level 3 Text Style)                                                                     §5.1.5.4.15
+lvl4pPr (List Level 4 Text Style)                                                                     §5.1.5.4.16
+lvl5pPr (List Level 5 Text Style)                                                                     §5.1.5.4.17
+lvl6pPr (List Level 6 Text Style)                                                                     §5.1.5.4.18
+lvl7pPr (List Level 7 Text Style)                                                                     §5.1.5.4.19
+lvl8pPr (List Level 8 Text Style)                                                                     §5.1.5.4.20
+lvl9pPr (List Level 9 Text Style)                                                                     §5.1.5.4.21
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TextListStyle">
+    <sequence>
+       <element name="defPPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl1pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl2pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl3pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl4pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl5pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl6pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl7pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl8pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl9pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.33     ph (Placeholder Shape)
+
+This element specifies that the corresponding shape should be represented by the generating application as a
+placeholder. When a shape is considered a placeholder by the generating application it can have special
+properties to alert the user that they may enter content into the shape. Different types of placeholders are
+allowed and can be specified by using the placeholder type attribute for this element.
+
+
+                                          Parent Elements
+nvPr (§4.4.1.30)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+
+
+     Attributes                                            Description
+hasCustomPrompt    Specifies whether the corresponding placeholder should have a custom prompt or not.
+(Placeholder has
+
+
+                                                                                     3041
+     Attributes                                            Description
+custom prompt)     The possible values for this attribute are defined by the XML Schema boolean datatype.
+idx (Placeholder       Specifies the placeholder index. This is used when applying templates or changing
+Index)                layouts to match a placeholder on one template/master to another.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+orient (Placeholder    Specifies the orientation of a placeholder.
+Orientation)
+                   The possible values for this attribute are defined by the ST_Direction simple type
+                         (§4.8.5).
+sz (Placeholder Size)   Specifies the size of a placeholder.
+
+                   The possible values for this attribute are defined by the ST_PlaceholderSize simple type
+                        (§4.8.13).
+type (Placeholder     Specifies what type of content a placeholder is intended to contain.
+Type)
+                   The possible values for this attribute are defined by the ST_PlaceholderType simple type
+                        (§4.8.14).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Placeholder">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="type" type="ST_PlaceholderType" use="optional" default="obj"/>
+    <attribute name="orient" type="ST_Direction" use="optional" default="horz"/>
+    <attribute name="sz" type="ST_PlaceholderSize" use="optional" default="full"/>
+    <attribute name="idx" type="xsd:unsignedInt" use="optional" default="0"/>
+    <attribute name="hasCustomPrompt" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.1.34       pic (Picture)
+
+This element specifies the existence of a picture object within the document.
+
+[Example: Consider the following PresentationML that specifies the existence of a picture within a document.
+This picture can have non-visual properties, a picture fill as well as shape properties attached to it.
+
+  <p:pic>
+    <p:nvPicPr>
+      <p:cNvPr id="4" name="lake.JPG" descr="Picture of a Lake" />
+      <p:cNvPicPr>
+        <a:picLocks noChangeAspect="1"/>
+      </p:cNvPicPr>
+      <p:nvPr/>
+
+
+                                                                                     3042
+    </p:nvPicPr>
+    <p:blipFill>
+    ...
+    </p:blipFill>
+    <p:spPr>
+    ...
+    </p:spPr>
+  </p:pic>
+
+end example]
+
+
+                                          Parent Elements
+grpSp (§4.4.1.19); spTree (§4.4.1.42)
+
+
+                                         Child Elements                                        Subclause
+blipFill (Picture Fill)                                                                                  §4.4.1.4
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+nvPicPr (Non-Visual Properties for a Picture)                                                        §4.4.1.29
+spPr (Shape Properties)                                                                            §4.4.1.41
+style (Shape Style)                                                                                 §4.4.1.43
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Picture">
+    <sequence>
+       <element name="nvPicPr" type="CT_PictureNonVisual" minOccurs="1" maxOccurs="1"/>
+       <element name="blipFill" type="a:CT_BlipFillProperties" minOccurs="1" maxOccurs="1"/>
+       <element name="spPr" type="a:CT_ShapeProperties" minOccurs="1" maxOccurs="1"/>
+       <element name="style" type="a:CT_ShapeStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.35       sld (Presentation Slide)
+
+This element specifies a slide within a slide list. The slide list is used to specify an ordering of slides.
+
+[Example: Consider the following custom show with an ordering of slides.
+
+  <p:custShowLst>
+    <p:custShow name="Custom Show 1" id="0">
+      <p:sldLst>
+        <p:sld r:id="rId4"/>
+        <p:sld r:id="rId3"/>
+        <p:sld r:id="rId2"/>
+
+
+                                                                                     3043
+        <p:sld r:id="rId5"/>
+      </p:sldLst>
+    </p:custShow>
+  </p:custShowLst>
+
+In the above example the order specified to present the slides is slide 4, then 3, 2 and finally 5. end example]
+
+
+                                          Parent Elements
+
+Root element of PresentationML Slide part
+
+
+                                         Child Elements                                        Subclause
+clrMapOvr (Color Scheme Map Override)                                                            §4.4.1.7
+cSld (Common Slide Data)                                                                          §4.4.1.15
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+timing (Slide Timing Information for a Slide Layout)                                                 §4.4.1.44
+transition (Slide Transition for a Slide Layout)                                                       §4.4.1.46
+
+
+     Attributes                                            Description
+show (Show Slide in   Specifies that the current slide should be shown in slide show. If this attribute is omitted
+Slide Show)          then a value of true is assumed.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+showMasterPhAni    Specifies whether or not to display animations on placeholders from the master slide.
+m (Show Master
+Placeholder         The possible values for this attribute are defined by the XML Schema boolean datatype.
+Animations)
+showMasterSp        Specifies if shapes on the master slide should be shown on slides or not.
+(Show Master
+Shapes)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+                                                                                     3044
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Slide">
+    <sequence minOccurs="1" maxOccurs="1">
+       <element name="cSld" type="CT_CommonSlideData" minOccurs="1" maxOccurs="1"/>
+       <group ref="EG_ChildSlide" minOccurs="0" maxOccurs="1"/>
+       <element name="transition" type="CT_SlideTransition" minOccurs="0" maxOccurs="1"/>
+       <element name="timing" type="CT_SlideTiming" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attributeGroup ref="AG_ChildSlide"/>
+    <attribute name="show" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+4.4.1.36      sldLayout (Slide Layout)
+
+This element specifies an instance of a slide layout. The slide layout contains in essence a template slide design
+that can be applied to any existing slide. When applied to an existing slide all corresponding content should be
+mapped to the new slide layout.
+
+
+                                          Parent Elements
+
+Root element of PresentationML Slide Layout part
+
+
+                                         Child Elements                                        Subclause
+clrMapOvr (Color Scheme Map Override)                                                            §4.4.1.7
+cSld (Common Slide Data)                                                                          §4.4.1.15
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+hf (Header/Footer information for a slide master)                                                   §4.4.1.22
+timing (Slide Timing Information for a Slide Layout)                                                 §4.4.1.44
+transition (Slide Transition for a Slide Layout)                                                       §4.4.1.46
+
+
+     Attributes                                            Description
+matchingName       Specifies a name to be used in place of the name attribute within the cSld element. This
+(Matching Name)       is used for layout matching in response to layout changes and template applications.
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+preserve (Preserve    Specifies whether the corresponding slide layout will be deleted when all the slides that
+Slide Layout)          follow that layout are deleted. If this attribute is not specified then a value of false should
+                  be assumed by the generating application. This would mean that the slide would in fact
+                  be deleted if no slides within the presentation were related to it.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+showMasterPhAni    Specifies whether or not to display animations on placeholders from the master slide.
+m (Show Master
+
+
+                                                                                     3045
+     Attributes                                            Description
+
+Placeholder
+Animations)         The possible values for this attribute are defined by the XML Schema boolean datatype.
+showMasterSp        Specifies if shapes on the master slide should be shown on slides or not.
+(Show Master
+Shapes)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+type (Slide Layout     Specifies the slide layout type that is used by this slide.
+Type)
+                   The possible values for this attribute are defined by the ST_SlideLayoutType simple type
+                        (§4.8.19).
+userDrawn (Is User   Specifies if the corresponding object has been drawn by the user and should thus not be
+Drawn)               deleted. This allows for the flagging of slides that contain user drawn data.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SlideLayout">
+    <sequence minOccurs="1" maxOccurs="1">
+       <element name="cSld" type="CT_CommonSlideData" minOccurs="1" maxOccurs="1"/>
+       <group ref="EG_ChildSlide" minOccurs="0" maxOccurs="1"/>
+       <element name="transition" type="CT_SlideTransition" minOccurs="0" maxOccurs="1"/>
+       <element name="timing" type="CT_SlideTiming" minOccurs="0" maxOccurs="1"/>
+       <element name="hf" type="CT_HeaderFooter" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attributeGroup ref="AG_ChildSlide"/>
+    <attribute name="matchingName" type="xsd:string" use="optional" default=""/>
+    <attribute name="type" type="ST_SlideLayoutType" use="optional" default="cust"/>
+    <attribute name="preserve" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="userDrawn" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.1.37      sldLayoutId (Slide Layout Id)
+
+This element specifies the relationship information for each slide layout that is used within the slide master. The
+slide master has relationship identifiers that it uses internally for determining the slide layouts that should be
+used. Then, to resolve what these slide layouts should be the sldLayoutId elements in the sldLayoutIdLst are
+utilized.
+
+
+                                          Parent Elements
+sldLayoutIdLst (§4.4.1.38)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List)                                                                              §4.2.5
+
+
+                                                                                     3046
+     Attributes                                            Description
+id (ID Tag)             Specifies the relationship id value that the generating application can use to resolve
+                   which slide layout will be used in the creation of the slide. This relationship id is used
+Namespace:          within the relationship file for the master slide to expose the location of the
+.../officeDocument   corresponding layout file within the presentation.
+/2006/relationshi
+ps                 The possible values for this attribute are defined by the ST_RelationshipId simple type
+                         (§7.8.2.1).
+id (ID Tag)             Specifies the identification number that uniquely identifies this slide layout within the
+                      presentation file.
+
+                   The possible values for this attribute are defined by the ST_SlideLayoutId simple type
+                        (§4.8.18).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SlideLayoutIdListEntry">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="id" type="ST_SlideLayoutId" use="optional"/>
+    <attribute ref="r:id" use="required"/>
+</complexType>
+
+4.4.1.38      sldLayoutIdLst (List of Slide Layouts)
+
+This element specifies the existence of the slide layout identification list. This list is contained within the slide
+master and is used to determine which layouts are being used within the slide master file. Each layout within the
+list of slide layouts has its own identification number and relationship identifier that uniquely identifies it within
+both the presentation document and the particular master slide within which it is used.
+
+
+                                          Parent Elements
+sldMaster (§4.4.1.39)
+
+
+                                         Child Elements                                        Subclause
+sldLayoutId (Slide Layout Id)                                                                       §4.4.1.37
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SlideLayoutIdList">
+    <sequence>
+       <element name="sldLayoutId" type="CT_SlideLayoutIdListEntry" minOccurs="0"
+         maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+
+                                                                                     3047
+4.4.1.39      sldMaster (Slide Master)
+
+This element specifies an instance of a slide master slide. Within a slide master slide are contained all elements
+that describe the objects and their corresponding formatting for within a presentation slide. Within a slide
+master slide are two main elements. The cSld element specifies the common slide elements such as shapes and
+their attached text bodies. Then the txStyles element specifies the formatting for the text within each of these
+shapes. The other properties within a slide master slide specify other properties for within a presentation slide
+such as color information, headers and footers, as well as timing and transition information for all corresponding
+presentation slides.
+
+
+                                          Parent Elements
+
+Root element of PresentationML Slide Master part
+
+
+                                         Child Elements                                        Subclause
+clrMap (Color Scheme Map)                                                                         §4.4.1.6
+cSld (Common Slide Data)                                                                          §4.4.1.15
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+hf (Header/Footer information for a slide master)                                                   §4.4.1.22
+sldLayoutIdLst (List of Slide Layouts)                                                               §4.4.1.38
+timing (Slide Timing Information for a Slide Layout)                                                 §4.4.1.44
+transition (Slide Transition for a Slide Layout)                                                       §4.4.1.46
+txStyles (Slide Master Text Styles)                                                                  §4.4.1.48
+
+
+     Attributes                                            Description
+preserve (Preserve    Specifies whether the corresponding slide layout will be deleted when all the slides that
+Slide Master)         follow that layout are deleted. If this attribute is not specified then a value of false should
+                  be assumed by the generating application. This would mean that the slide would in fact
+                  be deleted if no slides within the presentation were related to it.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+                                                                                     3048
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SlideMaster">
+    <sequence minOccurs="1" maxOccurs="1">
+       <element name="cSld" type="CT_CommonSlideData" minOccurs="1" maxOccurs="1"/>
+       <group ref="EG_TopLevelSlide" minOccurs="1" maxOccurs="1"/>
+       <element name="sldLayoutIdLst" type="CT_SlideLayoutIdList" minOccurs="0" maxOccurs="1"/>
+       <element name="transition" type="CT_SlideTransition" minOccurs="0" maxOccurs="1"/>
+       <element name="timing" type="CT_SlideTiming" minOccurs="0" maxOccurs="1"/>
+       <element name="hf" type="CT_HeaderFooter" minOccurs="0" maxOccurs="1"/>
+       <element name="txStyles" type="CT_SlideMasterTextStyles" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="preserve" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.1.40      sp (Shape)
+
+This element specifies the existence of a single shape. A shape can either be a preset or a custom geometry,
+defined using the DrawingML framework. In addition to a geometry each shape can have both visual and non-
+visual properties attached. Text and corresponding styling information can also be attached to a shape. This
+shape is specified along with all other shapes within either the shape tree or group shape elements.
+
+[Note: Shapes are the preferred mechanism for specifying text on a slide. End note]
+
+
+                                          Parent Elements
+grpSp (§4.4.1.19); spTree (§4.4.1.42)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+nvSpPr (Non-Visual Properties for a Shape)                                                         §4.4.1.31
+spPr (Shape Properties)                                                                            §4.4.1.41
+style (Shape Style)                                                                                 §4.4.1.43
+txBody (Shape Text Body)                                                                          §4.4.1.47
+
+
+     Attributes                                            Description
+useBgFill (Use         Specifies that the shape fill should be set to that of the slide background surface.
+Background Fill)
+                      [Note: This attribute does not set the fill of the shape to be transparent but instead sets it
+                      to be filled with the portion of the slide background that is directly behind it. End note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+                                                                                     3049
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Shape">
+    <sequence>
+       <element name="nvSpPr" type="CT_ShapeNonVisual" minOccurs="1" maxOccurs="1"/>
+       <element name="spPr" type="a:CT_ShapeProperties" minOccurs="1" maxOccurs="1"/>
+       <element name="style" type="a:CT_ShapeStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="txBody" type="a:CT_TextBody" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="useBgFill" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.1.41      spPr (Shape Properties)
+
+This element specifies the visual shape properties that can be applied to a shape. These properties include the
+shape fill, outline, geometry, effects, and 3D orientation.
+
+
+                                          Parent Elements
+cxnSp (§4.4.1.17); pic (§4.4.1.34); sp (§4.4.1.40)
+
+
+                                        Child Elements                                        Subclause
+blipFill (Picture Fill)                                                                             §5.1.10.14
+custGeom (Custom Geometry)                                                                    §5.1.11.8
+effectDag (Effect Container)                                                                     §5.1.10.25
+effectLst (Effect Container)                                                                      §5.1.10.26
+extLst (Extension List)                                                                              §5.1.2.1.15
+gradFill (Gradient Fill)                                                                           §5.1.10.33
+grpFill (Group Fill)                                                                              §5.1.10.35
+ln (Outline)                                                                                        §5.1.2.1.24
+noFill (No Fill)                                                                                  §5.1.10.44
+pattFill (Pattern Fill)                                                                             §5.1.10.47
+prstGeom (Preset geometry)                                                                     §5.1.11.18
+scene3d (3D Scene Properties)                                                                     §5.1.4.1.26
+solidFill (Solid Fill)                                                                              §5.1.10.54
+sp3d (Apply 3D shape properties)                                                                 §5.1.7.12
+xfrm (2D Transform for Individual Objects)                                                          §5.1.9.6
+
+
+     Attributes                                            Description
+bwMode (Black and   Specifies that the picture should be rendered using only black and white coloring. That is
+White Mode)         the coloring information for the picture should be converted to either black or white
+
+
+                                                                                     3050
+     Attributes                                            Description
+
+                 when rendering the picture.
+Namespace:
+.../drawingml/200  No gray is to be used in rendering this image, only stark black and stark white.
+6/main
+                      [Note: This does not mean that the picture itself that is stored within the file is
+                       necessarily a black and white picture. This attribute instead sets the rendering mode that
+                     the picture will have applied to when rendering. end note]
+
+                   The possible values for this attribute are defined by the ST_BlackWhiteMode simple type
+                        (§5.1.12.10).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ShapeProperties">
+    <sequence>
+       <element name="xfrm" type="CT_Transform2D" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_Geometry" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_FillProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="ln" type="CT_LineProperties" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_EffectProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="scene3d" type="CT_Scene3D" minOccurs="0" maxOccurs="1"/>
+       <element name="sp3d" type="CT_Shape3D" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="bwMode" type="ST_BlackWhiteMode" use="optional"/>
+</complexType>
+
+4.4.1.42      spTree (Shape Tree)
+
+This element specifies all shapes within a slide. Contained within here are all the shapes, either grouped or not,
+that can be referenced on a given slide. As most objects within a slide are shapes, this represents the majority of
+content within a slide. Text and effects are attached to shapes that are contained within the spTree element.
+
+[Example: Consider the following PresentationML slide
+
+  <p:sld>
+    <p:cSld>
+      <p:spTree>
+        <p:nvGrpSpPr>
+        ..
+        </p:nvGrpSpPr>
+        <p:grpSpPr>
+        ..
+        </p:grpSpPr>
+        <p:sp>
+        ..
+        </p:sp>
+
+
+                                                                                     3051
+      </p:spTree>
+    </p:cSld>
+    ..
+  </p:sld>
+
+In the above example the shape tree specifies all the shape properties for this slide. end example]
+
+
+                                          Parent Elements
+cSld (§4.4.1.15)
+
+
+                                         Child Elements                                        Subclause
+cxnSp (Connection Shape)                                                                         §4.4.1.17
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+graphicFrame (Graphic Frame)                                                                     §4.4.1.18
+grpSp (Group Shape)                                                                              §4.4.1.19
+grpSpPr (Group Shape Properties)                                                                  §4.4.1.20
+nvGrpSpPr (Non-Visual Properties for a Group Shape)                                               §4.4.1.28
+pic (Picture)                                                                                       §4.4.1.34
+sp (Shape)                                                                                         §4.4.1.40
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GroupShape">
+    <sequence>
+       <element name="nvGrpSpPr" type="CT_GroupShapeNonVisual" minOccurs="1" maxOccurs="1"/>
+       <element name="grpSpPr" type="a:CT_GroupShapeProperties" minOccurs="1" maxOccurs="1"/>
+       <choice minOccurs="0" maxOccurs="unbounded">
+           <element name="sp" type="CT_Shape"/>
+           <element name="grpSp" type="CT_GroupShape"/>
+           <element name="graphicFrame" type="CT_GraphicalObjectFrame"/>
+           <element name="cxnSp" type="CT_Connector"/>
+           <element name="pic" type="CT_Picture"/>
+       </choice>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.43       style (Shape Style)
+
+This element specifies the style information for a shape. This is used to define a shape's appearance in terms of
+the preset styles defined by the style matrix for the theme.
+
+[Example:
+
+  <p:style>
+    <a:lnRef idx="3">
+
+
+                                                                                     3052
+      <a:schemeClr val="lt1"/>
+    </a:lnRef>
+    <a:fillRef idx="1">
+      <a:schemeClr val="accent3"/>
+    </a:fillRef>
+    <a:effectRef idx="1">
+      <a:schemeClr val="accent3"/>
+    </a:effectRef>
+    <a:fontRef idx="minor">
+      <a:schemeClr val="lt1"/>
+    </a:fontRef>
+  </p:style>
+
+The parent shape of the above code is to have an outline that uses the third line style defined by the theme, use
+the first fill defined by the scheme, and be rendered with the first effect defined by the theme. Text inside the
+shape is to use the minor font defined by the theme.
+
+end example]
+
+
+                                          Parent Elements
+cxnSp (§4.4.1.17); pic (§4.4.1.34); sp (§4.4.1.40)
+
+
+                                        Child Elements                                        Subclause
+effectRef (Effect Reference)                                                                          §5.1.4.2.8
+fillRef (Fill Reference)                                                                              §5.1.4.2.10
+fontRef (Font Reference)                                                                           §5.1.4.1.17
+lnRef (Line Reference)                                                                              §5.1.4.2.19
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_ShapeStyle">
+    <sequence>
+       <element name="lnRef" type="CT_StyleMatrixReference" minOccurs="1" maxOccurs="1"/>
+       <element name="fillRef" type="CT_StyleMatrixReference" minOccurs="1" maxOccurs="1"/>
+       <element name="effectRef" type="CT_StyleMatrixReference" minOccurs="1" maxOccurs="1"/>
+       <element name="fontRef" type="CT_FontReference" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.44      timing (Slide Timing Information for a Slide Layout)
+
+This element specifies the timing information for handling all animations and timed events within the
+corresponding slide. This information is tracked via time nodes within the timing element. More information on
+the specifics of these time nodes and how they are to be defined can be found within the Animation section of
+the PresentationML framework.
+
+
+                                                                                     3053
+                                          Parent Elements
+sld (§4.4.1.35); sldLayout (§4.4.1.36); sldMaster (§4.4.1.39)
+
+
+                                         Child Elements                                        Subclause
+bldLst (Build List)                                                                                §4.6.14
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+tnLst (Time Node List)                                                                           §4.6.87
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SlideTiming">
+    <sequence>
+       <element name="tnLst" type="CT_TimeNodeList" minOccurs="0" maxOccurs="1"/>
+       <element name="bldLst" type="CT_BuildList" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.45        titleStyle (Slide Master Title Text Style)
+
+This element specifies the text formatting style for the title text within a master slide. This formatting will be
+used on all title text within related presentation slides. The text formatting is specified by utilizing the
+DrawingML framework just as within a regular presentation slide. Within a title style there may be many
+different types of styles defined as there are different types of text stored within a slide title.
+
+
+                                          Parent Elements
+txStyles (§4.4.1.48)
+
+
+                                        Child Elements                                        Subclause
+defPPr (Default Paragraph Style)                                                                     §5.1.5.2.2
+extLst (Extension List)                                                                              §5.1.2.1.15
+lvl1pPr (List Level 1 Text Style)                                                                     §5.1.5.4.13
+lvl2pPr (List Level 2 Text Style)                                                                     §5.1.5.4.14
+lvl3pPr (List Level 3 Text Style)                                                                     §5.1.5.4.15
+lvl4pPr (List Level 4 Text Style)                                                                     §5.1.5.4.16
+lvl5pPr (List Level 5 Text Style)                                                                     §5.1.5.4.17
+lvl6pPr (List Level 6 Text Style)                                                                     §5.1.5.4.18
+lvl7pPr (List Level 7 Text Style)                                                                     §5.1.5.4.19
+lvl8pPr (List Level 8 Text Style)                                                                     §5.1.5.4.20
+lvl9pPr (List Level 9 Text Style)                                                                     §5.1.5.4.21
+
+
+                                                                                     3054
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TextListStyle">
+    <sequence>
+       <element name="defPPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl1pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl2pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl3pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl4pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl5pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl6pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl7pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl8pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="lvl9pPr" type="CT_TextParagraphProperties" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_OfficeArtExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.46       transition (Slide Transition for a Slide Layout)
+
+This element specifies the type of slide transition that should be used to transition to the current slide from the
+previous slide. That is, the transition information is stored on the slide that will appear after the transition is
+complete.
+
+
+                                          Parent Elements
+sld (§4.4.1.35); sldLayout (§4.4.1.36); sldMaster (§4.4.1.39)
+
+
+                                         Child Elements                                        Subclause
+blinds (Blinds Slide Transition)                                                                   §4.6.18
+checker (Checker Slide Transition)                                                                §4.6.24
+circle (Circle Slide Transition)                                                                     §4.6.26
+comb (Comb Slide Transition)                                                                    §4.6.30
+cover (Cover Slide Transition)                                                                    §4.6.32
+cut (Cut Slide Transition)                                                                         §4.6.34
+diamond (Diamond Slide Transition)                                                              §4.6.35
+dissolve (Dissolve Slide Transition)                                                               §4.6.36
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+fade (Fade Slide Transition)                                                                      §4.6.41
+newsflash (Newsflash Slide Transition)                                                            §4.6.50
+plus (Plus Slide Transition)                                                                       §4.6.54
+pull (Pull Slide Transition)                                                                        §4.6.58
+push (Push Slide Transition)                                                                      §4.6.59
+random (Random Slide Transition)                                                                §4.6.60
+
+
+                                                                                     3055
+                                         Child Elements                                        Subclause
+randomBar (Random Bar Slide Transition)                                                        §4.6.61
+sndAc (Sound Action)                                                                            §4.6.69
+split (Split Slide Transition)                                                                       §4.6.71
+strips (Strips Slide Transition)                                                                    §4.6.74
+wedge (Wedge Slide Transition)                                                                  §4.6.94
+wheel (Wheel Slide Transition)                                                                   §4.6.95
+wipe (Wipe Slide Transition)                                                                     §4.6.96
+zoom (Zoom Slide Transition)                                                                    §4.6.97
+
+
+     Attributes                                            Description
+advClick (Advance    Specifies whether a mouse click will advance the slide or not. If this attribute is not
+on Click)               specified then a value of true is assumed.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+advTm (Advance      Specifies the time, in milliseconds, after which the transition should start. This setting
+after time)         may be used in conjunction with the advClick attribute. If this attribute is not specified
+                    then it is assumed that no auto-advance will occur.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+spd (Transition        Specifies the transition speed that is to be used when transitioning from the current slide
+Speed)               to the next.
+
+                   The possible values for this attribute are defined by the ST_TransitionSpeed simple type
+                        (§4.8.58).
+
+
+                                                                                     3056
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SlideTransition">
+    <sequence>
+       <choice minOccurs="0" maxOccurs="1">
+           <element name="blinds" type="CT_OrientationTransition"/>
+           <element name="checker" type="CT_OrientationTransition"/>
+           <element name="circle" type="CT_Empty"/>
+           <element name="dissolve" type="CT_Empty"/>
+           <element name="comb" type="CT_OrientationTransition"/>
+           <element name="cover" type="CT_EightDirectionTransition"/>
+           <element name="cut" type="CT_OptionalBlackTransition"/>
+           <element name="diamond" type="CT_Empty"/>
+           <element name="fade" type="CT_OptionalBlackTransition"/>
+           <element name="newsflash" type="CT_Empty"/>
+           <element name="plus" type="CT_Empty"/>
+           <element name="pull" type="CT_EightDirectionTransition"/>
+           <element name="push" type="CT_SideDirectionTransition"/>
+           <element name="random" type="CT_Empty"/>
+           <element name="randomBar" type="CT_OrientationTransition"/>
+           <element name="split" type="CT_SplitTransition"/>
+           <element name="strips" type="CT_CornerDirectionTransition"/>
+           <element name="wedge" type="CT_Empty"/>
+           <element name="wheel" type="CT_WheelTransition"/>
+           <element name="wipe" type="CT_SideDirectionTransition"/>
+           <element name="zoom" type="CT_InOutTransition"/>
+       </choice>
+       <element name="sndAc" minOccurs="0" maxOccurs="1" type="CT_TransitionSoundAction"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="spd" type="ST_TransitionSpeed" use="optional" default="fast"/>
+    <attribute name="advClick" type="xsd:boolean" use="optional" default="true"/>
+    <attribute name="advTm" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+4.4.1.47      txBody (Shape Text Body)
+
+This element specifies the existence of text to be contained within the corresponding shape. All visible text and
+visible text related properties are contained within this element. There can be multiple paragraphs and within
+paragraphs multiple runs of text.
+
+
+                                          Parent Elements
+sp (§4.4.1.40)
+
+
+                                        Child Elements                                        Subclause
+bodyPr (Body Properties)                                                                            §5.1.5.1.1
+lstStyle (Text List Styles)                                                                            §5.1.5.4.12
+p (Text Paragraphs)                                                                                  §5.1.5.2.6
+
+
+                                                                                     3057
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TextBody">
+    <sequence>
+       <element name="bodyPr" type="CT_TextBodyProperties" minOccurs="1" maxOccurs="1"/>
+       <element name="lstStyle" type="CT_TextListStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="p" type="CT_TextParagraph" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+4.4.1.48       txStyles (Slide Master Text Styles)
+
+This element specifies the text styles within a slide master. Within this element is the styling information for title
+text, the body text and other slide text as well. This element is only for use within the Slide Master and thus sets
+the text styles for the corresponding presentation slides.
+
+[Example: Consider the case where we would like to specify the title text for a master slide.
+
+  <p:txStyles>
+    <p:titleStyle>
+      <a:lvl1pPr algn="ctr" rtl="0" latinLnBrk="0">
+        <a:spcBef>
+          <a:spcPct val="0"/>
+        </a:spcBef>
+        <a:buNone/>
+        <a:defRPr sz="4400" kern="1200">
+          <a:solidFill>
+            <a:schemeClr val="tx1"/>
+          </a:solidFill>
+          <a:latin typeface="+mj-lt"/>
+          <a:ea typeface="+mj-ea"/>
+          <a:cs typeface="+mj-cs"/>
+        </a:defRPr>
+      </a:lvl1pPr>
+    </p:titleStyle>
+  </p:txStyles>
+
+In the above example the title text will be set according to the above formatting for all related slides within the
+presentation. end example]
+
+
+                                          Parent Elements
+sldMaster (§4.4.1.39)
+
+
+                                         Child Elements                                        Subclause
+bodyStyle (Slide Master Body Text Style)                                                             §4.4.1.5
+
+
+                                                                                     3058
+                                         Child Elements                                        Subclause
+extLst (Extension List)                                                                              §4.2.5
+otherStyle (Slide Master Other Text Style)                                                          §4.4.1.32
+titleStyle (Slide Master Title Text Style)                                                             §4.4.1.45
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SlideMasterTextStyles">
+    <sequence>
+       <element name="titleStyle" type="a:CT_TextListStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="bodyStyle" type="a:CT_TextListStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="otherStyle" type="a:CT_TextListStyle" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+4.4.1.49      xfrm (2D Transform for Graphic Frame)
+
+This element specifies the transform to be applied to the corresponding graphic frame. This transformation will
+be applied to the graphic frame just as it would be for a shape or group shape.
+
+
+                                          Parent Elements
+graphicFrame (§4.4.1.18)
+
+
+                                         Child Elements                                        Subclause
+ext (Extents)                                                                                         §5.1.9.3
+off (Offset)                                                                                          §5.1.9.4
+
+
+     Attributes                                            Description
+flipH (Horizontal      Specifies a horizontal flip. When true, this attribute defines that the shape will be flipped
+Flip)                   horizontally about the center of its bounding box.
+
+Namespace:          [Example: The following illustrates the effect of a horizontal flip.
+.../drawingml/200
+6/main
+
+
+                   end example]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+flipV (Vertical Flip)    Specifies a vertical flip. When true, this attribute defines that the group will be flipped
+                         vertically about the center of its bounding box.
+
+
+                                                                                     3059
+     Attributes                                            Description
+
+Namespace:
+.../drawingml/200   [Example: The following illustrates the effect of a vertical flip.
+6/main
+
+
+                   end example]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+rot (Rotation)         Specifies the rotation of the Graphic Frame. The units for which this attribute is specified
+                         in reside within the simple type definition referenced below.
+Namespace:
+.../drawingml/200   The possible values for this attribute are defined by the ST_Angle simple type (§5.1.12.3).
+6/main
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Transform2D">
+    <sequence>
+       <element name="off" type="CT_Point2D" minOccurs="0" maxOccurs="1"/>
+       <element name="ext" type="CT_PositiveSize2D" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="rot" type="ST_Angle" use="optional" default="0"/>
+    <attribute name="flipH" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="flipV" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+4.4.2    Embedded Objects
+
+Within the slides portion of PresentationML, there are the embedded elements. These are objects that can be
+embedded within a slide. As we defined a slide to be a container it can be seen that it does not just contain
+shapes, pictures and text but embedded objects as well that are not necessarily native to the PresentationML
+platform.
+
+4.4.2.1        control (Embedded Control)
+
+This element specifies the existence of an embedded control in the slide.
+
+
+                                          Parent Elements
+controls (§4.4.1.14)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List)                                                                              §4.2.5
+
+
+                                                                                     3060
+     Attributes                                            Description
+id (Relationship ID)    Specifies the relationship id that is used to identify this Embedded object from within a
+                          slide.
+Namespace:
+.../officeDocument   The possible values for this attribute are defined by the ST_RelationshipId simple type
+/2006/relationshi    (§7.8.2.1).
+ps
+imgH (Image          Specifies the height of the embedded control.
+Height)
+                   The possible values for this attribute are defined by the ST_PositiveCoordinate32 simple
+                     type (§5.1.12.43).
+imgW (Image          Specifies the width of the embedded control.
+Width)
+                   The possible values for this attribute are defined by the ST_PositiveCoordinate32 simple
+                     type (§5.1.12.43).
+name (Embedded     Specifies the identifying name class used by scripting languages. This name is also used to
+Object Name)         construct the clipboard name.
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+showAsIcon (Show    Specifies whether the Embedded object will be shows as an icon or using its native
+Embedded Object     representation.
+As Icon)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+spid (Embedded       Specifies the identifier of the shape associated with this Embedded object. The shape
+object Shape ID)        will contain all coordinate anchoring information.
+
+                   The possible values for this attribute are defined by the ST_ShapeID simple type
+                        (§5.1.12.55).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Control">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attributeGroup ref="AG_Ole"/>
+</complexType>
+
+4.4.2.2      embed (Embedded Object or Control)
+
+This element specifies an Embedded object or Control that is embedded within the presentation.
+
+
+                                          Parent Elements
+oleObj (§4.4.2.4)
+
+
+                                                                                     3061
+                                         Child Elements                                        Subclause
+extLst (Extension List)                                                                              §4.2.5
+
+
+     Attributes                                            Description
+followColorScheme   Specifies the Color Scheme Properties for the corresponding Embedded object being
+(Color Scheme         specified.
+Properties for
+Embedded object)    The possible values for this attribute are defined by the
+                   ST_OleObjectFollowColorScheme simple type (§4.8.10).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OleObjectEmbed">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="followColorScheme" type="ST_OleObjectFollowColorScheme" use="optional"
+     default="none"/>
+</complexType>
+
+4.4.2.3         link (Linked Object or Control)
+
+This element specifies a link to an external Embedded object or Control.
+
+
+                                          Parent Elements
+oleObj (§4.4.2.4)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List)                                                                              §4.2.5
+
+
+     Attributes                                            Description
+updateAutomatic     This attribute determines if linked embedded objects will be automatically updated when
+(Update Linked       the presentation is opened or printed.
+Embedded Objects
+Automatically)       The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OleObjectLink">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="updateAutomatic" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+
+                                                                                     3062
+4.4.2.4        oleObj (Global Element for Embedded objects and Controls)
+
+This element specifies a global element to be used for an Embedded object and Control.
+
+
+                                         Child Elements                                        Subclause
+embed (Embedded Object or Control)                                                                §4.4.2.2
+link (Linked Object or Control)                                                                       §4.4.2.3
+
+
+     Attributes                                            Description
+id (Relationship ID)    Specifies the relationship id that is used to identify this Embedded object from within a
+                          slide.
+Namespace:
+.../officeDocument   The possible values for this attribute are defined by the ST_RelationshipId simple type
+/2006/relationshi    (§7.8.2.1).
+ps
+imgH (Image          Specifies the height of the embedded control.
+Height)
+                   The possible values for this attribute are defined by the ST_PositiveCoordinate32 simple
+                     type (§5.1.12.43).
+imgW (Image          Specifies the width of the embedded control.
+Width)
+                   The possible values for this attribute are defined by the ST_PositiveCoordinate32 simple
+                     type (§5.1.12.43).
+name (Embedded     Specifies the identifying name class used by scripting languages. This name is also used to
+Object Name)         construct the clipboard name.
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+progId (Embedded    Specifies the progid for an Embedded object.
+Object ProgID)
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+showAsIcon (Show    Specifies whether the Embedded object will be shows as an icon or using its native
+Embedded Object     representation.
+As Icon)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+spid (Embedded       Specifies the identifier of the shape associated with this Embedded object. The shape
+object Shape ID)        will contain all coordinate anchoring information.
+
+                   The possible values for this attribute are defined by the ST_ShapeID simple type
+                        (§5.1.12.55).
+
+
+                                                                                     3063
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OleObject">
+    <choice minOccurs="1" maxOccurs="1">
+       <element name="embed" type="CT_OleObjectEmbed"/>
+       <element name="link" type="CT_OleObjectLink"/>
+    </choice>
+    <attributeGroup ref="AG_Ole"/>
+    <attribute name="progId" type="xsd:string" use="optional"/>
+</complexType>
+
+4.4.3    Programmable Tags
+
+Within the slides portion of PresentationML there are the tag elements. These are extensibility names and
+values that assist in the storage of legacy variables from older file formats.
+
+4.4.3.1        tag (Programmable Extensibility Tag)
+
+This element specifies a programmable extensibility tag to be used for storage of legacy variables.
+
+
+                                          Parent Elements
+tagLst (§4.4.3.2)
+
+
+     Attributes                                            Description
+name (Name)         Specifies the name associated with this specific programmable tag.
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+val (Value)             Specifies the value associated with this specific programmable tag.
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_StringTag">
+    <attribute name="name" type="xsd:string"/>
+    <attribute name="val" type="xsd:string"/>
+</complexType>
+
+4.4.3.2        tagLst (Programmable Tab List)
+
+This element specifies the list of programmable extensibility tags that will be used to store variables from legacy
+file formats.
+
+
+                                          Parent Elements
+
+Root element of PresentationML User-Defined Tags part
+
+
+                                         Child Elements                                        Subclause
+
+
+                                                                                     3064
+                                         Child Elements                                        Subclause
+tag (Programmable Extensibility Tag)                                                                 §4.4.3.1
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TagList">
+    <sequence>
+       <element name="tag" type="CT_StringTag" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+4.5   Comments
+
+A comment is a text note attached to a slide, with the primary purpose of allowing readers of a presentation to
+provide feedback to the presentation author. Each comment contains an unformatted text string and
+information about its author, and is attached to a particular location on a slide. Comments may be visible while
+editing the presentation, but do not appear when a slide show is given. The displaying application decides when
+to display comments and determines their visual appearance.
+
+4.5.1    cm (Comment)
+
+This element specifies a single comment attached to a slide.  It contains the text of the comment, its position on
+the slide, and attributes referring to its author and date.
+
+[Example:
+
+  <p:cm authorId="0" dt="2006-08-28T17:26:44.129" idx="1">
+    <p:pos x="10" y="10"/>
+    <p:text>Add diagram to clarify.</p:text>
+  </p:cm>
+
+End example]
+
+
+                                          Parent Elements
+cmLst (§4.5.4)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List with Modification Flag)                                                       §4.2.4
+pos (Comment Position)                                                                            §4.5.5
+text (Comment's Text Content)                                                                     §4.5.6
+
+
+     Attributes                                            Description
+authorId (Comment   This attribute specifies the author of the comment.  It refers to the ID of an author in the
+Author ID)         comment author list for the document.
+
+
+                                                                                     3065
+     Attributes                                            Description
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+dt (Comment          This attribute specifies the date and time this comment was last modified.
+Date/Time)
+                   The possible values for this attribute are defined by the XML Schema dateTime datatype.
+idx (Comment         This attribute specifies an identifier for this comment that is unique within a list of all
+Index)             comments by this author in this document. An author's first comment in a document
+                    has index 1.
+
+                      [Note: Because the index is unique only for the comment author, a document may
+                     contain multiple comments with the same index created by different authors. End note]
+
+                   The possible values for this attribute are defined by the ST_Index simple type (§4.8.7).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Comment">
+    <sequence>
+       <element name="pos" type="a:CT_Point2D" minOccurs="1" maxOccurs="1"/>
+       <element name="text" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionListModify" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="authorId" type="xsd:unsignedInt" use="required"/>
+    <attribute name="dt" type="xsd:dateTime" use="optional"/>
+    <attribute name="idx" type="ST_Index" use="required"/>
+</complexType>
+
+4.5.2    cmAuthor (Comment Author)
+
+This element specifies a single author with comments in the document.  It contains a unique author ID, the
+author's name and initials, the index of the author's last comment, and the index of a color associated with the
+author.
+
+[Example:
+
+  <p:cmAuthor id="0" name="Julie Lee" initials="JL" lastIdx="1" clrIdx="0"/>
+
+End example]
+
+
+                                          Parent Elements
+cmAuthorLst (§4.5.3)
+
+
+                                         Child Elements                                        Subclause
+extLst (Extension List)                                                                              §4.2.5
+
+
+                                                                                     3066
+     Attributes                                            Description
+clrIdx (Comment      This attribute specifies an index into the generating application's comments color table to
+Author Color Index)   allow for visual (color) differentiation of different author's comments. This color is used
+                        for all comments by this author.  If more authors exist than there are entries in the color
+                        table, the color index wraps around to the beginning of the table.
+
+                      [Note: It is left entirely up to the generating application to determine the amount of
+                       colors used in the comments color table and in what order these will be used when
+                     rendering comments on a slide surface. End note]
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+id (Comment          This attribute specifies a unique (within the document) zero-based identifier that refers
+Author ID)            to a single comment author.
+
+                      [Note: The method of generating an author id is determined by the application and need
+                    not be sequential, provided each id is unique within the list of comment authors for the
+                   document. End note]
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+initials (Comment     This attribute specifies a string that represents the initials of this particular author. The
+Author Initials)        value is not necessarily unique. It is intended for use by the application as an abbreviated
+                      version of the comment author's name.
+
+                   The possible values for this attribute are defined by the ST_Name simple type (§4.8.9).
+lastIdx (Index of      Index of the last comment added to this document by this author. New comments by this
+Comment Author's    author are counted starting with the value one greater than this index.
+last comment)
+                      [Note: The index of a deleted comment is not reused; therefore, this value is not an
+                     accurate count of the total number of comments by the author. End note]
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+name (Comment      This attribute specifies the full name of this particular author. As a string, it has no
+Author Name)         security or authentication data. This value is not guaranteed to be unique across all
+                  document authors.
+
+                   The possible values for this attribute are defined by the ST_Name simple type (§4.8.9).
+
+
+                                                                                     3067
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CommentAuthor">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="id" type="xsd:unsignedInt" use="required"/>
+    <attribute name="name" type="ST_Name" use="required"/>
+    <attribute name="initials" type="ST_Name" use="required"/>
+    <attribute name="lastIdx" type="xsd:unsignedInt" use="required"/>
+    <attribute name="clrIdx" type="xsd:unsignedInt" use="required"/>
+</complexType>
+
+4.5.3     cmAuthorLst (List of Comment Authors)
+
+This element specifies a list of authors with comments in the current document. Each comment in a document
+must refer to an author in this list. To determine if a new author is in this list, the author's name and initials
+must both match; otherwise, the new author is considered unique and a separate cmAuthor element is added.
+
+[Example: A document contains comments left by two authors.
+
+  <p:cmAuthorLst>
+      <p:cmAuthor id="0" name="Julie Lee" initials="JL" lastIdx="1" clrIdx="0"/>
+      <p:cmAuthor id="1" name="Fred Jones" initials="FJ" lastIdx="2" clrIdx="1"/>
+  </p:cmAuthorLst>
+
+End example]
+
+
+                                          Parent Elements
+
+Root element of PresentationML Comment Authors part
+
+
+                                         Child Elements                                        Subclause
+cmAuthor (Comment Author)                                                                      §4.5.2
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CommentAuthorList">
+    <sequence>
+       <element name="cmAuthor" type="CT_CommentAuthor" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+4.5.4     cmLst (Comment List)
+
+This element specifies a list of comments for a particular slide.
+
+[Example: A slide contains two comments, each left by a different author. This example demonstrates that two
+comments may have the same index if they are created by different authors.
+
+
+                                                                                     3068
+  <p:cmLst>
+      <p:cm authorId="0" dt="2006-08-28T17:26:44.129" idx="1">
+          <p:pos x="10" y="10"/>
+          <p:text>Add diagram to clarify.</p:text>
+      </p:cm>
+      <p:cm authorId="1" dt="2006-08-28T17:44:19.679" idx="1">
+          <p:pos x="1426" y="660"/>
+          <p:text>Clean up this text.</p:text>
+      </p:cm>
+  </p:cmLst>
+
+End example]
+
+
+                                          Parent Elements
+
+Root element of PresentationML Comments part
+
+
+                                         Child Elements                                        Subclause
+cm (Comment)                                                                                    §4.5.1
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CommentList">
+    <sequence>
+       <element name="cm" type="CT_Comment" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+4.5.5     pos (Comment Position)
+
+This element specifies the positioning information for the placement of a comment on a slide surface. In LTR
+versions of the generating application, this position information should refer to the upper left point of the
+comment shape. In RTL versions of the generating application, this position information should refer to the
+upper right point of the comment shape.
+
+[Note: The anchoring point on the slide surface is unaffected by a right-to-left or left-to-right layout change. That
+is the anchoring point remains the same for all language versions. End note]
+
+[Note: Because there is no specified size or formatting for comments, this UI widget used to display a comment
+can be any size and thus the lower right point of the comment shape is determined by how the viewing
+application chooses to display comments. End note]
+
+[Example:
+
+  <p:pos x="1426" y="660"/>
+
+End example]
+
+
+                                                                                     3069
+                                          Parent Elements
+cm (§4.5.1)
+
+
+     Attributes                                            Description
+x (X-Axis               Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
+Coordinate)         by the parent XML element.
+
+Namespace:          [Example: Consider the following point on a basic wrapping polygon for a DrawingML
+.../drawingml/200    object:
+6/main
+                   <wp:… x="0" y="100" />
+
+                   The x attribute defines an x-coordinate of 0. end example]
+
+                   The possible values for this attribute are defined by the ST_Coordinate simple type
+                        (§5.1.12.16).
+y (Y-Axis               Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
+Coordinate)         by the parent XML element.
+
+Namespace:          [Example: Consider the following point on a basic wrapping polygon for a DrawingML
+.../drawingml/200    object:
+6/main
+                   <wp:… x="0" y="100" />
+
+                   The y attribute defines a y-coordinate of 100. end example]
+
+                   The possible values for this attribute are defined by the ST_Coordinate simple type
+                        (§5.1.12.16).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Point2D">
+    <attribute name="x" type="ST_Coordinate" use="required"/>
+    <attribute name="y" type="ST_Coordinate" use="required"/>
+</complexType>
+
+4.5.6      text (Comment's Text Content)
+
+This element specifies the content of a comment. This is the text with which the author has annotated the slide.
+
+[Example:
+
+  <p:text>Add diagram to clarify.</p:text>
+
+End example]
+
+The possible values for this element are defined by the XML Schema string datatype.
+
+
+                                                                                     3070

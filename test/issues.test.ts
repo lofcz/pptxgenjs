@@ -1148,3 +1148,423 @@ test('rafalBujok/define_color_theme: theme.themeColors writes clrScheme + Modifi
 		'ModifiedThemeColor tint on shape fill'
 	)
 })
+
+/* ------------------------------------------------------------------------- */
+/* Uncovered upstream bugs - each test below FAILS until the bug is fixed.    */
+/* Grouped by theme. See scripts/issue-coverage.md for the full matrix.       */
+/* ------------------------------------------------------------------------- */
+
+test('#1443: notesMaster has no placeholder shapes (PowerPoint strips them in repair)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('hello', { x: 1, y: 1, w: 4, h: 1 })
+
+	const nm = await readPart(await writeZip(pptx), 'ppt/notesMasters/notesMaster1.xml')
+	// PowerPoint repair removes all 6 placeholder <p:sp> shapes from notesMaster (issue #1443).
+	// A conformant notesMaster should ship an empty spTree (bg + clrMap + notesStyle only).
+	assert.ok(!nm.includes('<p:ph '), 'notesMaster still emits placeholder shapes that PowerPoint removes during repair')
+})
+
+test('#1245: scatter valAxisCrossesAt=0 emits crossesAt="0", not crosses="autoZero"', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.scatter, [
+		{ name: 'X-Axis', values: [0, 1, 2, 3] },
+		{ name: 'Y', values: [9, 8, 7, 6], labels: ['a', 'b', 'c', 'd'] },
+	], { x: 0.5, y: 0.6, w: 4, h: 3, valAxisCrossesAt: 0 })
+
+	const chart = await readChart(await writeZip(pptx))
+	// makeCatAxis does `${opts.valAxisCrossesAt || 'autoZero'}` - a legitimate 0 falls back to autoZero (issue #1245)
+	assert.ok(chart.includes('<c:crossesAt val="0"/>'), 'valAxisCrossesAt=0 was falsy-collapsed to crosses="autoZero"')
+	assert.ok(!chart.includes('<c:crosses val="autoZero"/>'), 'expected explicit crossesAt when user passes 0')
+})
+
+test('#856/#1135: addTable targets a master placeholder of type tbl', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'M',
+		background: { color: 'FFFFFF' },
+		objects: [{ placeholder: { options: { name: 'tbl', type: 'tbl' as never, x: 1, y: 1, w: 8, h: 4 } } }],
+	})
+	const slide = pptx.addSlide({ masterName: 'M' })
+
+	// `placeholder` is not accepted on ITableOptions - the table cannot be routed into the master tbl placeholder (issue #856)
+	slide.addTable([['a', 'b'], ['1', '2']], { placeholder: 'tbl' } as never)
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(/<p:ph[^>]*type="tbl"/.test(xml) || xml.includes('name="tbl"'), 'table did not bind to the tbl placeholder')
+})
+
+test('#1291: tables support RTL direction (rtl on a:tbl/a:tc)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable([['א', 'ב'], ['1', '2']], { x: 1, y: 1, w: 6, rtlMode: true } as never)
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376 §5.1.6.13: rtl lives on <a:tblPr>, not <a:tbl> (issue #1291)
+	assert.ok(/<a:tblPr[^>]*\brtl="1"/.test(xml), 'table rtl="1" attribute not emitted on a:tblPr')
+})
+
+test('#1339: identical image data is embedded once (content-hash dedupe), not per-use', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addImage({ data: PNG_4x2, x: 0, y: 0, w: 1, h: 1 })
+	slide.addImage({ data: PNG_4x2, x: 2, y: 0, w: 1, h: 1 })
+	slide.addImage({ data: PNG_4x2, x: 4, y: 0, w: 1, h: 1 })
+
+	const zip = await writeZip(pptx)
+	// Same-data images were only deduped by identical `path`; identical base64 `data` created one media file per use.
+	// OPC Part 2 allows many rels to share one part - identical bytes must be embedded once (issue #1339).
+	const media = Object.keys(zip.files).filter(k => /^ppt\/media\/.+/.test(k))
+	assert.equal(media.length, 1, `expected 1 deduped media file for identical image data, got ${media.length}: ${media.join(', ')}`)
+})
+
+test('#1472: two autopage tables share slide1; overflow slides contain only the spilled table; no blank slide', async () => {
+	const pptx = new pptxgen()
+	pptx.defineLayout({ name: 'L', width: 10, height: 5.625 })
+	pptx.layout = 'L'
+	const slide = pptx.addSlide()
+
+	const many = Array.from({ length: 60 }, (_, i) => [`t1-r${i}`, `${i}`])  // table-1 overflows
+	const few = [['t2-r0', 'x'], ['t2-r1', 'y']]                              // table-2 fits
+	slide.addTable(many, { x: 0.5, y: 3.0, w: 4, autoPage: true, rowH: 0.2 })
+	slide.addTable(few, { x: 5.5, y: 3.0, w: 4, autoPage: true, rowH: 0.2 })
+
+	const zip = await writeZip(pptx)
+	const slideFiles = Object.keys(zip.files).filter(k => /^ppt\/slides\/slide\d+\.xml$/.test(k)).sort()
+	const tableCount = async (f: string) => ((await zip.file(f)!.async('string')).match(/<p:graphicFrame>/g) || []).length
+	const count1 = await tableCount('ppt/slides/slide1.xml')
+
+	// slide1 keeps BOTH tables (side-by-side); each later slide holds only the continued table-1 rows.
+	// Issue #1472 feared the small table-2 being displaced/duplicated onto overflow slides, or a stray blank slide.
+	assert.equal(count1, 2, `slide1 should hold both tables, got ${count1}`)
+	for (const f of slideFiles.slice(1)) {
+		assert.equal(await tableCount(f), 1, `${f} should hold only the spilled table-1, got ${await tableCount(f)}`)
+	}
+	const s1 = await readPart(zip, 'ppt/slides/slide1.xml')
+	const ys = [...s1.matchAll(/<p:graphicFrame>[\s\S]*?<a:off x="\d+" y="(\d+)"/g)].map(m => Number(m[1]))
+	assert.ok(ys.every(y => Math.abs(y - 2743200) < 20000), `both first-slide tables keep own y=3in, got ${ys.join(',')}`)
+})
+
+/* ------------------------------------------------------------------------- */
+/* Second batch of uncovered bugs - failing tests until fixed.                */
+/* ------------------------------------------------------------------------- */
+
+test('#1405: autopage table slides inherit the parent slide section (not Default-1)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSection({ title: 'A' })
+	pptx.addSection({ title: 'B' })
+	const slide = pptx.addSlide({ sectionTitle: 'A' })   // parent lives in section A (NOT the last section)
+	const many = Array.from({ length: 60 }, (_, i) => [`r${i}`, `${i}`])
+	slide.addTable(many, { x: 1, y: 1, w: 6, autoPage: true, rowH: 0.2 })
+
+	// addNewSlide() only inherits when the parent is in the LAST section; with 2+ sections the parent in A
+	// isn't detected, so autopaged slides land in a new "Default-1" section instead of A (issue #1405).
+	const sectA = pptx.sections.filter(s => s.title === 'A')[0]
+	const defaults = pptx.sections.filter(s => s.title.startsWith('Default'))
+	assert.ok(pptx.slides.length > 1, 'expected autopage to create extra slides')
+	assert.equal(sectA._slides.length, pptx.slides.length,
+		`all ${pptx.slides.length} slides should be in section A, got ${sectA._slides.length} (Default sections: ${defaults.map(d => d.title).join(',') || 'none'})`)
+})
+
+test('#1399: image sizing crop keeps the w/h container (srcRect applies within it)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addImage({
+		data: 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAADklEQVR4nGP4jwQYkDkANvEX6SAXxcIAAAAASUVORK5CYII=',
+		x: 1, y: 1, w: 5, h: 3,
+		sizing: { type: 'crop', x: 0.5, y: 0.5, w: 2, h: 2 },
+	} as never)
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376 §5.1.10.55: srcRect crops the source blip; the <a:ext> frame is the independent on-slide bounding
+	// box and must keep the requested w/h (issue #1399). 5x3in = 4572000 x 2743200 EMU.
+	const pic = /<p:pic>[\s\S]*?<\/p:pic>/.exec(xml)?.[0] ?? ''
+	const ext = /<a:ext cx="(\d+)" cy="(\d+)"/.exec(pic)
+	assert.ok(ext, 'image has no <a:ext>')
+	assert.equal(ext![1], '4572000', `crop frame cx must stay 5in, got ${ext![1]}`)
+	assert.equal(ext![2], '2743200', `crop frame cy must stay 3in, got ${ext![2]}`)
+	assert.ok(/<a:srcRect l="\d+" r="\d+" t="\d+" b="\d+"\/>/.test(pic), 'srcRect crop offsets present')
+})
+
+test('#1309: custom formatCode is applied (numFmt sourceLinked=0, not linked)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [{ name: 'S', labels: ['a', 'b'], values: [0.1, 0.2] }], {
+		x: 1, y: 1, w: 5, h: 3,
+		dataLabelFormatCode: '0.0%', showLabel: true,
+		valAxisLabelFormatCode: '0.0%',
+		catLabelFormatCode: '0.0%',
+	})
+
+	const chart = await readChart(await writeZip(pptx))
+	const numFmts = [...chart.matchAll(/<c:numFmt formatCode="([^"]*)" sourceLinked="(\d)"\/>/g)].map(m => ({ code: m[1], linked: m[2] }))
+	const custom = numFmts.filter(n => n.code.includes('%'))
+	// ECMA-376 §5.7.2.122 CT_NumFmt: `sourceLinked` defaults to true, which IGNORES formatCode and uses the
+	// workbook-linked format. To honor a custom mask the library must emit sourceLinked="0" (issue #1309).
+	assert.ok(custom.length > 0, 'custom formatCode not written')
+	assert.ok(custom.every(n => n.linked === '0'),
+		`custom formatCode must use sourceLinked=0, got: ${JSON.stringify(custom)}`)
+})
+
+test('#1416: slide-master media filenames never collide with slide media (slide #1000+)', async () => {
+	// Distinct image bytes per slide (else #1339 dedupe reuses one target and masks the collision).
+	const pngUnique = (seed: number) => 'image/png;base64,' + Buffer.from([
+		0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0x0d, 0x49, 0x48, 0x44, 0x52,
+		0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, seed & 255, (seed >>> 8) & 255, 0, 0,
+	]).toString('base64')
+
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({ title: 'MSTR', objects: [{ image: { data: pngUnique(0xffff), x: 0, y: 0, w: 1, h: 1 } }] })
+	// Masters number from 1000 (`_slideNum = 1000 + layouts + 1`); add enough slides to reach that block.
+	for (let i = 0; i < 1002; i++) pptx.addSlide({ masterName: 'MSTR' }).addImage({ data: pngUnique(i), x: 0, y: 0, w: 1, h: 1 })
+
+	const zip = await writeZip(pptx)
+	const names = zip.file(/ppt\/media\/.+/).map(f => f.name).filter(n => !n.endsWith('/'))
+	const dupes = names.filter((n, i) => names.indexOf(n) !== i)
+	assert.deepEqual(dupes, [], `media filename collision(s) overwrite master/slide images: ${dupes.join(', ')}`)
+	// The master rels must point at its own part, not share slide #1002's `image-1002-1.png`.
+	const layout2 = await readPart(zip, 'ppt/slideLayouts/_rels/slideLayout2.xml.rels')
+	const masterTarget = /Target="\.\.\/media\/([^"]+)"/.exec(layout2)?.[1]
+	assert.ok(masterTarget && masterTarget.startsWith('layout-image-'), `master media must use layout- prefix, got: ${masterTarget}`)
+	assert.ok(zip.file(`ppt/media/${masterTarget}`), `master media part missing: ${masterTarget}`)
+})
+
+test('#1286: mixed-unit image dims (w>=100 EMU, h<100 in) must not corrupt sizing aspect ratio', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addImage({
+		data: PNG_4x2, x: 0, y: 0,
+		w: 2899, h: 97, // getSmartParseNumber reads 2899 as EMU and 97 as inches -> unit mismatch
+		sizing: { type: 'contain', w: 5, h: 1 },
+	} as never)
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const srcRect = /<a:srcRect[^/]*\/>/.exec(slideXml)?.[0] ?? ''
+	assert.ok(srcRect, 'expected a srcRect for contain sizing')
+	// Before the fix imgRatio mixed EMU/inches producing l/r offsets in the billions (corrupt pptx).
+	// Offsets are 1/1000 of a percent, so |offset| must stay within a sane bound, not astronomical.
+	const offsets = [...srcRect.matchAll(/(-?\d+)/g)].map(m => Math.abs(Number(m[1])))
+	assert.ok(offsets.every(n => n < 1000000), `corrupt srcRect offsets from unit-mismatched aspect: ${srcRect}`)
+})
+
+test('#1312: text caps option emits cap attribute on run properties (none|small|all)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText([
+		{ text: 'small ', options: { caps: 'small' } },
+		{ text: 'all ', options: { caps: 'all' } },
+		{ text: 'plain', options: {} },
+	], { x: 1, y: 1, w: 4, h: 1 })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376 §5.1.12.64 ST_TextCapsType — render-only capitalization.
+	assert.ok(slideXml.includes('cap="small"'), 'caps:"small" not emitted')
+	assert.ok(slideXml.includes('cap="all"'), 'caps:"all" not emitted')
+	assert.equal((slideXml.match(/cap="/g) || []).length, 2, 'exactly the two capped runs should carry cap attributes')
+})
+
+test('#996: image bound to a placeholder inherits the placeholder geometry (not natural px size / 1x1)', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({ title: 'M', objects: [{ placeholder: { options: { name: 'PH', type: 'image', x: 1, y: 1, w: 4, h: 2 } } }] })
+	pptx.addSlide({ masterName: 'M' }).addImage({ data: PNG_4x2, placeholder: 'PH' } as never)
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const pic = /<p:pic>[\s\S]*?<\/p:pic>/.exec(slideXml)?.[0] ?? ''
+	const m = /<a:off x="(\d+)" y="(\d+)"\/>\s*<a:ext cx="(\d+)" cy="(\d+)"/.exec(pic)
+	assert.ok(m, 'pic xfrm not found')
+	// 4x2 inch placeholder in EMU (914400/in) — not the natural 4x2 px (0.042in) nor the 1x1 default.
+	assert.equal(m![3], String(4 * 914400), `cx should be placeholder 4in, got ${Number(m![3]) / 914400}in`)
+	assert.equal(m![4], String(2 * 914400), `cy should be placeholder 2in, got ${Number(m![4]) / 914400}in`)
+})
+
+test('#1320: text columns emit numCol/spcCol on bodyPr', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('col text '.repeat(50), { x: 1, y: 1, w: 6, h: 3, columns: 3, columnGap: 0.5 })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376 §5.1.5.1.4 CT_TextBodyProperties@numCol/@spcCol; 0.5in gap = 457200 EMU.
+	assert.ok(slideXml.includes('numCol="3"'), 'numCol not emitted')
+	assert.ok(slideXml.includes('spcCol="457200"'), `spcCol should be 0.5in=457200EMU, slide: ${/<a:bodyPr[^>]*>/.exec(slideXml)?.[0]}`)
+})
+
+test('#1199: fit:{type:"shrink", fontScale, lnSpcReduction} emits normAutofit percentages', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('shrink me', { x: 1, y: 1, w: 2, h: 1, fit: { type: 'shrink', fontScale: 85, lnSpcReduction: 20 } })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376 §5.1.5.1.3 CT_TextNormalAutofit: values are 1000ths of a percent (85% -> 85000).
+	assert.ok(slideXml.includes('<a:normAutofit fontScale="85000" lnSpcReduction="20000"/>'),
+		`normAutofit attrs missing: ${/<a:normAutofit[^>]*\/>/.exec(slideXml)?.[0]}`)
+})
+
+test('#782: line.cap emits cap attribute on <a:ln> (flat|sq|rnd)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.line, { x: 1, y: 1, w: 3, h: 0, line: { color: 'FF0000', width: 2, cap: 'rnd' } })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376 §5.1.2.1.34 `<a:ln>@cap` / ST_LineCap.
+	assert.ok(/<a:ln w="\d+" cap="rnd">/.test(slideXml), `cap="rnd" not emitted: ${/<a:ln[^>]*>/.exec(slideXml)?.[0]}`)
+})
+
+test('#transition: base ECMA transition (fade, speed, advTm)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTransition({ type: 'fade', speed: 'slow', advTm: 2500 })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376 §19.3.1.50 CT_SlideTransition: spd + advTm attrs; placed after clrMapOvr, before </p:sld>.
+	assert.ok(/<p:transition spd="slow" advTm="2500"><p:fade\/><\/p:transition>/.test(slideXml),
+		`transition missing: ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
+	assert.ok(slideXml.indexOf('</p:clrMapOvr>') < slideXml.indexOf('<p:transition'), 'transition must follow clrMapOvr')
+})
+
+test('#transition: directional base transition (push dir=r)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTransition({ type: 'push', direction: 'r' })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(slideXml.includes('<p:push dir="r"/>'), `push dir not emitted: ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
+})
+
+test('#transition: modern morph wraps in mc:AlternateContent with fallback', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTransition({ type: 'morph', duration: 800 })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// MS-PPTX §2.6.1.1 p16:morph inside mc:Choice; base fade as mc:Fallback; p14:dur carries ms duration.
+	assert.ok(slideXml.includes('<mc:AlternateContent'), 'no AlternateContent wrapper')
+	assert.ok(slideXml.includes('<mc:Choice Requires="p16">'), 'no p16 Choice')
+	assert.ok(slideXml.includes('<p16:morph/>'), 'no p16:morph element')
+	assert.ok(slideXml.includes('<mc:Fallback><p:transition'), 'no fallback transition')
+	assert.ok(slideXml.includes('p14:dur="800"'), 'no p14:dur duration attr')
+	assert.ok(slideXml.includes('mc:Ignorable="a14 p14"'), `slide root missing p14 ignorable: ${/<p:sld [^>]*>/.exec(slideXml)?.[0]}`)
+})
+
+test('#gap3: guides emit p15:sldGuideLst in presentation.xml', async () => {
+	const pptx = new pptxgen()
+	pptx.guides = [{ orient: 'vert', pos: 3.5 }, { orient: 'horz', pos: 2, color: 'FF0000' }]
+	pptx.addSlide().addText('x', { x: 1, y: 1, w: 1, h: 1 })
+
+	const presXml = await readPart(await writeZip(pptx), 'ppt/presentation.xml')
+	// MS-PPTX §2.4.3.3: pos is EMU (3.5in=3200400, 2in=1828800); clr child required.
+	assert.ok(presXml.includes('<p15:sldGuideLst'), 'no sldGuideLst')
+	assert.ok(presXml.includes('orient="vert" pos="3200400"'), `vert guide wrong: ${/<p15:guide[^>]*>/.exec(presXml)?.[0]}`)
+	assert.ok(presXml.includes('orient="horz" pos="1828800"'), 'horz guide wrong')
+	assert.ok(presXml.includes('<a:srgbClr val="FF0000"/>'), 'guide color missing')
+})
+
+test('#gap4: presentationPr emits defaultImageDpi + readonlyRecommended', async () => {
+	const pptx = new pptxgen()
+	pptx.defaultImageDpi = 220
+	pptx.readonlyRecommended = true
+	pptx.addSlide().addText('x', { x: 1, y: 1, w: 1, h: 1 })
+
+	const presPrXml = await readPart(await writeZip(pptx), 'ppt/presProps.xml')
+	// MS-PPTX §2.3.1.5 (p14) + §2.14.1.1 (p1710).
+	assert.ok(presPrXml.includes('<p14:defaultImageDpi') && presPrXml.includes('val="220"'), `defaultImageDpi missing: ${presPrXml}`)
+	assert.ok(presPrXml.includes('<p1710:readonlyRecommended') && presPrXml.includes('val="1"'), 'readonlyRecommended missing')
+})
+
+test('#gap5: threaded comments emit authors.xml + comments part + rels', async () => {
+	const pptx = new pptxgen()
+	pptx.commentAuthors = [{ name: 'Ada Lovelace', initials: 'AL' }]
+	const s1 = pptx.addSlide()
+	s1.addText('review me', { x: 1, y: 1, w: 3, h: 1 })
+	s1.addComment({ text: 'Fix the title', author: 0, x: 1, y: 1, replies: [{ text: 'On it', author: 'Grace' }] })
+	pptx.addSlide().addText('no comments', { x: 1, y: 1, w: 1, h: 1 })
+
+	const zip = await writeZip(pptx)
+	const authorsXml = await readPart(zip, 'ppt/authors.xml')
+	const cmXml = await readPart(zip, 'ppt/comments/commentSlide1.xml')
+	const ctXml = await readPart(zip, '[Content_Types].xml')
+	const presRels = await readPart(zip, 'ppt/_rels/presentation.xml.rels')
+	const slide1Rels = await readPart(zip, 'ppt/slides/_rels/slide1.xml.rels')
+	const slide2Rels = await readPart(zip, 'ppt/slides/_rels/slide2.xml.rels')
+
+	// authors.xml holds declared + reply-derived authors (Grace auto-added).
+	assert.ok(authorsXml.includes('name="Ada Lovelace"'), 'declared author missing')
+	assert.ok(authorsXml.includes('name="Grace"'), 'reply author not auto-collected')
+	// comments part: cm anchored to slide via sldMkLst, has replyLst.
+	assert.ok(cmXml.includes('<p188:cmLst'), 'no cmLst root')
+	assert.ok(cmXml.includes('<pc:sldMkLst>'), 'no slide moniker anchor')
+	assert.ok(cmXml.includes('<p188:replyLst>'), 'no replyLst')
+	assert.ok(cmXml.includes('Fix the title') && cmXml.includes('On it'), 'comment/reply text missing')
+	// content types + rels.
+	assert.ok(ctXml.includes('application/vnd.ms-powerpoint.comments+xml'), 'comments content-type missing')
+	assert.ok(ctXml.includes('application/vnd.ms-powerpoint.authors+xml'), 'authors content-type missing')
+	assert.ok(presRels.includes('/relationships/authors'), 'presentation authors rel missing')
+	assert.ok(slide1Rels.includes('/relationships/comments'), 'slide1 comments rel missing')
+	assert.ok(!slide2Rels.includes('/relationships/comments'), 'slide2 should NOT have comments rel')
+	// slide2 has no comments part.
+	assert.ok(!zip.file('ppt/comments/commentSlide2.xml'), 'slide2 comments part should not exist')
+})
+
+test('#gap6: media trim/fade/bookmarks/isNarration emit on p14:media', async () => {
+	const pptx = new pptxgen()
+	const tinyAudio = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADQgD///////////////////////////////////////////8AAAA8TEFNRTMuMTAwAQAAAAAAAAAAABSAJAJAQgAAgAAAA0LS3ZssAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//sQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAE'
+	pptx.addSlide().addMedia({
+		type: 'audio', data: tinyAudio, x: 1, y: 1, w: 1, h: 1,
+		trim: { st: 1000, end: 500 }, fade: { in: 250, out: 750 },
+		bookmarks: [{ name: 'chorus', time: 30000 }], isNarration: true,
+	})
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// MS-PPTX §2.3.3.14: trim/fade/bmkLst are children of p14:media.
+	assert.ok(slideXml.includes('<p14:trim st="1000" end="500"/>'), `trim missing: ${/<p14:media[\s\S]*?<\/p14:media>/.exec(slideXml)?.[0]}`)
+	assert.ok(slideXml.includes('<p14:fade in="250" out="750"/>'), 'fade missing')
+	assert.ok(slideXml.includes('<p14:bmk name="chorus" time="30000"/>'), 'bookmark missing')
+	// §2.2.14 narration flag.
+	assert.ok(slideXml.includes('<p15:isNarration') && slideXml.includes('val="1"'), 'isNarration missing')
+})
+
+test('#gap2: slide zoom emits mc:AlternateContent sldZm + pic fallback', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('zoom source', { x: 1, y: 1, w: 2, h: 1 })
+	pptx.addSlide().addText('zoom target', { x: 1, y: 1, w: 2, h: 1 })
+	// zoom on slide 1 pointing at slide 2
+	const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+	const z = pptx.slides[0] as unknown as { addZoom: (o: object) => void }
+	z.addZoom({ slideNum: 2, x: 1, y: 4, w: 2, h: 1.13, cover: tinyPng, returnToParent: true })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// MS-PPTX §2.10: Choice p16:sldZm (sldId=255+2=257) + pic Fallback.
+	assert.ok(slideXml.includes('<mc:AlternateContent'), 'no AlternateContent')
+	assert.ok(slideXml.includes('Requires="p16"'), 'no p16 Choice')
+	assert.ok(slideXml.includes('<p16:sldZm>'), 'no sldZm element')
+	assert.ok(slideXml.includes('sldId="257"'), `target sldId wrong: ${/<p16:sldZmObj[^>]*>/.exec(slideXml)?.[0]}`)
+	assert.ok(slideXml.includes('<p166:zmPr'), 'no zmPr')
+	assert.ok(slideXml.includes('returnToParent="1"'), 'returnToParent missing')
+	assert.ok(slideXml.includes('<mc:Fallback><p:pic>'), 'no pic fallback')
+})
+
+test('#gap2b: section zoom anchors to section GUID via sectionZm', async () => {
+	const pptx = new pptxgen()
+	const s1 = pptx.addSlide()
+	pptx.addSection({ title: 'Intro' })
+	s1.addText('section source', { x: 1, y: 1, w: 2, h: 1 })
+	pptx.addSlide().addText('in section', { x: 1, y: 1, w: 2, h: 1 })
+	const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+	const z = pptx.slides[0] as unknown as { addSectionZoom: (o: object) => void }
+	z.addSectionZoom({ sectionTitle: 'Intro', x: 1, y: 4, w: 2, h: 1.13, cover: tinyPng })
+
+	const zip = await writeZip(pptx)
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	const presXml = await readPart(zip, 'ppt/presentation.xml')
+	// MS-PPTX §2.9: p16:sectionZm + sectionId GUID matching the sectionLst entry.
+	assert.ok(slideXml.includes('<p16:sectionZm>'), 'no sectionZm element')
+	assert.ok(slideXml.includes('<p16:sectionZmObj sectionId="{'), 'no sectionId GUID')
+	const m = /sectionId="(\{[0-9a-f-]+\})"/.exec(slideXml)
+	assert.ok(m, 'sectionId not found')
+	assert.ok(presXml.includes(`id="${m?.[1]}"`), `section GUID ${m?.[1]} not present in sectionLst`)
+})
+
+test('#gap2c: summary zoom emits summaryZm + gridLayout + grpSp fallback', async () => {
+	const pptx = new pptxgen()
+	pptx.addSection({ title: 'Summary' })
+	const s1 = pptx.addSlide()
+	s1.addText('summary source', { x: 1, y: 1, w: 2, h: 1 })
+	pptx.addSlide().addText('target', { x: 1, y: 1, w: 2, h: 1 })
+	const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+	const z = pptx.slides[0] as unknown as { addSummaryZoom: (o: object) => void }
+	z.addSummaryZoom({ sectionTitle: 'Summary', x: 1, y: 4, w: 2, h: 1.13, cover: tinyPng, title: 'Go to Summary' })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// MS-PPTX §2.11: p16:summaryZm with summaryZmObj + required layout choice + grpSp fallback (§2.2.15).
+	assert.ok(slideXml.includes('<p16:summaryZm>'), 'no summaryZm element')
+	assert.ok(slideXml.includes('<p16:summaryZmObj sectionId="{'), 'no summaryZmObj sectionId')
+	assert.ok(slideXml.includes('title="Go to Summary"'), 'title attr missing')
+	assert.ok(slideXml.includes('<p16:gridLayout/>'), 'no gridLayout choice')
+	assert.ok(slideXml.includes('<mc:Fallback><p:grpSp>'), 'summary zoom should use grpSp fallback')
+})

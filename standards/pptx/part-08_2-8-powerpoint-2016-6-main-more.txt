@@ -1,0 +1,170 @@
+<!-- 2.8 powerpoint/2016/6/main (+more) | pages 74-76 of 170 -->
+
+Referenced by: CT_ClientRevision
+
+A simple type that specifies an unsigned integer for uniquely identifying a revision made by a
+particular application instance. A client revision number MUST be a strictly increasing value, with a
+later revision having a greater client revision number than an earlier one. A client revision number
+does not have to be unique across different application instances. A pair consisting of a client ID and a
+client revision number uniquely identifies a revision within a collaborative session.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_ClientRevisionNumber">
+      <xsd:restriction base="xsd:unsignedInt"/>
+    </xsd:simpleType>
+
+
+See section 5.5 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.8  http://schemas.microsoft.com/office/powerpoint/2016/6/main
+
+2.8.1 Elements
+
+None.
+
+2.8.2  Attributes
+
+None.
+
+2.8.3 Complex Types
+
+2.8.3.1 CT_ZoomObjectProperties
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/6/main
+
+Referenced by: CT_SectionZoomObject, CT_SlideZoomObject, CT_SummaryZoomObject
+
+A complex type that specifies properties of a Zoom object.
+
+Child Elements:
+
+blipFill: An a:CT_BlipFillProperties ([ISO/IEC29500-1:2016] section 19.3.1.4) element that specifies
+the type of picture fill that the object uses.
+
+spPr: An a:CT_ShapeProperties ([ISO/IEC29500-1:2016] section A.4.1) element that specifies the
+visual shape properties that can be applied to the object.
+
+Attributes:
+
+id: A s:ST_Guid ([ISO/IEC29500-4:2016] section A.8.9) attribute that specifies the unique ID of the
+Zoom object.
+
+returnToParent: An xsd:boolean ([XMLSCHEMA2/2] section 3.2.2) attribute that specifies return to
+parent navigation behavior in slideshow.
+transitionDur: An ST_UniversalTimeOffset attribute that specifies the duration of the transition
+between Zoom and slide. If not specified, it will use the destination slide transition and the timings
+associated with that transition.
+
+showBg: An xsd:boolean ([XMLSCHEMA2/2] section 3.2.2) attribute that specifies whether the Zoom
+will use the background of the destination slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_ZoomObjectProperties">
+      <xsd:sequence>
+        <xsd:element name="blipFill" type="a:CT_BlipFillProperties" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="spPr" type="a:CT_ShapeProperties" minOccurs="1" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+      <xsd:attribute name="returnToParent" type="xsd:boolean" use="optional" default="true"/>
+      <xsd:attribute name="imageType" type="ST_ZoomObjectImageType" use="optional"
+    default="preview"/>
+      <xsd:attribute name="transitionDur" type="p14:ST_UniversalTimeOffset" use="optional"/>
+      <xsd:attribute name="showBg" type="xsd:boolean" use="optional" default="true"/>
+    </xsd:complexType>
+
+
+See section 5.7 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.8.4 Simple Types
+
+2.8.4.1 ST_ZoomObjectImageType
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/6/main
+
+Referenced by: CT_ZoomObjectProperties
+
+A simple type that specifies whether the Zoom object is using the slide preview or a cover image.
+
+ Value   Meaning
+
+ preview  Use the image of the slide or section
+
+ cover    Use a custom image
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_ZoomObjectImageType">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="preview"/>
+        <xsd:enumeration value="cover"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.7 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+2.9.1 Elements
+
+2.9.1.1 sectionZm
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom
+
+A CT_SectionZoom element that specifies the Zoom type as a Section Zoom container.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="sectionZm" type="CT_SectionZoom"/>
+
+
+See section 5.8 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.9.2  Attributes
+
+None.
+
+2.9.3 Complex Types
+
+2.9.3.1 CT_SectionZoom
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom
+
+Referenced by: sectionZm
+
+A complex type that specifies the Zoom type as a Section Zoom container.
+
+Child Elements:
+
+sectionZmObj: A CT_SectionZoomObject element that specifies the object type as a Section Zoom
+object.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the Zoom will be stored in the extension list.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SectionZoom">
+      <xsd:sequence>
+        <xsd:element name="sectionZmObj" type="CT_SectionZoomObject" minOccurs="1"
+    maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.8 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.9.3.2 CT_SectionZoomObject
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom

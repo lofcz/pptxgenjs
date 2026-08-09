@@ -1,0 +1,117 @@
+<!-- 2.10 powerpoint/2016/slidezoom | pages 77-78 of 170 -->
+
+Child Elements:
+
+zmPr: A CT_ZoomObjectProperties element that specifies Section Zoom object properties.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the Zoom will be stored in the extension list.
+
+Attributes:
+
+sectionId: A s:ST_Guid ([ISO/IEC29500-4:2016]section A.8.9) attribute that specifies the section ID
+that the Section Zoom object links to.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SectionZoomObject">
+      <xsd:sequence>
+        <xsd:element name="zmPr" type="p166:CT_ZoomObjectProperties" minOccurs="1"
+    maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="sectionId" type="s:ST_Guid" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.8 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.9.4 Simple Types
+
+None.
+
+2.10 http://schemas.microsoft.com/office/powerpoint/2016/slidezoom
+
+2.10.1 Elements
+
+2.10.1.1    sldZm
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/slidezoom
+
+A CT_SlideZoom element that specifies the Zoom type as a Slide Zoom container.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="sldZm" type="CT_SlideZoom"/>
+
+
+See section 5.9 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.10.2 Attributes
+
+None.
+2.10.3.1    CT_SlideZoom
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/slidezoom
+
+Referenced by: sldZm
+
+A complex type that specifies the Zoom type as a Slide Zoom container.
+
+Child Elements:
+
+sldZmObj: A CT_SlideZoomObject element that specifies the object type as a Slide Zoom object.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the Zoom will be stored in the extension list.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideZoom">
+      <xsd:sequence>
+        <xsd:element name="sldZmObj" type="CT_SlideZoomObject" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.9 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.10.3.2    CT_SlideZoomObject
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2016/slidezoom
+
+Referenced by: CT_SlideZoom
+
+A complex type that specifies the object type as a Slide Zoom object.
+
+Child Elements:
+
+zmPr: A CT_ZoomObjectProperties element that specifies the Slide Zoom object properties.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the Zoom will be stored in the extension list.
+
+Attributes:
+
+sldId: A p:ST_SlideId ([ISO/IEC29500-4:2016] section A.4) attribute that specifies the slide ID that
+the Slide Zoom object links to.
+
+cId: An xsd:unsignedInt ([XMLSCHEMA2/2] section 3.3.22) attribute that specifies the creation ID
+(see section 2.3.1.4) that the Slide Zoom object links to.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideZoomObject">
+      <xsd:sequence>
+        <xsd:element name="zmPr" type="p166:CT_ZoomObjectProperties" minOccurs="1"
+    maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>

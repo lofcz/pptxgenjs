@@ -1,0 +1,110 @@
+<!-- 2.1 Part Enumerations | pages 16-17 of 170 -->
+
+2.1  Part Enumerations
+
+2.1.1 Media Part
+
+The following table specifies a new Media part that can be stored in a PresentationML document.
+
+                   Value Part components
+ Content types                   Any supported audio or video type. See [ISO/IEC29500-1:2016] sections 15.2.2 and 15.2.17
+                          for a list of possible content types.
+
+ Source relationship   http://schemas.microsoft.com/office/2007/relationships/media
+
+An instance of a Media part specifies the binary data of a media file containing audio information,
+video information, or both audio and video information.
+
+A Media part MUST be the target of an explicit relationship from a Slide part ([ISO/IEC29500-1:2016]
+section 13.3.8), a Slide Layout part ([ISO/IEC29500-1:2016] section 13.3.9), or a Slide Master part
+([ISO/IEC29500-1:2016] section 13.3.10).
+
+A Media part is not stored as XML; instead, it involves a relationship target that is a media clip.
+
+A Media part can be located within or external to the package containing the relationships part; as
+such, the value of the TargetMode attribute of the Relationship element ([ISO/IEC29500-2:2012]
+section 6.5.3.4) can be either "Internal" or "External".
+
+A Media part MUST NOT have implicit or explicit relationships to other parts specified in
+[ISO/IEC29500-1:2016] or this document.
+
+2.1.2 Revision Information Part
+
+The following table specifies a new Revision Information part that can be stored in a PresentationML
+document.
+
+ Part Components                   Value
+
+ Content type                            application/vnd.ms-powerpoint.revisioninfo+xml
+
+ Root namespace                        http://schemas.microsoft.com/office/powerpoint/2015/10/main
+
+ Source relationship                       http://schemas.microsoft.com/office/2015/10/relationships/revisionInfo
+
+An instance of a Revision Information part specifies a set of revisions included by a PresentationML
+document.
+
+A package MUST contain zero or one Revision Information part. If it exists, that part MUST be the
+target of an implicit relationship from the Presentation part ([ISO/IEC29500-1:2016] section 13.3.6).
+
+The root element for a part of this content type MUST be revInfo (section 2.7.1.1).
+
+A Revision Information part MUST be located within the package containing the relationships part
+(expressed syntactically, the TargetMode attribute of the Relationship element ([ISO/IEC29500-
+2:2012] section 6.5.3.4) shall be Internal).
+
+A Revision Information part MUST NOT have implicit or explicit relationships to other parts specified in
+[ISO/IEC29500-1:2016] or this document.
+ Part Components        Value
+
+ Content type                 text/vtt
+
+ Source relationship          http://schemas.microsoft.com/office/2017/04/relationships/track
+
+An instance of a Track part specifies the text data of a Web Video Text Tracks Format (WebVTT)
+file.
+
+A Track part MUST be the target of an explicit relationship from a Slide part ([ISO/IEC29500-1:2016]
+section 13.3.8), a Slide Layout part ([ISO/IEC29500-1:2016] section 13.3.9), or a Slide Master part
+([ISO/IEC29500-1:2016] section 13.3.10).
+
+A Tracks part can be located within or external to the package containing the relationships part; as
+such, the value of the TargetMode attribute of the Relationship element ([ISO/IEC29500-2:2012]
+section 6.5.3.4) can be either "Internal" or "External".
+
+A Tracks part MUST NOT have implicit or explicit relationships to other parts specified in
+[ISO/IEC29500-1:2016] or this document.
+
+2.1.4 Changes Information Part
+
+The following table specifies a new Changes Information part that can be stored in a PresentationML
+document.
+
+ Part Components                   Value
+
+ Content type                           application/vnd.ms-powerpoint.changesinfo+xml
+
+ Root namespace                       http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+ Source relationship                      http://schemas.microsoft.com/office/2016/11/relationships/changesInfo
+
+An instance of a Changes Information part specifies a set of document edits included by a
+PresentationML document.
+
+A package MUST contain zero or one Changes Information part. If it exists, that part MUST be the
+target of an implicit relationship from the Presentation part ([ISO/IEC29500-1:2016] section 13.3.6).
+
+The root element for a part of this content type MUST be chgInfo (section 2.12.1.1).
+
+A Changes Information part MUST be located within the package containing the relationships part
+(expressed syntactically, the TargetMode attribute of the Relationship element ([ISO/IEC29500-
+2:2012] section 6.5.3.4) MUST be Internal.
+
+A Changes Information part MUST NOT have implicit or explicit relationships to other parts specified in
+[ISO/IEC29500-1:2016] or this document.
+
+2.1.5 Comment Part
+
+Referenced by: commentRel
+
+The following table specifies a new Comment part that can be stored in a PresentationML document.

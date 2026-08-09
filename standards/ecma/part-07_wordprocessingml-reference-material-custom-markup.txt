@@ -1,0 +1,3856 @@
+<!-- WordprocessingML Reference Material - Custom Markup | pages 1302-1382 of 6045 -->
+
+     Attributes                                            Description
+
+Type)                  attribute. This property is used to define various properties of a table, including: cell
+                       spacing, preferred width, and table margins.
+
+                                  If this attribute is omitted, then its value shall be assumed to be dxa (twentieths of a
+                        point).
+
+                     [Example: Consider a table with a table cell bottom cell spacing with a type of dxa, as
+                       follows:
+
+                   <w:bottom ... w:type="dxa" />
+
+                       This type shall therefore be used to interpret the width specified in the w attribute as a
+                     value in twentieths of a point. end example]
+
+                   The possible values for this attribute are defined by the ST_TblWidth simple type
+                       (§2.18.97).
+w (Table Width        Specifies the value of the width property being defined by the parent element. This
+Value)               property is used to define various properties of a table, including: cell spacing, preferred
+                      widths, and table margins.
+
+                                  If this attribute is omitted, then its value shall be assumed to be 0.
+
+                     [Example: Consider a table with a bottom margin with a width of 302, as follows:
+
+                   <w:bottom w:w="302" w:type="dxa" />
+
+                   The value in the w attribute shall therefore be used to determine the width being
+                       specified in the context of the units specified in the type attribute. In this case, the type
+                              is twentieths of a point (dxa), so the width is 302 twentieths of a point (.2097 inches).
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TblWidth">
+    <attribute name="w" type="ST_DecimalNumber"/>
+    <attribute name="type" type="ST_TblWidth"/>
+</complexType>
+
+2.5   Custom Markup
+
+Within a WordprocessingML document, it is often necessary for specific documents to contain semantic
+information beyond the presentation information specified by this Office Open XML Standard. [Example: An
+invoice document may wish to specify that a particular sentence of text is a customer name, in order for that
+
+
+                                                                                      513
+information to be easily extracted from the document without the need to parse the text using regular
+expression matching or similar. end example]
+
+For these scenarios, multiple facilities are provided for the insertion and round-tripping of customer defined
+semantics within a WordprocessingML document. There are three distinct forms in which customer-defined
+semantics can be inserted into a WordprocessingML document, each with their own specific intended usage:
+
+      Smart tags
+      Custom XML markup
+       Structured document tags (content controls)
+
+The elements and attributes which define each of these forms is described in the following clauses.
+
+2.5.1    Custom XML and Smart Tags
+
+The final type of customer-defined semantics which can be embedded in a WordprocessingML document are
+structured document tags (SDTs).
+
+As shown above, smart tags and custom XML markup each provide a facility for embedding customer-defined
+semantics into the document: smart tags, via the ability to provide a basic namespace/name for a run or set of
+runs within a documents; and custom XML markup, via the ability to tag the document with XML elements and
+attributes specified by any valid XML Schema file.
+
+However, each of these techniques, while they each provide a way to add the desired semantic information,
+does not provide a way to affect the presentation or interaction within the document. To bridge these two
+worlds, structured document tags allow both the specification of customer semantics as well as the ability to
+influence the presentation of that data in the document.
+
+This means that the customer can define the semantics and context of the tag, but can then use a rich set of pre-
+defined properties to define its behavior and appearance within the WordprocessingML document's
+presentation.
+
+[Example: Consider a region which should be tagged with the semantic of "birthday", for the user to enter their
+date or birth into the document. Ideally, this region would also utilize a date picker to allow the user to enter the
+date from a calendar:
+
+
+This content would be specified using the following WordprocessingML:
+
+
+                                                                                      514
+  <w:sdt>
+    <w:sdtPr>
+      <w:alias w:val="Birthday"/>
+      <w:id w:val="8775518"/>
+      <w:placeholder>
+        <w:docPart w:val="DefaultPlaceholder_22479095"/>
+      </w:placeholder>
+      <w:showingPlcHdr/>
+      <w:date>
+        <w:dateFormat w:val="M/d/yyyy"/>
+        <w:lid w:val="EN-US"/>
+      </w:date>
+    </w:sdtPr>
+    <w:sdtContent>
+      <w:p>
+        <w:r>
+          <w:rPr>
+            <w:rStyle w:val="PlaceholderText"/>
+          </w:rPr>
+          <w:t>Click here to enter a date...</w:t>
+        </w:r>
+      </w:p>
+    </w:sdtContent>
+  </w:sdt>
+
+end example]
+
+As shown above, each of the structured document tags in the WordprocessingML file is represented using the
+sdt element.
+
+Within a structured document tag, there are two child elements which contain the definition and the content of
+this SDT. The first of these is the sdtPr element, which contains the set of properties specified for this structured
+document tag. The second is the sdtContent element, which contains all the content which is contained within
+this structured document tag.
+
+2.5.1.1         attr (Custom XML Attribute)
+
+This element specifies a custom XML attribute which shall be located on the parent custom XML element
+specified via the customXml element (§2.5.1.3;§2.5.1.4;§2.5.1.5; §2.5.1.6). The attributes on this element shall
+be used to specify the contents of the custom XML attribute.
+
+[Example: Consider a custom XML element with the following properties:
+
+
+                                                                                      515
+  <w:customXmlPr>
+    <w:attr w:name="companyName" … />
+    <w:attr w:name="companySymbol … />
+  </w:customXmPr>
+
+This property bag specifies that the parent custom XML element shall have two attributes associated with it, he
+first with a name of companyName, and the second with a name of companySymbol. end example]
+
+
+                                          Parent Elements
+customXmlPr (§2.5.1.7)
+
+
+     Attributes                                            Description
+name (Name)         Specifies the name of the current custom XML attribute or smart tag property.
+
+                     [Example: Consider a custom XML attribute which shall have a name of companyName.
+                       This requirement would be specified using the following WordprocessingML:
+
+                   <w:customXmlPr>
+                     <w:attr w:name="companyName" … />
+                   </w:customXmlPr>
+
+                   The name attribute specifies that the name for this property shall be companyName. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+uri (Namespace)      Specifies the namespace URI of the current custom XML attribute or smart tag property.
+
+                                  If this attribute is omitted, the URI shall be assumed to be null (no associated URI).
+
+                     [Example: Consider a smart tag property which shall have a namespace URI of
+                   http://schemas.openxmlformats.org/2006/example. This requirement would be
+                       specified using the following WordprocessingML:
+
+                   <w:smartTagPr>
+                     <w:attr w:uri="http://schemas.openxmlformats
+                   .org/2006/example" … />
+                   </w:smartTagPr>
+
+                   The uri attribute specifies that the namespace for this property shall be
+                   http://schemas.openxmlformats.org/2006/example. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+val (Value)             Specifies the value of the current custom XML attribute or smart tag property.
+
+                     [Example: Consider a smart tag property which shall have a value of propertyValue. This
+
+
+                                                                                      516
+     Attributes                                            Description
+
+                    requirement would be specified using the following WordprocessingML:
+
+                   <w:smartTagPr>
+                     <w:attr … w:val="propertyValue" />
+                   </w:smartTagPr>
+
+                   The val attribute specifies that the value for this property shall be propertyValue. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Attr">
+    <attribute name="uri" type="ST_String"/>
+    <attribute name="name" type="ST_String" use="required"/>
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+2.5.1.2         attr (Smart Tag Property)
+
+This element specifies a single smart tag property which shall be located on the parent smart tag, specified via
+the smartTag element (§2.5.1.9). The attributes on this element shall be used to specify the contents of smart
+tag property.
+
+[Example: Consider a smart tag with the following properties:
+
+  <w:smartTagPr>
+    <w:attr w:name="attributeOne" … />
+    <w:attr w:name="attributeTwo" … />
+  </w:smartTagPr>
+
+This property bag specifies that the parent smart tag shall have two properties associated with it, the first with a
+name of attributeOne, and the second with a name of attributeTwo. end example].
+
+
+                                          Parent Elements
+smartTagPr (§2.5.1.10)
+
+
+     Attributes                                            Description
+name (Name)         Specifies the name of the current custom XML attribute or smart tag property.
+
+                     [Example: Consider a custom XML attribute which shall have a name of companyName.
+                       This requirement would be specified using the following WordprocessingML:
+
+                   <w:customXmlPr>
+
+
+                                                                                      517
+     Attributes                                            Description
+
+                     <w:attr w:name="companyName" … />
+                   </w:customXmlPr>
+
+                   The name attribute specifies that the name for this property shall be companyName. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+uri (Namespace)      Specifies the namespace URI of the current custom XML attribute or smart tag property.
+
+                                  If this attribute is omitted, the URI shall be assumed to be null (no associated URI).
+
+                     [Example: Consider a smart tag property which shall have a namespace URI of
+                   http://schemas.openxmlformats.org/2006/example. This requirement would be
+                       specified using the following WordprocessingML:
+
+                   <w:smartTagPr>
+                     <w:attr w:uri="http://schemas.openxmlformats
+                   .org/2006/example" … />
+                   </w:smartTagPr>
+
+                   The uri attribute specifies that the namespace for this property shall be
+                   http://schemas.openxmlformats.org/2006/example. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+val (Value)             Specifies the value of the current custom XML attribute or smart tag property.
+
+                     [Example: Consider a smart tag property which shall have a value of propertyValue. This
+                    requirement would be specified using the following WordprocessingML:
+
+                   <w:smartTagPr>
+                     <w:attr … w:val="propertyValue" />
+                   </w:smartTagPr>
+
+                   The val attribute specifies that the value for this property shall be propertyValue. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Attr">
+    <attribute name="uri" type="ST_String"/>
+    <attribute name="name" type="ST_String" use="required"/>
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+
+                                                                                      518
+2.5.1.3       customXml (Cell-Level Custom XML Element)
+
+This element specifies the presence of a custom XML element around a single table cell. The attributes on this
+element shall be used to specify the name and namespace URI of the current custom XML element.
+
+[Example: Consider a custom XML element with the name company that shall be located around a single table
+cell in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:tr>
+    <w:customXml w:element="company" … >
+      <w:tc>
+        …
+      </w:tc>
+    </w:customXml>
+    …
+  </w:tr>
+
+The customXml element specifies that the name of the custom XML element is company, and the custom XML
+element contains a single table cell (it is a cell-level element). end example]
+
+
+                                          Parent Elements
+customXml (§2.5.1.3); sdtContent (§2.5.2.33); tr (§2.4.75)
+
+
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Cell-Level Custom XML Element)                                                        §2.5.1.3
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+customXmlPr (Custom XML Element Properties)                                                     §2.5.1.7
+del (Deleted Run Content)                                                                        §2.13.5.12
+
+
+                                                                                      519
+                                         Child Elements                                        Subclause
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+sdt (Cell-Level Structured Document Tag)                                                           §2.5.2.28
+tc (Table Cell)                                                                                   §2.4.62
+
+
+     Attributes                                            Description
+element (Custom      Specifies the name of the current custom XML element or smart tag within the
+XML Element        document.
+Name)
+                     [Example: Consider a custom XML element which shall have a name of companyName. This
+                    requirement would be specified using the following WordprocessingML:
+
+                   <w:customXml w:element="companyName" … >
+                     …
+                   </w:customXml>
+
+                   The element attribute specifies that the name for this element shall be companyName.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+uri (Custom XML      Specifies the namespace URI of the current custom XML element or smart tag.
+Element
+Namespace)               If this attribute is omitted, the URI shall be assumed to be null (no associated URI).
+
+                     [Example: Consider a custom XML element which shall have a namespace URI of
+                   urn:customXmlExample. This requirement would be specified using the following
+                    WordprocessingML:
+
+                   <w:customXml … w:uri="urn:customXmlExample" />
+                     …
+
+
+                                                                                      520
+     Attributes                                            Description
+
+                   </w:customXml>
+
+                   The uri attribute specifies that the namespace for this element shall be
+                   urn:customXmlExample. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CustomXmlCell">
+    <sequence>
+       <element name="customXmlPr" type="CT_CustomXmlPr" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_ContentCellContent" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="uri" type="ST_String"/>
+    <attribute name="element" type="ST_String" use="required"/>
+</complexType>
+
+2.5.1.4       customXml (Row-Level Custom XML Element)
+
+This element specifies the presence of a custom XML element around a single table row. The attributes on this
+element shall be used to specify the name and namespace URI of the current custom XML element.
+
+[Example: Consider a custom XML element with the name invoiceItem that shall be located around a single
+table row in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:tbl>
+    <w:customXml w:element="invoiceItem" … >
+      <w:tr>
+        …
+      </w:tr>
+    </w:customXml>
+    …
+  </w:tbl>
+
+The customXml element specifies that the name of the custom XML element is invoiceItem, and the custom
+XML element contains a single table row (it is a row-level element). end example]
+
+
+                                          Parent Elements
+customXml (§2.5.1.4); sdtContent (§2.5.2.34); tbl (§2.4.36)
+
+
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+
+
+                                                                                      521
+                                         Child Elements                                        Subclause
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Row-Level Custom XML Element)                                                       §2.5.1.4
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+customXmlPr (Custom XML Element Properties)                                                     §2.5.1.7
+del (Deleted Run Content)                                                                        §2.13.5.12
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+sdt (Row-Level Structured Document Tag)                                                          §2.5.2.31
+tr (Table Row)                                                                                  §2.4.75
+
+
+     Attributes                                            Description
+element (Custom      Specifies the name of the current custom XML element or smart tag within the
+XML Element        document.
+Name)
+                     [Example: Consider a custom XML element which shall have a name of companyName. This
+                    requirement would be specified using the following WordprocessingML:
+
+
+                                                                                      522
+     Attributes                                            Description
+
+                   <w:customXml w:element="companyName" … >
+                     …
+                   </w:customXml>
+
+                   The element attribute specifies that the name for this element shall be companyName.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+uri (Custom XML      Specifies the namespace URI of the current custom XML element or smart tag.
+Element
+Namespace)               If this attribute is omitted, the URI shall be assumed to be null (no associated URI).
+
+                     [Example: Consider a custom XML element which shall have a namespace URI of
+                   urn:customXmlExample. This requirement would be specified using the following
+                    WordprocessingML:
+
+                   <w:customXml … w:uri="urn:customXmlExample" />
+                     …
+                   </w:customXml>
+
+                   The uri attribute specifies that the namespace for this element shall be
+                   urn:customXmlExample. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CustomXmlRow">
+    <sequence>
+       <element name="customXmlPr" type="CT_CustomXmlPr" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_ContentRowContent" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="uri" type="ST_String"/>
+    <attribute name="element" type="ST_String" use="required"/>
+</complexType>
+
+2.5.1.5       customXml (Inline-Level Custom XML Element)
+
+This element specifies the presence of a custom XML element around one or more inline level structures (runs,
+images, fields, etc.) within a paragraph. The attributes on this element shall be used to specify the name and
+namespace URI of the current custom XML element.
+
+[Example: Consider a custom XML element with the name firstName that shall be located around a two text
+runs in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+
+                                                                                      523
+  <w:p>
+    <w:customXml w:element="firstName" … >
+      <w:r>
+        …
+      </w:r>
+      <w:r>
+        …
+      </w:r>
+    </w:customXml>
+    …
+  </w:p>
+
+The customXml element specifies that the name of the custom XML element is firstName, and the custom XML
+element contains a two text runs (it is an inline-level element). end example]
+
+
+                                          Parent Elements
+customXml (§2.5.1.5); del (§2.13.5.12); fldSimple (§2.16.21); hyperlink (§2.16.24); ins (§2.13.5.20);
+moveFrom (§2.13.5.21); moveTo (§2.13.5.26); p (§2.3.1.22); sdtContent (§2.5.2.35); smartTag (§2.5.1.9)
+
+
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Inline-Level Custom XML Element)                                                      §2.5.1.5
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+customXmlPr (Custom XML Element Properties)                                                     §2.5.1.7
+del (Deleted Run Content)                                                                        §2.13.5.12
+fldSimple (Simple Field)                                                                        §2.16.21
+hyperlink (Hyperlink)                                                                          §2.16.24
+ins (Inserted Run Content)                                                                       §2.13.5.20
+
+
+                                                                                      524
+                                         Child Elements                                        Subclause
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+r (Text Run)                                                                                       §2.3.2.23
+sdt (Inline-Level Structured Document Tag)                                                         §2.5.2.29
+smartTag (Inline-Level Smart Tag)                                                                   §2.5.1.9
+subDoc (Anchor for Subdocument Location)                                                        §2.17.2.1
+
+
+     Attributes                                            Description
+element (Element     Specifies the name of the current custom XML element or smart tag within the
+name)              document.
+
+                     [Example: Consider a custom XML element which shall have a name of companyName. This
+                    requirement would be specified using the following WordprocessingML:
+
+                   <w:customXml w:element="companyName" … >
+                     …
+                   </w:customXml>
+
+                   The element attribute specifies that the name for this element shall be companyName.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+uri (Custom XML      Specifies the namespace URI of the current custom XML element or smart tag.
+Markup
+Namespace)               If this attribute is omitted, the URI shall be assumed to be null (no associated URI).
+
+                     [Example: Consider a custom XML element which shall have a namespace URI of
+                   urn:customXmlExample. This requirement would be specified using the following
+                    WordprocessingML:
+
+
+                                                                                      525
+     Attributes                                            Description
+
+                   <w:customXml … w:uri="urn:customXmlExample" />
+                     …
+                   </w:customXml>
+
+                   The uri attribute specifies that the namespace for this element shall be
+                   urn:customXmlExample. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CustomXmlRun">
+    <sequence>
+       <element name="customXmlPr" type="CT_CustomXmlPr" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_PContent" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="uri" type="ST_String"/>
+    <attribute name="element" type="ST_String" use="required"/>
+</complexType>
+
+2.5.1.6       customXml (Block-Level Custom XML Element)
+
+This element specifies the presence of a custom XML element around one or more block level structures
+(paragraphs, tables, etc.). The attributes on this element shall be used to specify the name and namespace URI
+of the current custom XML element.
+
+[Example: Consider a custom XML element with the name address that shall be located around a single
+paragraph in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:body>
+    <w:customXml w:element="address" … >
+      <w:p>
+        …
+      </w:p>
+    </w:customXml>
+    …
+  </w:body>
+
+The customXml element specifies that the name of the custom XML element is address, and the custom XML
+element contains a single paragraph (it is a block-level element). end example]
+
+
+                                          Parent Elements
+body (§2.2.2); comment (§2.13.4.2); customXml (§2.5.1.6); docPartBody (§2.12.6); endnote (§2.11.2);
+footnote (§2.11.10); ftr (§2.10.3); hdr (§2.10.4); sdtContent (§2.5.2.32); tc (§2.4.62); txbxContent (§2.17.1.1)
+
+
+                                                                                      526
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Block-Level Custom XML Element)                                                      §2.5.1.6
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+customXmlPr (Custom XML Element Properties)                                                     §2.5.1.7
+del (Deleted Run Content)                                                                        §2.13.5.12
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+p (Paragraph)                                                                                     §2.3.1.22
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+sdt (Block-Level Structured Document Tag)                                                         §2.5.2.30
+tbl (Table)                                                                                      §2.4.36
+
+
+     Attributes                                            Description
+element (Custom      Specifies the name of the current custom XML element or smart tag within the
+XML Element        document.
+
+
+                                                                                      527
+     Attributes                                            Description
+
+Name)
+                     [Example: Consider a custom XML element which shall have a name of companyName. This
+                    requirement would be specified using the following WordprocessingML:
+
+                   <w:customXml w:element="companyName" … >
+                     …
+                   </w:customXml>
+
+                   The element attribute specifies that the name for this element shall be companyName.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+uri (Custom XML      Specifies the namespace URI of the current custom XML element or smart tag.
+Element
+Namespace)               If this attribute is omitted, the URI shall be assumed to be null (no associated URI).
+
+                     [Example: Consider a custom XML element which shall have a namespace URI of
+                   urn:customXmlExample. This requirement would be specified using the following
+                    WordprocessingML:
+
+                   <w:customXml … w:uri="urn:customXmlExample" />
+                     …
+                   </w:customXml>
+
+                   The uri attribute specifies that the namespace for this element shall be
+                   urn:customXmlExample. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CustomXmlBlock">
+    <sequence>
+       <element name="customXmlPr" type="CT_CustomXmlPr" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_ContentBlockContent" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="uri" type="ST_String"/>
+    <attribute name="element" type="ST_String" use="required"/>
+</complexType>
+
+2.5.1.7       customXmlPr (Custom XML Element Properties)
+
+This element specifies the set of properties which shall be applied to the parent custom XML element.
+
+[Example: Consider a custom XML element with the following properties specified:
+
+
+                                                                                      528
+  <w:customXmlPr>
+    <w:placeholder w:val="[Fill in your name]"/>
+    <w:attr w:name="status" w:val="draft"/>
+  </w:customXmlPr>
+
+This custom XML element specifies two properties: the presence of placeholder text via the placeholder
+element (§2.5.1.8) and a single custom XML attribute via the attr element (§2.5.1.1). end example]
+
+
+                                          Parent Elements
+customXml (§2.5.1.3); customXml (§2.5.1.6); customXml (§2.5.1.5); customXml (§2.5.1.4)
+
+
+                                         Child Elements                                        Subclause
+attr (Custom XML Attribute)                                                                         §2.5.1.1
+placeholder (Custom XML Element Placeholder Text)                                                 §2.5.1.8
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CustomXmlPr">
+    <sequence>
+       <element name="placeholder" type="CT_String" minOccurs="0"/>
+       <element name="attr" type="CT_Attr" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+2.5.1.8        placeholder (Custom XML Element Placeholder Text)
+
+This element specifies the placeholder text which shall be displayed in place of this custom XML element when
+the contents of this custom XML markup are empty (i.e. there are no runs of text within the current custom XML
+element). If this custom XML element does contain run content, then this text shall not be displayed.
+
+The val attribute stores the string of text which shall be displayed as the placeholder text. This string may be
+displayed in any font face/size desired by the hosting application.
+
+[Example: Consider a custom XML element with the following properties specified:
+
+  <w:customXmlPr>
+    <w:placeholder w:val="[Fill in your name]"/>
+    <w:attr w:name="status" w:val="draft"/>
+  </w:customXmlPr>
+
+The placeholder element specifies that this custom XML element shall display the text contents [Fill in your
+name] whenever there is no run content within the parent custom XML element. For example, if the custom
+XML element was specified as follows:
+
+
+                                                                                      529
+  <w:customXml>
+    <w:customXmlPr>
+      <w:placeholder w:val="[Fill in your name]"/>
+    </w:customXmlPr>
+    <w:p/>
+  </w:customXml>
+
+This custom XML element has no run content and the placeholder text would be displayed. However, if there is
+run content, as follows:
+
+  <w:customXml>
+    <w:customXmlPr>
+      <w:placeholder w:val="[Fill in your name]"/>
+    </w:customXmlPr>
+    <w:p>
+      <w:r>
+        <w:t>Name</w:t>
+      </w:r>
+    </w:p>
+  </w:customXml>
+
+This custom XML element now contains run content, and the placeholder text shall not be displayed. end
+example]
+
+
+                                          Parent Elements
+customXmlPr (§2.5.1.7)
+
+
+     Attributes                                            Description
+val (String Value)      Specifies that its contents will contain a string.
+
+                   The contents of this string are interpreted based on the context of the parent XML
+                     element.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pPr>
+                     <w:pStyle w:val="heading1" />
+                   </w:pPr>
+
+                   The value of the val attribute is the ID of the associated paragraph style's styleId.
+
+                   However, consider the following fragment:
+
+                   <w:sdtPr>
+
+
+                                                                                      530
+     Attributes                                            Description
+
+                     <w:alias w:val="SDT Title Example" />
+                     ...
+                   </w:sdtPr>
+
+                        In this case, the decimal number in the val attribute is the caption of the parent
+                      structured document tag. In each case, the value is interpreted in the context of the
+                     parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_String">
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+2.5.1.9       smartTag (Inline-Level Smart Tag)
+
+This element specifies the presence of a smart tag around one or more inline structures (runs, images, fields,
+etc.) within a paragraph. The attributes on this element shall be used to specify the name and namespace URI of
+the current smart tag.
+
+[Example: Consider a smart tag with the name firstName that shall be located around a two text runs in a
+WordprocessingML document. This requirement would be specified as follows in the WordprocessingML:
+
+  <w:p>
+    <w:smartTag w:element="firstName" … >
+      <w:r>
+        …
+      </w:r>
+      <w:r>
+        …
+      </w:r>
+    </w:smartTag>
+    …
+  </w:p>
+
+The smartTag element specifies that the name of the smart tag is firstName, and the smart tag contains a two
+text runs (it is an inline-level smart tag). end example]
+
+
+                                          Parent Elements
+customXml (§2.5.1.5); del (§2.13.5.12); fldSimple (§2.16.21); hyperlink (§2.16.24); ins (§2.13.5.20);
+moveFrom (§2.13.5.21); moveTo (§2.13.5.26); p (§2.3.1.22); sdtContent (§2.5.2.35); smartTag (§2.5.1.9)
+
+
+                                         Child Elements                                        Subclause
+
+
+                                                                                      531
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Inline-Level Custom XML Element)                                                      §2.5.1.5
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+del (Deleted Run Content)                                                                        §2.13.5.12
+fldSimple (Simple Field)                                                                        §2.16.21
+hyperlink (Hyperlink)                                                                          §2.16.24
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+r (Text Run)                                                                                       §2.3.2.23
+sdt (Inline-Level Structured Document Tag)                                                         §2.5.2.29
+smartTag (Inline-Level Smart Tag)                                                                   §2.5.1.9
+smartTagPr (Smart Tag Properties)                                                                §2.5.1.10
+subDoc (Anchor for Subdocument Location)                                                        §2.17.2.1
+
+
+                                                                                      532
+     Attributes                                            Description
+element (Smart Tag   Specifies the name of the current custom XML element or smart tag within the
+Name)              document.
+
+                     [Example: Consider a custom XML element which shall have a name of companyName. This
+                    requirement would be specified using the following WordprocessingML:
+
+                   <w:customXml w:element="companyName" … >
+                     …
+                   </w:customXml>
+
+                   The element attribute specifies that the name for this element shall be companyName.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+uri (Smart Tag         Specifies the namespace URI of the current custom XML element or smart tag.
+Namespace)
+                                  If this attribute is omitted, the URI shall be assumed to be null (no associated URI).
+
+                     [Example: Consider a custom XML element which shall have a namespace URI of
+                   urn:customXmlExample. This requirement would be specified using the following
+                    WordprocessingML:
+
+                   <w:customXml … w:uri="urn:customXmlExample" />
+                     …
+                   </w:customXml>
+
+                   The uri attribute specifies that the namespace for this element shall be
+                   urn:customXmlExample. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SmartTagRun">
+    <sequence>
+       <element name="smartTagPr" type="CT_SmartTagPr" minOccurs="0" maxOccurs="1"/>
+       <group ref="EG_PContent" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="uri" type="ST_String"/>
+    <attribute name="element" type="ST_String" use="required"/>
+</complexType>
+
+2.5.1.10      smartTagPr (Smart Tag Properties)
+
+This element specifies the set of properties which shall be applied to the parent smart tag.
+
+[Example: Consider a smart tag with the following properties specified:
+
+
+                                                                                      533
+  <w:smartTagPr>
+    <w:attr w:name="date" w:val="01/01/2006"/>
+    <w:attr w:name="status" w:val="draft"/>
+  </w:smartTagPr>
+
+This smart tag specifies two properties: the presence of two smart tag properties via the attr element (§2.5.1.2).
+end example]
+
+
+                                          Parent Elements
+smartTag (§2.5.1.9)
+
+
+                                         Child Elements                                        Subclause
+attr (Smart Tag Property)                                                                            §2.5.1.2
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SmartTagPr">
+    <sequence>
+       <element name="attr" type="CT_Attr" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+2.5.2     Structured Document Tags
+
+The final type of customer-defined semantics which can be embedded in a WordprocessingML document are
+structured document tags (SDTs).
+
+As shown above, smart tags and custom XML markup each provide a facility for embedding customer-defined
+semantics into the document: smart tags, via the ability to provide a basic namespace/name for a run or set of
+runs within a documents; and custom XML markup, via the ability to tag the document with XML elements and
+attributes specified by any valid XML Schema file.
+
+However, each of these techniques, while they each provide a way to add the desired semantic information,
+does not provide a way to affect the presentation or interaction within the document. To bridge these two
+worlds, structured document tags allow both the specification of customer semantics as well as the ability to
+influence the presentation of that data in the document.
+
+This means that the customer can define the semantics and context of the tag, but can then use a rich set of pre-
+defined properties to define its behavior and appearance within the WordprocessingML document's
+presentation.
+
+[Example: Consider a region which should be tagged with the semantic of "birthday", for the user to enter their
+date or birth into the document. Ideally, this region would also utilize a date picker to allow the user to enter the
+date from a calendar:
+
+
+                                                                                      534
+This content would be specified using the following WordprocessingML:
+
+  <w:sdt>
+    <w:sdtPr>
+      <w:alias w:val="Birthday"/>
+      <w:id w:val="8775518"/>
+      <w:placeholder>
+        <w:docPart w:val="DefaultPlaceholder_22479095"/>
+      </w:placeholder>
+      <w:showingPlcHdr/>
+      <w:date>
+        <w:dateFormat w:val="M/d/yyyy"/>
+        <w:lid w:val="EN-US"/>
+      </w:date>
+    </w:sdtPr>
+    <w:sdtContent>
+      <w:p>
+        <w:r>
+          <w:rPr>
+            <w:rStyle w:val="PlaceholderText"/>
+          </w:rPr>
+          <w:t>Click here to enter a date...</w:t>
+        </w:r>
+      </w:p>
+    </w:sdtContent>
+  </w:sdt>
+
+end example]
+
+As shown above, each of the structured document tags in the WordprocessingML file is represented using the
+sdt element.
+
+Within a structured document tag, there are two child elements which contain the definition and the content of
+this SDT. The first of these is the sdtPr element, which contains the set of properties specified for this structured
+document tag. The second is the sdtContent element, which contains all the content which is contained within
+this structured document tag.
+
+2.5.2.1         alias (Friendly Name)
+
+This element specifies the friendly name associated with the current structured document tag. The string
+representing the friendly name shall be stored on this element's val attribute.
+
+
+                                                                                      535
+If this element is omitted, then no friendly name shall be associated with the given structured document tag.
+
+[Example: Consider the following properties on a structured document tag:
+
+  <w:sdtPr>
+    <w:alias w:val="Birthday"/>
+    …
+  </w:sdtPr>
+
+This set of properties specifies via the alias element that the friendly name for the parent structured document
+tag shall be Birthday. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+val (String Value)      Specifies that its contents will contain a string.
+
+                   The contents of this string are interpreted based on the context of the parent XML
+                     element.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pPr>
+                     <w:pStyle w:val="heading1" />
+                   </w:pPr>
+
+                   The value of the val attribute is the ID of the associated paragraph style's styleId.
+
+                   However, consider the following fragment:
+
+                   <w:sdtPr>
+                     <w:alias w:val="SDT Title Example" />
+                     ...
+                   </w:sdtPr>
+
+                        In this case, the decimal number in the val attribute is the caption of the parent
+                      structured document tag. In each case, the value is interpreted in the context of the
+                     parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_String">
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+
+                                                                                      536
+2.5.2.2        bibliography (Bibliography Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be of type bibliography.
+
+This type setting does not require or imply that the contents of the structured document tag shall contain only a
+field of type BIBLIOGRAPHY, it shall only be used to specify that the structured document tag is of this type,
+which may be used by an application as desired.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:bibliography/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The bibliography element in this structured document tag's properties specify that the type of structured
+document tag is bibliography. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Empty"/>
+
+2.5.2.3        calendar (Date Picker Calendar Type)
+
+This element specifies the type of calendar which shall be displayed for the current date picker structured
+document tag, if a user interface is present for the structured document tag. The calendar type is stored on this
+element's val attribute.
+
+If this element is omitted, then the calendar type shall be gregorian.
+
+[Example: Consider the following structured document tag properties:
+
+  <w:sdtPr>
+    <w:date w:fullDate="01-01-2006T06:30:00Z">
+      <w:calendar w:val="gregorian"/>
+    </w:date>
+  </w:sdtPr>
+
+The calendar element specifies that the calendar type for a calendar which may be displayed in the document
+shall be the Gregorian calendar format (gregorian). end example]
+
+
+                                          Parent Elements
+
+
+                                                                                      537
+                                          Parent Elements
+date (§2.5.2.7)
+
+
+     Attributes                                            Description
+val (Calendar Type    Specifies a type of calendar, the use of which is determined by the parent XML element.
+Value)
+                                  If this attribute is omitted, then the calendar type shall be gregorian.
+
+                     [Example: Consider the following WordprocessingML for a document containing a
+                      structured document tag:
+
+                   <w:sdtPr>
+                     <w:date … >
+                       <w:calendar w:val="japan"/>
+                     </w:date>
+                   </w:sdtPr>
+
+                   The val attribute value of japan specifies that the Japanese Emperor Era calendar shall
+                  be used; in this case, it is used for the calendar displayed for a date structured document
+                        tag. end example]
+
+                   The possible values for this attribute are defined by the ST_CalendarType simple type
+                        (§2.18.7).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CalendarType">
+    <attribute name="val" type="ST_CalendarType"/>
+</complexType>
+
+2.5.2.4         citation (Citation Structured Document Tag)
+
+ This element specifies that the parent structured document tag shall be of type citation.
+
+This type setting does not require or imply that the contents of the structured document tag shall contain only a
+field of type CITATION, it shall only be used to specify that the structured document tag is of this type, which
+may be used by an application as desired.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:citation/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+
+                                                                                      538
+The citation element in this structured document tag's properties specify that the type of structured document
+tag is citation. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Empty"/>
+
+2.5.2.5      comboBox (Combo Box Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be a combo box when displayed in the
+document.
+
+This setting specifies that the behavior for this structured document tag shall be as follows:
+
+      The child elements of this element specify choices which shall be displayed in a standard drop-down list
+       format
+       Formatting applied to any part of this structured document tag's contents shall apply to its entire
+       contents
+
+As well, the structured document tag must satisfy the following restraints or the document shall be considered
+invalid:
+
+      The contents shall only be contain a single run (one set of formatting properties)
+      The contents shall not contain more than a single paragraph or table cell and shall not contain a table
+      row or table
+
+ [Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:comboBox>
+        …
+      </w:comboBox>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The comboBox element in this structured document tag's properties specify that the type of structured
+document tag is a combo box. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+                                                                                      539
+                                         Child Elements                                        Subclause
+listItem (Combo Box List Item)                                                                     §2.5.2.20
+
+
+     Attributes                                            Description
+lastValue (Combo     Specifies the value associated with the current display text for the combo box structured
+Box Last Saved      document tag.
+Value)
+                                  If this structured document tag is not mapped to XML using the dataBinding element
+                         (§2.5.2.6), then this attribute shall be ignored. If this structured document tag is mapped
+                      to XML, it shall be used to determine whether the current display text in the combo box
+                      structured document tag shall be retained when the document is opened, as follows:
+                          When the XML mapping is created, the content in the custom XML data is
+                              retrieved
+                            If this content has an associated list item (matching its value attribute), then the
+                            corresponding display text shall be displayed in the structured document tag
+                            If no list item exists, this content shall be matched against the lastValue attribute
+                               value. If the values match, the current display text shall be retained. If the values
+                        do not match, the current custom XML data content shall be the new display text
+                                (since no match exists in the combo box list items)
+
+                     [Example: Consider a combo box structured document tag defined as follows:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       <w:dataBinding … />
+                       <w:comboBox w:lastValue="2"/>
+                     </w:sdtPr>
+                     <w:sdtContent>
+                       <w:r>
+                         <w:t>Hello world</w:t>
+                       </w:r>
+                     </w:sdtContent>
+                   </w:sdt>
+
+                   The current run content of the structured document tag reads Hello world. When this
+                  document is opened, if the current value of the associated custom XML data is 2, the
+                    matching lastValue attribute specifies that the contents of the combo box shall continue
+                      to be the current display text of the combo boxeven though there is no listItem whose
+                    value is 2 (and normally, the content of the structured document tag would be set to 2.
+                         Essentially, this attribute specifies a listItem whose value is 2 and whose displayText is
+                   Hello world (the current structured document tag contents). end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+                                                                                      540
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtComboBox">
+    <sequence>
+       <element name="listItem" type="CT_SdtListItem" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="lastValue" type="ST_String" use="optional"/>
+</complexType>
+
+2.5.2.6       dataBinding (XML Mapping)
+
+This element specifies the information which shall be used to establish a mapping between the parent
+structured document tag and an XML element stored within a Custom XML Data part in the current
+WordprocessingML document.
+
+If this element is omitted, then no XML mapping shall be associated with the current structured document tag. If
+the parent structured document tag is of type rich text or document part gallery, then this property shall be
+ignored.
+
+If this element is present and the parent structured document tag is not of a rich text type, then the current
+value of the structured document tag shall be determined by finding the XML element (if any) which is
+determined by the attributes on this element. If this information does not result in a valid XML element, then
+the application may use any algorithm desired to find the closest available match. If this information does result
+in a valid XML element, then the contents of that element shall be used to replace the current run content
+within the document.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      <w:dataBinding w:xpath="/root/name/first" … />
+      <w:text/>
+    </w:sdtPr>
+    <w:sdtContent>
+      <w:r>
+        <w:t>old text</w:t>
+      </w:r>
+    </w:sdtContent>
+  </w:sdt>
+
+This structured document tag specifies that it contains only plain text via the text element, and that it shall be
+mapped to the element in the first Custom XML Data part which contains an element that matches the XPath
+expression /root/name/first. When that element is located, its contents shall replace the existing run content
+in the document (for example, if its contents are new text, then the contents of the run for this structured
+document tag shall be new text when the document is displayed. end example]
+
+
+                                          Parent Elements
+
+
+                                                                                      541
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+prefixMappings       Specifies the set of prefix mappings which shall be used to interpret the XPath expression
+(XML Namespace      specified on the xpath attribute when the XPath expression is evaluated against the
+Prefix Mappings)     custom XML data parts in the current document.
+
+                       This attribute's value shall be specified using the following syntax:
+                 xmlns:prefix='namespace', where prefix is the namespace prefix to be mapped,
+                  and namespace is the namespace to be mapped to the current prefix. Each prefix
+                  mapping shall be delimited by one or more whitespace characters in the attribute's
+                      contents.
+
+                                  If this attribute is omitted, then the prefix mappings specified on each of the custom XML
+                     data parts itself shall be used to evaluate the given XPath expression.
+
+                     [Example: Consider the following structured document tag properties:
+
+                   <w:sdtPr>
+                     <w:dataBinding w:xpath="//ns0:book"
+                   w:prefixMapping="xmlns:ns0=
+                   'http://example.com/example'"/>
+                     <w:text/>
+                   </w:sdtPr>
+
+                       This structured document tag specifies that it contains an XML mapping, and that
+                    mapping's prefixMapping attribute shall signify that the set of namespace prefix
+                   mappings to be used to evaluate the xpath attribute value shall be xmlns:ns0=
+                 'http://example.com/example'. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+storeItemID           Specifies the custom XML data identifier for the custom XML data part which shall be
+(Custom XML Data    used to evaluate the given XPath expression. The custom XML data identifier, specified
+Storage ID)           using the storeItemID attribute of the dataStoreItem element (§7.5.2.1) on the Custom
+                XML Data Properties part is a string that uniquely identifies a particular custom XML data
+                      part in a WordprocessingML document (as multiple parts may have the same namespace
+                        for their root element).
+
+                                  If specified, then the XPath expression specified on the xpath attribute shall only be
+                     evaluated against the custom XML data part whose properties part has a matching
+                   custom XML data identifier. If no custom XML data part exists with a matching identifier,
+                    then the XML mapping shall not be connected.
+
+                                  If omitted, then the XPath expression shall be evaluated against each custom XML data
+
+
+                                                                                      542
+     Attributes                                            Description
+
+                      part in turn until the given XPath expression is resolved to an XML element.
+
+                     [Example: Consider the following structured document tag properties:
+
+                   <w:sdtPr>
+                     <w:dataBinding w:xpath="//ns0:book"
+                   w:storeItemID="testXmlPart"
+                   />
+                     <w:text/>
+                   </w:sdtPr>
+
+                       This structured document tag specifies that it contains an XML mapping, and that
+                  mapping shall only be evaluated against the custom XML part whose identifier is equal to
+                   testXmlPart (if one exists). end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+xpath (XPath)         Specifies the XPath expression which shall be evaluated to find the custom XML node
+                   which is mapped to the parent structured document tag. This XPath expression shall be
+                       specified using the syntax defined in the XML Path Language (XPath) Version 1.0
+                        specification (see Annex A for bibliographic reference information).
+
+                     [Example: Consider the following structured document tag properties:
+
+                   <w:sdtPr>
+                     <w:dataBinding w:xpath="//ns0:book"
+                   w:prefixMapping="xmlns:ns0=
+                   'http://example.com/example'"/>
+                     <w:text/>
+                   </w:sdtPr>
+
+                       This structured document tag specifies that it contains an XML mapping, and that
+                    mapping's xpath attribute shall signify that the XPath expression to be evaluated shall be
+                    //ns0:book. Because the prefixMapping attribute is also specified, those prefix
+                   mappings shall be used to evaluate this XPath expression. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_DataBinding">
+    <attribute name="prefixMappings" type="ST_String"/>
+    <attribute name="xpath" type="ST_String" use="required"/>
+    <attribute name="storeItemID" type="ST_String" use="required"/>
+</complexType>
+
+
+                                                                                      543
+2.5.2.7       date (Date Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be a date picker when displayed in the
+document.
+
+This setting specifies that the behavior for this structured document tag shall be as follows:
+
+      The child elements of this element specify how the dates in this structured document tag shall be stored
+         in any mapped custom XML data and displayed in the document
+       Formatting applied to any part of this structured document tag's contents shall apply to its entire
+       contents
+
+As well, the structured document tag must satisfy the following restraints or the document shall be considered
+invalid:
+
+      The contents shall only be contain a single run (one set of formatting properties)
+      The contents shall not contain more than a single paragraph or table cell and shall not contain a table
+      row or table cell
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:date>
+        …
+      </w:date>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The date element in this structured document tag's properties specifies that the type of structured document
+tag is a date picker. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+                                         Child Elements                                        Subclause
+calendar (Date Picker Calendar Type)                                                                §2.5.2.3
+dateFormat (Date Display Mask)                                                                     §2.5.2.8
+lid (Date Picker Language ID)                                                                       §2.5.2.19
+storeMappedDataAs (Custom XML Data Date Storage Format)                                      §2.5.2.39
+
+
+                                                                                      544
+     Attributes                                            Description
+fullDate (Last          Specifies the full date and time last entered into the parent structured document tag
+Known Date in XML   using the standard XML Schema DateTime syntax.
+Schema DateTime
+Format)              [Note: This cache is used because the date display mask stored on the dateFormat
+                   element (§2.5.2.8) may not contain all of the information about the date, which may be
+                  needed if the date display mask is later changed. end note]
+
+                                  If this attribute is specified, then the current fullDate attribute shall be used to populate
+                     the run content of the parent structured document tag by filtering it through the date
+                       display mask specified in the dateFormat element, if one is present.
+
+                                  If this attribute is omitted, then the current display text shall be maintained when the
+                  document is displayed.
+
+                     [Example: Consider the following structured document tag properties:
+
+                   <w:sdtPr>
+                     …
+                     <w:date w:fullDate="01-01-2006T05:30:00Z">
+                       …
+                     </w:date>
+                   </w:sdtPr>
+
+                   The full XML Schema DateTime format for the current structured document tag is
+                       specified via the fullDate attribute value as 01-01-2006T05:30:00Z. end example]
+
+                   The possible values for this attribute are defined by the ST_DateTime simple type
+                       (§2.18.15).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtDate">
+    <sequence>
+       <element name="dateFormat" type="CT_String" minOccurs="0"/>
+       <element name="lid" type="CT_Lang" minOccurs="0"/>
+       <element name="storeMappedDataAs" type="CT_SdtDateMappingType" minOccurs="0"/>
+       <element name="calendar" type="CT_CalendarType" minOccurs="0"/>
+    </sequence>
+    <attribute name="fullDate" type="ST_DateTime" use="optional"/>
+</complexType>
+
+2.5.2.8       dateFormat (Date Display Mask)
+
+The element specifies the display format which shall be used to format any date entered into the parent
+structured document tag in full DateTime format [Example: Through a user interface (a date picker), or through
+custom XML data associated with this structured document tag via the dataBinding element (§2.5.2.6). end
+example] before displaying it in the structured document tag's run content.
+
+
+                                                                                      545
+If this element is omitted, then the date shall be formatted using the standard date display mask for the
+language ID specified on the lid element (§2.5.2.19) if present, or the language ID of the run contents otherwise.
+
+The date display mask specified in the val attribute shall be interpreted using the semantics specified in
+§2.16.4.1 of this Office Open XML Standard.
+
+[Example: Consider the following structured document tag properties:
+
+  <w:sdtPr>
+    <w:date w:fullDate="01-01-2006T06:30:00Z">
+      <w:dateFormat w:val="MM-YYYY"/>
+    </w:date>
+  </w:sdtPr>
+
+The full XML Schema DateTime format for the current structured document tag is specified via the fullDate
+attribute value as 01-01-2006T06:30:00Z, and the date display mask is MM-YYYY, therefore the resulting date
+displayed in the document shall be 01-2006 (the month and long year from the full date value, respectively).
+end example]
+
+
+                                          Parent Elements
+date (§2.5.2.7)
+
+
+     Attributes                                            Description
+val (String Value)      Specifies that its contents will contain a string.
+
+                   The contents of this string are interpreted based on the context of the parent XML
+                     element.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pPr>
+                     <w:pStyle w:val="heading1" />
+                   </w:pPr>
+
+                   The value of the val attribute is the ID of the associated paragraph style's styleId.
+
+                   However, consider the following fragment:
+
+                   <w:sdtPr>
+                     <w:alias w:val="SDT Title Example" />
+                     ...
+                   </w:sdtPr>
+
+                        In this case, the decimal number in the val attribute is the caption of the parent
+                      structured document tag. In each case, the value is interpreted in the context of the
+
+
+                                                                                      546
+     Attributes                                            Description
+
+                     parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_String">
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+2.5.2.9       docPart (Document Part Reference)
+
+This element specifies the name of the document part which shall be displayed in the parent structured
+document tag when its run contents are empty. If this element is specified, then a document part whose name
+element (§2.12.12) specifies a name matching the value of this element, and which belongs to the bbPlcHdr
+type shall be located to be used as the placeholder text for the parent structured document tag.
+
+If no document part is located matching the criteria specified by this element, then five non-breaking spaces
+shall be used as the default placeholder text.
+
+[Example: Consider a structured document tag defined as follows:
+
+  <w:sdt>
+    <w:sdtPr>
+      <w:placeholder>
+        <w:docPart w:val="DefaultPlaceholder_22610170" />
+      </w:placeholder>
+      …
+    </w:sdtPr>
+    <w:sdtContent>
+    …
+    </w:sdtContent>
+  </w:sdt>
+
+This structured document tag specifies through the docPart element that its placeholder text shall be specified
+in the document part of type bbPlcHdr whose name is equal to DefaultPlaceholder_22610170. end example]
+
+
+                                          Parent Elements
+placeholder (§2.5.2.24)
+
+
+     Attributes                                            Description
+val (String Value)      Specifies that its contents will contain a string.
+
+                   The contents of this string are interpreted based on the context of the parent XML
+
+
+                                                                                      547
+     Attributes                                            Description
+
+                     element.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pPr>
+                     <w:pStyle w:val="heading1" />
+                   </w:pPr>
+
+                   The value of the val attribute is the ID of the associated paragraph style's styleId.
+
+                   However, consider the following fragment:
+
+                   <w:sdtPr>
+                     <w:alias w:val="SDT Title Example" />
+                     ...
+                   </w:sdtPr>
+
+                        In this case, the decimal number in the val attribute is the caption of the parent
+                      structured document tag. In each case, the value is interpreted in the context of the
+                     parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_String">
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+2.5.2.10      docPartCategory (Document Part Category Filter)
+
+This element specifies the category of document parts which shall be used as the filter when determining the
+possible choices of document parts which are displayed for insertion into the parent structured document tag. A
+document part category is a sub-classification within a given document part gallery which may be used to
+further categorize the parts in a given gallery. [Example: Gallery custom1 may have categories of Legal
+Clauses, Conformance Clauses, etc. end example]. The category which shall be used as a filter is stored in this
+element's val attribute.
+
+If this element is omitted, then the parent structured document tag shall display all document parts in the
+specified gallery regardless their specified category. If this element is present, but no document parts of the
+specified gallery and category combination are located by the application, then no document parts shall be
+displayed (i.e. the application shall not fall back to showing document parts in all categories in the specified
+gallery).
+
+[Example: Consider the following properties for a structured document tag:
+
+
+                                                                                      548
+  <w:sdtPr>
+    <w:docPartList>
+      <w:docPartGallery w:val="custom1"/>
+      <w:docPartCategory w:val="Legal Clauses"/>
+    </w:docPartList>
+  </w:sdtPr>
+
+This structured document tag specifies that it shall present a selection of document parts for insertion via the
+docPartList element (§2.5.2.12) , and those document parts shall only be the parts which are in the custom1
+gallery via the docPartType element (§2.5.2.11), and within that gallery, only the document parts which are in a
+category called Legal Clauses via this element. end example]
+
+
+                                          Parent Elements
+docPartList (§2.5.2.12); docPartObj (§2.5.2.13)
+
+
+     Attributes                                            Description
+val (String Value)      Specifies that its contents will contain a string.
+
+                   The contents of this string are interpreted based on the context of the parent XML
+                     element.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pPr>
+                     <w:pStyle w:val="heading1" />
+                   </w:pPr>
+
+                   The value of the val attribute is the ID of the associated paragraph style's styleId.
+
+                   However, consider the following fragment:
+
+                   <w:sdtPr>
+                     <w:alias w:val="SDT Title Example" />
+                     ...
+                   </w:sdtPr>
+
+                        In this case, the decimal number in the val attribute is the caption of the parent
+                      structured document tag. In each case, the value is interpreted in the context of the
+                     parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+                                                                                      549
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_String">
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+2.5.2.11      docPartGallery (Document Part Gallery Filter)
+
+This element specifies the gallery of document parts which shall be used as the filter when determining the
+possible choices of document parts which are displayed for insertion into the parent structured document tag. A
+document part gallery is a classification of document parts, which may then be subdivided into categories.
+[Example: A gallery with a name of custom1 may have categories of Legal Clauses, Conformance Clauses,
+etc. end example]. The gallery which shall be used is stored in this element's val attribute.
+
+If this element is omitted, then the parent structured document tag shall display all document parts in its default
+gallery. If this element is present, but no document parts of the specified gallery are located by the application,
+then document parts in the default gallery hall be displayed (i.e. the application shall behave as if the value was
+omitted).
+
+[Example: Consider the following properties for a structured document tag:
+
+  <w:sdtPr>
+    <w:docPartList>
+      <w:docPartGallery w:val="custom1"/>
+    </w:docPartList>
+  </w:sdtPr>
+
+This structured document tag specifies that it shall present a selection of document parts for insertion via the
+docPartList element (§2.5.2.12), and those document parts shall only be the parts which are in the custom1
+gallery via this element. end example]
+
+
+                                          Parent Elements
+docPartList (§2.5.2.12); docPartObj (§2.5.2.13)
+
+
+     Attributes                                            Description
+val (String Value)      Specifies that its contents will contain a string.
+
+                   The contents of this string are interpreted based on the context of the parent XML
+                     element.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pPr>
+                     <w:pStyle w:val="heading1" />
+                   </w:pPr>
+
+
+                                                                                      550
+     Attributes                                            Description
+                   The value of the val attribute is the ID of the associated paragraph style's styleId.
+
+                   However, consider the following fragment:
+
+                   <w:sdtPr>
+                     <w:alias w:val="SDT Title Example" />
+                     ...
+                   </w:sdtPr>
+
+                        In this case, the decimal number in the val attribute is the caption of the parent
+                      structured document tag. In each case, the value is interpreted in the context of the
+                     parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_String">
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+2.5.2.12       docPartList (Document Part Gallery Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be of a document part gallery type.
+
+This type setting does not require or imply that the contents of the structured document tag shall contain only
+the exact contents of a document part of the specified gallery and category which is present on the current
+machine, it shall only be used to specify that the structured document tag is of this type, which shall be used by
+an application to present the possible list of choices for insertion into the parent structured document tag.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:docPartList>
+        …
+      </w:docPartList>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The docPartList element in this structured document tag's properties specifies that the type of structured
+document tag is a document part gallery. The child elements shall specify the gallery and category filters for this
+list, if any. end example]
+
+
+                                          Parent Elements
+
+
+                                                                                      551
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+                                         Child Elements                                        Subclause
+docPartCategory (Document Part Category Filter)                                                   §2.5.2.10
+docPartGallery (Document Part Gallery Filter)                                                      §2.5.2.11
+docPartUnique (Built-In Document Part)                                                            §2.5.2.14
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtDocPart">
+    <sequence>
+       <element name="docPartGallery" type="CT_String" minOccurs="0"/>
+       <element name="docPartCategory" type="CT_String" minOccurs="0"/>
+       <element name="docPartUnique" type="CT_OnOff" minOccurs="0"/>
+    </sequence>
+</complexType>
+
+2.5.2.13      docPartObj (Built-In Document Part Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be of a document part type.
+
+This type setting does not require or imply that the contents of the structured document tag shall contain only
+the exact contents of a document part of the specified gallery and category which is present on the current
+machine, it shall only be used to specify that the structured document tag is of this type, which shall be used by
+an application to present the possible list of choices for insertion into the parent structured document tag.
+
+This element differs from the docPartList element (§2.5.2.12) in that it may be used to semantically tag a set of
+block-level objects in a WordprocessingML document without requiring the ability to specify a category and
+gallery of objects which may be swapped with it via the user interface.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:docPartObj>
+        …
+      </w:docPartObj>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The docPartObj element in this structured document tag's properties specify that the type of structured
+document tag is a document part. The child elements shall specify the gallery and category semantics for this
+part, if any. end example]
+
+
+                                                                                      552
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+                                         Child Elements                                        Subclause
+docPartCategory (Document Part Category Filter)                                                   §2.5.2.10
+docPartGallery (Document Part Gallery Filter)                                                      §2.5.2.11
+docPartUnique (Built-In Document Part)                                                            §2.5.2.14
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtDocPart">
+    <sequence>
+       <element name="docPartGallery" type="CT_String" minOccurs="0"/>
+       <element name="docPartCategory" type="CT_String" minOccurs="0"/>
+       <element name="docPartUnique" type="CT_OnOff" minOccurs="0"/>
+    </sequence>
+</complexType>
+
+2.5.2.14      docPartUnique (Built-In Document Part)
+
+This element specifies that this structured document tag is being used to encapsulate a built-in document part
+(i.e. this element appears as a child element of the docPartObj element).
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:docPartObj>
+        …
+        <w:docPartUnique/>
+      </w:docPartObj>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The docPartUnique element in this structured document tag's properties specify that the type of structured
+document tag is a container for a document part. end example]
+
+
+                                          Parent Elements
+docPartList (§2.5.2.12); docPartObj (§2.5.2.13)
+
+
+     Attributes                                            Description
+val (On/Off Value)     Specifies a binary value for the property defined by the parent XML element.
+
+
+                                                                                      553
+     Attributes                                            Description
+
+
+                A value of on, 1, or true specifies that the property shall be explicitly applied. This is the
+                       default value for this attribute, and is implied when the parent element is present, but
+                         this attribute is omitted.
+
+                A value of off, 0, or false specifies that the property shall be explicitly turned off.
+
+                     [Example: For example, consider the following on/off property:
+
+                   <w:… w:val="off"/>
+
+                   The val attribute explicitly declares that the property is turned off. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OnOff">
+    <attribute name="val" type="ST_OnOff"/>
+</complexType>
+
+2.5.2.15      dropDownList (Drop-Down List Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be a drop-down list when displayed in the
+document.
+
+This setting specifies that the behavior for this structured document tag shall be as follows:
+
+      The contents shall not be editable when displayed by a hosting application regardless of the locking
+        settings
+      The child elements of this element specify choices which shall be displayed in a standard drop-down list
+       format
+
+As well, the structured document tag must satisfy the following restraints or the document shall be considered
+invalid:
+
+      The contents shall only be contain a single run (one set of formatting properties)
+      The contents shall not contain more than a single paragraph or table cell and shall not contain a table
+      row or table
+
+ [Example: Consider the following structured document tag:
+
+
+                                                                                      554
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:dropDownList>
+        …
+      </w:dropDownList>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The dropDownList element in this structured document tag's properties specify that the type of structured
+document tag is a drop-down list. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+                                         Child Elements                                        Subclause
+listItem (Drop-Down List Item)                                                                     §2.5.2.21
+
+
+     Attributes                                            Description
+lastValue (Drop-      Specifies the value associated with the current display text for the drop-down list
+down List Last        structured document tag.
+Saved Value)
+                                  If this structured document tag is not mapped to XML using the dataBinding element
+                         (§2.5.2.6), then this attribute shall be ignored. If this structured document tag is mapped
+                      to XML, it shall be used to determine whether the current display text in the combo box
+                      structured document tag shall be retained when the document is opened, as follows:
+                          When the XML mapping is created, the content in the custom XML data is
+                              retrieved
+                            If this content has an associated list item (matching its value attribute), then the
+                            corresponding display text shall be displayed in the structured document tag
+                            If no list item exists, this content shall be matched against the lastValue attribute
+                               value. If the values match, the current display text shall be retained. If the values
+                        do not match, the current custom XML data content shall be the new display text
+                                (since no match exists in the combo box list items)
+
+                     [Example: Consider a drop-down list structured document tag defined as follows:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       <w:dataBinding … />
+                       <w:dropDownList w:lastValue="2"/>
+                     </w:sdtPr>
+
+
+                                                                                      555
+     Attributes                                            Description
+
+                     <w:sdtContent>
+                       <w:r>
+                         <w:t>Hello world</w:t>
+                       </w:r>
+                     </w:sdtContent>
+                   </w:sdt>
+
+                   The current run content of the structured document tag reads Hello world. When this
+                  document is opened, if the current value of the associated custom XML data is 2, the
+                    matching lastValue attribute specifies that the contents of the combo box shall continue
+                      to be the current display text of the combo boxeven though there is no listItem whose
+                    value is 2 (and normally, the content of the structured document tag would be set to 2.
+                         Essentially, this attribute specifies a listItem whose value is 2 and whose displayText is
+                   Hello world (the current structured document tag contents). end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtDropDownList">
+    <sequence>
+       <element name="listItem" type="CT_SdtListItem" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="lastValue" type="ST_String" use="optional"/>
+</complexType>
+
+2.5.2.16      equation (Equation Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be of type equation.
+
+This type setting does not require or imply that the contents of the structured document tag shall contain only
+an equation or associated placeholder text, it shall only be used to specify that the structured document tag is of
+this type, which may be used by an application as desired.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:equation/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The equation element in this structured document tag's properties specify that the type of structured document
+tag is equation. end example]
+
+
+                                                                                      556
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Empty"/>
+
+2.5.2.17      group (Group Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be a restricted grouping when displayed in
+the document.
+
+This setting specifies that the behavior for this structured document tag shall be as follows:
+
+      The contents of this structured document tag shall not be editable when displayed by a hosting
+        application regardless of the locking settings. This restriction may be superseded by any structured
+      document tag contained within the group, as each structured document tag specifies the locking
+        properties for its own content.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:group/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The group element in this structured document tag's properties specify that the type of structured document
+tag is a restricted group. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Empty"/>
+
+2.5.2.18       id (Unique ID)
+
+This element specifies a unique numerical ID for the parent structured document tag. This ID shall be persisted
+through multiple sessions (i.e. shall not be changed once specified).
+
+If multiple structured document tags specify the same decimal number value for the id attribute, then the first
+structured document tag in the document shall maintain this original ID, and all subsequent structured
+document tags shall have new identifiers assigned to them when the document is opened.
+
+
+                                                                                      557
+If this element is omitted, then the parent structured document tag shall have a new unique identifier assigned
+to it when the document is opened.
+
+[Example: Consider the following structured document tag properties:
+
+  <w:sdtPr>
+    <w:id w:val="8775518"/>
+    …
+  </w:sdtPr>
+
+This set of properties specifies via the val attribute on the id element that the ID for the parent structured
+document shall be 8775518 (subject, of course, to the conflict management and resolution discussed above).
+end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+val (Decimal           Specifies that the contents of this attribute will contain a decimal number.
+Number Value)
+                   The contents of this decimal number are interpreted based on the context of the parent
+                XML element.
+
+                     [Example: Consider the following numeric WordprocessingML property of type
+                  ST_DecimalNumber:
+
+                 <w:… w:val="1512645511" />
+                   The value of the val attribute is a decimal number whose value must be interpreted in
+                     the context of the parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_DecimalNumber">
+    <attribute name="val" type="ST_DecimalNumber" use="required"/>
+</complexType>
+
+2.5.2.19        lid (Date Picker Language ID)
+
+This element specifies the language ID which shall be used for displaying a calendar for the current date picker
+structured document tag, if a user interface is present for the structured document tag.
+
+If this element is omitted, then the language ID shall be the language ID of the run contents of the parent
+structured document tag.
+
+
+                                                                                      558
+[Example: Consider the following structured document tag properties:
+
+  <w:sdtPr>
+    <w:date w:fullDate="01-01-2006T06:30:00Z">
+      <w:lid w:val="ja-JP"/>
+    </w:date>
+  </w:sdtPr>
+
+The calendar language ID for a calendar which may be displayed in the document shall be the default calendar
+format for the Japanese (Japan) language format (ja-JP). end example]
+
+
+                                          Parent Elements
+date (§2.5.2.7)
+
+
+     Attributes                                            Description
+val (Language Code)   Specifies an ISO 639-1 letter code or 4 digit hexadecimal code for a specific language.
+
+                       This code is interpreted in the context of the parent XML element.
+
+                     [Example: Consider an object which shall specify the English(Canada) language. That
+                      object would use the ISO 639-1 letter code of en-CA to specify this language. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_Lang simple type (§2.18.51).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Lang">
+    <attribute name="val" type="ST_Lang" use="required"/>
+</complexType>
+
+2.5.2.20       listItem (Combo Box List Item)
+
+This element specifies a single list item within the parent combo box structured document tag. Each list item
+shall be displayed in the list displayed for the parent structured document tag (if a user interface is present).
+
+[Example: Consider the following combo box structured document tag:
+
+
+                                                                                      559
+  <w:sdt>
+    <w:sdtPr>
+      <w:comboBox>
+        <w:listItem w:displayText="Zero" w:value="0"/>
+        <w:listItem w:displayText="One" w:value="1"/>
+      </w:comboBox>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+Each listItem element within the comboBox element specifies a single list item entry, in this case resulting in
+two list items within the parent combo box structured document tag. end example]
+
+
+                                          Parent Elements
+comboBox (§2.5.2.5)
+
+
+     Attributes                                            Description
+displayText (List      Specifies the text to display in the run content (as well as any supplied user interface) in
+Entry Display Text)    place of the value attribute contents for this drop-down list entry.
+
+                       This value shall be used as follows:
+                            If the parent structured document tag is mapped to a custom XML element, the
+                             value in that custom XML element shall be mapped the content of the value
+                                 attribute, and the resulting displayText attribute value (if one is present) shall be
+                             displayed in the run content. If no displayText attribute is present, then the
+                           value shall be displayed.
+                            If the corresponding entry is selected via a user interface, this value shall be
+                             stored in the parent element's run content in the document (this is the value that
+                                  shall be shown in the document's WordprocessingML content).
+
+                                  If this attribute is omitted, then the content of the value attribute shall be used as the
+                       display text for the current list item entry.
+
+                     [Example: Consider the following drop-down list structured document tag:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       <w:dropDownList>
+                         <w:listItem w:displayText="The Letter A" w:value="a"/>
+                         <w:listItem w:displayText="The Letter B" w:value="b"/>
+                       </w:dropDownList>
+                     </w:sdtPr>
+                     …
+                   </w:sdt>
+
+
+                                                                                      560
+     Attributes                                            Description
+                   The displayText attribute for the first entry is The Letter A and the second is The
+                   Letter B, therefore, these values will be used to determine the display text if the parent
+                      structured document tag is mapped to custom XML data in a custom XML data part. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+value (List Entry       Specifies the value for the current list item entry.
+Value)
+                       This value shall be used as follows:
+                            If the parent structured document tag is mapped to a custom XML element, the
+                             value in that custom XML element shall be mapped to this value, and the
+                                resulting displayText attribute value (if one is present) shall be displayed in the
+                           run content. If no displayText attribute is present, then the value shall be
+                               displayed.
+                            If the corresponding entry is selected via a user interface, this value shall be
+                             stored in the parent element's listItem attribute value.
+
+                     [Example: Consider the following combo box structured document tag:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       <w:comboBox>
+                         <w:listItem w:displayText="Zero" w:value="0"/>
+                         <w:listItem w:displayText="One" w:value="1"/>
+                       </w:comboBox>
+                     </w:sdtPr>
+                     …
+                   </w:sdt>
+
+                   The value attribute for the first entry is 0 and the second is 1, therefore, these values will
+                  be used to determine the display text if the parent structured document tag is mapped to
+                   custom XML data in a custom XML data part. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtListItem">
+    <attribute name="displayText" type="ST_String"/>
+    <attribute name="value" type="ST_String"/>
+</complexType>
+
+2.5.2.21       listItem (Drop-Down List Item)
+
+This element specifies a single list item within the parent drop-down list structured document tag. Each list item
+shall be displayed in the list displayed for the parent structured document tag (if a user interface is present).
+
+[Example: Consider the following combo box structured document tag:
+
+
+                                                                                      561
+  <w:sdt>
+    <w:sdtPr>
+      <w:dropDownList>
+        <w:listItem w:displayText="The Letter A" w:value="a"/>
+        <w:listItem w:displayText="The Letter B" w:value="b"/>
+      </w:dropDownList>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+Each listItem element within the dropDownList element specifies a single list item entry, in this case resulting
+in two list items within the parent drop-down list structured document tag. end example]
+
+
+                                          Parent Elements
+dropDownList (§2.5.2.15)
+
+
+     Attributes                                            Description
+displayText (List      Specifies the text to display in the run content (as well as any supplied user interface) in
+Entry Display Text)    place of the value attribute contents for this drop-down list entry.
+
+                       This value shall be used as follows:
+                            If the parent structured document tag is mapped to a custom XML element, the
+                             value in that custom XML element shall be mapped the content of the value
+                                 attribute, and the resulting displayText attribute value (if one is present) shall be
+                             displayed in the run content. If no displayText attribute is present, then the
+                           value shall be displayed.
+                            If the corresponding entry is selected via a user interface, this value shall be
+                             stored in the parent element's run content in the document (this is the value that
+                                  shall be shown in the document's WordprocessingML content).
+
+                                  If this attribute is omitted, then the content of the value attribute shall be used as the
+                       display text for the current list item entry.
+
+                     [Example: Consider the following drop-down list structured document tag:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       <w:dropDownList>
+                         <w:listItem w:displayText="The Letter A" w:value="a"/>
+                         <w:listItem w:displayText="The Letter B" w:value="b"/>
+                       </w:dropDownList>
+                     </w:sdtPr>
+                     …
+                   </w:sdt>
+
+
+                                                                                      562
+     Attributes                                            Description
+                   The displayText attribute for the first entry is The Letter A and the second is The
+                   Letter B, therefore, these values will be used to determine the display text if the parent
+                      structured document tag is mapped to custom XML data in a custom XML data part. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+value (List Entry       Specifies the value for the current list item entry.
+Value)
+                       This value shall be used as follows:
+                            If the parent structured document tag is mapped to a custom XML element, the
+                             value in that custom XML element shall be mapped to this value, and the
+                                resulting displayText attribute value (if one is present) shall be displayed in the
+                           run content. If no displayText attribute is present, then the value shall be
+                               displayed.
+                            If the corresponding entry is selected via a user interface, this value shall be
+                             stored in the parent element's listItem attribute value.
+
+                     [Example: Consider the following combo box structured document tag:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       <w:comboBox>
+                         <w:listItem w:displayText="Zero" w:value="0"/>
+                         <w:listItem w:displayText="One" w:value="1"/>
+                       </w:comboBox>
+                     </w:sdtPr>
+                     …
+                   </w:sdt>
+
+                   The value attribute for the first entry is 0 and the second is 1, therefore, these values will
+                  be used to determine the display text if the parent structured document tag is mapped to
+                   custom XML data in a custom XML data part. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtListItem">
+    <attribute name="displayText" type="ST_String"/>
+    <attribute name="value" type="ST_String"/>
+</complexType>
+
+2.5.2.22       lock (Locking Setting)
+
+This element specifies the set of behaviors which shall be applied to the contents of the parent structured
+document tag when the contents of this documents are edited by an application (whether through a user
+
+
+                                                                                      563
+interface or directly). The type of locking applied to the structured document tag is specified via the value of the
+associated val attribute.
+
+If this element is omitted, then the locking settings implied for the structured document tag shall be as follows:
+
+        If the structured document tag specifies that it is a group via the group element (§2.5.2.17), then the
+       contents of the structured document tag shall be editable, but the entire tag may be deleted.
+       For all other types, no locking settings shall be applied to the structured document tag.
+
+[Example: Consider the following plain text structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      <w:lock w:val="sdtLocked"/>
+      …
+      <w:text/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+This plain text structured document tag's properties contain a lock element, specifying locking behaviors for the
+structured document tag. Since the locking val attribute value is sdtLocked, this locking setting shall specify
+that the contents of the structured document tag may be edited, but the structured document tag itself shall
+not be deleted from the document. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+val (Locking Type)     Specifies the type of locking which shall be applied to the parent structured document
+                        tag.
+
+                                  If this attribute is omitted, this its value shall be assumed to be unlocked (using the
+                       defaults stated above).
+
+                     [Example: Consider the following plain text structured document tag properties:
+
+                   <w:sdtPr>
+                     <w:lock w:val="contentLocked"/>
+                     …
+                     <w:text/>
+                   </w:sdtPr>
+
+                   The val attribute value is contentLocked, therefore this locking setting shall specify that
+                     the contents of the structured document tag shall not be edited, but the structured
+
+
+                                                                                      564
+     Attributes                                            Description
+
+                  document tag itself may be deleted from the document. end example]
+
+                   The possible values for this attribute are defined by the ST_Lock simple type (§2.18.56).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Lock">
+    <attribute name="val" type="ST_Lock"/>
+</complexType>
+
+2.5.2.23       picture (Picture Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be a picture when displayed in the
+document.
+
+This setting specifies that the behavior for this structured document tag shall be as follows:
+
+      The contents shall always be restricted to a single picture using either the DrawingML (§5.1) or VML
+        (§6.1) syntax
+
+As well, the structured document tag must satisfy the following restraints or the document shall be considered
+invalid:
+
+      The contents shall only be a single picture using either the DrawingML (§5.1) or VML (§6.1) syntax
+      The contents shall not contain more than a single paragraph or table cell and shall not contain a table
+      row or table
+
+ [Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:picture/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The text element in this structured document tag's properties specify that the type of structured document tag
+is a picture. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Empty"/>
+
+
+                                                                                      565
+2.5.2.24      placeholder (Structured Document Tag Placeholder Text)
+
+This element specifies the placeholder text which should be displayed when this structured document tag's run
+contents are empty, the associated mapped XML element is empty as specified via the dataBinding element
+(§2.5.2.6) or the showingPlcHdr element (§2.5.2.38) is set in the structured document tag's properties. The
+placeholder text which shall be shown is itself specified via the child element docPart.
+
+If this element is omitted, then five non-breaking spaces shall be used as the default placeholder text for this
+structured document tag.
+
+[Example: Consider a structured document tag defined as follows:
+
+  <w:sdt>
+    <w:sdtPr>
+      <w:placeholder>
+        <w:docPart w:val="DefaultPlaceholder_22610170" />
+      </w:placeholder>
+      …
+    </w:sdtPr>
+    <w:sdtContent>
+      …
+    </w:sdtContent>
+  </w:sdt>
+
+This structured document tag specifies through the placeholder element that its placeholder text shall be
+specified in the document part of type bbPlcHdr whose name is equal to DefaultPlaceholder_22610170. end
+example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+                                         Child Elements                                        Subclause
+docPart (Document Part Reference)                                                                  §2.5.2.9
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Placeholder">
+    <sequence>
+       <element name="docPart" type="CT_String"/>
+    </sequence>
+</complexType>
+
+2.5.2.25       richText (Rich Text Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be a rich text box when displayed in the
+document.
+
+
+                                                                                      566
+If no type element (the xsd:choice block in the XML Schema fragment for the parent sdtPr element) is specified,
+then the parent structured document tag shall be of type richText.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:richText/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The richText element in this structured document tag's properties specify that the type of structured document
+tag is a rich text box. end example].
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Empty"/>
+
+2.5.2.26      rPr (Run Properties For Structured Document Tag Contents)
+
+This element specifies the set of run properties which shall be applied to the text entered into the parent
+structured document tag in replacement of placeholder text. When placeholder text is present in a structured
+document tag, its formatting is often different than the desired underlying formatting, and this element
+specifies the formatting which shall be used for non-placeholder text contents when they are initially added to
+the control.
+
+If this element is not present, the inserted is unformatted, as with any other run of text - it shall not inherit the
+properties of the placeholder text.
+
+[Example: Consider the following structured document tag:
+
+
+                                                                                      567
+  <w:sdt>
+    <w:sdtPr>
+      <w:placeholder>
+        <w:docPart w:val="TestPlaceholderDocPart"/>
+      </w:placeholder>
+      <w:showingPlcHdr/>
+      <w:rPr>
+        <w:rStyle w:val="UserName"/>
+      </w:rPr>
+      …
+    </w:sdtPr>
+    <w:sdtContent>
+      <w:r>
+        <w:rPr>
+          <w:rStyle w:val="PlaceholderText"/>
+        </w:rPr>
+        <w:t>[Type Your Name Here]</w:t>
+      </w:r>
+    </w:sdtContent>
+  </w:sdt>
+
+This structured document tag specifies that its current contents are placeholder text via the showingPlcHdr
+element (§2.5.2.38), and that text has the PlaceholderText character style applied to it.
+
+Now, assume that that style created grey shaded text (typical for placeholder text). This formatting would clearly
+not be desirable for any text entered into the structured document tag. Therefore, when this text is added, the
+rPr element in the sdtPr is used to store the formatting on the resulting text.
+
+In this example, the text which initially populates the control shall be formatted with the UserName character
+style. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+                                         Child Elements                                        Subclause
+b (Bold)                                                                                             §2.3.2.1
+bCs (Complex Script Bold)                                                                           §2.3.2.2
+bdr (Text Border)                                                                                    §2.3.2.3
+caps (Display All Characters As Capital Letters)                                                       §2.3.2.4
+color (Run Content Color)                                                                           §2.3.2.5
+cs (Use Complex Script Formatting on Run)                                                           §2.3.2.6
+
+
+                                                                                      568
+                                         Child Elements                                        Subclause
+dstrike (Double Strikethrough)                                                                      §2.3.2.7
+eastAsianLayout (East Asian Typography Settings)                                                   §2.3.2.8
+effect (Animated Text Effect)                                                                        §2.3.2.9
+em (Emphasis Mark)                                                                               §2.3.2.10
+emboss (Embossing)                                                                               §2.3.2.11
+fitText (Manual Run Width)                                                                        §2.3.2.12
+highlight (Text Highlighting)                                                                       §2.3.2.13
+i (Italics)                                                                                          §2.3.2.14
+iCs (Complex Script Italics)                                                                         §2.3.2.15
+imprint (Imprinting)                                                                               §2.3.2.16
+kern (Font Kerning)                                                                                §2.3.2.17
+lang (Languages for Run Content)                                                                  §2.3.2.18
+noProof (Do Not Check Spelling or Grammar)                                                       §2.3.2.19
+oMath (Office Open XML Math)                                                                    §2.3.2.20
+outline (Display Character Outline)                                                                 §2.3.2.21
+position (Vertically Raised or Lowered Text)                                                        §2.3.2.22
+rFonts (Run Fonts)                                                                                §2.3.2.24
+rPrChange (Revision Information for Run Properties)                                               §2.13.5.32
+rStyle (Referenced Character Style)                                                                §2.3.2.27
+rtl (Right To Left Text)                                                                             §2.3.2.28
+shadow (Shadow)                                                                                 §2.3.2.29
+shd (Run Shading)                                                                                 §2.3.2.30
+smallCaps (Small Caps)                                                                            §2.3.2.31
+snapToGrid (Use Document Grid Settings For Inter-Character Spacing)                               §2.3.2.32
+spacing (Character Spacing Adjustment)                                                            §2.3.2.33
+specVanish (Paragraph Mark Is Always Hidden)                                                     §2.3.2.34
+strike (Single Strikethrough)                                                                       §2.3.2.35
+sz (Font Size)                                                                                      §2.3.2.36
+szCs (Complex Script Font Size)                                                                    §2.3.2.37
+u (Underline)                                                                                      §2.3.2.38
+vanish (Hidden Text)                                                                              §2.3.2.39
+vertAlign (Subscript/Superscript Text)                                                              §2.3.2.40
+w (Expanded/Compressed Text)                                                                    §2.3.2.41
+webHidden (Web Hidden Text)                                                                    §2.3.2.42
+
+
+                                                                                      569
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_RPr">
+    <sequence>
+       <group ref="EG_RPrContent" minOccurs="0"/>
+    </sequence>
+</complexType>
+
+2.5.2.27      rPr (Structured Document Tag End Character Run Properties)
+
+This element specifies the set of run properties which shall be applied to the character present to delimit the
+end of the structured document tag's contents. When these properties are applied, they shall be applied in
+addition to the run properties specified for the entire structured document tag via the rPr element (§2.5.2.26)
+stored in the tag's main property container.
+
+If this element is not present, the inserted closing tag shall be formatting identically to the start tag.
+
+[Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      <w:placeholder>
+        <w:docPart w:val="TestPlaceholderDocPart"/>
+      </w:placeholder>
+      <w:showingPlcHdr/>
+      <w:rPr>
+        <w:rStyle w:val="UserName"/>
+      </w:rPr>
+      …
+    </w:sdtPr>
+    <w:sdtEndPr>
+      <w:rPr>
+        <w:b/>
+        <w:i/>
+      <w:rPr>
+    </w:sdtEndPr>
+    <w:sdtContent>
+      …
+    </w:sdtContent>
+  </w:sdt>
+
+The rPr elements under the tag's properties specify that this structured document tag specifies that its start
+character shall have formatting in the character style UserName, and that the end character shall have the
+formatting in the character style UserName as well as bold and italic direct formatting. end example]
+
+
+                                          Parent Elements
+sdtEndPr (§2.5.2.36)
+
+
+                                                                                      570
+                                         Child Elements                                        Subclause
+b (Bold)                                                                                             §2.3.2.1
+bCs (Complex Script Bold)                                                                           §2.3.2.2
+bdr (Text Border)                                                                                    §2.3.2.3
+caps (Display All Characters As Capital Letters)                                                       §2.3.2.4
+color (Run Content Color)                                                                           §2.3.2.5
+cs (Use Complex Script Formatting on Run)                                                           §2.3.2.6
+dstrike (Double Strikethrough)                                                                      §2.3.2.7
+eastAsianLayout (East Asian Typography Settings)                                                   §2.3.2.8
+effect (Animated Text Effect)                                                                        §2.3.2.9
+em (Emphasis Mark)                                                                               §2.3.2.10
+emboss (Embossing)                                                                               §2.3.2.11
+fitText (Manual Run Width)                                                                        §2.3.2.12
+highlight (Text Highlighting)                                                                       §2.3.2.13
+i (Italics)                                                                                          §2.3.2.14
+iCs (Complex Script Italics)                                                                         §2.3.2.15
+imprint (Imprinting)                                                                               §2.3.2.16
+kern (Font Kerning)                                                                                §2.3.2.17
+lang (Languages for Run Content)                                                                  §2.3.2.18
+noProof (Do Not Check Spelling or Grammar)                                                       §2.3.2.19
+oMath (Office Open XML Math)                                                                    §2.3.2.20
+outline (Display Character Outline)                                                                 §2.3.2.21
+position (Vertically Raised or Lowered Text)                                                        §2.3.2.22
+rFonts (Run Fonts)                                                                                §2.3.2.24
+rPrChange (Revision Information for Run Properties)                                               §2.13.5.32
+rStyle (Referenced Character Style)                                                                §2.3.2.27
+rtl (Right To Left Text)                                                                             §2.3.2.28
+shadow (Shadow)                                                                                 §2.3.2.29
+shd (Run Shading)                                                                                 §2.3.2.30
+smallCaps (Small Caps)                                                                            §2.3.2.31
+snapToGrid (Use Document Grid Settings For Inter-Character Spacing)                               §2.3.2.32
+spacing (Character Spacing Adjustment)                                                            §2.3.2.33
+specVanish (Paragraph Mark Is Always Hidden)                                                     §2.3.2.34
+strike (Single Strikethrough)                                                                       §2.3.2.35
+
+
+                                                                                      571
+                                         Child Elements                                        Subclause
+sz (Font Size)                                                                                      §2.3.2.36
+szCs (Complex Script Font Size)                                                                    §2.3.2.37
+u (Underline)                                                                                      §2.3.2.38
+vanish (Hidden Text)                                                                              §2.3.2.39
+vertAlign (Subscript/Superscript Text)                                                              §2.3.2.40
+w (Expanded/Compressed Text)                                                                    §2.3.2.41
+webHidden (Web Hidden Text)                                                                    §2.3.2.42
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_RPr">
+    <sequence>
+       <group ref="EG_RPrContent" minOccurs="0"/>
+    </sequence>
+</complexType>
+
+2.5.2.28       sdt (Cell-Level Structured Document Tag)
+
+This element specifies the presence of a structured document tag around a single table cell. The two child
+elements of this element shall be used to specify the properties and content of the current structured document
+tag via the sdtPr and sdtContent elements, respectively.
+
+[Example: Consider a structured document tag with the friendly name company that shall be located around a
+single table cell in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:tr>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="company"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:tc>
+          …
+        </w:tc>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:tr>
+
+The sdt element specifies the structured document tag, the child sdtPr element contains the friendly name
+property set to company, and the sdtContent element contains a single table cell (it is a cell-level structured
+document tag). end example]
+
+
+                                                                                      572
+                                          Parent Elements
+customXml (§2.5.1.3); sdtContent (§2.5.2.33); tr (§2.4.75)
+
+
+                                         Child Elements                                        Subclause
+sdtContent (Cell-Level Structured Document Tag Content)                                           §2.5.2.33
+sdtEndPr (Structured Document Tag End Character Properties)                                      §2.5.2.36
+sdtPr (Structured Document Tag Properties)                                                        §2.5.2.37
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtCell">
+    <sequence>
+       <element name="sdtPr" type="CT_SdtPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtEndPr" type="CT_SdtEndPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtContent" type="CT_SdtContentCell" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+2.5.2.29       sdt (Inline-Level Structured Document Tag)
+
+This element specifies the presence of a structured document tag around one or more inline-level structures
+(runs, DrawingML objects, fields, etc.) in the current paragraph. The two child elements of this element shall be
+used to specify the properties and content of the current structured document tag via the sdtPr and sdtContent
+elements, respectively.
+
+[Example: Consider a structured document tag with the friendly name firstName that shall be located around
+two runs in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:p>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="firstName"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:r>
+          …
+        </w:r>
+        <w:r>
+          …
+        </w:r>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:tr>
+
+
+                                                                                      573
+The sdt element specifies the structured document tag, the child sdtPr element contains the friendly name
+property set to firstName, and the sdtContent element contains two runs (it is an inline-level structured
+document tag). end example]
+
+
+                                          Parent Elements
+customXml (§2.5.1.5); del (§2.13.5.12); fldSimple (§2.16.21); hyperlink (§2.16.24); ins (§2.13.5.20);
+moveFrom (§2.13.5.21); moveTo (§2.13.5.26); p (§2.3.1.22); sdtContent (§2.5.2.35); smartTag (§2.5.1.9)
+
+
+                                         Child Elements                                        Subclause
+sdtContent (Inline-Level Structured Document Tag Content)                                         §2.5.2.35
+sdtEndPr (Structured Document Tag End Character Properties)                                      §2.5.2.36
+sdtPr (Structured Document Tag Properties)                                                        §2.5.2.37
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtRun">
+    <sequence>
+       <element name="sdtPr" type="CT_SdtPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtEndPr" type="CT_SdtEndPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtContent" type="CT_SdtContentRun" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+2.5.2.30       sdt (Block-Level Structured Document Tag)
+
+This element specifies the presence of a structured document tag around one or more block-level structures
+(paragraphs, tables, etc.). The two child elements of this element shall be used to specify the properties and
+content of the current structured document tag via the sdtPr and sdtContent elements, respectively.
+
+[Example: Consider a structured document tag with the friendly name address that shall be located around a
+single paragraph in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+
+                                                                                      574
+  <w:body>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="address"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:p>
+          …
+        </w:p>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:body>
+
+The sdt element specifies the structured document tag, the child sdtPr element contains the friendly name
+property set to address, and the sdtContent element contains a single paragraph (it is a block-level structured
+document tag). end example]
+
+
+                                          Parent Elements
+body (§2.2.2); comment (§2.13.4.2); customXml (§2.5.1.6); docPartBody (§2.12.6); endnote (§2.11.2);
+footnote (§2.11.10); ftr (§2.10.3); hdr (§2.10.4); sdtContent (§2.5.2.32); tc (§2.4.62); txbxContent (§2.17.1.1)
+
+
+                                         Child Elements                                        Subclause
+sdtContent (Block-Level Structured Document Tag Content)                                         §2.5.2.32
+sdtEndPr (Structured Document Tag End Character Properties)                                      §2.5.2.36
+sdtPr (Structured Document Tag Properties)                                                        §2.5.2.37
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtBlock">
+    <sequence>
+       <element name="sdtPr" type="CT_SdtPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtEndPr" type="CT_SdtEndPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtContent" type="CT_SdtContentBlock" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+2.5.2.31       sdt (Row-Level Structured Document Tag)
+
+This element specifies the presence of a structured document tag around a single table row. The two child
+elements of this element shall be used to specify the properties and content of the current structured document
+tag via the sdtPr and sdtContent elements, respectively.
+
+
+                                                                                      575
+[Example: Consider a structured document tag with the friendly name invoiceItem that shall be located around
+a single table row in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:tbl>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="invoiceItem"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:tr>
+          …
+        </w:tr>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:tbl>
+
+The sdt element specifies the structured document tag, the child sdtPr element contains the friendly name
+property set to invoiceItem, and the sdtContent element contains a single table row (it is a row-level
+structured document tag). end example]
+
+
+                                          Parent Elements
+customXml (§2.5.1.4); sdtContent (§2.5.2.34); tbl (§2.4.36)
+
+
+                                         Child Elements                                        Subclause
+sdtContent (Row-Level Structured Document Tag Content)                                          §2.5.2.34
+sdtEndPr (Structured Document Tag End Character Properties)                                      §2.5.2.36
+sdtPr (Structured Document Tag Properties)                                                        §2.5.2.37
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtRow">
+    <sequence>
+       <element name="sdtPr" type="CT_SdtPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtEndPr" type="CT_SdtEndPr" minOccurs="0" maxOccurs="1"/>
+       <element name="sdtContent" type="CT_SdtContentRow" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+2.5.2.32      sdtContent (Block-Level Structured Document Tag Content)
+
+This element specifies the last known contents of a structured document tag around one or more block-level
+structures (paragraphs, tables, etc.). This element's contents shall be treated as a cache of the contents to be
+displayed in the structured document tag for the following reasons:
+
+
+                                                                                      576
+        If the structured document tag specifies an XML mapping via the dataBinding element (§2.5.2.6),
+       changes to the custom XML data part shall be reflected in the structured document tag as needed
+        If the contents of the structured document tag are placeholder text via the showingPlcHdr element
+        (§2.5.2.38), then this content may be updated with the placeholder text stored in the Glossary
+      Document part
+
+[Example: Consider a structured document tag with the friendly name address that shall be located around a
+single paragraph in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:body>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="address"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:p>
+          …
+        </w:p>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:body>
+
+The sdtContent element contains a single paragraph (it is a block-level structured document tag content
+container). end example]
+
+
+                                          Parent Elements
+sdt (§2.5.2.30)
+
+
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Block-Level Custom XML Element)                                                      §2.5.1.6
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+
+
+                                                                                      577
+                                         Child Elements                                        Subclause
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+del (Deleted Run Content)                                                                        §2.13.5.12
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+p (Paragraph)                                                                                     §2.3.1.22
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+sdt (Block-Level Structured Document Tag)                                                         §2.5.2.30
+tbl (Table)                                                                                      §2.4.36
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtContentBlock">
+    <group ref="EG_ContentBlockContent" minOccurs="0" maxOccurs="unbounded"/>
+</complexType>
+
+2.5.2.33      sdtContent (Cell-Level Structured Document Tag Content)
+
+This element specifies the last known contents of a structured document tag around a single table cell. This
+element's contents shall be treated as a cache of the contents to be displayed in the structured document tag
+for the following reasons:
+
+        If the structured document tag specifies an XML mapping via the dataBinding element (§2.5.2.6),
+       changes to the custom XML data part shall be reflected in the structured document tag as needed
+        If the contents of the structured document tag are placeholder text via the showingPlcHdr element
+        (§2.5.2.38), then this content may be updated with the placeholder text stored in the Glossary
+      Document part
+
+
+                                                                                      578
+[Example: Consider a structured document tag with the friendly name company that shall be located around a
+single table cell in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+  <w:tr>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="company"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:tc>
+          …
+        </w:tc>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:tr>
+
+The sdtContent element contains a single table cell (it is an cell-level structured document tag content
+container). end example]
+
+
+                                          Parent Elements
+sdt (§2.5.2.28)
+
+
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Cell-Level Custom XML Element)                                                        §2.5.1.3
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+del (Deleted Run Content)                                                                        §2.13.5.12
+
+
+                                                                                      579
+                                         Child Elements                                        Subclause
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+sdt (Cell-Level Structured Document Tag)                                                           §2.5.2.28
+tc (Table Cell)                                                                                   §2.4.62
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtContentCell">
+    <group ref="EG_ContentCellContent" minOccurs="0" maxOccurs="unbounded"/>
+</complexType>
+
+2.5.2.34      sdtContent (Row-Level Structured Document Tag Content)
+
+This element specifies the last known contents of a structured document tag around a single table row.
+
+[Note: Unlike other types of structured document tags, this type cannot show placeholder text or have mapped
+XML data, therefore it is never a cache. end note]
+
+[Example: Consider a structured document tag with the friendly name invoiceItem that shall be located around
+a single table row in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+
+                                                                                      580
+  <w:tbl>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="invoiceItem"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:tr>
+          …
+        </w:tr>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:tbl>
+
+The sdtContent element contains a single table row (it is an row-level structured document tag content
+container). end example]
+
+
+                                          Parent Elements
+sdt (§2.5.2.31)
+
+
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Row-Level Custom XML Element)                                                       §2.5.1.4
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+del (Deleted Run Content)                                                                        §2.13.5.12
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+
+
+                                                                                      581
+                                         Child Elements                                        Subclause
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+sdt (Row-Level Structured Document Tag)                                                          §2.5.2.31
+tr (Table Row)                                                                                  §2.4.75
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtContentRow">
+    <group ref="EG_ContentRowContent" minOccurs="0" maxOccurs="unbounded"/>
+</complexType>
+
+2.5.2.35      sdtContent (Inline-Level Structured Document Tag Content)
+
+This element specifies the last known contents of a structured document tag around one or more inline-level
+structures (runs, DrawingML objects, fields, etc.). This element's contents shall be treated as a cache of the
+contents to be displayed in the structured document tag for the following reasons:
+
+        If the structured document tag specifies an XML mapping via the dataBinding element (§2.5.2.6),
+       changes to the custom XML data part shall be reflected in the structured document tag as needed
+        If the contents of the structured document tag are placeholder text via the showingPlcHdr element
+        (§2.5.2.38), then this content may be updated with the placeholder text stored in the Glossary
+      Document part
+
+[Example: Consider a structured document tag with the friendly name firstName that shall be located around
+two runs in a WordprocessingML document. This requirement would be specified as follows in the
+WordprocessingML:
+
+
+                                                                                      582
+  <w:p>
+    <w:sdt>
+      <w:sdtPr>
+        <w:alias w:val="firstName"/>
+      </w:sdtPr>
+      <w:sdtContent>
+        <w:r>
+          …
+        </w:r>
+        <w:r>
+          …
+        </w:r>
+      </w:sdtContent>
+    </w:sdt>
+    …
+  </w:p>
+
+The sdtContent element contains two adjacent runs (it is an inline-level structured document tag content
+container). end example]
+
+
+                                          Parent Elements
+sdt (§2.5.2.29)
+
+
+                                         Child Elements                                        Subclause
+bookmarkEnd (Bookmark End)                                                                    §2.13.6.1
+bookmarkStart (Bookmark Start)                                                                  §2.13.6.2
+commentRangeEnd (Comment Anchor Range End)                                                 §2.13.4.3
+commentRangeStart (Comment Anchor Range Start)                                               §2.13.4.4
+customXml (Inline-Level Custom XML Element)                                                      §2.5.1.5
+customXmlDelRangeEnd (Custom XML Markup Deletion End)                                      §2.13.5.4
+customXmlDelRangeStart (Custom XML Markup Deletion Start)                                    §2.13.5.5
+customXmlInsRangeEnd (Custom XML Markup Insertion End)                                      §2.13.5.6
+customXmlInsRangeStart (Custom XML Markup Insertion Start)                                    §2.13.5.7
+customXmlMoveFromRangeEnd (Custom XML Markup Move Source End)                          §2.13.5.8
+customXmlMoveFromRangeStart (Custom XML Markup Move Source Start)                        §2.13.5.9
+customXmlMoveToRangeEnd (Custom XML Markup Move Destination Location End)               §2.13.5.10
+customXmlMoveToRangeStart (Custom XML Markup Move Destination Location Start)             §2.13.5.11
+del (Deleted Run Content)                                                                        §2.13.5.12
+fldSimple (Simple Field)                                                                        §2.16.21
+
+
+                                                                                      583
+                                         Child Elements                                        Subclause
+hyperlink (Hyperlink)                                                                          §2.16.24
+ins (Inserted Run Content)                                                                       §2.13.5.20
+moveFrom (Move Source Run Content)                                                           §2.13.5.21
+moveFromRangeEnd (Move Source Location Container - End)                                     §2.13.5.23
+moveFromRangeStart (Move Source Location Container - Start)                                    §2.13.5.24
+moveTo (Move Destination Run Content)                                                         §2.13.5.26
+moveToRangeEnd (Move Destination Location Container - End)                                    §2.13.5.27
+moveToRangeStart (Move Destination Location Container - Start)                                  §2.13.5.28
+oMath (Office Math)                                                                               §7.1.2.77
+oMathPara (Math Paragraph)                                                                      §7.1.2.78
+permEnd (Range Permission End)                                                                  §2.13.7.1
+permStart (Range Permission Start)                                                                §2.13.7.2
+proofErr (Proofing Error Anchor)                                                                   §2.13.8.1
+r (Text Run)                                                                                       §2.3.2.23
+sdt (Inline-Level Structured Document Tag)                                                         §2.5.2.29
+smartTag (Inline-Level Smart Tag)                                                                   §2.5.1.9
+subDoc (Anchor for Subdocument Location)                                                        §2.17.2.1
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtContentRun">
+    <group ref="EG_PContent" minOccurs="0" maxOccurs="unbounded"/>
+</complexType>
+
+2.5.2.36      sdtEndPr (Structured Document Tag End Character Properties)
+
+This element specifies the properties which shall be applied to the physical character which delimits the end of a
+structured document tag.
+
+[Example: Consider a structured document tag with the following properties specified for the end tag:
+
+  <w:sdtEndPr>
+    <w:rPr>
+      …
+    </w:rPr>
+  </w:sdtEndPr>
+
+This structured document tag specifies properties for its end character within the sdtEndPr element. end
+example]
+
+
+                                          Parent Elements
+
+
+                                                                                      584
+                                          Parent Elements
+sdt (§2.5.2.30); sdt (§2.5.2.28); sdt (§2.5.2.29); sdt (§2.5.2.31)
+
+
+                                         Child Elements                                        Subclause
+rPr (Structured Document Tag End Character Run Properties)                                        §2.5.2.27
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtEndPr">
+    <choice maxOccurs="unbounded">
+       <element name="rPr" type="CT_RPr" minOccurs="0"/>
+    </choice>
+</complexType>
+
+2.5.2.37      sdtPr (Structured Document Tag Properties)
+
+This element specifies the set of properties which shall be applied to the parent structured document tag.
+
+[Example: Consider a structured document tag with the following properties specified:
+
+  <w:sdtPr>
+    <w:alias w:val="Birthday"/>
+    <w:id w:val="8775518"/>
+    <w:date>
+      <w:dateFormat w:val="M/d/yyyy"/>
+      <w:lid w:val="EN-US"/>
+    </w:date>
+  </w:sdtPr>
+
+This structured document tag specifies three properties: the a friendly name of Birthday via the alias element
+(§2.5.2.1), a unique ID of 8775518 via the id element (§2.5.2.18), and a structured document tag type of date
+picker via the date element (§2.5.2.7) which itself has a set of date-specific properties. end example]
+
+
+                                          Parent Elements
+sdt (§2.5.2.29); sdt (§2.5.2.30); sdt (§2.5.2.28); sdt (§2.5.2.31)
+
+
+                                         Child Elements                                        Subclause
+alias (Friendly Name)                                                                                §2.5.2.1
+bibliography (Bibliography Structured Document Tag)                                                §2.5.2.2
+citation (Citation Structured Document Tag)                                                          §2.5.2.4
+comboBox (Combo Box Structured Document Tag)                                                   §2.5.2.5
+dataBinding (XML Mapping)                                                                         §2.5.2.6
+date (Date Structured Document Tag)                                                                §2.5.2.7
+
+
+                                                                                      585
+                                         Child Elements                                        Subclause
+docPartList (Document Part Gallery Structured Document Tag)                                      §2.5.2.12
+docPartObj (Built-In Document Part Structured Document Tag)                                      §2.5.2.13
+dropDownList (Drop-Down List Structured Document Tag)                                          §2.5.2.15
+equation (Equation Structured Document Tag)                                                      §2.5.2.16
+group (Group Structured Document Tag)                                                           §2.5.2.17
+id (Unique ID)                                                                                     §2.5.2.18
+lock (Locking Setting)                                                                              §2.5.2.22
+picture (Picture Structured Document Tag)                                                         §2.5.2.23
+placeholder (Structured Document Tag Placeholder Text)                                           §2.5.2.24
+richText (Rich Text Structured Document Tag)                                                      §2.5.2.25
+rPr (Run Properties For Structured Document Tag Contents)                                         §2.5.2.26
+showingPlcHdr (Current Contents Are Placeholder Text)                                            §2.5.2.38
+tag (Programmatic Tag)                                                                            §2.5.2.40
+temporary (Remove Structured Document Tag When Contents Are Edited)                           §2.5.2.41
+text (Plain Text Structured Document Tag)                                                          §2.5.2.42
+
+
+                                                                                      586
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtPr">
+    <choice maxOccurs="unbounded">
+       <element name="rPr" type="CT_RPr" minOccurs="0"/>
+       <element name="alias" type="CT_String" minOccurs="0"/>
+       <element name="lock" type="CT_Lock" minOccurs="0"/>
+       <element name="placeholder" type="CT_Placeholder" minOccurs="0"/>
+       <element name="showingPlcHdr" type="CT_OnOff" minOccurs="0"/>
+       <element name="dataBinding" type="CT_DataBinding" minOccurs="0"/>
+       <element name="temporary" type="CT_OnOff" minOccurs="0"/>
+       <element name="id" type="CT_DecimalNumber" minOccurs="0"/>
+       <element name="tag" type="CT_String" minOccurs="0"/>
+       <choice minOccurs="0" maxOccurs="1">
+           <element name="equation" type="CT_Empty"/>
+           <element name="comboBox" type="CT_SdtComboBox"/>
+           <element name="date" type="CT_SdtDate"/>
+           <element name="docPartObj" type="CT_SdtDocPart"/>
+           <element name="docPartList" type="CT_SdtDocPart"/>
+           <element name="dropDownList" type="CT_SdtDropDownList"/>
+           <element name="picture" type="CT_Empty"/>
+           <element name="richText" type="CT_Empty"/>
+           <element name="text" type="CT_SdtText"/>
+           <element name="citation" type="CT_Empty"/>
+           <element name="group" type="CT_Empty"/>
+           <element name="bibliography" type="CT_Empty"/>
+       </choice>
+    </choice>
+</complexType>
+
+2.5.2.38      showingPlcHdr (Current Contents Are Placeholder Text)
+This element specifies whether the content of the sdtContent element (§2.5.2.32; §2.5.2.33; §2.5.2.34;
+§2.5.2.35) for the parent structured document tag shall be interpreted to contain placeholder text for this
+structured document tag (as opposed to regular text contents within the structured document tag). If this
+element is present and set to true, this state shall be resumed (showing placeholder text) upon opening this
+document.
+
+If this element is omitted, then the structured document tag shall not be interpreted to be showing placeholder
+text when the document is displayed.
+
+[Example: Consider the following structured document tag:
+
+
+                                                                                      587
+  <w:sdt>
+    <w:sdtPr>
+      <w:showingPlcHdr/>
+      …
+      <w:richText/>
+    </w:sdtPr>
+    <w:sdtContent>
+      <w:r>
+        <w:t>[Type your name here]</w:t>
+      </w:r>
+   </w:sdtContent>
+  </w:sdt>
+
+This structured document tag has run contents which read [Type your name here], which would typically
+be interpreted as the current contents of the structured document tag. However, since the showingPlcHdr
+element has been specified in the structured document tag's properties, this content shall instead be
+interpreted as the placeholder text for the structured document tag. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+val (On/Off Value)     Specifies a binary value for the property defined by the parent XML element.
+
+                A value of on, 1, or true specifies that the property shall be explicitly applied. This is the
+                       default value for this attribute, and is implied when the parent element is present, but
+                         this attribute is omitted.
+
+                A value of off, 0, or false specifies that the property shall be explicitly turned off.
+
+                     [Example: For example, consider the following on/off property:
+
+                   <w:… w:val="off"/>
+
+                   The val attribute explicitly declares that the property is turned off. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OnOff">
+    <attribute name="val" type="ST_OnOff"/>
+</complexType>
+
+
+                                                                                      588
+2.5.2.39      storeMappedDataAs (Custom XML Data Date Storage Format)
+
+This element specifies the translation which shall be performed on the displayed date in a date picker structured
+document tag when the current contents are saved into the associated custom XML data via the dataBinding
+element (§2.5.2.6).
+
+If this element is omitted, then the value of the associated custom XML element shall be placed into the custom
+XML data part with no translation.
+
+[Example: Consider the following date picker structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      <w:date w:fullDate="01-01-2006T06:30:00Z">
+        <w:storeMappedDateAs w:val="text"/>
+        …
+      </w:date>
+    </w:sdtPr>
+    <w:sdtContent>
+      <w:r>
+        <w:t>January 1</w:t>
+      </w:r>
+    </w:sdtContent>
+  </w:sdt>
+
+The value of the storeMappedDateAs element's attribute value is text, therefore the current run contents shall
+be sent to the mapped XML element without any translation (in this case, the value shall be January 1). end
+example]
+
+
+                                          Parent Elements
+date (§2.5.2.7)
+
+
+     Attributes                                            Description
+val (Date Storage      Specifies the type of date translation which shall be applied to the parent date picker
+Type)                 structured document tag.
+
+                                  If this attribute is omitted, this its value shall be assumed to be text.
+
+                     [Example: Consider the following date picker structured document tag:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       <w:date … >
+                         <w:storeMappedDateAs w:val="date"/>
+                         …
+
+
+                                                                                      589
+     Attributes                                            Description
+
+                       </w:date>
+                     </w:sdtPr>
+                     <w:sdtContent>
+                       <w:r>
+                         <w:t>January 1</w:t>
+                       </w:r>
+                     </w:sdtContent>
+                   </w:sdt>
+
+                   The value of the val attribute is text, therefore the current run contents shall be sent to
+                     the mapped XML element after being translated into xsd:date format (in this case, the
+                     value shall be 01-01-2006). end example]
+
+                   The possible values for this attribute are defined by the ST_SdtDateMappingType simple
+                     type (§2.18.83).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtDateMappingType">
+    <attribute name="val" type="ST_SdtDateMappingType"/>
+</complexType>
+
+2.5.2.40       tag (Programmatic Tag)
+
+This element specifies a programmatic tag associated with the current structured document tag. A
+programmatic tag is an arbitrary string which applications may associate with a structured document tag in
+order to identify it without providing a visible friendly name. The string representing the programmatic tag shall
+be stored on this element's val attribute.
+
+If this element is omitted, then no programmatic tag shall be associated with the given structured document tag.
+
+[Example: Consider the following properties on a structured document tag:
+
+  <w:sdtPr>
+    <w:tag w:val="Clause_3246"/>
+    …
+  </w:sdtPr>
+
+This set of properties specifies via the tag element that the programmatic tag for the parent structured
+document tag shall be Clause_3246. This information may then be used as needed by applications. end
+example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+
+
+                                                                                      590
+     Attributes                                            Description
+val (String Value)      Specifies that its contents will contain a string.
+
+                   The contents of this string are interpreted based on the context of the parent XML
+                     element.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pPr>
+                     <w:pStyle w:val="heading1" />
+                   </w:pPr>
+
+                   The value of the val attribute is the ID of the associated paragraph style's styleId.
+
+                   However, consider the following fragment:
+
+                   <w:sdtPr>
+                     <w:alias w:val="SDT Title Example" />
+                     ...
+                   </w:sdtPr>
+
+                        In this case, the decimal number in the val attribute is the caption of the parent
+                      structured document tag. In each case, the value is interpreted in the context of the
+                     parent element. end example]
+
+                   The possible values for this attribute are defined by the ST_String simple type (§2.18.89).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_String">
+    <attribute name="val" type="ST_String" use="required"/>
+</complexType>
+
+2.5.2.41      temporary (Remove Structured Document Tag When Contents Are Edited)
+
+This element specifies whether the parent structured document tag shall be removed from the
+WordprocessingML document when the its contents are modified.
+
+[Note: This setting is primarily intended for creating structured document tags whose sole purpose is one-time
+placeholder text, and which should not return once replaced with content. end note]
+
+If this element is omitted, then the parent structured document tag shall not be automatically removed when its
+contents are modified.
+
+[Example: Consider the following plain text structured document tag:
+
+
+                                                                                      591
+  <w:sdt>
+    <w:sdtPr>
+      <w:temporary/>
+      <w:text/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+This plain text structured document tag's properties contain a temporary element, specifying that the
+structured document tag itself shall be deleted from the document whenever its contents are first modified. end
+example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+val (On/Off Value)     Specifies a binary value for the property defined by the parent XML element.
+
+                A value of on, 1, or true specifies that the property shall be explicitly applied. This is the
+                       default value for this attribute, and is implied when the parent element is present, but
+                         this attribute is omitted.
+
+                A value of off, 0, or false specifies that the property shall be explicitly turned off.
+
+                     [Example: For example, consider the following on/off property:
+
+                   <w:… w:val="off"/>
+
+                   The val attribute explicitly declares that the property is turned off. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OnOff">
+    <attribute name="val" type="ST_OnOff"/>
+</complexType>
+
+2.5.2.42       text (Plain Text Structured Document Tag)
+
+This element specifies that the parent structured document tag shall be a plain text box when displayed in the
+document.
+
+This setting specifies that the behavior for this structured document tag shall be as follows:
+
+
+                                                                                      592
+       Formatting applied to any part of this structured document tag's contents shall apply to its entire
+       contents
+
+As well, the structured document tag must satisfy the following restraints or the document shall be considered
+invalid:
+
+      The contents shall only be contain a single run (one set of formatting properties) with exceptions for soft
+        carriage returns via the multiLine attribute on this element
+      The contents shall not contain more than a single paragraph or table cell and shall not contain a table
+      row or table
+
+ [Example: Consider the following structured document tag:
+
+  <w:sdt>
+    <w:sdtPr>
+      …
+      <w:text/>
+    </w:sdtPr>
+    …
+  </w:sdt>
+
+The text element in this structured document tag's properties specify that the type of structured document tag
+is a plain text box. end example]
+
+
+                                          Parent Elements
+sdtPr (§2.5.2.37)
+
+
+     Attributes                                            Description
+multiLine (Allow      Specifies whether soft line breaks may be added to the contents of this structured
+Soft Line Breaks)     document tag when this document is modified. This setting shall not affect the ability of
+                     the structured document tag to display existing soft line breaks (which shall be
+                     preserved) and shall only affect the ability to add line breaks when the document is
+                     modified by an application.
+
+                                  If this attribute is omitted, then the parent plain text structured document control shall
+                    not allow soft line breaks to be added to its contents.
+
+                     [Example: Consider the following structured document tag:
+
+                   <w:sdt>
+                     <w:sdtPr>
+                       …
+                       <w:text w:multiLine="true"/>
+                     </w:sdtPr>
+                     …
+
+
+                                                                                      593

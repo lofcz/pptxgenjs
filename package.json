@@ -59,7 +59,6 @@
 	},
 	"dependencies": {
 		"@node-projects/jszip": "^4.2.1",
-		"image-size": "^2.0.2",
 		"pako": "3.0.1"
 	},
 	"devDependencies": {

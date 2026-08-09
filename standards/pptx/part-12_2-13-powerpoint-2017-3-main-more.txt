@@ -1,0 +1,168 @@
+<!-- 2.13 powerpoint/2017/3/main (+more) | pages 106-108 of 170 -->
+
+Referenced by: CT_SlideLayoutChanges
+
+A simple type specifying a list of changes to a slide layout.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_SlideLayoutChangeBits">
+      <xsd:list itemType="ST_SlideLayoutChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.13 http://schemas.microsoft.com/office/powerpoint/2017/3/main
+
+2.13.1 Elements
+
+2.13.1.1     tracksInfo
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2017/3/main
+
+A CT_TracksInfo element that specifies the properties of the tracks for a media object.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="tracksInfo" type="CT_TracksInfo"/>
+
+
+See section 5.12 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.13.2 Attributes
+
+None.
+
+2.13.3 Complex Types
+
+2.13.3.1    CT_Track
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2017/3/main
+
+Referenced by: CT_TrackList
+
+A complex type that specifies a caption file.
+
+Attributes:
+
+id: A s:ST_Guid ([ISO/IEC29500-4:2016] section A.8.9) attribute that specifies a uniquely generated
+ID to identify the track.
+
+label: A xsd:string ([XMLSCHEMA2/2] section 3.2.1) attribute that specifies a label for the track.
+r:embed: A r:ST_RelationshipId ([ISO/IEC29500-4:2016] section A.8.8) attribute that specifies the
+relationship identifier that is used to determine the location of the media if it is embedded in the
+document. The r:embed attribute MUST be present if the r:link attribute is not present. If both the
+r:embed and r:link attributes are present, the r:link attribute takes precedence.
+
+r:link: A r:ST_RelationshipId ([ISO/IEC29500-4:2016] section A.8.8) attribute that specifies the
+relationship identifier that is used to determine the location of the media if it is linked from the
+document. The r:link attribute MUST be present if the r:embed attribute is not present. If both the
+r:link and r:embed attributes are present, the r:link attribute takes precedence.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_Track">
+      <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+      <xsd:attribute name="label" type="xsd:string" use="required"/>
+      <xsd:attribute name="lang" type="a:ST_TextLanguageID" use="optional"/>
+      <xsd:attributeGroup ref="a:AG_Blob"/>
+    </xsd:complexType>
+
+
+See section 5.12 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.13.3.2     CT_TrackList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2017/3/main
+
+Referenced by: CT_TracksInfo
+
+A complex type that specifies a list of tracks.
+
+Child Elements:
+
+track: A CT_Track element that specifies a caption associated with a media object.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TrackList">
+      <xsd:sequence>
+        <xsd:element name="track" type="CT_Track" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.12 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.13.3.3    CT_TracksInfo
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2017/3/main
+
+Referenced by: tracksInfo
+
+A complex type that specifies the information for all tracks associated with a media object.
+
+Child Elements:
+displayLoc: An ST_DisplayLocation attribute that specifies where a track is displayed.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TracksInfo">
+      <xsd:sequence>
+        <xsd:element name="trackLst" type="CT_TrackList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="displayLoc" type="ST_DisplayLocation" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.12 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.13.4 Simple Types
+
+2.13.4.1     ST_DisplayLocation
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2017/3/main
+
+Referenced by: CT_TracksInfo
+
+A simple type that specifies where a track for a media object is displayed.
+
+ Value  Meaning
+
+ media   The track is displayed on the media.
+
+  slide    The track is displayed on the slide.
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_DisplayLocation">
+      <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="media"/>
+        <xsd:enumeration value="slide"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.12 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.14 http://schemas.microsoft.com/office/powerpoint/2017/10/main
+
+2.14.1 Elements
+
+2.14.1.1    readonlyRecommended
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2017/10/main

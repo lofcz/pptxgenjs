@@ -1,0 +1,4820 @@
+<!-- SpreadsheetML Reference Material - Styles | pages 2881-3020 of 6045 -->
+
+3.8    Styles
+
+This subclause specifies the possible formatting information for the contents of the cells on a sheet in a
+SpreadsheetML document.
+
+3.8.1     alignment (Alignment)
+
+Formatting information pertaining to text alignment in cells. There are a variety of choices for how text is
+aligned both horizontally and vertically, as well as indentation settings, and so on.
+
+
+                                          Parent Elements
+dxf (§3.8.14); ndxf (§3.11.1.4); odxf (§3.11.1.6); xf (§3.8.45)
+
+
+     Attributes                                            Description
+horizontal            Specifies the type of horizontal alignment in cells.
+(Horizontal
+Alignment)          The possible values for this attribute are defined by the ST_HorizontalAlignment simple
+                     type (§3.18.42).
+indent (Indent)      An integer value, where an increment of 1 represents 3 spaces. Indicates the number of
+                     spaces (of the normal style font) of indentation for text in a cell. The number of spaces to
+                     indent is calculated as following:
+
+                 Number of spaces to indent = indent value * 3
+
+                     [Example:
+                     For example, an indent value of '1' means that the text begins 3 space widths (of the
+                   normal style font) from the edge of the cell.
+                   end example]
+
+
+                      [Note:
+                   The width of one space character is defined by the font.
+                   end note]
+
+
+                    Only left, right, and distributed horizontal alignments are supported.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+justifyLastLine     A boolean value indicating if the cells justified or distributed alignment should be used on
+(Justify Last Line)     the last line of text. (This is typical for East Asian alignments but not typical in other
+                       contexts.)
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+readingOrder      An integer value indicating whether the reading order (bidirectionality) of the cell is left-
+
+
+                                                                                     2092
+     Attributes                                            Description
+
+(Reading Order)        to-right, right-to-left, or context dependent.
+
+                  0 - Context Dependent
+                  1 - Left-to-Right
+                  2 - Right-to-Left
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+relativeIndent      An integer value (used only in a dxf element) to indicate the additional number of spaces
+(Relative Indent)      of indentation to adjust for text in a cell.
+
+                   The possible values for this attribute are defined by the XML Schema int datatype.
+shrinkToFit (Shrink  A boolean value indicating if the displayed text in the cell should be shrunk to fit the cell
+To Fit)                width. Not applicable when a cell contains multiple lines of text.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+textRotation (Text    Text rotation in cells. Expressed in degrees. Values range from 0 to 180. The first letter of
+Rotation)            the text is considered the center-point of the arc.
+                     For 0 - 90, the value represents degrees above horizon. For 91-180 the degrees below the
+                     horizon is calculated as:
+
+                     [degrees below horizon] = 90 - textRotation.
+
+
+                                                                                     2093
+     Attributes                                            Description
+
+
+                  135
+
+
+                  180
+
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+vertical (Vertical      Vertical alignment in cells.
+Alignment)
+                   The possible values for this attribute are defined by the ST_VerticalAlignment simple
+
+
+                                                                                     2094
+     Attributes                                            Description
+
+                     type (§3.18.89).
+wrapText (Wrap    A boolean value indicating if the text in a cell should be line-wrapped within the cell.
+Text)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CellAlignment">
+    <attribute name="horizontal" type="ST_HorizontalAlignment" use="optional"/>
+    <attribute name="vertical" type="ST_VerticalAlignment" use="optional"/>
+    <attribute name="textRotation" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="wrapText" type="xsd:boolean" use="optional"/>
+    <attribute name="indent" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="relativeIndent" type="xsd:int" use="optional"/>
+    <attribute name="justifyLastLine" type="xsd:boolean" use="optional"/>
+    <attribute name="shrinkToFit" type="xsd:boolean" use="optional"/>
+    <attribute name="readingOrder" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.2    b (Bold)
+
+Displays characters in bold face font style.
+
+
+                                          Parent Elements
+font (§3.8.21); rPr (§3.4.7)
+
+
+     Attributes                                            Description
+val (Value)         A boolean value for the property specified by the parent XML element.
+
+                                  If omitted, the default value is true.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BooleanProperty">
+    <attribute name="val" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+3.8.3     bgColor (Background Color)
+
+Background color of the cell fill pattern. Cell fill patterns operate with two colors: a background color and a
+foreground color. These combine together to make a patterned cell fill.
+
+
+                                          Parent Elements
+patternFill (§3.8.32)
+
+
+                                                                                     2095
+     Attributes                                            Description
+auto (Automatic)    A boolean value indicating the color is automatic and system color dependent.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+indexed (Index)      Indexed color value. Only used for backwards compatibility. References a color in
+                    indexedColors.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+rgb (Alpha Red       Standard Alpha Red Green Blue color value (ARGB).
+Green Blue Color
+Value)             The possible values for this attribute are defined by the ST_UnsignedIntHex simple type
+                       (§3.18.86).
+theme (Theme       Index into the <clrScheme> collection, referencing a particular <sysClr> or
+Color)             <srgbClr> value expressed in the Theme part.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+tint (Tint)              Specifies the tint value applied to the color.
+
+                                  If tint is supplied, then it is applied to the RGB value of the color to determine the final
+                       color applied.
+
+                   The tint value is stored as a double from -1.0 .. 1.0, where -1.0 means 100% darken and
+                      1.0 means 100% lighten. Also, 0.0 means no change.
+
+                        In loading the RGB value, it is converted to HLS where HLS values are (0..HLSMAX), where
+                HLSMAX is currently 255.
+
+                     [Example:
+
+                   Here are some examples of how to apply tint to color:
+
+                                If (tint < 0)
+                    Lum’ = Lum * (1.0 + tint)
+
+                     For example: Lum = 200; tint = -0.5; Darken 50%
+                    Lum‘ = 200 * (0.5) => 100
+
+                     For example: Lum = 200; tint = -1.0; Darken 100% (make black)
+                    Lum‘ = 200 * (1.0-1.0) => 0
+
+                                If (tint > 0)
+                    Lum‘ = Lum * (1.0-tint) + (HLSMAX – HLSMAX * (1.0-tint))
+
+                     For example: Lum = 100; tint = 0.75; Lighten 75%
+
+
+                                                                                     2096
+     Attributes                                            Description
+
+                   Lum‘   = 100 * (1-.75) + (HLSMAX – HLSMAX*(1-.75))
+                          = 100 * .25 + (255 – 255 * .25)
+                          = 25 + (255 – 63) = 25 + 192 = 217
+
+                     For example: Lum = 100; tint = 1.0; Lighten 100% (make white)
+                   Lum‘   = 100 * (1-1) + (HLSMAX – HLSMAX*(1-1))
+                          = 100 * 0 + (255 – 255 * 0)
+                          = 0 + (255 – 0) = 255
+
+                   end example]
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Color">
+    <attribute name="auto" type="xsd:boolean" use="optional"/>
+    <attribute name="indexed" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="rgb" type="ST_UnsignedIntHex" use="optional"/>
+    <attribute name="theme" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="tint" type="xsd:double" use="optional" default="0.0"/>
+</complexType>
+
+3.8.4     border (Border)
+
+Expresses a single set of cell border formats (left, right, top, bottom, diagonal). Color is optional. When missing,
+'automatic' is implied.
+
+
+                                          Parent Elements
+borders (§3.8.5); dxf (§3.8.14); ndxf (§3.11.1.4); odxf (§3.11.1.6)
+
+
+                                         Child Elements                                        Subclause
+bottom (Bottom Border)                                                                           §3.8.6
+diagonal (Diagonal)                                                                             §3.8.13
+horizontal (Horizontal Inner Borders)                                                             §3.8.24
+left (Left Border)                                                                                §3.8.27
+right (Right Border)                                                                              §3.8.35
+top (Top Border)                                                                                §3.8.43
+vertical (Vertical Inner Border)                                                                   §3.8.44
+
+
+     Attributes                                            Description
+diagonalDown     A boolean value indicating if the cell's diagonal border includes a diagonal line, starting at
+
+
+                                                                                     2097
+     Attributes                                            Description
+
+(Diagonal Down)      the top left corner of the cell and moving down to the bottom right corner of the cell.
+
+                     [Example:
+
+                       This example shows a thin diagonal down line:
+
+
+                   end example]
+
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+diagonalUp        A boolean value indicating if the cell's diagonal border includes a diagonal line, starting at
+(Diagonal Up)        the bottom left corner of the cell and moving up to the top right corner of the cell.
+
+                     [Example:
+
+                       This example shows a thin diagonal up line:
+
+
+                   end example]
+
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+outline (Outline)    A boolean value indicating if left, right, top, and bottom borders should be applied only
+                      to outside borders of a cell range.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+                                                                                     2098
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Border">
+    <sequence>
+       <element name="left" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+       <element name="right" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+       <element name="top" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+       <element name="bottom" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+       <element name="diagonal" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+       <element name="vertical" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+       <element name="horizontal" type="CT_BorderPr" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="diagonalUp" type="xsd:boolean" use="optional"/>
+    <attribute name="diagonalDown" type="xsd:boolean" use="optional"/>
+    <attribute name="outline" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+3.8.5     borders (Borders)
+
+This element contains borders formatting information, specifying all border definitions for all cells in the
+workbook.
+
+[Example: In this example the first border definition specifies that there are no borders, the second definition
+specifies that a there is a thin bottom border and medium right border, and the third definition specifies that
+there is a double top border.
+
+  <borders count="3">
+    <border>
+      <left/>
+      <right/>
+      <top/>
+      <bottom/>
+      <diagonal/>
+    </border>
+    <border>
+      <left/>
+      <right style="medium">
+        <color indexed="64"/>
+      </right>
+      <top/>
+      <bottom style="thin">
+        <color indexed="64"/>
+      </bottom>
+      <diagonal/>
+    </border>
+
+
+                                                                                     2099
+    <border>
+      <left/>
+      <right/>
+      <top style="double">
+        <color auto="1"/>
+      </top>
+      <bottom/>
+      <diagonal/>
+    </border>
+  </borders>
+
+end example]
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+border (Border)                                                                                   §3.8.4
+
+
+     Attributes                                            Description
+count (Border       Count of border elements.
+Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Borders">
+    <sequence>
+       <element name="border" type="CT_Border" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.6    bottom (Bottom Border)
+
+This element specifies the color and line style for the bottom border of a cell.
+
+
+                                          Parent Elements
+border (§3.8.4)
+
+
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+                                                                                     2100
+     Attributes                                            Description
+style (Line Style)     The line style for this border.
+
+                   The possible values for this attribute are defined by the ST_BorderStyle simple type
+                        (§3.18.3).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BorderPr">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+</complexType>
+
+3.8.7      cellStyle (Cell Style)
+
+This element expresses the name and related formatting records for a named cell style in this workbook.
+
+The built-in cell styles are written here by name, but the corresponding formatting records are assumed rather
+than explicitly written. Following is a listing of each of the built-in cell style definitions, whose normative
+definition is in Annex D. Also following is a table mapping the builtinId value to the cell style name.
+
+For all built-in cell styles, the builtinId determines the style, not the name. For all cell styles, Normal is applied
+by default.
+
+
+        builtinId      Cell Style Name      [Example: (informative)
+
+       0        Normal
+
+
+       1        RowLevel_ + level #    Depends on level:
+
+
+                                   1 =
+
+
+                                   2 =
+
+
+                                   3 =
+
+                                   4 =
+
+
+                                   5 =
+
+
+                                   6 =
+
+
+                                                                                     2101
+builtinId      Cell Style Name      [Example: (informative)
+
+
+                            7 =
+
+2         ColLevel_ + level #     Depends on level:
+
+
+                            1 =
+
+
+                            2 =
+
+
+                            3 =
+
+
+                            4 =
+
+
+                            5 =
+
+
+                            6 =
+
+
+                            7 =
+
+3      Comma
+
+
+4         Currency
+
+
+5         Percent
+
+
+6      Comma [0]
+
+
+7         Currency [0]
+
+
+8         Hyperlink
+
+
+9         Followed Hyperlink
+
+
+10       Note
+
+
+11       Warning Text
+
+
+                                                                              2102
+builtinId      Cell Style Name      [Example: (informative)
+
+15          Title
+
+
+16       Heading 1
+
+
+17       Heading 2
+
+
+18       Heading 3
+
+
+19       Heading 4
+
+
+20        Input
+
+
+21       Output
+
+
+22         Calculation
+
+
+23       Check Cell
+
+
+24        Linked Cell
+
+
+25         Total
+
+
+26      Good
+
+
+27       Bad
+
+
+28        Neutral
+
+
+29        Accent1
+
+
+30      20% - Accent1
+
+
+                                                                              2103
+builtinId      Cell Style Name      [Example: (informative)
+
+31      40% - Accent1
+
+
+32      60% - Accent1
+
+
+33        Accent2
+
+
+34      20% - Accent2
+
+
+35      40% - Accent2
+
+
+36      60% - Accent2
+
+
+37        Accent3
+
+
+38      20% - Accent3
+
+
+39      40% - Accent3
+
+
+40      60% - Accent3
+
+
+41        Accent4
+
+
+42      20% - Accent4
+
+
+43      40% - Accent4
+
+
+44      60% - Accent4
+
+
+45        Accent5
+
+
+46      20% - Accent5
+
+
+47      40% - Accent5
+
+
+                                                                              2104
+        builtinId      Cell Style Name      [Example: (informative)
+
+       48      60% - Accent5
+
+
+       49        Accent6
+
+
+       50      20% - Accent6
+
+
+       51      40% - Accent6
+
+
+       52      60% - Accent6
+
+
+       53        Explanatory Text
+
+
+                                          Parent Elements
+cellStyles (§3.8.8)
+
+
+                                         Child Elements                                        Subclause
+extLst (Future Feature Data Storage Area)                                                         §3.2.10
+
+
+     Attributes                                            Description
+builtinId (Built-In    The index of a built-in cell style:
+Style Id)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+customBuiltin       True indicates that this built-in cell style has been customized.
+(Custom Built In)
+                   By default built-in styles are not persisted when not in use. This flag indicates that a
+                          built-in style has been modified, and therefore should be saved with the workbook, even
+                                   if not currently in use.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+hidden (Hidden          If 'true' do not show this style in the application UI.
+Style)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+iLevel (Outline        Indicates that this formatting is for an outline style . When styles are applied to outline
+Style)                  levels (using the outline feature), this value is set and the formatting specified on this cell
+
+
+                                                                                     2105
+     Attributes                                            Description
+
+                        style is applied to the corresponding level of the outline.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+name (User Defined  The name of the cell style.
+Cell Style)
+                   The possible values for this attribute are defined by the ST_Xstring simple type
+                       (§3.18.96).
+xfId (Format Id)      Zero-based index referencing an xf record in the cellStyleXfs collection. This is used to
+                    determine the formatting defined for this named cell style.
+
+                   The possible values for this attribute are defined by the ST_CellStyleXfId simple type
+                       (§3.18.11).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CellStyle">
+    <sequence>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="name" type="ST_Xstring" use="optional"/>
+    <attribute name="xfId" type="ST_CellStyleXfId" use="required"/>
+    <attribute name="builtinId" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="iLevel" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="hidden" type="xsd:boolean" use="optional"/>
+    <attribute name="customBuiltin" type="xsd:boolean" use="optional"/>
+</complexType>
+
+3.8.8      cellStyles (Cell Styles)
+
+This element contains the named cell styles, consisting of a sequence of named style records. A named cell style
+is a collection of direct or themed formatting (e.g., cell border, cell fill, and font type/size/style) grouped
+together into a single named style, and can be applied to a cell.
+
+[Example: For example, "Normal", "Heading 1", "Title", and "20% Accent1" are named cell styles expressed
+below. They have builtInId's associated with them, and use xfId to reference the specific formatting elements
+pertaining to the particular style. The xfId is a zero-based index, referencing an xf record in the cellStyleXfs
+collection.
+
+  <cellStyles count="4">
+    <cellStyle name="20% - Accent1" xfId="3" builtinId="30"/>
+    <cellStyle name="Heading 1" xfId="2" builtinId="16"/>
+    <cellStyle name="Normal" xfId="0" builtinId="0"/>
+    <cellStyle name="Title" xfId="1" builtinId="15"/>
+  </cellStyles>
+
+end example]
+
+
+                                                                                     2106
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+cellStyle (Cell Style)                                                                                §3.8.7
+
+
+     Attributes                                            Description
+count (Style Count)   Count of style elements.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CellStyles">
+    <sequence>
+       <element name="cellStyle" type="CT_CellStyle" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.9      cellStyleXfs (Formatting Records)
+This element contains the master formatting records (xf's) which define the formatting for all named cell styles
+in this workbook. Master formatting records reference individual elements of formatting (e.g., number format,
+font definitions, cell fills, etc) by specifying a zero-based index into those collections. Master formatting records
+also specify whether to apply or ignore particular aspects of formatting, for example whether to apply a border
+or not.
+
+A cell can have both direct formatting (e.g., bold) and a cell style (e.g., Explanatory) applied to it. Therefore, both
+the cell style xf records and cell xf records must be read to understand the full set of formatting applied to a cell.
+
+[Example: This example shows 4 master formatting records, each defining formatting for a named cell style
+(expressed in the cellStyles collection). Note that 0th record does not express any "apply" attributes, while the
+other records do express "apply" attribute values. For example, the last record specifies that number format,
+alignment, and protection formatting will not be applied to the cell, even when that information is specified in
+related formatting records.
+
+  <cellStyleXfs count="4">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
+    <xf numFmtId="0" fontId="2" fillId="0" borderId="0" applyNumberFormat="0"
+      applyFill="0" applyBorder="0" applyAlignment="0" applyProtection="0"/>
+    <xf numFmtId="0" fontId="3" fillId="0" borderId="1" applyNumberFormat="0"
+      applyFill="0" applyAlignment="0" applyProtection="0"/>
+
+
+                                                                                     2107
+    <xf numFmtId="0" fontId="4" fillId="2" borderId="2" applyNumberFormat="0"
+      applyAlignment="0" applyProtection="0"/>
+  </cellStyleXfs>
+
+end example]
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+xf (Format)                                                                                     §3.8.45
+
+
+     Attributes                                            Description
+count (Style Count)   Count of cell style (xf) elements.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CellStyleXfs">
+    <sequence>
+       <element name="xf" type="CT_Xf" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.10    cellXfs (Cell Formats)
+This element contains the master formatting records (xf) which define the formatting applied to cells in this
+workbook. These records are the starting point for determining the formatting for a cell. Cells in the Sheet Part
+reference the xf records by zero-based index.
+
+A cell can have both direct formatting (e.g., bold) and a cell style (e.g., Explanatory) applied to it. Therefore, both
+the cell style xf records and cell xf records must be read to understand the full set of formatting applied to a cell.
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+xf (Format)                                                                                     §3.8.45
+
+
+                                                                                     2108
+     Attributes                                            Description
+count (Format       Count of xf elements.
+Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CellXfs">
+    <sequence>
+       <element name="xf" type="CT_Xf" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.11    colors (Colors)
+
+Color information associated with this stylesheet. This collection is written whenever the legacy color palette
+has been modified (backwards compatibility settings) or a custom color has been selected while using this
+workbook.
+
+When the color palette is modified, the indexedColors collection is written. When a custom color has been
+selected, the mruColors collection is written.
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+indexedColors (Color Indexes)                                                                   §3.8.26
+mruColors (MRU Colors)                                                                         §3.8.28
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Colors">
+    <sequence>
+       <element name="indexedColors" type="CT_IndexedColors" minOccurs="0" maxOccurs="1"/>
+       <element name="mruColors" type="CT_MRUColors" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+3.8.12   condense (Condense)
+
+Macintosh compatibility setting. Represents special word/character rendering on Macintosh, when this flag is
+set. The effect is to condense the text (squeeze it together). SpreadsheetML applications are not required to
+render according to this flag.
+
+
+                                          Parent Elements
+
+
+                                                                                     2109
+                                          Parent Elements
+font (§3.8.21); rPr (§3.4.7)
+
+
+     Attributes                                            Description
+val (Value)         A boolean value for the property specified by the parent XML element.
+
+                                  If omitted, the default value is true.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BooleanProperty">
+    <attribute name="val" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+3.8.13    diagonal (Diagonal)
+
+This element specifies the color and line style for the diagonal border(s) of a cell, possibly including diagonally up
+and diagonally down. The line style for diagonal up and diagonal down lines must be the same.
+
+
+                                          Parent Elements
+border (§3.8.4)
+
+
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+     Attributes                                            Description
+style (Line Style)     The line style for this border.
+
+                   The possible values for this attribute are defined by the ST_BorderStyle simple type
+                        (§3.18.3).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BorderPr">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+</complexType>
+
+3.8.14    dxf (Formatting)
+A single dxf record, expressing incremental formatting to be applied.
+
+
+                                                                                     2110
+                                          Parent Elements
+dxfs (§3.8.15); rfmt (§3.11.1.17)
+
+
+                                         Child Elements                                        Subclause
+alignment (Alignment)                                                                             §3.8.1
+border (Border)                                                                                   §3.8.4
+extLst (Future Feature Data Storage Area)                                                         §3.2.10
+fill (Fill)                                                                                         §3.8.19
+font (Font)                                                                                      §3.8.21
+numFmt (Number Format)                                                                       §3.8.30
+protection (Protection Properties)                                                                §3.8.33
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Dxf">
+    <sequence>
+       <element name="font" type="CT_Font" minOccurs="0" maxOccurs="1"/>
+       <element name="numFmt" type="CT_NumFmt" minOccurs="0" maxOccurs="1"/>
+       <element name="fill" type="CT_Fill" minOccurs="0" maxOccurs="1"/>
+       <element name="alignment" type="CT_CellAlignment" minOccurs="0" maxOccurs="1"/>
+       <element name="border" type="CT_Border" minOccurs="0" maxOccurs="1"/>
+       <element name="protection" type="CT_CellProtection" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+3.8.15    dxfs (Formats)
+This element contains the master differential formatting records (dxf's) which define formatting for all non-cell
+formatting in this workbook. Whereas xf records fully specify a particular aspect of formatting (e.g., cell borders)
+by referencing those formatting definitions elsewhere in the Styles part, dxf records specify incremental (or
+differential) aspects of formatting directly inline within the dxf element. The dxf formatting is to be applied on
+top of or in addition to any formatting already present on the object using the dxf record.
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+dxf (Formatting)                                                                                 §3.8.14
+
+
+     Attributes                                            Description
+
+
+                                                                                     2111
+     Attributes                                            Description
+count (Format       Count of dxf elements.
+Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Dxfs">
+    <sequence>
+       <element name="dxf" type="CT_Dxf" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.16    extend (Extend)
+
+This element specifies a compatibility setting used for previous spreadsheet applications, resulting in special
+word/character rendering on those legacy applications, when this flag is set. The effect extends or stretches out
+the text. SpreadsheetML applications are not required to render according to this flag.
+
+
+                                          Parent Elements
+font (§3.8.21); rPr (§3.4.7)
+
+
+     Attributes                                            Description
+val (Value)         A boolean value for the property specified by the parent XML element.
+
+                                  If omitted, the default value is true.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BooleanProperty">
+    <attribute name="val" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+3.8.17    family (Font Family)
+
+The font family this font belongs to. A font family is a set of fonts having common stroke width and serif
+characteristics. This is system level font information. The font name overrides when there are conflicting values.
+
+
+         Value                     Font Family
+
+       0           Not applicable.
+
+       1         Roman
+
+       2            Swiss
+
+
+                                                                                     2112
+         Value                     Font Family
+
+       3          Modern
+
+       4              Script
+
+       5            Decorative
+
+
+                                          Parent Elements
+font (§3.8.21); rPr (§3.4.7)
+
+
+     Attributes                                            Description
+val (Value)          The value of an integer, where each value corresponds to a different character set. Valid
+                      values are 0 to 255.
+
+
+                   The possible values for this attribute are defined by the XML Schema int datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_IntProperty">
+    <attribute name="val" type="xsd:int" use="required"/>
+</complexType>
+
+3.8.18    fgColor (Foreground Color)
+
+Foreground color of the cell fill pattern. Cell fill patterns operate with two colors: a background color and a
+foreground color. These combine together to make a patterned cell fill.
+
+
+                                          Parent Elements
+patternFill (§3.8.32)
+
+
+     Attributes                                            Description
+auto (Automatic)    A boolean value indicating the color is automatic and system color dependent.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+indexed (Index)      Indexed color value. Only used for backwards compatibility. References a color in
+                    indexedColors.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+rgb (Alpha Red       Standard Alpha Red Green Blue color value (ARGB).
+Green Blue Color
+Value)             The possible values for this attribute are defined by the ST_UnsignedIntHex simple type
+                       (§3.18.86).
+
+
+                                                                                     2113
+     Attributes                                            Description
+theme (Theme       Index into the <clrScheme> collection, referencing a particular <sysClr> or
+Color)             <srgbClr> value expressed in the Theme part.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+tint (Tint)              Specifies the tint value applied to the color.
+
+                                  If tint is supplied, then it is applied to the RGB value of the color to determine the final
+                       color applied.
+
+                   The tint value is stored as a double from -1.0 .. 1.0, where -1.0 means 100% darken and
+                      1.0 means 100% lighten. Also, 0.0 means no change.
+
+                        In loading the RGB value, it is converted to HLS where HLS values are (0..HLSMAX), where
+                HLSMAX is currently 255.
+
+                     [Example:
+
+                   Here are some examples of how to apply tint to color:
+
+                                If (tint < 0)
+                    Lum’ = Lum * (1.0 + tint)
+
+                     For example: Lum = 200; tint = -0.5; Darken 50%
+                    Lum‘ = 200 * (0.5) => 100
+
+                     For example: Lum = 200; tint = -1.0; Darken 100% (make black)
+                    Lum‘ = 200 * (1.0-1.0) => 0
+
+                                If (tint > 0)
+                    Lum‘ = Lum * (1.0-tint) + (HLSMAX – HLSMAX * (1.0-tint))
+
+                     For example: Lum = 100; tint = 0.75; Lighten 75%
+                   Lum‘   = 100 * (1-.75) + (HLSMAX – HLSMAX*(1-.75))
+                          = 100 * .25 + (255 – 255 * .25)
+                          = 25 + (255 – 63) = 25 + 192 = 217
+
+                     For example: Lum = 100; tint = 1.0; Lighten 100% (make white)
+                   Lum‘   = 100 * (1-1) + (HLSMAX – HLSMAX*(1-1))
+                          = 100 * 0 + (255 – 255 * 0)
+                          = 0 + (255 – 0) = 255
+
+                   end example]
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+
+
+                                                                                     2114
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Color">
+    <attribute name="auto" type="xsd:boolean" use="optional"/>
+    <attribute name="indexed" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="rgb" type="ST_UnsignedIntHex" use="optional"/>
+    <attribute name="theme" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="tint" type="xsd:double" use="optional" default="0.0"/>
+</complexType>
+
+3.8.19      fill (Fill)
+
+This element specifies fill formatting.
+
+
+                                          Parent Elements
+dxf (§3.8.14); fills (§3.8.20); ndxf (§3.11.1.4); odxf (§3.11.1.6)
+
+
+                                         Child Elements                                        Subclause
+gradientFill (Gradient)                                                                          §3.8.23
+patternFill (Pattern)                                                                             §3.8.32
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Fill">
+    <choice minOccurs="1" maxOccurs="1">
+       <element name="patternFill" type="CT_PatternFill" minOccurs="0" maxOccurs="1"/>
+       <element name="gradientFill" type="CT_GradientFill" minOccurs="0" maxOccurs="1"/>
+    </choice>
+</complexType>
+
+3.8.20      fills (Fills)
+This element defines the cell fills portion of the Styles part, consisting of a sequence of fill records. A cell fill
+consists of a background color, foreground color, and pattern to be applied across the cell.
+
+[Example: This cell has a yellow fill:
+
+
+This is the corresponding XML:
+
+  <fill>
+    <patternFill patternType="solid">
+      <fgColor rgb="FFFFFF00"/>
+      <bgColor indexed="64"/>
+    </patternFill>
+  </fill>
+
+
+                                                                                     2115
+This cell has a yellow fill with a thin horizontal crosshatch pattern applied (patternType = lightGrid):
+
+
+This is the corresponding XML:
+
+  <fill>
+    <patternFill patternType="lightGrid">
+    <bgColor rgb="FFFFFF00"/>
+    </patternFill>
+  </fill>
+
+end example]
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+fill (Fill)                                                                                         §3.8.19
+
+
+     Attributes                                            Description
+count (Fill Count)     Count of fill elements.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Fills">
+    <sequence>
+       <element name="fill" type="CT_Fill" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.21    font (Font)
+
+This element defines the properties for one of the fonts used in this workbook.
+
+
+                                          Parent Elements
+dxf (§3.8.14); fonts (§3.8.22); ndxf (§3.11.1.4); odxf (§3.11.1.6)
+
+
+                                         Child Elements                                        Subclause
+
+
+                                                                                     2116
+                                         Child Elements                                        Subclause
+b (Bold)                                                                                           §3.8.2
+charset (Character Set)                                                                            §3.4.1
+color (Data Bar Color)                                                                              §3.3.1.14
+condense (Condense)                                                                            §3.8.12
+extend (Extend)                                                                                 §3.8.16
+family (Font Family)                                                                             §3.8.17
+i (Italic)                                                                                         §3.8.25
+name (Font Name)                                                                              §3.8.29
+outline (Outline)                                                                                   §3.4.2
+scheme (Scheme)                                                                               §3.8.36
+shadow (Shadow)                                                                               §3.8.37
+strike (Strike Through)                                                                           §3.4.10
+sz (Font Size)                                                                                    §3.4.11
+u (Underline)                                                                                    §3.4.13
+vertAlign (Vertical Alignment)                                                                    §3.4.14
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Font">
+    <choice maxOccurs="unbounded">
+       <element name="name" type="CT_FontName" minOccurs="0" maxOccurs="1"/>
+       <element name="charset" type="CT_IntProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="family" type="CT_IntProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="b" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="i" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="strike" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="outline" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="shadow" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="condense" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="extend" type="CT_BooleanProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+       <element name="sz" type="CT_FontSize" minOccurs="0" maxOccurs="1"/>
+       <element name="u" type="CT_UnderlineProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="vertAlign" type="CT_VerticalAlignFontProperty" minOccurs="0" maxOccurs="1"/>
+       <element name="scheme" type="CT_FontScheme" minOccurs="0" maxOccurs="1"/>
+    </choice>
+</complexType>
+
+3.8.22    fonts (Fonts)
+
+This element contains all font definitions for this workbook.
+
+[Example: This example expresses two fonts in the workbook. A Calibri family font, with font size of 11, and an
+Arial family font, with font size 12. The second font has strikethrough applied.
+
+
+                                                                                     2117
+  <fonts count="2">
+    <font>
+      <sz val="11"/>
+      <color theme="1"/>
+      <name val="Calibri"/>
+      <family val="2"/>
+      <scheme val="minor"/>
+    </font>
+    <font>
+      <strike/>
+      <sz val="12"/>
+      <color theme="1"/>
+      <name val="Arial"/>
+      <family val="2"/>
+    </font>
+  </fonts>
+
+end example]
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+font (Font)                                                                                      §3.8.21
+
+
+     Attributes                                            Description
+count (Font Count)   Count of font elements.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Fonts">
+    <sequence>
+       <element name="font" type="CT_Font" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.23    gradientFill (Gradient)
+
+This element defines a gradient-style cell fill. Gradient cell fills can use one or two colors as the end points of
+color interpolation.
+
+
+                                                                                     2118
+ [Example:
+
+This example shows a gradient cell fill, with color green at the top transitioning into blue at the bottom.
+
+
+This is the XML:
+
+  <fill>
+    <gradientFill degree="90">
+      <stop position="0">
+        <color rgb="FF92D050"/>
+      </stop>
+      <stop position="1">
+        <color rgb="FF0070C0"/>
+      </stop>
+    </gradientFill>
+  </fill>
+
+This example shows a gradient cell fill, from the center. Note the left, right, top, and bottom values (and see
+explanation in the attribute section):
+
+
+  <fill>
+    <gradientFill type="path" left="0.2" right="0.8" top="0.2" bottom="0.8">
+      <stop position="0">
+        <color theme="0"/>
+      </stop>
+      <stop position="1">
+        <color theme="4"/>
+      </stop>
+    </gradientFill>
+  </fill>
+
+end example]
+
+
+                                          Parent Elements
+
+
+                                                                                     2119
+                                          Parent Elements
+fill (§3.8.19)
+
+
+                                         Child Elements                                        Subclause
+stop (Gradient Stop)                                                                             §3.8.38
+
+
+     Attributes                                            Description
+bottom (Bottom       Valid values are 0 to 1. Specifies in percentage format (from the top to the bottom) the
+Convergence)         position of the bottom edge of the inner rectangle (color 1). For bottom, 0 means the
+                  bottom edge of the inner rectangle is on the top edge of the cell, and 1 means it is on the
+                  bottom edge of the cell.
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+degree (Linear       Angle of the linear gradient - vertical, horizontal, diagonal.
+Gradient Degree)
+                     [Example:
+                     Note: in these examples, color 1 is white and color 2 is blue.
+
+                  90 = Horizontal & color 1 to color 2
+
+
+                  270 = Horizontal & color 1 to color 2
+
+
+                  0 = Vertical & color 1 to color 2
+
+
+                  180 = Vertical & color 1 to color 2
+
+
+                  45 = Diagonal Up & top to bottom (color 1 to color 2)
+
+                  225 = Diagonal Up & bottom to top (color 1 to color 2)
+                  135 = Diagonal Down & top to bottom (color 1 to color 2)
+                  315 = Diagonal Down & bottom to top (color 1 to color 2)
+
+                   end example]
+
+
+                                                                                     2120
+     Attributes                                            Description
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+left (Left              Valid values are 0 to 1. Specifies in percentage format (from the left to the right) the
+Convergence)         position of the left edge of the inner rectangle (color 1). For left, 0 means the left edge of
+                     the inner rectangle is on the left edge of the cell, and 1 means it is on the right edge of
+                     the cell. (applies to From Corner and From Center gradients).
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+right (Right           Valid values are 0 to 1. Specifies in percentage format (from the left to the right) the
+Convergence)         position of the right edge of the inner rectangle (color 1). For right, 0 means the right
+                   edge of the inner rectangle is on the left edge of the cell, and 1 means it is on the right
+                   edge of the cell. (applies to From Corner and From Center gradients).
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+top (Top Gradient     Valid values are 0 to 1. Specifies in percentage format (from the top to the bottom) the
+Convergence)         position of the top edge of the inner rectangle (color 1). For top, 0 means the top edge of
+                     the inner rectangle is on the top edge of the cell, and 1 means it is on the bottom edge of
+                     the cell. (applies to From Corner and From Center gradients).
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+type (Gradient Fill    Type of this gradient fill.
+Type)
+                   The possible values for this attribute are defined by the ST_GradientType simple type
+                       (§3.18.38).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GradientFill">
+    <sequence>
+       <element name="stop" type="CT_GradientStop" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="type" type="ST_GradientType" use="optional" default="linear"/>
+    <attribute name="degree" type="xsd:double" use="optional" default="0"/>
+    <attribute name="left" type="xsd:double" use="optional" default="0"/>
+    <attribute name="right" type="xsd:double" use="optional" default="0"/>
+    <attribute name="top" type="xsd:double" use="optional" default="0"/>
+    <attribute name="bottom" type="xsd:double" use="optional" default="0"/>
+</complexType>
+
+3.8.24    horizontal (Horizontal Inner Borders)
+
+This element specifies the color and line style for the horizontal inner border(s) of a range of cells. Used in the
+context of dxf elements only. For example, see the borders definitions for TableStyleMedium28.
+
+
+                                          Parent Elements
+border (§3.8.4)
+
+
+                                                                                     2121
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+     Attributes                                            Description
+style (Line Style)     The line style for this border.
+
+                   The possible values for this attribute are defined by the ST_BorderStyle simple type
+                        (§3.18.3).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BorderPr">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+</complexType>
+
+3.8.25      i (Italic)
+
+Displays characters in italic font style. The italic style is defined by the font at a system level and is not specified
+by this specification.
+
+
+                                          Parent Elements
+font (§3.8.21); rPr (§3.4.7)
+
+
+     Attributes                                            Description
+val (Value)         A boolean value for the property specified by the parent XML element.
+
+                                  If omitted, the default value is true.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BooleanProperty">
+    <attribute name="val" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+3.8.26    indexedColors (Color Indexes)
+
+A deprecated indexing scheme for colours that is still required for some records, and for backwards
+compatibility with legacy formats.
+
+
+                                                                                     2122
+This element contains a sequence of RGB color values that correspond to color indexes (zero-based). When
+using the default indexed color palette, the values are not written out, but instead are implied. When the color
+palette has been modified from default, then the entire color palette is written out.
+
+Here is the table of default mappings from indexed color value to ARGB value. Note that 0-7 are redundant of 8-
+15 to preserve backwards compatibility.
+
+ Color Index   ARGB Value         [Example:
+
+ indexed="0"   00000000
+
+ indexed="1"   00FFFFFF
+
+ indexed="2"   00FF0000
+
+ indexed="3"   0000FF00
+
+ indexed="4"   000000FF
+
+ indexed="5"   00FFFF00
+
+ indexed="6"   00FF00FF
+
+ indexed="7"   0000FFFF
+
+ (none)         (none)
+
+ indexed="8"   00000000
+
+ indexed="9"   00FFFFFF
+
+ indexed="10"  00FF0000
+
+ indexed="11"  0000FF00
+
+ indexed="12"  000000FF
+
+ indexed="13"  00FFFF00
+
+ indexed="14"  00FF00FF
+
+ indexed="15"  0000FFFF
+
+ indexed="16"  00800000
+
+ indexed="17"  00008000
+
+ indexed="18"  00000080
+
+
+                                                                                     2123
+indexed="19"  00808000
+
+indexed="20"  00800080
+
+indexed="21"  00008080
+
+indexed="22"  00C0C0C0
+
+indexed="23"  00808080
+
+indexed="24"  009999FF
+
+indexed="25"  00993366
+
+indexed="26"  00FFFFCC
+
+indexed="27"  00CCFFFF
+
+indexed="28"  00660066
+
+indexed="29"  00FF8080
+
+indexed="30"  000066CC
+
+indexed="31"  00CCCCFF
+
+indexed="32"  00000080
+
+indexed="33"  00FF00FF
+
+indexed="34"  00FFFF00
+
+indexed="35"  0000FFFF
+
+indexed="36"  00800080
+
+indexed="37"  00800000
+
+indexed="38"  00008080
+
+indexed="39"  000000FF
+
+indexed="40"  0000CCFF
+
+indexed="41"  00CCFFFF
+
+indexed="42"  00CCFFCC
+
+indexed="43"  00FFFF99
+
+
+                                                                                    2124
+ indexed="44"  0099CCFF
+
+ indexed="45"  00FF99CC
+
+ indexed="46"  00CC99FF
+
+ indexed="47"  00FFCC99
+
+ indexed="48"  003366FF
+
+ indexed="49"  0033CCCC
+
+ indexed="50"  0099CC00
+
+ indexed="51"  00FFCC00
+
+ indexed="52"  00FF9900
+
+ indexed="53"  00FF6600
+
+ indexed="54"  00666699
+
+ indexed="55"  00969696
+
+ indexed="56"  00003366
+
+ indexed="57"  00339966
+
+ indexed="58"  00003300
+
+ indexed="59"  00333300
+
+ indexed="60"  00993300
+
+ indexed="61"  00993366
+
+ indexed="62"  00333399
+
+ indexed="63"  00333333
+
+ indexed="64"  System Foreground  n/a
+
+ indexed="65"  System Background  n/a
+
+
+                                          Parent Elements
+colors (§3.8.11)
+
+
+                                                                                     2125
+                                         Child Elements                                        Subclause
+rgbColor (RGB Color)                                                                            §3.8.34
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_IndexedColors">
+    <sequence>
+       <element name="rgbColor" type="CT_RgbColor" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+3.8.27     left (Left Border)
+
+This element specifies the color and line style for the left border of a cell.
+
+
+                                          Parent Elements
+border (§3.8.4)
+
+
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+     Attributes                                            Description
+style (Line Style)     The line style for this border.
+
+                   The possible values for this attribute are defined by the ST_BorderStyle simple type
+                        (§3.18.3).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BorderPr">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+</complexType>
+
+3.8.28   mruColors (MRU Colors)
+
+This element contains sequence of RGB values that correspond to custom colors selected by the user for this
+workbook.
+
+
+                                          Parent Elements
+colors (§3.8.11)
+
+
+                                         Child Elements                                        Subclause
+
+
+                                                                                     2126
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MRUColors">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+3.8.29   name (Font Name)
+
+This element specifies the face name of this font.
+
+
+                                          Parent Elements
+font (§3.8.21)
+
+
+     Attributes                                            Description
+val (String Value)    A string representing the name of the font.  If the font doesn't exist (because it isn't
+                        installed on the system), or the charset is invalid for that font, then another font should
+                  be substituted.
+
+                   The string length for this attribute shall be 0 to 31 characters.
+
+                   The possible values for this attribute are defined by the ST_Xstring simple type
+                       (§3.18.96).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_FontName">
+    <attribute name="val" type="ST_Xstring" use="required"/>
+</complexType>
+
+3.8.30   numFmt (Number Format)
+
+This element specifies number format properties which indicate how to format and render the numeric value of
+a cell.
+
+Following is a listing of number formats whose formatCode value is implied rather than explicitly saved in
+the file. In this case a numFmtId value is written on the xf record, but no corresponding numFmt element is
+written. Some of these Ids are interpreted differently, depending on the UI language of the implementing
+application.
+
+All Languages
+
+
+          ID          formatCode
+
+
+                                                                                     2127
+          ID          formatCode
+
+      0        General
+
+      1        0
+
+      2         0.00
+
+      3         #,##0
+
+      4         #,##0.00
+
+      9      0%
+
+      10       0.00%
+
+      11       0.00E+00
+
+      12       # ?/?
+
+      13       # ??/??
+
+      14      mm-dd-yy
+
+      15      d-mmm-yy
+
+      16     d-mmm
+
+      17      mmm-yy
+
+      18      h:mm AM/PM
+
+      19       h:mm:ss AM/PM
+
+      20      h:mm
+
+      21       h:mm:ss
+
+      22       m/d/yy h:mm
+
+      37       #,##0 ;(#,##0)
+
+      38       #,##0 ;[Red](#,##0)
+
+      39        #,##0.00;(#,##0.00)
+
+      40        #,##0.00;[Red](#,##0.00)
+
+      45      mm:ss
+
+      46       [h]:mm:ss
+
+      47      mmss.0
+
+      48       ##0.0E+0
+
+      49    @
+
+
+"General" Format
+
+Some additional comments about the "General" number format are appropriate.
+
+
+                                                                                     2128
+The primary goal when a cell is using "General" formatting is to render the cell content without user-specified
+guidance to the best ability of the application.
+
+Alignment
+
+(Specified for Left-to-Right mode)
+
+          Strings: left aligned
+          Boolean/error values: centered
+         Numbers: right aligned
+          Dates: do not follow the "General" format, instead automatically convert to date formatting.
+
+Numbers
+
+The application shall attempt to display the full number up to 11 digits (inc. decimal point). If the number is too
+large, the application shall attempt to show exponential format. If the number has too many significant digits,
+the display shall be truncated. The optimal method of display is based on the available cell width. If the number
+cannot be displayed using any of these formats in the available width, the application shall show "#" across the
+width of the cell.
+
+Conditions for switching to exponential format:
+
+    14. The cell value must have at least five digits for xE-xx
+    15. If the exponent is bigger than the size allowed, a floating point number cannot fit, so try exponential
+        notation.
+    16. Similarly, for negative exponents, check if there is space for even one (non-zero) digit in floating point
+        format.
+    17. Finally, if there isn't room for all of the significant digits in floating point format (for a negative
+       exponent), exponential format shall display more digits if the exponent is less than -3. (The 3 is because
+        E-xx takes 4 characters, and the leading 0 in floating point takes only 1 character. Thus, for an exponent
+         less than -3, there is more than 3 additional leading 0's, more than enough to compensate for the size of
+       the E-xx.)
+
+Floating point rule:
+
+For general formatting in cells, max overall length for cell display is 11, not including negative sign, but includes
+leading zeros and decimal separator.
+
+CHT and CHS
+
+
+       ID        CHT formatCode             CHS formatCode
+
+      27  [$-404]e/m/d                yyyy"年"m"月"
+
+      28  [$-404]e"年"m"月"d"日"       m"月"d"日"
+
+      29  [$-404]e"年"m"月"d"日"       m"月"d"日"
+
+
+                                                                                     2129
+       ID        CHT formatCode             CHS formatCode
+
+      30  m/d/yy                        m-d-yy
+
+      31  yyyy"年"m"月"d"日"          yyyy"年"m"月"d"日"
+
+      32  hh"時"mm"分"             h"时"mm"分"
+
+      33  hh"時"mm"分"ss"秒"         h"时"mm"分"ss"秒"
+
+      34  上午/下午hh"時"mm"分"     上午/下午h"时"mm"分"
+
+      35  上午/下午hh"時"mm"分"ss"秒"  上午/下午h"时"mm"分"ss"秒"
+
+      36  [$-404]e/m/d                yyyy"年"m"月"
+
+      50  [$-404]e/m/d                yyyy"年"m"月"
+
+      51  [$-404]e"年"m"月"d"日"       m"月"d"日"
+
+      52  上午/下午hh"時"mm"分"       yyyy"年"m"月"
+
+      53  上午/下午hh"時"mm"分"ss"秒"  m"月"d"日"
+
+      54  [$-404]e"年"m"月"d"日"       m"月"d"日"
+
+      55  上午/下午hh"時"mm"分"     上午/下午h"时"mm"分"
+
+      56  上午/下午hh"時"mm"分"ss"秒"  上午/下午h"时"mm"分"ss"秒"
+
+      57  [$-404]e/m/d                yyyy"年"m"月"
+
+      58  [$-404]e"年"m"月"d"日"       m"月"d"日"
+
+
+CHT and CHS (with unicode values provided for language glyphs where they occur)
+
+
+        ID              CHT formatCode                         CHS formatCode
+
+      27    [$-404]e/m/d                               yyyy"5E74"m"6708"
+
+      28    [$-404]e"5E74"m"6708"d"65E5"               m"6708"d"65E5"
+
+      29    [$-404]e"5E74"m"6708"d"65E5"               m"6708"d"65E5"
+
+      30    m/d/yy                                     m-d-yy
+
+      31    yyyy"5E74"m"6708"d"65E5"                   yyyy"5E74"m"6708"d"65E5"
+
+      32    hh"6642"mm"5206"                        h"65F6"mm"5206"
+
+      33    hh"6642"mm"5206"ss"79D2"                 h"65F6"mm"5206"ss"79D2"
+
+      34    4E0A5348/4E0B5348hh"6642"mm"5206"       4E0A5348/4E0B5348h"65F6"mm"5206"
+
+      35    4E0A5348/4E0B5348hh"6642"mm"5206"ss"79   4E0A5348/4E0B5348h"65F6"mm"5206"ss"79
+            D2"                                     D2"
+
+      36    [$-404]e/m/d                               yyyy"5E74"m"6708"
+
+      50    [$-404]e/m/d                               yyyy"5E74"m"6708"
+
+
+                                                                                     2130
+        ID              CHT formatCode                         CHS formatCode
+
+      51    [$-404]e"5E74"m"6708"d"65E5"               m"6708"d"65E5"
+
+      52    4E0A5348/4E0B5348hh"6642"mm"5206"        yyyy"5E74"m"6708"
+
+      53    4E0A5348/4E0B5348hh"6642"mm"5206"ss"79   m"6708"d"65E5"
+            D2"
+
+      54    [$-404]e"5E74"m"6708"d"65E5"               m"6708"d"65E5"
+
+      55    4E0A5348/4E0B5348hh"6642"mm"5206"       4E0A5348/4E0B5348h"65F6"mm"5206"
+
+      56    4E0A5348/4E0B5348hh"6642"mm"5206"ss"79   4E0A5348/4E0B5348h"65F6"mm"5206"ss"79
+            D2"                                     D2"
+
+      57    [$-404]e/m/d                               yyyy"5E74"m"6708"
+
+      58    [$-404]e"5E74"m"6708"d"65E5"               m"6708"d"65E5"
+
+
+JPN and KOR
+
+
+       ID         JPN formatCode            KOR formatCode
+
+      27  [$-411]ge.m.d                 yyyy"年" mm"月" dd"日"
+
+      28  [$-411]ggge"年"m"月"d"日"     mm-dd
+
+      29  [$-411]ggge"年"m"月"d"日"     mm-dd
+
+      30  m/d/yy                      mm-dd-yy
+
+      31  yyyy"年"m"月"d"日"           yyyy"년" mm"월" dd"일"
+
+      32  h"時"mm"分"               h"시" mm"분"
+
+      33  h"時"mm"分"ss"秒"          h"시" mm"분" ss"초"
+
+      34  yyyy"年"m"月"                yyyy-mm-dd
+
+      35  m"月"d"日"                   yyyy-mm-dd
+
+      36  [$-411]ge.m.d                 yyyy"年" mm"月" dd"日"
+
+      50  [$-411]ge.m.d                 yyyy"年" mm"月" dd"日"
+
+      51  [$-411]ggge"年"m"月"d"日"     mm-dd
+
+      52  yyyy"年"m"月"                yyyy-mm-dd
+
+      53  m"月"d"日"                   yyyy-mm-dd
+
+      54  [$-411]ggge"年"m"月"d"日"     mm-dd
+
+      55  yyyy"年"m"月"                yyyy-mm-dd
+
+      56  m"月"d"日"                   yyyy-mm-dd
+
+      57  [$-411]ge.m.d                 yyyy"年" mm"月" dd"日"
+
+
+                                                                                     2131
+       ID         JPN formatCode            KOR formatCode
+
+      58  [$-411]ggge"年"m"月"d"日"     mm-dd
+
+
+JPN and KOR (with unicode values provided for language glyphs where they occur)
+
+
+       ID          JPN formatCode              KOR formatCode
+
+      27  [$-411]ge.m.d                     yyyy"5E74" mm"6708" dd"65E5"
+
+      28  [$-411]ggge"5E74"m"6708"d"65E5"  mm-dd
+
+      29  [$-411]ggge"5E74"m"6708"d"65E5"  mm-dd
+
+      30  m/d/yy                        mm-dd-yy
+
+      31  yyyy"5E74"m"6708"d"65E5"         yyyy"B144" mm"C6D4" dd"C77C"
+
+      32  h"6642"mm"5206"                h"C2DC" mm"BD84"
+
+      33  h"6642"mm"5206"ss"79D2"        h"C2DC" mm"BD84" ss"CD08"
+
+      34  yyyy"5E74"m"6708"               yyyy-mm-dd
+
+      35  m"6708"d"65E5"                 yyyy-mm-dd
+
+      36  [$-411]ge.m.d                     yyyy"5E74" mm"6708" dd"65E5"
+
+      50  [$-411]ge.m.d                     yyyy"5E74" mm"6708" dd"65E5"
+
+      51  [$-411]ggge"5E74"m"6708"d"65E5"  mm-dd
+
+      52  yyyy"5E74"m"6708"               yyyy-mm-dd
+
+      53  m"6708"d"65E5"                 yyyy-mm-dd
+
+      54  [$-411]ggge"5E74"m"6708"d"65E5"  mm-dd
+
+      55  yyyy"5E74"m"6708"               yyyy-mm-dd
+
+      56  m"6708"d"65E5"                 yyyy-mm-dd
+
+      57  [$-411]ge.m.d                     yyyy"5E74" mm"6708" dd"65E5"
+
+      58  [$-411]ggge"5E74"m"6708"d"65E5"  mm-dd
+
+
+THA
+
+
+          ID      THA formatCode
+
+      59        t0
+
+      60        t0.00
+
+      61        t#,##0
+
+      62        t#,##0.00
+
+
+                                                                                     2132
+          ID      THA formatCode
+
+      67      t0%
+
+      68       t0.00%
+
+      69        t# ?/?
+
+      70        t# ??/??
+
+      71        ว/ด/ปปปป
+
+      72         ว-ดดด-ปป
+
+      73         ว-ดดด
+
+      74        ดดด-ปป
+
+      75         ช:นน
+
+      76         ช:นน:ทท
+
+      77        ว/ด/ปปปป ช:นน
+
+      78        นน:ทท
+
+      79         [ช]:นน:ทท
+
+      80         นน:ทท.0
+
+      81      d/m/bb
+
+
+THA (with unicode values provided for language glyphs where they occur)
+
+
+          ID                 THA formatCode
+
+      59        t0
+
+      60        t0.00
+
+      61        t#,##0
+
+      62        t#,##0.00
+
+      67      t0%
+
+      68       t0.00%
+
+      69        t# ?/?
+
+      70        t# ??/??
+
+      71       0E27/0E14/0E1B0E1B0E1B0E1B
+
+      72       0E27-0E140E140E14-0E1B0E1B
+
+      73       0E27-0E140E140E14
+
+      74       0E140E140E14-0E1B0E1B
+
+
+                                                                                     2133
+          ID                 THA formatCode
+
+      75       0E0A:0E190E19
+
+      76       0E0A:0E190E19:0E170E17
+
+      77       0E27/0E14/0E1B0E1B0E1B0E1B 0E0A:0E190E19
+
+      78       0E190E19:0E170E17
+
+      79       [0E0A]:0E190E19:0E170E17
+
+      80       0E190E19:0E170E17.0
+
+      81      d/m/bb
+
+
+                                          Parent Elements
+dxf (§3.8.14); ndxf (§3.11.1.4); numFmts (§3.8.31); odxf (§3.11.1.6)
+
+
+     Attributes                                            Description
+formatCode         The number format code for this number format.
+(Number Format
+Code)              The possible values for this attribute are defined by the ST_Xstring simple type
+                       (§3.18.96).
+numFmtId            Id used by the master style records (xf's) to reference this number format.
+(Number Format Id)
+                   The possible values for this attribute are defined by the ST_NumFmtId simple type
+                       (§3.18.49).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NumFmt">
+    <attribute name="numFmtId" type="ST_NumFmtId" use="required"/>
+    <attribute name="formatCode" type="ST_Xstring" use="required"/>
+</complexType>
+
+3.8.31   numFmts (Number Formats)
+This element defines the number formats in this workbook, consisting of a sequence of numFmt records, where
+each numFmt record defines a particular number format, indicating how to format and render the numeric
+value of a cell.
+
+[Example:
+
+This cell is formatting as US currency:
+
+
+                                                                                     2134
+The XML expressing this format shows that the formatId is "166" and the decoded formatCode is $#,##0.00
+
+  <numFmts count="1">
+    <numFmt numFmtId="166" formatCode="&quot;$&quot;#,##0.00"/>
+  </numFmts>
+
+end example]
+
+Number Format Codes
+
+Up to four sections of format codes can be specified. The format codes, separated by semicolons, define the
+formats for positive numbers, negative numbers, zero values, and text, in that order. If only two sections are
+specified, the first is used for positive numbers and zeros, and the second is used for negative numbers. If only
+one section is specified, it is used for all numbers. To skip a section, the ending semicolon for that section must
+be written.
+
+
+The first section, "Format for positive numbers", is the format code that applies to the cell when the cell value
+contains a positive number.
+
+The second section, "Format for negative numbers", is the format code that applies to the cell when the cell
+value contains a negative number.
+
+The third section, "Format for zeros", is the format code that applies to the cell when the cell value is zero.
+
+The fourth, and last, section, "Format for text", is the format code that applies to the cell when the cell value is
+text.
+
+The & (ampersand) text operator is used to join, or concatenate, two values.
+
+The following table describes the different symbols that are available for use in custom number formats.
+
+
+        Format                                    Description and result
+        symbol
+
+      0              Digit placeholder. For example, if the value 8.9 is to be displayed as 8.90, use the format
+                     #.00
+
+       #              Digit placeholder. This symbol follows the same rules as the 0 symbol. However, the
+                      application shall not display extra zeros when the number typed has fewer digits on
+                       either side of the decimal than there are # symbols in the format. For example, if the
+                  custom format is #.##, and 8.9 is in the cell, the number 8.9 is displayed.
+
+       ?               Digit placeholder. This symbol follows the same rules as the 0 symbol. However, the
+                      application shall put a space for insignificant zeros on either side of the decimal point so
+                      that decimal points are aligned in the column. For example, the custom format 0.0? aligns
+
+
+                                                                                     2135
+        Format                                    Description and result
+        symbol
+
+                    the decimal points for the numbers 8.9 and 88.99 in a column.
+
+             . (period)     Decimal point.
+
+     %            Percentage. If the cell contains a number between 0 and 1, and the custom format 0% is
+                     used, the application shall multiply the number by 100 and adds the percentage symbol
+                        in the cell.
+
+             , (comma)    Thousands separator. The application shall separate thousands by commas if the format
+                     contains a comma that is enclosed by number signs (#) or by zeros. A comma that follows
+                   a placeholder scales the number by one thousand. For example, if the format is #.0,, and
+                    the cell value is 12,200,000 then the number 12.2 is displayed.
+
+        E- E+ e- e+     Scientific format. The application shall display a number to the right of the "E" symbol
+                      that corresponds to the number of places that the decimal point was moved. For
+                    example, if the format is 0.00E+00, and the value 12,200,000 is in the cell, the number
+                    1.22E+07 is displayed. If the number format is #0.0E+0, then the number 12.2E+6 is
+                      displayed.
+
+        $-+/():space   Displays the symbol. If it is desired to display a character that differs from one of these
+                     symbols, precede the character with a backslash (\). Alternatively, enclose the character
+                        in quotation marks. For example, if the number format is (000), and the value 12 is in the
+                            cell, the number (012) is displayed.
+
+        \             Display the next character in the format. The application shall not display the backslash.
+                     For example, if the number format is 0\!, and the value 3 is in the cell, the value 3! is
+                      displayed.
+
+       *           Repeat the next character in the format enough times to fill the column to its current
+                     width. There shall not be more than one asterisk in one section of the format. If more
+                    than one asterisk appears in one section of the format, all but the last asterisk shall be
+                      ignored. For example, if the number format is 0*x, and the value 3 is in the cell, the value
+                     3xxxxxx is displayed. The number of x characters that are displayed in the cell varies
+                   based on the width of the column.
+
+       _             Skip the width of the next character. This is useful for lining up negative and positive
+        (underline)   values in different cells of the same column. For example, the number format
+                        _(0.0_);(0.0) aligns the numbers 2.3 and -4.5 in the column even though the negative
+                 number is enclosed by parentheses.
+
+        "text"        Display whatever text is inside the quotation marks. For example, the format 0.00
+                       "dollars" displays 1.23 dollars when the value 1.23 is in the cell.
+
+    @           Text placeholder. If text is typed in the cell, the text from the cell is placed in the format
+                  where the at symbol (@) appears. For example, if the number format is "Bob "@" Smith"
+                       (including quotation marks), and the value "John" is in the cell, the value Bob John Smith
+                              is displayed.
+
+
+Text and spacing
+
+Display both text and numbers
+
+
+                                                                                     2136
+To display both text and numbers in a cell, enclose the text characters in double quotation marks (" ") or
+precede a single character with a backslash (\). Single quotation marks shall not be used to denote text.
+Characters inside double quotes, or immediately following backslash shall never be interpreted as part of the
+format code lexicon; instead they shall always be treated as literal strings. Remember to include the characters
+in the appropriate section of the format codes. For example, type the format $0.00" Surplus";$-0.00" Shortage"
+to display a positive amount as "$125.74 Surplus" and a negative amount as "$-125.74 Shortage."
+
+The following characters are displayed without the use of quotation marks.
+
+
+$   Dollar sign                                  -   Minus sign
+
++   Plus sign                             /    Slash mark
+
+(    Left parenthesis                           )    Right parenthesis
+
+:   Colon                                      !    Exclamation point
+
+^   Circumflex accent (caret)       &  Ampersand
+
+'   Apostrophe                    ~    Tilde
+
+{    Left curly bracket                        }    Right curly bracket
+
+<   Less-than sign                  >   Greater-than sign
+
+=   Equal sign                          Space character
+Include a section for text entry
+
+If included, a text section must be the last section in the number format. Include an "at" sign (@) in the section,
+precisely where the cell’s text value should be displayed. If the @ character is omitted from the text section, text
+typed in the cell will not be displayed. To always display specific text characters with the typed text, enclose the
+additional text in double quotation marks (" "). For example, if “June” is typed into the cell, and the text format
+is "gross receipts for "@ , then the cell will display “gross receipts for June”.
+
+If the format does not include a text section, text entered in a cell is not affected by the format code.
+
+Add spaces
+
+To create a space that is the width of a character in a number format, include an underscore, followed by the
+character. For example, when an underscore is followed with a right parenthesis, such as _), positive numbers
+line up correctly with negative numbers that are enclosed in parentheses because positive numbers are
+displayed with a blank space after them exactly the width of the right parenthesis character.
+
+Repeat characters
+
+To repeat the next character in the format to fill the column width, include an asterisk (*) in the number format.
+For example, type 0*- to include enough dashes after a number to fill the cell, or type *0 before any format to
+include leading zeros.
+
+Decimal places, spaces, colors, and conditions
+
+
+                                                                                     2137
+Include decimal places and significant digits
+
+To format fractions or numbers with decimal points, include the following digit placeholders in a section. If a
+number has more digits to the right of the decimal point than there are placeholders in the format, the number
+rounds to as many decimal places as there are placeholders. If there are more digits to the left of the decimal
+point than there are placeholders, the extra digits are displayed. If the format contains only number signs (#) to
+the left of the decimal point, numbers less than 1 begin with a decimal point.
+
+# (number sign) displays only significant digits and does not display insignificant zeros.
+
+0 (zero) displays insignificant zeros if a number has fewer digits than there are zeros in the format.
+
+? (question mark) adds spaces for insignificant zeros on either side of the decimal point so that decimal points
+align when they are formatted with a fixed-width font, such as Courier New. ? can also be used for fractions that
+have varying numbers of digits.
+
+
+       To display           As          Use this code
+
+       1234.59     1234.6                 ####.#
+
+        8.9         8.900                  #.000
+
+       .631         0.6                      0.#
+
+      12          12.0                    #.0#
+       1234.568    1234.57
+
+       44.398       44.398                 ???.???
+       102.65      102.65
+        2.8            2.8
+                     (with aligned decimals)
+
+       5.25       5 1/4                 # ???/???
+        5.3        5 3/10
+                     (with aligned fractions)
+
+
+Display a thousands separator
+
+To display a comma as a thousands separator or to scale a number by a multiple of 1,000, include a comma in
+the number format.
+
+
+      To display    As    Use this code
+
+      12000      12,000  #,###
+
+      12000     12       #,
+
+      12200000   12.2      0.0,,
+
+
+                                                                                     2138
+Specify colors
+
+To set the text color for a section of the format, type the name of one of the following eight colors in square
+brackets in the section. The color code must be the first item in the section.
+
+
+[Black]         [Blue]            [Cyan]
+
+[Green]       [Magenta]       [Red]
+
+[White]        [Yellow]
+
+
+Instead of using the name of the color, the color index can be used, like this [Color3] for Red. Valid numeric
+indexes for color range from 1 to 56, which reference by index to the legacy color palette.
+
+[Note: the default legacy color palette values are listed in §3.8.26. In the format codes, [Color1] refers to the
+color associated with indexed="8", or black (by default), [Color2] refers to the color associated with
+indexed="9", or white (by default), and so on up to [Color56] referring to the color associated with
+indexed="63". If the color palette has been customized from default values, then the colors associated with
+these indexes will reflect those customizations.
+
+Specify conditions
+
+To set number formats that will be applied only if a number meets a specified condition, enclose the condition in
+square brackets. The condition consists of a comparison operator and a value. Comparison operators include: =
+Equal to; > Greater than; < Less than; >= Greater than or equal to, <= Less than or equal to, and <> Not equal to.
+For example, the following format displays numbers that are less than or equal to 100 in a red font and numbers
+that are greater than 100 in a blue font.
+
+[Red][<=100];[Blue][>100]
+
+If the cell value does not meet any of the criteria, then pound signs ("#") are displayed across the width of the
+cell.
+
+Currency, percentages, and scientific notation
+
+Include currency symbols
+
+To include currency symbols, place the currency symbol in the location it should when displayed.
+
+Display percentages
+
+To display numbers as a percentage of 100 — for example, to display .08 as 8% or 2.8 as 280% — include the
+percent sign (%) in the number format.
+
+Display scientific notations
+
+To display numbers in scientific format, use exponent codes in a section — for example, E-, E+, e-, or e+.
+
+
+                                                                                     2139
+If a format contains a zero (0) or number sign (#) to the right of an exponent code, the application displays the
+number in scientific format and inserts an "E" or "e". The number of zeros or number signs to the right of a code
+determines the number of digits in the exponent. "E-" or "e-" places a minus sign by negative exponents. "E+" or
+"e+" places a minus sign by negative exponents and a plus sign by positive exponents.
+
+Dates and times
+
+Display days, months, and years
+
+
+    To display As              Use this code
+
+
+    Months  1–12        m
+
+
+    Months  01–12       mm
+
+
+    Months  Jan–Dec      mmm
+
+
+    Months  January–December mmmm
+
+
+    Months  J–D        mmmmm
+
+
+     Days     1–31            d
+
+
+     Days     01–31           dd
+
+
+     Days     Sun–Sat         ddd
+
+
+     Days     Sunday–Saturday  dddd
+
+
+     Years    00–99            yy
+
+
+     Years    1900–9999        yyyy
+
+
+See §3.17.4.1 for special handling of certain days in the year 1900.
+
+Month versus minutes
+
+If "m" or "mm" code is used immediately after the "h" or "hh" code (for hours) or immediately before the "ss"
+code (for seconds), the application shall display minutes instead of the month.
+
+Display hours, minutes, and seconds
+
+
+    To display                         As       Use this code
+
+
+                                                                                     2140
+     Hours                           0–23     h
+
+
+     Hours                           00–23    hh
+
+
+     Minutes                          0–59   m
+
+
+     Minutes                          00–59   mm
+
+
+     Seconds                          0–59       s
+
+
+     Seconds                          00–59     ss
+
+
+    Time                            4 AM     h AM/PM
+
+
+    Time                                4:36 PM  h:mm AM/PM
+
+
+    Time                                 4:36:03 P  h:mm:ss A/P
+
+
+    Time                                 4:36:03.75 h:mm:ss.00
+
+
+     Elapsed time (hours and minutes)      1:02      [h]:mm
+
+
+     Elapsed time (minutes and seconds)    62:16     [mm]:ss
+
+
+     Elapsed time (seconds and hundredths) 3735.80   [ss].00
+
+
+Minutes versus month
+
+The "m" or "mm" code must appear immediately after the "h" or "hh" code or immediately before the "ss"
+code; otherwise, these will display as the month instead of minutes.
+
+AM and PM
+
+If the format contains AM or PM, the hour is based on the 12-hour clock, where "AM" or "A" indicates times
+from midnight until noon and "PM" or "P" indicates times from noon until midnight. Otherwise, the hour is
+based on the 24-hour clock.
+
+Invalid date and time values
+
+Cells formatted with a date or time format and which contain invalid date or time values shall show the pound
+sign ("#") across the width of the cell.
+
+International Considerations
+
+
+                                                                                     2141
+ Format Code                                       Description
+
+r             JPN/CHT Only.
+
+            When loading in JPN locale, code becomes "ee".
+
+            When loading in CHT locale, code becomes "e".
+
+rr             JPN/CHT Only.
+
+            When loading in JPN locale, code becomes "gggee".
+
+            When loading in CHT locale, code becomes "e".
+
+g           When loading in JPN locale: Single Roman character emperor reign
+
+            When loading in CHT (Taiwan only) locale: treat same as "gg".
+
+gg          When loading in JPN locale: Single Kanji character emperor reign
+
+            When loading in CHT locale: Last era short name (since 1911)
+
+ggg         When loading in JPN locale: Tow Kanji character emperor reign
+
+            When loading in CHT locale: Last era long name (since 1911)
+
+e           When loading in JPN locale: Era year
+
+            When laoding in CHT (Tawian only) locale: Era year since 1912. If preceeded by “g”,
+                 “gg”, or “ggg” then year of 1912, and year before 1912 are special, otherwise years
+                   less than 1912 are gregorian.
+
+             OTHER locales: becomes "yy"
+
+ee          When loading in JPN locale: Era year w/ leading zero
+
+            When loading in CHT (Tawian only) locale: Era year since 1911
+
+             OTHER locales: becomes "yy"
+
+b2                  Hijri calander
+
+b1             Gregorian calendar
+
+[$USD-409]      Specifies currency and locale/date system/number system information.
+
+                Syntax is [$<Currency String>-<language info>]. Currency string is a string to use as a
+                currency symbol. Language info is a 32-bit value entered in hexidecimal format.
+
+               Language info format (byte 3 is most significant byte):
+                Bytes 0,1: 16-bit Language ID (LID).
+               Byte 2: Calendar type. High bit indicates that input is parsed using specified calendar.
+               Byte 3: Number system type. High bit indicates that input is parsed using specified
+             number system.
+
+
+                                                                              2142
+       Format Code                                       Description
+
+
+                         Special language info values:
+                        0xf800: System long date format
+                        0xf400: System time format
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+numFmt (Number Format)                                                                       §3.8.30
+
+
+     Attributes                                            Description
+count (Number      Count of number format elements.
+Format Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_NumFmts">
+    <sequence>
+       <element name="numFmt" type="CT_NumFmt" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.32    patternFill (Pattern)
+
+This element is used to specify cell fill information for pattern and solid color cell fills. For solid cell fills (no
+pattern), fgColor is used. For cell fills with patterns specified, then the cell fill color is specified by the bgColor
+element.
+
+
+                                          Parent Elements
+fill (§3.8.19)
+
+
+                                         Child Elements                                        Subclause
+bgColor (Background Color)                                                                        §3.8.3
+fgColor (Foreground Color)                                                                      §3.8.18
+
+
+                                                                                     2143
+     Attributes                                            Description
+patternType          Specifies the fill pattern type (including solid and none) Default is none, when missing.
+(Pattern Type)
+                   The possible values for this attribute are defined by the ST_PatternType simple type
+                       (§3.18.57).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_PatternFill">
+    <sequence>
+       <element name="fgColor" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+       <element name="bgColor" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="patternType" type="ST_PatternType" use="optional"/>
+</complexType>
+
+3.8.33    protection (Protection Properties)
+
+Contains protection properties associated with the cell. Each cell has protection properties that can be set. The
+cell protection properties do not take effect unless the sheet has been protected.
+
+
+                                          Parent Elements
+dxf (§3.8.14); ndxf (§3.11.1.4); odxf (§3.11.1.6); xf (§3.8.45)
+
+
+     Attributes                                            Description
+hidden (Hidden     A boolean value indicating if the cell is hidden. When the cell is hidden and the sheet on
+Cell)                which the cell resides is protected, then the cell value will be displayed in the cell grid
+                        location, but the contents of the cell will not be displayed in the formula bar. This is true
+                        for all types of cell content, including formula, text, or numbers.
+
+                     Therefore the cell A4 may contain a formula "=SUM(A1:A3)", but if the cell protection
+                     property of A4 is marked as hidden, and the sheet is protected, then the cell should
+                       display the calculated result (for example, "6"), but will not display the formula used to
+                       calculate the result.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+locked (Cell Locked)  A boolean value indicating if the cell is locked. When cells are marked as "locked" and the
+                     sheet is protected, then the options specified in the Sheet Part's sheetProtection
+                   element (§3.3.1.81) are prohibited for these cells.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_CellProtection">
+    <attribute name="locked" type="xsd:boolean" use="optional"/>
+    <attribute name="hidden" type="xsd:boolean" use="optional"/>
+</complexType>
+
+
+                                                                                     2144
+3.8.34    rgbColor (RGB Color)
+
+A single ARGB entry for the corresponding color index.
+
+
+                                          Parent Elements
+indexedColors (§3.8.26)
+
+
+     Attributes                                            Description
+rgb (Alpha Red       Color value expressed in Alpha Red Green Blue format (ARGB).
+Green Blue)
+                   The possible values for this attribute are defined by the ST_UnsignedIntHex simple type
+                       (§3.18.86).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_RgbColor">
+    <attribute name="rgb" type="ST_UnsignedIntHex" use="optional"/>
+</complexType>
+
+3.8.35    right (Right Border)
+
+This element specifies the color and line style for the right border of a cell.
+
+
+                                          Parent Elements
+border (§3.8.4)
+
+
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+     Attributes                                            Description
+style (Line Style)     The line style for this border.
+
+                   The possible values for this attribute are defined by the ST_BorderStyle simple type
+                        (§3.18.3).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BorderPr">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+</complexType>
+
+
+                                                                                     2145
+3.8.36   scheme (Scheme)
+
+Defines the font scheme, if any, to which this font belongs. When a font definition is part of a theme definition,
+then the font is categorized as either a major or minor font scheme component. When a new theme is chosen,
+every font that is part of a theme definition is updated to use the new major or minor font definition for that
+theme. Usually major fonts are used for styles like headings, and minor fonts are used for body & paragraph
+text.
+
+
+                                          Parent Elements
+font (§3.8.21); rPr (§3.4.7)
+
+
+     Attributes                                            Description
+val (Font Scheme)     Sets font scheme property.
+
+                   The possible values for this attribute are defined by the ST_FontScheme simple type
+                       (§3.18.34).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_FontScheme">
+    <attribute name="val" type="ST_FontScheme" use="required"/>
+</complexType>
+
+3.8.37   shadow (Shadow)
+
+Macintosh compatibility setting. Represents special word/character rendering on Macintosh, when this flag is
+set. The effect is to render a shadow behind, beneath and to the right of the text. SpreadsheetML applications
+are not required to render according to this flag.
+
+
+                                          Parent Elements
+font (§3.8.21); rPr (§3.4.7)
+
+
+     Attributes                                            Description
+val (Value)         A boolean value for the property specified by the parent XML element.
+
+                                  If omitted, the default value is true.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BooleanProperty">
+    <attribute name="val" type="xsd:boolean" use="optional" default="true"/>
+</complexType>
+
+
+                                                                                     2146
+3.8.38    stop (Gradient Stop)
+
+One of a sequence of two or more gradient stops, constituting this gradient fill.
+
+
+                                          Parent Elements
+gradientFill (§3.8.23)
+
+
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+     Attributes                                            Description
+position (Gradient    Position information for this gradient stop. Interpreted exactly like gradientFill left,
+Stop Position)          right, bottom, top. The position indicated here indicates the point where the color is
+                      pure. Before and and after this position the color can be in transition (or pure, depending
+                  on if this is the last stop or not).
+
+                   The possible values for this attribute are defined by the XML Schema double datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_GradientStop">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="1" maxOccurs="1"/>
+    </sequence>
+    <attribute name="position" type="xsd:double" use="required"/>
+</complexType>
+
+3.8.39    styleSheet (Style Sheet)
+
+This is the root element of the Styles part.
+
+
+                                          Parent Elements
+
+Root element of SpreadsheetML Styles part
+
+
+                                         Child Elements                                        Subclause
+borders (Borders)                                                                                 §3.8.5
+cellStyles (Cell Styles)                                                                              §3.8.8
+cellStyleXfs (Formatting Records)                                                                  §3.8.9
+cellXfs (Cell Formats)                                                                            §3.8.10
+colors (Colors)                                                                                  §3.8.11
+dxfs (Formats)                                                                                  §3.8.15
+extLst (Future Feature Data Storage Area)                                                         §3.2.10
+
+
+                                                                                     2147
+                                         Child Elements                                        Subclause
+fills (Fills)                                                                                       §3.8.20
+fonts (Fonts)                                                                                    §3.8.22
+numFmts (Number Formats)                                                                     §3.8.31
+tableStyles (Table Styles)                                                                        §3.8.42
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Stylesheet">
+    <sequence>
+       <element name="numFmts" type="CT_NumFmts" minOccurs="0" maxOccurs="1"/>
+       <element name="fonts" type="CT_Fonts" minOccurs="0" maxOccurs="1"/>
+       <element name="fills" type="CT_Fills" minOccurs="0" maxOccurs="1"/>
+       <element name="borders" type="CT_Borders" minOccurs="0" maxOccurs="1"/>
+       <element name="cellStyleXfs" type="CT_CellStyleXfs" minOccurs="0" maxOccurs="1"/>
+       <element name="cellXfs" type="CT_CellXfs" minOccurs="0" maxOccurs="1"/>
+       <element name="cellStyles" type="CT_CellStyles" minOccurs="0" maxOccurs="1"/>
+       <element name="dxfs" type="CT_Dxfs" minOccurs="0" maxOccurs="1"/>
+       <element name="tableStyles" type="CT_TableStyles" minOccurs="0" maxOccurs="1"/>
+       <element name="colors" type="CT_Colors" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+</complexType>
+
+3.8.40    tableStyle (Table Style)
+This element represents a single table style definition. The built-in table styles are written in the tableStyle
+element by name, but the corresponding tableStyleElement elements are assumed rather than explicitly
+written. Following is a listing of each of the built-in table style definitions, whose normative definition is in
+Annex D.
+
+Any of the built-in tables styles, along with any additional table styles explicitly defined shall be supported by
+applications implementing table styles.
+
+[Note: Each of the table styles is made up of a collection of formatting definitions, each of which corresponds to
+a particular structured region of the table. An application can decide to support these built-in types, and can also
+decide to define more styles, each with their own definitions. An application can also decide whether the user
+will be allowed to customize or further define additional table styles. end note]
+
+
+              Table Style                        [Example: (informative)
+
+
+                                                                                     2148
+       Table Style                        [Example: (informative)
+
+TableStyleMedium28
+
+
+TableStyleMedium27
+
+
+TableStyleMedium26
+
+
+TableStyleMedium25
+
+
+                                                                              2149
+       Table Style                        [Example: (informative)
+
+TableStyleMedium24
+
+
+TableStyleMedium23
+
+
+TableStyleMedium22
+
+
+TableStyleMedium21
+
+
+                                                                              2150
+       Table Style                        [Example: (informative)
+
+TableStyleMedium20
+
+
+TableStyleMedium19
+
+
+TableStyleMedium18
+
+
+TableStyleMedium17
+
+
+                                                                              2151
+       Table Style                        [Example: (informative)
+
+TableStyleMedium16
+
+
+TableStyleMedium15
+
+
+TableStyleMedium14
+
+
+TableStyleMedium13
+
+
+                                                                              2152
+       Table Style                        [Example: (informative)
+
+TableStyleMedium12
+
+
+TableStyleMedium11
+
+
+TableStyleMedium10
+
+
+TableStyleMedium9
+
+
+                                                                              2153
+       Table Style                        [Example: (informative)
+
+TableStyleMedium8
+
+
+TableStyleMedium7
+
+
+TableStyleMedium6
+
+
+TableStyleMedium5
+
+
+                                                                              2154
+       Table Style                        [Example: (informative)
+
+TableStyleMedium4
+
+
+TableStyleMedium3
+
+
+TableStyleMedium2
+
+
+TableStyleMedium1
+
+
+                                                                              2155
+       Table Style                        [Example: (informative)
+
+TableStyleLight21
+
+
+TableStyleLight20
+
+
+TableStyleLight19
+
+
+TableStyleLight18
+
+
+                                                                              2156
+       Table Style                        [Example: (informative)
+
+TableStyleLight17
+
+
+TableStyleLight16
+
+
+TableStyleLight15
+
+
+TableStyleLight14
+
+
+                                                                              2157
+       Table Style                        [Example: (informative)
+
+TableStyleLight13
+
+
+TableStyleLight12
+
+
+TableStyleLight11
+
+
+TableStyleLight10
+
+
+                                                                              2158
+       Table Style                        [Example: (informative)
+
+TableStyleLight9
+
+
+TableStyleLight8
+
+
+TableStyleLight7
+
+
+TableStyleLight6
+
+
+TableStyleLight5
+
+
+                                                                              2159
+       Table Style                        [Example: (informative)
+
+TableStyleLight4
+
+
+TableStyleLight3
+
+
+TableStyleLight2
+
+
+TableStyleLight1
+
+
+                                                                              2160
+       Table Style                        [Example: (informative)
+
+TableStyleDark11
+
+
+TableStyleDark10
+
+
+TableStyleDark9
+
+
+ableStyleDark8
+
+
+                                                                              2161
+       Table Style                        [Example: (informative)
+
+TableStyleDark7
+
+
+TableStyleDark6
+
+
+TableStyleDark5
+
+
+TableStyleDark4
+
+
+                                                                              2162
+       Table Style                        [Example: (informative)
+
+TableStyleDark3
+
+
+TableStyleDark2
+
+
+TableStyleDark1
+
+
+     PivotTable Style                        [Example: (informative)
+
+
+                                                                              2163
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium28
+
+
+PivotStyleMedium27
+
+
+                                                                              2164
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium26
+
+
+PivotStyleMedium25
+
+
+                                                                              2165
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium24
+
+
+PivotStyleMedium23
+
+
+                                                                              2166
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium22
+
+
+PivotStyleMedium21
+
+
+                                                                              2167
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium20
+
+
+PivotStyleMedium19
+
+
+                                                                              2168
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium18
+
+
+PivotStyleMedium17
+
+
+                                                                              2169
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium16
+
+
+PivotStyleMedium15
+
+
+                                                                              2170
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium14
+
+
+PivotStyleMedium13
+
+
+                                                                              2171
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium12
+
+
+PivotStyleMedium11
+
+
+                                                                              2172
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium10
+
+
+PivotStyleMedium9
+
+
+                                                                              2173
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium8
+
+
+PivotStyleMedium7
+
+
+                                                                              2174
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium6
+
+
+PivotStyleMedium5
+
+
+                                                                              2175
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium4
+
+
+PivotStyleMedium3
+
+
+                                                                              2176
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleMedium2
+
+
+PivotStyleMedium1
+
+
+                                                                              2177
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight28
+
+
+PivotStyleLight27
+
+
+                                                                              2178
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight26
+
+
+PivotStyleLight25
+
+
+                                                                              2179
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight24
+
+
+PivotStyleLight23
+
+
+                                                                              2180
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight22
+
+
+PivotStyleLight21
+
+
+                                                                              2181
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight20
+
+
+PivotStyleLight19
+
+
+                                                                              2182
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight18
+
+
+PivotStyleLight17
+
+
+                                                                              2183
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight16
+
+
+PivotStyleLight15
+
+
+                                                                              2184
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight14
+
+
+PivotStyleLight13
+
+
+                                                                              2185
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight12
+
+
+PivotStyleLight11
+
+
+                                                                              2186
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight10
+
+
+PivotStyleLight9
+
+
+                                                                              2187
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight8
+
+
+PivotStyleLight7
+
+
+                                                                              2188
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight6
+
+
+PivotStyleLight5
+
+
+                                                                              2189
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight4
+
+
+PivotStyleLight3
+
+
+                                                                              2190
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleLight2
+
+
+PivotStyleLight1
+
+
+                                                                              2191
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark28
+
+
+PivotStyleDark27
+
+
+                                                                              2192
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark26
+
+
+PivotStyleDark25
+
+
+                                                                              2193
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark24
+
+
+PivotStyleDark23
+
+
+                                                                              2194
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark22
+
+
+PivotStyleDark21
+
+
+                                                                              2195
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark20
+
+
+PivotStyleDark19
+
+
+                                                                              2196
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark18
+
+
+PivotStyleDark17
+
+
+                                                                              2197
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark16
+
+
+PivotStyleDark15
+
+
+                                                                              2198
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark14
+
+
+PivotStyleDark13
+
+
+                                                                              2199
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark12
+
+
+PivotStyleDark11
+
+
+                                                                              2200
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark10
+
+
+PivotStyleDark9
+
+
+                                                                              2201
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark8
+
+
+PivotStyleDark7
+
+
+                                                                              2202
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark6
+
+
+PivotStyleDark5
+
+
+                                                                              2203
+     PivotTable Style                        [Example: (informative)
+
+PivotStyleDark4
+
+
+PivotStyleDark3
+
+
+                                                                              2204
+             PivotTable Style                        [Example: (informative)
+
+       PivotStyleDark2
+
+
+       PivotStyleDark1
+
+
+                                          Parent Elements
+tableStyles (§3.8.42)
+
+
+                                         Child Elements                                        Subclause
+tableStyleElement (Table Style)                                                                  §3.8.41
+
+
+                                                                                     2205
+     Attributes                                            Description
+count (Table Style    Count of table style elements defined for this table style.
+Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+name (Table Style   Name of this table style.
+Name)
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+pivot (Pivot Style)     'True' if this table style should be shown as an available pivot table style.
+
+                   Not mutually exclusive with table - both can be true.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+table (Table)         True if this table style should be shown as an available table style.
+
+                   Not mutually exclusive with pivot - both can be true.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TableStyle">
+    <sequence>
+       <element name="tableStyleElement" type="CT_TableStyleElement" minOccurs="0"
+         maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="name" type="xsd:string" use="required"/>
+    <attribute name="pivot" type="xsd:boolean" use="optional" default="true"/>
+    <attribute name="table" type="xsd:boolean" use="optional" default="true"/>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+</complexType>
+
+3.8.41    tableStyleElement (Table Style)
+
+This element specifies formatting for one area of a table or PivotTable. Together the sequence of these elements
+makes up one entire Table style or PivotTable style definition.
+
+The order in which table style element formatting is applied is as follows:
+
+Table Style Element Order
+
+      Whole Table
+       First Column Stripe
+      Second Column Stripe
+       First Row Stripe
+      Second Row Stripe
+
+
+                                                                                     2206
+       Last Column
+       First Column
+      Header Row
+       Total Row
+       First Header Cell
+       Last Header Cell
+       First Total Cell
+       Last Total Cell
+
+For instance, row stripe formatting 'wins' over column stripe formatting, and both 'win' over whole table
+formatting.
+
+
+PivotTable Style Element Order
+
+      Whole Table
+      Page Field Labels
+      Page Field Values
+       First Column Stripe
+      Second Column Stripe
+       First Row Stripe
+      Second Row Stripe
+       First Column
+      Header Row
+       First Header Cell
+       Subtotal Column 1
+       Subtotal Column 2
+       Subtotal Column 3
+       Blank Row
+       Subtotal Row 1
+       Subtotal Row 2
+       Subtotal Row 3
+      Column Subheading 1
+      Column Subheading 2
+      Column Subheading 3
+      Row Subheading 1
+      Row Subheading 2
+      Row Subheading 3
+      Grand Total Column
+      Grand Total Row
+
+
+                                          Parent Elements
+
+
+                                                                                     2207
+                                          Parent Elements
+tableStyle (§3.8.40)
+
+
+     Attributes                                            Description
+dxfId (Formatting     Zero-based index to a dxf record in the dxfs collection, specifying differential formatting
+Id)                   to use with this Table or PivotTable style element.
+
+                   The possible values for this attribute are defined by the ST_DxfId simple type (§3.18.26).
+size (Band Size)     Number of rows or columns in a single band of striping. Applies only when type is
+                   firstRowStripe, secondRowStripe, firstColumnStripe, or secondColumnStripe.
+
+                     [Example:
+
+                        In this example, the firstRowStripe size is set to 2, and the secondRowStripe size is
+                       set to 1:
+
+
+                   end example]
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+type (Table Style       Identifies this table style element's type.
+Type)
+                   The possible values for this attribute are defined by the ST_TableStyleType simple type
+                       (§3.18.79).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TableStyleElement">
+    <attribute name="type" type="ST_TableStyleType" use="required"/>
+    <attribute name="size" type="xsd:unsignedInt" use="optional" default="1"/>
+    <attribute name="dxfId" type="ST_DxfId" use="optional"/>
+</complexType>
+
+
+                                                                                     2208
+3.8.42    tableStyles (Table Styles)
+
+This element represents a collection of Table style definitions for Table styles and PivotTable styles used in this
+workbook. It consists of a sequence of tableStyle records, each defining a single Table style.
+
+A Table style is a collection of formatting that applies to structured regions of a Table or PivotTable [Example:
+make the header row & totals bold face, and apply light gray fill to alternating rows in the data portion of the
+table to achieve striped or banded rows. end example]
+
+See the enumeration values in ST_TableStyleType for a listing of structured Table regions to which formatting
+can be applied, and which together make up a single Table style definition.
+
+
+                                          Parent Elements
+styleSheet (§3.8.39)
+
+
+                                         Child Elements                                        Subclause
+tableStyle (Table Style)                                                                          §3.8.40
+
+
+     Attributes                                            Description
+count (Table Style    Count of table styles defined in this collection.
+Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+defaultPivotStyle   Name of the default table style to apply to new PivotTables. This can be set by the user
+(Default Pivot Style)   interface.
+
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+defaultTableStyle   Name of default table style to apply to new Tables. This can be set by the user interface.
+(Default Table Style)
+                   The possible values for this attribute are defined by the XML Schema string datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TableStyles">
+    <sequence>
+       <element name="tableStyle" type="CT_TableStyle" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="defaultTableStyle" type="xsd:string" use="optional"/>
+    <attribute name="defaultPivotStyle" type="xsd:string" use="optional"/>
+</complexType>
+
+3.8.43    top (Top Border)
+
+This element specifies the color and line style for the top border of a cell.
+
+
+                                                                                     2209
+                                          Parent Elements
+border (§3.8.4)
+
+
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+     Attributes                                            Description
+style (Line Style)     The line style for this border.
+
+                   The possible values for this attribute are defined by the ST_BorderStyle simple type
+                        (§3.18.3).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BorderPr">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+</complexType>
+
+3.8.44    vertical (Vertical Inner Border)
+
+This element specifies the color and line style for the vertical inner border(s) of a range of cells. Used in the
+context of dxf elements only. For example, see the borders definitions for TableStyleMedium28.
+
+
+                                          Parent Elements
+border (§3.8.4)
+
+
+                                         Child Elements                                        Subclause
+color (Data Bar Color)                                                                              §3.3.1.14
+
+
+     Attributes                                            Description
+style (Line Style)     The line style for this border.
+
+                   The possible values for this attribute are defined by the ST_BorderStyle simple type
+                        (§3.18.3).
+
+
+                                                                                     2210
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_BorderPr">
+    <sequence>
+       <element name="color" type="CT_Color" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="style" type="ST_BorderStyle" use="optional" default="none"/>
+</complexType>
+
+3.8.45    xf (Format)
+
+A single xf element describes all of the formatting for a cell.
+
+
+                                          Parent Elements
+cellStyleXfs (§3.8.9); cellXfs (§3.8.10)
+
+
+                                         Child Elements                                        Subclause
+alignment (Alignment)                                                                             §3.8.1
+extLst (Future Feature Data Storage Area)                                                         §3.2.10
+protection (Protection Properties)                                                                §3.8.33
+
+
+     Attributes                                            Description
+applyAlignment    A boolean value indicating whether the alignment formatting specified for this xf should
+(Apply Alignment)    be applied.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+applyBorder (Apply  A boolean value indicating whether the border formatting specified for this xf should be
+Border)               applied.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+applyFill (Apply Fill)  A boolean value indicating whether the fill formatting specified for this xf should be
+                       applied.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+applyFont (Apply    A boolean value indicating whether the font formatting specified for this xf should be
+Font)                  applied.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+applyNumberForm  A boolean value indicating whether the number formatting specified for this xf should be
+at (Apply Number     applied.
+Format)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+applyProtection    A boolean value indicating whether the protection formatting specified for this xf should
+
+
+                                                                                     2211
+     Attributes                                            Description
+
+(Apply Protection)    be applied.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+borderId (Border     Zero-based index of the border record used by this cell format.
+Id)
+                   The possible values for this attribute are defined by the ST_BorderId simple type
+                        (§3.18.2).
+fillId (Fill Id)          Zero-based index of the fill record used by this cell format.
+
+                   The possible values for this attribute are defined by the ST_FillId simple type (§3.18.31).
+fontId (Font Id)       Zero-based index of the font record used by this cell format.
+
+                   The possible values for this attribute are defined by the ST_FontId simple type
+                       (§3.18.33).
+numFmtId            Id of the number format (numFmt) record used by this cell format.
+(Number Format Id)
+                   The possible values for this attribute are defined by the ST_NumFmtId simple type
+                       (§3.18.49).
+pivotButton (Pivot   A boolean value indicating whether the cell rendering includes a pivot table dropdown
+Button)              button.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+quotePrefix (Quote  A boolean value indicating whether the text string in a cell should be prefixed by a single
+Prefix)              quote mark (e.g., 'text). In these cases, the quote is not stored in the Shared Strings Part.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+xfId (Format Id)       For xf records contained in cellXfs this is the zero-based index of an xf record contained
+                         in cellStyleXfs corresponding to the cell style applied to the cell.
+
+                   Not present for xf records contained in cellStyleXfs.
+
+                   The possible values for this attribute are defined by the ST_CellStyleXfId simple type
+                       (§3.18.11).
+
+
+                                                                                     2212
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Xf">
+    <sequence>
+       <element name="alignment" type="CT_CellAlignment" minOccurs="0" maxOccurs="1"/>
+       <element name="protection" type="CT_CellProtection" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" type="CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+    </sequence>
+    <attribute name="numFmtId" type="ST_NumFmtId" use="optional"/>
+    <attribute name="fontId" type="ST_FontId" use="optional"/>
+    <attribute name="fillId" type="ST_FillId" use="optional"/>
+    <attribute name="borderId" type="ST_BorderId" use="optional"/>
+    <attribute name="xfId" type="ST_CellStyleXfId" use="optional"/>
+    <attribute name="quotePrefix" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pivotButton" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="applyNumberFormat" type="xsd:boolean" use="optional"/>
+    <attribute name="applyFont" type="xsd:boolean" use="optional"/>
+    <attribute name="applyFill" type="xsd:boolean" use="optional"/>
+    <attribute name="applyBorder" type="xsd:boolean" use="optional"/>
+    <attribute name="applyAlignment" type="xsd:boolean" use="optional"/>
+    <attribute name="applyProtection" type="xsd:boolean" use="optional"/>
+</complexType>
+
+3.9    Metadata
+
+A cell in a spreadsheet application can have metadata associated with it. Metadata is just a set of additional
+properties about the particular cell, and this metadata is stored in the metadata xml part.
+
+There are two types of metadata: cell metadata and value metadata. Cell metadata contains information about
+the cell itself, and this metadata can be carried along with the cell as it moves (insert, shift, copy/paste, merge,
+unmerge, etc). Value metadata is information about the value of a particular cell. Value metadata properties
+can be propagated along with the value as it is referenced in formulas.
+
+The file format is architected such that it supports both value and cell metadata, as well as even allowing for
+future extensions. Formulas, such as CUBEMEMBER() or CUBE*, shall make use of value metadata as part of the
+SpreadsheetML standard. So, only value metadata must be implemented as it is used by MDX cube functions for
+retrieving data from OLAP data sources. The other parts are allowed for future extensibility.
+
+See the informative material for background information on OLAP and the various CUBE* functions.
+
+[Example: The CUBEMEMBER() function is used to return a specific member from an OLAP cube. The metadata
+will express the connection name (used as a friendly identifier for the external data connection to the OLAP
+server and cube), the mdx statement retrieving that member, and a set of operational attributes of the
+metadata that sepcify how it behaves in the spreadsheet application (i.e., whether it propagates through
+formula assignment, is able to be copy/pasted, etc).
+
+  <metadata xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+
+
+                                                                                     2213
+    <metadataTypes count="1">
+      <metadataType name="XLMDX" minSupportedVersion="120000" copy="1"
+        pasteAll="1" pasteValues="1" merge="1" splitFirst="1" rowColShift="1"
+        clearFormats="1" clearComments="1" assign="1" coerce="1"/>
+    </metadataTypes>
+    <metadataStrings count="2">
+      <s v="My Connection"/>
+      <s v="[Measures].[Internet Sales Amount]"/>
+    </metadataStrings>
+    <mdxMetadata count="1">
+      <mdx n="0" f="m">
+        <t c="1">
+          <n x="1"/>
+        </t>
+      </mdx>
+    </mdxMetadata>
+    <valueMetadata count="1">
+      <bk>
+        <rc t="1" v="0"/>
+      </bk>
+    </valueMetadata>
+  </metadata>
+
+As seen above, the metadata string table contains two entries: the name of the connection (My Connection),
+and the expression that returns the Internet Sales Amount member from the cube. The metadataType specifies
+that the metadata persists with assignment, cell merging, copy/pasting, shifting rows/columns, when the
+formatting or comments are deleted from the cell, and is assigned to the upper left most cell if a merged cell is
+split. In the valueMetadata collection, the metadata block specifies that the first metadataType is used, and
+indexes the first (0th) entry in the mdxMetadata collection. This mdx element in the mdxMetadata collection in
+turn specifies the cube function type (m= cube member) and an index into the string table that specifies the
+connection name. It also contains a tuple (t) element which specifies, via index into the string table, which tuple
+is returned. end example]
+
+[Note: When copying a cell with metadata, and the cell contains an array formula, each pasted cell shall contain
+the value from the corresponding position in the array and should contain the metadata corresponding to that
+cell. end note]
+
+3.9.1    bk (Metadata Block)
+
+This element represents a block of metadata records.
+
+
+                                          Parent Elements
+cellMetadata (§3.9.3); valueMetadata (§3.9.17)
+
+
+                                                                                     2214
+                                         Child Elements                                        Subclause
+rc (Metadata Record)                                                                            §3.9.15
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MetadataBlock">
+    <sequence>
+       <element name="rc" type="CT_MetadataRecord" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+</complexType>
+
+3.9.2    bk (Future Metadata Block)
+
+This element represents a block of future metadata information.  This is a location for storing feature extension
+information.
+
+
+                                          Parent Elements
+futureMetadata (§3.9.4)
+
+
+                                         Child Elements                                        Subclause
+extLst (Future Feature Data Storage Area)                                                         §3.2.10
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_FutureMetadataBlock">
+    <sequence>
+       <element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>
+    </sequence>
+</complexType>
+
+3.9.3     cellMetadata (Cell Metadata)
+
+This element represents cell metadata information. Cell metadata is information metadata about a specific cell,
+and it stays tied to that cell position.
+
+[Note: Applications should not use this for storing metadata, but instead us valueMetadata. Cell metadata is
+included for storing information from future application. end note]
+
+
+                                          Parent Elements
+metadata (§3.9.8)
+
+
+                                         Child Elements                                        Subclause
+bk (Metadata Block)                                                                               §3.9.1
+
+
+     Attributes                                            Description
+
+
+                                                                                     2215
+     Attributes                                            Description
+count (Metadata    Number of blocks of metadata records.
+Block Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MetadataBlocks">
+    <sequence>
+       <element name="bk" type="CT_MetadataBlock" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional" default="0"/>
+</complexType>
+
+3.9.4     futureMetadata (Future Metadata)
+
+This element represents future metadata information.
+
+Future data storage areas are xml storage areas that a later version of the spreadsheet application can store
+data into. So a V2 spreadsheet application may store data for new features that don't exist in the V1 version in a
+future storage area when saving to a format that the V1 version can open. The V1 version may be able to open
+the file, but won't necessarily be able to understand data that is stored in a future storage area. So the V1
+version may ignore this data, but still round trip it in the file format so that V2 and V1 users can collaborate on
+the same spreadsheet.
+
+
+                                          Parent Elements
+metadata (§3.9.8)
+
+
+                                         Child Elements                                        Subclause
+bk (Future Metadata Block)                                                                        §3.9.2
+extLst (Future Feature Data Storage Area)                                                         §3.2.10
+
+
+     Attributes                                            Description
+count (Future       Number of future metadata blocks.
+Metadata Block
+Count)             The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+name (Metadata     Metadata type name.
+Type Name)
+                   The possible values for this attribute are defined by the ST_Xstring simple type
+                       (§3.18.96).
+
+
+                                                                                     2216
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_FutureMetadata">
+    <sequence>
+       <element name="bk" type="CT_FutureMetadataBlock" minOccurs="0" maxOccurs="unbounded"/>
+       <element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>
+    </sequence>
+    <attribute name="name" type="ST_Xstring" use="required"/>
+    <attribute name="count" type="xsd:unsignedInt" use="optional" default="0"/>
+</complexType>
+
+3.9.5    k (KPI MDX Metadata)
+
+This element represents key performance indicator (KPI) MDX metadata. A KPI is typically an image that
+represents the state of some specific business measure at a given point in time. For instance, an image of a
+green traffic light indicating that customer satisfaction is good.
+
+
+                                          Parent Elements
+mdx (§3.9.6)
+
+
+     Attributes                                            Description
+n (Member Unique    Index of member unique name in string store.
+Name Index)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+np (KPI Index)        Index of key performance indicator name in string store.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+p (KPI Property)      Key performance indicator property.
+
+                   The possible values for this attribute are defined by the ST_MdxKPIProperty simple type
+                       (§3.18.47).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MdxKPI">
+    <attribute name="n" type="xsd:unsignedInt" use="required"/>
+    <attribute name="np" type="xsd:unsignedInt" use="required"/>
+    <attribute name="p" type="ST_MdxKPIProperty" use="required"/>
+</complexType>
+
+3.9.6    mdx (MDX Metadata Record)
+
+This element represents a single record of MDX metadata information which can express a tuple, KPI, set, or
+member property.
+
+
+                                          Parent Elements
+
+
+                                                                                     2217
+                                          Parent Elements
+mdxMetadata (§3.9.7)
+
+
+                                         Child Elements                                        Subclause
+k (KPI MDX Metadata)                                                                             §3.9.5
+ms (Set MDX Metadata)                                                                         §3.9.12
+p (Member Property MDX Metadata)                                                             §3.9.14
+t (Tuple MDX Metadata)                                                                         §3.9.16
+
+
+     Attributes                                            Description
+f (Cube Function       This is an enumeration representing the type of the calling cube function from the
+Tag)                 spreadsheet.
+
+                   The possible values for this attribute are defined by the ST_MdxFunctionType simple
+                     type (§3.18.46).
+n (Connection       The zero based index of connection name in metadata string store, metadataStrings.
+Name Index)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Mdx">
+    <choice minOccurs="1" maxOccurs="1">
+       <element name="t" type="CT_MdxTuple"/>
+       <element name="ms" type="CT_MdxSet"/>
+       <element name="p" type="CT_MdxMemeberProp"/>
+       <element name="k" type="CT_MdxKPI"/>
+    </choice>
+    <attribute name="n" type="xsd:unsignedInt" use="required"/>
+    <attribute name="f" type="ST_MdxFunctionType" use="required"/>
+</complexType>
+
+3.9.7    mdxMetadata (MDX Metadata Information)
+
+This element represents a collection of specific MDX metadata records for the spreadsheet. This is used to build
+up the members, sets, tuples, KPIs, and member properties for the spreadsheet.
+
+
+                                          Parent Elements
+metadata (§3.9.8)
+
+
+                                         Child Elements                                        Subclause
+
+
+                                                                                     2218
+                                         Child Elements                                        Subclause
+mdx (MDX Metadata Record)                                                                       §3.9.6
+
+
+     Attributes                                            Description
+count (MDX        Number of MDX metadata metadata records.
+Metadata Record
+Count)             The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MdxMetadata">
+    <sequence>
+       <element name="mdx" type="CT_Mdx" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional" default="0"/>
+</complexType>
+
+3.9.8     metadata (Metadata)
+
+This element represents the root node for all metadata information in the spreadsheet.
+
+
+                                          Parent Elements
+
+Root element of SpreadsheetML Metadata part
+
+
+                                         Child Elements                                        Subclause
+cellMetadata (Cell Metadata)                                                                      §3.9.3
+extLst (Future Feature Data Storage Area)                                                         §3.2.10
+futureMetadata (Future Metadata)                                                                 §3.9.4
+mdxMetadata (MDX Metadata Information)                                                        §3.9.7
+metadataStrings (Metadata String Store)                                                           §3.9.9
+metadataTypes (Metadata Types Collection)                                                      §3.9.11
+valueMetadata (Value Metadata)                                                                 §3.9.17
+
+
+                                                                                     2219
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Metadata">
+    <sequence>
+       <element name="metadataTypes" type="CT_MetadataTypes" minOccurs="0" maxOccurs="1"/>
+       <element name="metadataStrings" type="CT_MetadataStrings" minOccurs="0" maxOccurs="1"/>
+       <element name="mdxMetadata" type="CT_MdxMetadata" minOccurs="0" maxOccurs="1"/>
+       <element name="futureMetadata" type="CT_FutureMetadata" minOccurs="0" maxOccurs="unbounded"/>
+       <element name="cellMetadata" type="CT_MetadataBlocks" minOccurs="0" maxOccurs="1"/>
+       <element name="valueMetadata" type="CT_MetadataBlocks" minOccurs="0" maxOccurs="1"/>
+       <element name="extLst" minOccurs="0" maxOccurs="1" type="CT_ExtensionList"/>
+    </sequence>
+</complexType>
+
+3.9.9     metadataStrings (Metadata String Store)
+
+This element represents the metadata string store. This is a collection of strings that are used as a resource for
+the rest of the metadata part.  It contains all the required OLAP strings used in the spreadsheet including the
+connection name, as well as mdx expressions identifying specific members and sets.  It is indexed from
+individual metadata records so that the records can use these strings to build up the necessary mdx statements
+to retrieve the correct data from the OLAP cube.
+
+
+                                          Parent Elements
+metadata (§3.9.8)
+
+
+                                         Child Elements                                        Subclause
+s (Character Value)                                                                              §3.13.8
+
+
+     Attributes                                            Description
+count (MDX        Number of records in the string store.
+Metadata String
+Count)             The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MetadataStrings">
+    <sequence>
+       <element name="s" type="CT_XStringElement" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional" default="0"/>
+</complexType>
+
+3.9.10   metadataType (Metadata Type Information)
+
+This element represents information about metadata on cells - it defines a specific set of behaviors that the
+metadata shall adhere to when subject to other spreadsheet operations.
+
+
+                                                                                     2220
+In general, many of these attributes represent operations that can be performed on a cell that allow the
+metadata to remain associated with the cell. Operations that are set to 0 or false, will cause the metadata to be
+disassociated from the cell when that operation is performed.
+
+
+                                          Parent Elements
+metadataTypes (§3.9.11)
+
+
+     Attributes                                            Description
+adjust (Adjust      A Boolean flag indicating that metadata corresponding to a particular cell needs to be
+Metadata)             notified when that cell's location is changed.
+
+                      [Note: This is included in the file format for future extensibility.end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+assign (Metadata    A Boolean flag indicating whether metadata is propagated by formula assignment
+Formula              operation. True when metadata should be propagated by assignment, false otherwise.
+Assignment)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+cellMeta (Cell      A Boolean flag indicating whether metadata is cell metadata. True when the metadata is
+Metadata)               cell metadata, false otherwise - in the false case it is considered to be value metadata.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+clearAll (Metadata   A Boolean flag indicating whether metadata survives a "Clear: All" operation. True if the
+Clear All)            metadata persists after a clear all, false otherwise.
+
+                   The Clear operations can be implemented by the run time application to provide an easy
+                 way to allow users to delete everything from a cell (Clear: All), remove only comments
+                         (Clear: Comments), only remove formats (Clear: Formats), or only remove the contents
+                    but leave the comments and formatting (Clear: Contents). Note these operations can
+                       also be performed by the user manually deleting each item.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+clearComments     A Boolean flag indicating whether metadata remains after comments have been cleared
+(Metadata Clear      from the cell. True if the metadata persists after Clear:Comments, false otherwise.
+Comments)
+                   The Clear operations can be implemented by the run time application to provide an easy
+                 way to allow users to delete everything from a cell (Clear: All), remove only comments
+                         (Clear: Comments), only remove formats (Clear: Formats), or only remove the contents
+                    but leave the comments and formatting (Clear: Contents). Note these operations can
+                       also be performed by the user manually deleting each item.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+clearContents      A Boolean flag indicating whether metadata remains after the contents of a cell are
+
+
+                                                                                     2221
+     Attributes                                            Description
+
+(Metadata Clear      removed. True if metadata persists after a "Clear: Contents" action, false otherwise.
+Contents)
+                   The Clear operations can be implemented by the run time application to provide an easy
+                 way to allow users to delete everything from a cell (Clear: All), remove only comments
+                         (Clear: Comments), only remove formats (Clear: Formats), or only remove the contents
+                    but leave the comments and formatting (Clear: Contents). Note these operations can
+                       also be performed by the user manually deleting each item.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+clearFormats      A Boolean flag indicating whether metadata remains after formatting is removed from a
+(Metadata Clear        cell. True if metadata persists after a "Clear: Formats", false otherwise.
+Formats)
+                   The Clear operations can be implemented by the run time application to provide an easy
+                 way to allow users to delete everything from a cell (Clear: All), remove only comments
+                         (Clear: Comments), only remove formats (Clear: Formats), or only remove the contents
+                    but leave the comments and formatting (Clear: Contents). Note these operations can
+                       also be performed by the user manually deleting each item.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+coerce (Metadata    A Boolean flag indicating whether value metadata can be removed when this metadata
+Coercion)            data type is coerced to another type. True if the value metadata is removed upon
+                      coercion, false otherwise.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+copy (Metadata     A Boolean flag indicating whether metadata is copied with a cell. True if the metadata is
+Copy)               copied to other cells when this cell is copied, false otherwise.
+
+                       This shall be set to true if the paste attributes for the metadataType are going to be
+                     used.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+delete (Metadata    A Boolean flag indicating whether metadata survives deletion of a cell value. True when
+Cell Value Delete)     the metadata persists after the deletion of a cell value, false otherwise.
+
+                       This attribute is equivalent to the clearContents attribute.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+edit (Metadata Edit)  A Boolean flag indicating whether metadata survives the editing of the cell's value. True
+                                   if the metadata remains unchanged after the cell's value edit, false otherwise.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+ghostCol (Metadata  A Boolean flag indicating whether metadata is copied to/from a ghost column. True
+Ghost Column)      when the metadata is copied to/from a ghost column, false otherwise.
+
+
+                                                                                     2222
+     Attributes                                            Description
+
+                A ghost column is a single column that exists for the row header. It is not displayed to
+                     the end user.  It is used to store default formatting for an entire row (i.e. the row gets the
+                     formatting for the corresponding cell in the ghost column). For instance, when an entire
+                  row is selected and a cell color is applied, this is stored once for the cell in the ghost
+                  column instead of for each cell in the row.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+ghostRow         A Boolean flag indicating whether metadata is copied to/from a ghost row. True when
+(Metadata Ghost     the metadata is copied to/from a ghost row, false otherwise.
+Row)
+                A ghost row is a single row that exists for the column header.  It is not displayed to the
+                  end user.  It is used to store default formatting for an entire column (i.e. the column gets
+                     the formatting for the corresponding cell in the ghost row). For instance, when an entire
+                  column is selected and a cell color is applied, this is stored once for the cell in the ghost
+                  row instead of for each cell in the column.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+merge (Metadata    A Boolean flag indicating whether metadata survives cell merge. True if the metadata
+Merge)                persists after a cell merge, false otherwise.
+
+                                It is up to the spreadsheet application on how to deal with conflicts when two cells that
+                   each have metadata are merged. The guidance here is to treat it the same as a 'regular'
+                           cell merge with the default behavior being that the data in the upper left cell wins.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+minSupportedVers   The earliest version of the spreadsheet application that supports this metadata type.
+ion (Minimum
+Supported Version)   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+name (Metadata     Represents the name of this particular metadata type. This name shall be unique
+Type Name)         amongst all other metadataTypes.
+
+                   The possible values for this attribute are defined by the ST_Xstring simple type
+                       (§3.18.96).
+pasteAll (Metadata  A Boolean flag indicating whether metadata is populated to a new cell by "Paste: All".
+Paste All)            True when the metadata is populated on a Paste:All, false otherwise. Paste:All and
+                       regular paste should be implemented so that they are equivalent by the spreadsheet
+                        application.
+
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                     Note: the spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property.
+
+
+                                                                                     2223
+     Attributes                                            Description
+
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+pasteBorders      A Boolean flag indicating whether metadata is populated with Paste: Borders. True when
+(Metadata Paste      the metadata is populated when only borders are pasted, false otherwise.
+Borders)
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                      [Note: The spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property. end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+pasteColWidths     A Boolean flag indicating whether metadata is populated by Paste: Column Widths. True
+(Metadata Paste          if the metadata is populated when only column widths are pasted, false otherwise.
+Column Widths)
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                      [Note: the spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property. end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+pasteComments    A Boolean flag indicating whether metadata is populated by Paste: Comments. True
+(Metadata Paste     when metadata is populated when only comments are pasted, false otherwise.
+Comments)
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                      [Note: the spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property. end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+pasteDataValidatio  A Boolean flag indicating whether metadata is populated by Paste: Validation. True when
+n (Metadata Paste    metadata is populated when only data validation is pasted, false otherwise.
+Data Validation)
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                      [Note: the spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property. end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+                                                                                     2224
+     Attributes                                            Description
+pasteFormats      A Boolean flag indicating whether metadata is populated by Paste Special: Formats. True
+(Metadata Paste     when metadata is populated when only formatting is pasted, false otherwise.
+Formats)
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                      [Note: the spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property. end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+pasteFormulas     A Boolean flag indicating whether metadata is populated by Paste: Formulas. True when
+(Metadata Paste      the metadata is populated when only formulas are pasted, false otherwise.
+Formulas)
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                      [Note: the spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property. end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+pasteNumberForm  A Boolean flag indicating whether metadata is populated with Paste: Number Formats.
+ats (Metadata Paste  True when metadata is populated when only number formatting is pasted, false
+Number Formats)     otherwise.
+
+                   The copy flag shall be set to true for this paste behavior to be respected.
+
+                      [Note: the spreadsheet application can implement special pasting behavior, such as
+                      pasting everything from a cell (paste all/normal paste), pasting only borders, pasting only
+                   comments, or pasting only any other specific cell property. end note]
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+pasteValues       A Boolean flag indicating whether metadata is populated by Paste: Values.
+(Metadata Paste
+Special Values)       The possible values for this attribute are defined by the XML Schema boolean datatype.
+rowColShift       A Boolean flag indicating whether metadata survives shifting due to row/column
+(Metadata Insert      insertion/deletion. True if the metadata persists after the cell has been shifted, false
+Delete)               otherwise.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+splitAll (Metadata   A Boolean flag indicating whether a merged cell split action has its metadata copied to all
+Split All)              of the resulting cells. True if the metadata is copied to all new cells resulting from a split,
+                         false otherwise.
+
+                                  If splitFirst is also set to true, splitAll wins - that is all the cells shall have the
+
+
+                                                                                     2225
+     Attributes                                            Description
+
+                   metadata copied to them.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+splitFirst         A Boolean flag indicating whether when a merged cell is split its metadata is copied to
+(Meatadata Split      only the first resulting cell. True when the metadata from a split cell is only copied to the
+First)                       first resulting cell, false otherwise.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MetadataType">
+    <attribute name="name" type="ST_Xstring" use="required"/>
+    <attribute name="minSupportedVersion" type="xsd:unsignedInt" use="required"/>
+    <attribute name="ghostRow" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="ghostCol" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="edit" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="delete" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="copy" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteAll" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteFormulas" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteValues" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteFormats" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteComments" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteDataValidation" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteBorders" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteColWidths" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="pasteNumberFormats" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="merge" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="splitFirst" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="splitAll" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="rowColShift" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="clearAll" type="xsd:boolean" default="false"/>
+    <attribute name="clearFormats" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="clearContents" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="clearComments" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="assign" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="coerce" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="adjust" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="cellMeta" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+3.9.11   metadataTypes (Metadata Types Collection)
+
+This element is a collection of metadata types.
+
+
+                                          Parent Elements
+metadata (§3.9.8)
+
+
+                                                                                     2226
+                                         Child Elements                                        Subclause
+metadataType (Metadata Type Information)                                                      §3.9.10
+
+
+     Attributes                                            Description
+count (Metadata    Number of metadata types.
+Type Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MetadataTypes">
+    <sequence>
+       <element name="metadataType" type="CT_MetadataType" minOccurs="1" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="count" type="xsd:unsignedInt" use="optional" default="0"/>
+</complexType>
+
+3.9.12   ms (Set MDX Metadata)
+
+This element represents an MDX set.
+
+
+                                          Parent Elements
+mdx (§3.9.6)
+
+
+                                         Child Elements                                        Subclause
+n (Member Unique Name Index)                                                                  §3.9.13
+
+
+     Attributes                                            Description
+c (Sort By Member   Number of sort-by member indices. This is essentially the number of coordinates in the
+Index Count)        cube that this member is defined by.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+ns (Set Definition     Zero based index of the set definition in the metadata string store.
+Index)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+o (Set Sort Order)    An enumeration specifying what sort order is used to sort the set.
+
+                   The possible values for this attribute are defined by the ST_MdxSetOrder simple type
+                       (§3.18.48).
+
+
+                                                                                     2227
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MdxSet">
+    <sequence>
+       <element name="n" type="CT_MetadataStringIndex" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="ns" type="xsd:unsignedInt" use="required"/>
+    <attribute name="c" type="xsd:unsignedInt" use="optional" default="0"/>
+    <attribute name="o" type="ST_MdxSetOrder" use="optional" default="u"/>
+</complexType>
+
+3.9.13   n (Member Unique Name Index)
+
+This element represents an index of a member unique name in metadata string store that is used to define the
+sort-by set.
+
+
+                                          Parent Elements
+ms (§3.9.12); t (§3.9.16)
+
+
+     Attributes                                            Description
+s (String is a Set)     A Boolean flag indicating whether this string represents a set. True if the string
+                     represents a set, false otherwise.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+x (Index Value)       Value of the zero based index.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MetadataStringIndex">
+    <attribute name="x" type="xsd:unsignedInt" use="required"/>
+    <attribute name="s" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+3.9.14   p (Member Property MDX Metadata)
+
+This element represents an MDX member property.
+
+
+                                          Parent Elements
+mdx (§3.9.6)
+
+
+     Attributes                                            Description
+n (Member Unique   The zero based index of member unique name in the metadata string store.
+Name Index)
+
+
+                                                                                     2228
+     Attributes                                            Description
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+np (Property Name   The zero based index of the property name in metadata string store.
+Index)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MdxMemeberProp">
+    <attribute name="n" type="xsd:unsignedInt" use="required"/>
+    <attribute name="np" type="xsd:unsignedInt" use="required"/>
+</complexType>
+
+3.9.15    rc (Metadata Record)
+
+This element represents a reference to a specific metadata record.
+
+
+                                          Parent Elements
+bk (§3.9.1)
+
+
+     Attributes                                            Description
+t (Metadata Record  A 1-based index to the metadata record type in metadataTypes.
+Type Index)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+v (Metadata Record  A zero based index to a specific metadata record.  If the corresponding metadataType
+Value Index)         has name="XLMDX", then this is an index to a record in mdxMetadata, otherwise this is
+                   an index to a record in the futureMetadata section whose name matches the name of
+                     the metadataType.
+
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MetadataRecord">
+    <attribute name="t" type="xsd:unsignedInt" use="required"/>
+    <attribute name="v" type="xsd:unsignedInt" use="required"/>
+</complexType>
+
+3.9.16     t (Tuple MDX Metadata)
+
+This element represents an mdx tuple. A tuple is the intersection of two or more members of distinct
+dimensions in the cube. For instance, the three members (product, City, month) that are used to show the data
+point for how many products were sold.
+
+
+                                                                                     2229
+The spreadsheet application should allow the values for the attributes of this element to be specified by the
+OLAP server.
+
+
+                                          Parent Elements
+mdx (§3.9.6)
+
+
+                                         Child Elements                                        Subclause
+n (Member Unique Name Index)                                                                  §3.9.13
+
+
+     Attributes                                            Description
+b (Server          A Boolean flag indicating whether the bold style is applied. True if bold shall be applied,
+Formatting Bold       false otherwise.
+Font)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+bc (Server             Specifies the background color in RGB values.  It is in hex and is read in the form of
+Formatting         0x00RRGGBB.
+Background Color)
+                   The possible values for this attribute are defined by the ST_UnsignedIntHex simple type
+                       (§3.18.86).
+c (Member Index     The number of member expressions in the tuple.
+Count)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+ct (Server           The culture tag to use for currency number format.
+Formatting Culture
+Currency)           The possible values for this attribute are defined by the ST_Xstring simple type
+                       (§3.18.96).
+fc (Server            Represents the foreground color in RGB.  It is in hex and is read in the form of
+Formatting         0x00RRGGBB.
+Foreground Color)
+                   The possible values for this attribute are defined by the ST_UnsignedIntHex simple type
+                       (§3.18.86).
+fi (Server             Server formatting built-in number format index. This is an index into the spreadsheet
+Formatting Built-In    application's built in number formats that is used to specify formatting.
+Number Format
+Index)              The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+i (Server Formatting  A Boolean flag indicating that the italic formatting shall be applied. True if italic
+Italic Font)            formatting is applied, false otherwise.
+
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+                                                                                     2230
+     Attributes                                            Description
+si (Server             Server formatting string index in the metadata string store, used to index to a string that
+Formatting String     contains information on how to format the number.
+Index)
+                   The possible values for this attribute are defined by the XML Schema unsignedInt
+                      datatype.
+st (Server         A Boolean flag indicating whether the strikethrough font style is applied. True if
+Formatting           strikethrough shall be applied, false otherwise.
+Strikethrough Font)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+u (Server          A Boolean flag indicating whether the underline font style is applied. True if underline
+Formatting             shall be applied, false otherwise.
+Underline Font)
+                   The possible values for this attribute are defined by the XML Schema boolean datatype.
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_MdxTuple">
+    <sequence>
+       <element name="n" type="CT_MetadataStringIndex" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="c" type="xsd:unsignedInt" use="optional" default="0"/>
+    <attribute name="ct" type="ST_Xstring" use="optional"/>
+    <attribute name="si" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="fi" type="xsd:unsignedInt" use="optional"/>
+    <attribute name="bc" type="ST_UnsignedIntHex" use="optional"/>
+    <attribute name="fc" type="ST_UnsignedIntHex" use="optional"/>
+    <attribute name="i" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="u" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="st" type="xsd:boolean" use="optional" default="false"/>
+    <attribute name="b" type="xsd:boolean" use="optional" default="false"/>
+</complexType>
+
+3.9.17    valueMetadata (Value Metadata)
+
+This element represents the value metadata information for the spreadsheet.  It is essentially a collection of
+block elements that each define the value metadata for a particular cell. Cells in the workbook index into this
+collection, and each block element in this collection in turn references the mdxMetadata records.
+
+
+                                          Parent Elements
+metadata (§3.9.8)
+
+
+                                         Child Elements                                        Subclause
+bk (Metadata Block)                                                                               §3.9.1
+
+
+                                                                                     2231

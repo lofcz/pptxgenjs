@@ -1,0 +1,3874 @@
+=====ISSUE 1289=====
+### Getting following error while initializing pptxgen on NodeJs`nlet pres = new pptxgen();
+TypeError: pptxgenjs_1.default is not a constructor`n---COMMENTS---`nReferenced on SO: https://stackoverflow.com/q/77179713/111794`n<<COMMENT>>`nI had a similar issue when trying to utilize this package in Adonis 6 and the way I solved it was the following:
+
+```
+import PptxGenJS from 'pptxgenjs'
+
+const pres = new (PptxGenJS as any)()
+```
+
+Hope this helps. However, it does seem like the correct fix is adding a constructor in the package.
+=====ISSUE 1288=====
+### [Question]How to set the east asia theme font`n### Issue Category
+
+- [ ] Enhancement
+- [ ] Bug
+- [x ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [ office 365 latest       ]
+- Please specify what version(s) of PowerPoint you are targeting: [        ]
+
+
+### Desired Behavior
+I want set east Asian fonts to theme( slide master).
+
+### Observed Behavior
+
+I can set Theme fonts to the ThemeProps. But I can not set east Asian fonts to the theme.				
+
+```						
+export interface ThemeProps {				
+	/**			
+	 * Headings font face name			
+	 * @example 'Arial Narrow'			
+	 * @default 'Calibri Light'			
+	 */			
+	headFontFace?: string			
+	/**			
+	 * Body font face name			
+	 * @example 'Arial'			
+	 * @default 'Calibri'			
+	 */			
+	bodyFontFace?: string			
+}				
+```
+				
+when I set Arial to bodyFontFace and headFontFace, the result is next.				
+
+![image](https://github.com/gitbrent/PptxGenJS/assets/72330367/be16e640-d14d-45ab-b70d-e6d4283a81bc)
+
+I want to set East Asian font, thank you.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+`n---COMMENTS---`n
+=====ISSUE 1286=====
+### [BUG] Aspect ratio calculation wrong for Images with one dimension above 100 px and one below`n### Issue Category
+
+- [ ] Enhancement
+- [X] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [3.11.0] (issue still exists in 3.12.0)
+- Please specify what version(s) of PowerPoint you are targeting: [diverse]
+- Please specify what web browser you are using.................: [Google Chrome 116.0.5845.96 / node 20.0.0]
+
+### Desired Behavior
+Placing an image with one dimension above 100px and one dimension below 100px should calculate aspect ratio correctly.  
+The output srcRect of the code example below should be  
+```xml
+<a:srcRect l="0" r="0" t="-20047" b="-20047"/>
+```
+
+### Observed Behavior
+Aspect ratio is calculated wrong, because it interprets the dimension below 100px as inches and the one above 100px as EMU.
+The output srcRect of the code example below is  
+```xml
+<a:srcRect l="-32635313919" r="-32635313919" t="0" b="0"/>
+```
+
+The generated pptx File can't even be opened by PowerPoint without a warning that the file is damaged.
+
+It is caused by this Line of code:  
+https://github.com/gitbrent/PptxGenJS/blob/035cf6b26239e2ea1f27eefbcdb8134e504eb4f4/src/gen-utils.ts#L25
+
+When adding a breakpoint here:  
+https://github.com/gitbrent/PptxGenJS/blob/035cf6b26239e2ea1f27eefbcdb8134e504eb4f4/src/gen-xml.ts#L65  
+the code example below shows the following value for `imgSize`:  
+```javascript
+imgSize: {w: 2899, h: 88696800}
+```
+
+I'd recommend to either allow adding other units when adding w/h values as String, OR don't handle w/h values separately, usually they should use the same unit, OR don't bother converting these values to EMU at all, because they are only used for an aspect-ratio calculation, so the result stays the same, no matter if its inches or emu or something else (but %).  
+
+### Steps to Reproduce
+```javascript
+import pptxgen from "pptxgenjs";
+
+let pres = new pptxgen();
+let slide = pres.addSlide();
+
+slide.addImage({
+    "x": "19%",
+    "y": "54%",
+    // the next two lines are the important part. this is the image size in pixels
+    "w": 2899,
+    "h": 97,
+    "path": "<PATH_TO_IMAGE>",
+    "sizing": {
+        "type": "contain",
+        "w": "36%",
+        "h": "3%",
+    }
+});
+
+pres.writeFile({ fileName: "Test.pptx" });
+```
+
+### Workaround
+As a workaround I'm currently checking if one of the dimensions is below 100 and if so, I multiply both dimensions by a value that lets it be over 100. This is working because those dimensions are only used for aspect ratio calculation and the result of that calculation is not changed by such a scale.`n---COMMENTS---`n
+=====ISSUE 1283=====
+### FEATURE: Line and radar charts should support transparent (noFill) lineDataSymbols similar to other charts`n### Issue Category
+
+- [X] Enhancement
+- [ ] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [3.13.0-beta.1]
+- Please specify what version(s) of PowerPoint you are targeting: [latest]
+- Please specify what web browser you are using.................: [chrome, edge]
+
+### Desired Behavior
+Line and radar charts should support transparent (noFill) lineDataSymbols similar to other charts
+
+### Observed Behavior
+`solidFill` is used even when color = `transparent`
+
+### Steps to Reproduce
+Set the chart color to `transparent`, generate chart
+`n---COMMENTS---`n
+=====ISSUE 1280=====
+### [BUG] importing pptxgen.es.js in angular warns about commonjs dependency`n### Issue Category
+
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: 3.12.0
+- Please specify what version(s) of PowerPoint you are targeting: [        ]
+- Please specify what web browser you are using.................: chrome 115.0.5790.110
+
+### Description
+When `import PptxGenJS from 'pptxgenjs';` the angular compiler warns about `pptxgenjs` being a commonjs module, which is valid. But when `import PptxGenJS from 'pptxgenjs/dist/pptxgen.es.js';`  typescript complains about not being able to find a type declaration file. When ignoring that with a `@ts-ignore`, the app compiles, but angular still warns about `pptxgenjs` being a commonjs module.
+
+The warning is as follows:
+```
+Warning: /home/projects/node-gmxzct/src/app/app.component.ts depends on 'pptxgenjs'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.io/guide/build#configuring-commonjs-dependencies
+```
+
+I was able to 'fix' this by modifying the `package.json` of `pptxgenjs` to include the following, but this is not desired, as this is removing the entrypoint for the commonjs bundle:
+```json
+"type": "module",
+"main": "dist/pptxgen.es.js",
+```
+Another 'fix' is to add `pptxgenjs` to the `allowedCommonJsDependencies` in `angular.json`, but this only supresses the warning.
+
+### Desired Behavior
+Importing the esm bundle should work properly and the angular compiler should show no warning about `pptxgenjs` being a commonjs module.
+
+### Observed Behavior
+```
+Warning: /home/projects/node-gmxzct/src/app/app.component.ts depends on 'pptxgenjs'. CommonJS or AMD dependencies can cause optimization bailouts.
+For more info see: https://angular.io/guide/build#configuring-commonjs-dependencies
+```
+
+### Steps to Reproduce
+See terminal in this stackblitz: https://stackblitz.com/edit/node-gmxzct?file=src%2Fapp%2Fapp.component.ts  
+Also try to import the esm bundle and see the same warning being shown in the terminal (app restart required. Use `yarn start`).`n---COMMENTS---`n
+=====ISSUE 1268=====
+### Size difference in PPT generated from library`nThanks for this awesome plugin.
+
+Currently i am facing a weird issue, in which PPTX size differs when generated from the plugin and after saving it through MS Powerpoint or Libreoffice size shrinks significatanly.
+
+Even I tried PPTx from the demo, pptx size after download is ~45KB but after opening and saving it from the desktop applications such as Libreoffice / MS Powerpoint size reduced to ~25Kb.
+
+After adding approx 15 slides this goes to like differences in MBs. 
+Generated PPT from PPTGenJS is approx 4MB and after saving size reduced to 700KB.
+
+I have tried removing images, because I was assuming maybe images used in master slide are added repeatedly for each slide but no, issue is something else.
+[PptxGenJS-Demo.pptx](https://github.com/gitbrent/PptxGenJS/files/11867403/PptxGenJS-Demo.pptx)
+[PptxGenJS-Demo Without Saving from Powerpoint.pptx](https://github.com/gitbrent/PptxGenJS/files/11867412/PptxGenJS-Demo.Without.Saving.from.Powerpoint.pptx)
+`n---COMMENTS---`nI could only manage the issue when i figured how to capture the real size of the image , either with a new library called 'probe-image-size', that fixed my issue in the back-end, or some other way.
+=====ISSUE 1264=====
+### Table rendered with Auto Page, renders just a few rows in the first page`nHello, 
+
+This is such a great library and it's really helpful. Just found a small issue and wanted to bring it up to see if you have any workaround or you already have fix for it. 
+
+I have rendered a table with autoPage: true and the table starts to render from the middle of the page. 
+
+In the generated PPT, the first slide just renders 4 rows of the table and proceeds to subsequent slides and renders everything else. The Subsequent slides look good. Just the first slide. 
+
+I have tried to start the rendering of the autoPaged Table from a fresh slide also. The results are the same. 
+
+Kindly advise. 
+
+PPT Library Version: 3.11.0
+`n---COMMENTS---`n
+=====ISSUE 1262=====
+### [BUG] Prop [hyperlink] doesn't work when open with WPS`nThere is a problem with hyperlink use. While I use WPS to open then generated pptx, the hyperlink doesn't work, but it's ok with Office.
+
+I saw an issue similar to this (#1014), but the questioner didn't detailly introduce WPS: 
+- WPS is a software similar to Office, and it's popular in China because it's for free
+- WPS official website: https://www.wps.cn/
+- Windows version download link: https://official-package.wpscdn.cn/wps/download/WPS_Setup_14309.exe
+- Mac version download link: https://package.mac.wpscdn.cn/mac_wps_pkg/5.5.0/WPS_Office_5.5.0(7954)_universal.dmg
+
+I would appreciate it if this issue could be resolved  : D
+
+### Steps to Reproduce
+```
+slide.addText(
+    [
+      { text: 'hello, ' },
+      { text: 'this is a link', options: { hyperlink: { url: 'https://github.com/gitbrent/pptxgenjs' } } }
+    ],
+    {
+      x: 3,
+      y: 3,
+      h: 2,
+      color: 'f56c6c',
+      fill: { color: '0d7cef' }
+    }
+  )
+```
+`n---COMMENTS---`nI just tried the solution in #1014 , set [action] attribute as [ppaction://hlinkfile] of <a:hlinkClick>, and it does work on either WPS or MS Office.`n<<COMMENT>>`nσà╖Σ╜ôµÇÄΣ╣êσ«₧τÄ░∩╝îµêæΦ┐Öµá╖σåÖΦ┐ÿµÿ»σ£¿wpsΘçîΣ╕ìΦâ╜Φ╖│Φ╜¼πÇé
+![image](https://github.com/user-attachments/assets/c4278252-6e3b-40bc-866b-21faa70bfbdc)
+`n<<COMMENT>>`nHow exactly do I accomplish this, I still can't jump around in wps when I write it this way.
+![image](https://github.com/user-attachments/assets/7f7fb63a-bd56-4f1a-a853-7002c4509e8c)
+`n<<COMMENT>>`n> σà╖Σ╜ôµÇÄΣ╣êσ«₧τÄ░∩╝îµêæΦ┐Öµá╖σåÖΦ┐ÿµÿ»σ£¿wpsΘçîΣ╕ìΦâ╜Φ╖│Φ╜¼πÇé ![image](https://private-user-images.githubusercontent.com/91405976/359062269-c4278252-6e3b-40bc-866b-21faa70bfbdc.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MjQwNjgyNzAsIm5iZiI6MTcyNDA2Nzk3MCwicGF0aCI6Ii85MTQwNTk3Ni8zNTkwNjIyNjktYzQyNzgyNTItNmUzYi00MGJjLTg2NmItMjFmYWE3MGJmYmRjLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNDA4MTklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjQwODE5VDExNDYxMFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTBjMmY5Mjc2ZjM1NDcyYWJmOTA2YTI3OWY5OTg0YTRkN2I0ZjVmZGMxMGU5NmViOWExMTc0Mjc3N2VlNWM2YTMmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.cSKUp16RAo2a5AEMlc3b1_p2kZNCpaXROtEcJzM9PTI)
+
+Θ£ÇΦªüΣ┐«µö╣µ║Éτáü∩╝îΣ╝áσÅéµÿ»µùáµòêτÜäπÇéΣ┐«µö╣µ║ÉτáüσÇƒσè⌐patch-packageσ«₧τÄ░∩╝îµîë #1014 τÜäµÅÅΦ┐░Φ░âµò┤Σ╕ÇΦíîΣ╗úτáüσì│σÅ»∩╝îΦ«░σ╛ùΘöüpptxgenjsτëêµ£¼πÇé
+patchµûçΣ╗╢µê¬σ¢╛σÅéΦÇâ∩╝Ü
+![image](https://github.com/user-attachments/assets/cfb5aefe-eae0-424b-9ff0-768eb4f1f1a9)
+`n<<COMMENT>>`n@whejwhq Σ╕èΘ¥óτÜäσ¢₧σñìσÅ»Φâ╜Σ╕ìΣ╝ÜΦºªσÅæµÄ¿ΘÇü∩╝îσìòτï¼@Σ╕ï
+=====ISSUE 1261=====
+### multi-series doughnut chart?`nHow would I go about creating a multi-series doughnut chart.  Including multiple series in the data does not seem to work.
+
+Trying to accomplish this:
+
+<img width="381" alt="Screenshot 2023-06-09 at 11 53 05 AM" src="https://github.com/gitbrent/PptxGenJS/assets/1087165/6dff739b-17ef-425f-9336-70f4ca5760e8">
+`n---COMMENTS---`n
+=====ISSUE 1260=====
+### Enable showLegend separately for each chart in a mixed chart situation.`nHi team,
+
+Can we set this "showLegend" separately for each different chart when I render these charts in a mixed manner? 
+
+I have tried it by adding the attribute to the chart options bundled inside chartConfigs, but it was not working.
+
+`addChart(chartConfigs, options);`
+
+https://github.com/gitbrent/PptxGenJS/blob/035cf6b26239e2ea1f27eefbcdb8134e504eb4f4/src/gen-charts.ts#L707`n---COMMENTS---`n
+=====ISSUE 1259=====
+### Paragraph Vertical align?`nIs there a way to set the paragraph align property for a block of text?
+
+<img width="526" alt="Screenshot 2023-06-07 at 12 55 35 PM" src="https://github.com/gitbrent/PptxGenJS/assets/1087165/d15642bd-94d9-4c8c-8126-c1b79670ca6e">
+`n---COMMENTS---`n
+=====ISSUE 1245=====
+### [BUG] Faulty presentation with ScatterPlot`nWe appreciate your feedback - to help the team understand your needs please complete the following template to ensure we have the details to help.
+
+### Submission Guidelines
+
+
+
+### Issue Category
+
+- [ ] Enhancement
+- [x ] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [ 3.12       ]
+- Please specify what version(s) of PowerPoint you are targeting: [MS Office 2016 ]
+- Please specify what web browser you are using.................: [  Edge ]
+
+### Desired Behavior
+Received faulty presentation with code below. The main feature is  _valAxisCrossesAt: 0,_
+
+### Observed Behavior
+Must be good file which can be opened in PP without repairing
+
+### Steps to Reproduce
+My Code:
+```
+let arrDataScatter1 = [
+			{ name: "X-Axis", values: [0, 1, 2, 3, 4, 5] },
+			{ name: "Y-Value 1", values: [90, 80, 70, 85, 75, 92], labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"] },
+			{ name: "Y-Value 2", values: [21, 32, 40, 49, 31, 29], labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"] },
+		];
+		
+		
+
+		let optsChartScat1 = {
+			x: 0.5,
+			y: 0.6,
+			w: 4,
+			h: 3,
+			valAxisCrossesAt: 0,
+			lineSize: 0,
+			catAxisTitle: "Last 6 Months",
+			catAxisTitleColor: "428442",
+			catAxisTitleFontSize: 14,
+			showCatAxisTitle: true,
+			showLabel: true, // Must be set to true or labels will not be shown
+			dataLabelPosition: "b", // Options: 't'|'b'|'l'|'r'|'ctr'
+		};
+		slide.addChart(pptx.charts.SCATTER, arrDataScatter1, optsChartScat1);
+```
+		
+**i think problem appears in function **makeCatAxis(opts, axisId, valAxisId)** in string:**
+		
+		`strXml += " <c:".concat(typeof opts.valAxisCrossesAt === 'number' ? 'crossesAt' : 'crosses', " val=\"").concat(opts.valAxisCrossesAt || 'autoZero', "\"/>");`
+
+The part "|| 'autoZero'" if opts.valAxisCrossesAt===0 at the end leads to  faulty result file. I think this string can be refactored with
+
+```
+if (opts.valAxisCrossesAt!==undefined)
+        strXml += " <c:".concat(typeof opts.valAxisCrossesAt === 'number' ? 'crossesAt' : 'crosses', " val=\"").concat(opts.valAxisCrossesAt,"\"/>");
+    else
+        strXml += " <c:crosses val=\"autoZero\"/>";
+```
+`n---COMMENTS---`n
+=====ISSUE 1244=====
+### Colspan&Rowspan problem`nI have issue because all cells in table are staying the same. I noticed that only cell 5 has slightly extended and because of that cell 8 is just a bit shorter in height.
+
+<table `border="1">`
+
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+</tr>
+
+<tr>
+<td>4</td>
+<td rowspan="2">5</td>
+<td>6</td>
+</tr>
+
+<tr>
+<td rowspan="2">7</td>
+<td rowspan="2">9</td>
+</tr>
+
+<tr>
+<td rowspan="1">8</td>
+</tr>
+
+</table>`n---COMMENTS---`n
+=====ISSUE 1242=====
+### Keynote cannot process the most basic tables [BUG]`n### Issue Category
+
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [3.12.0]
+- Please specify what version(s) of KEYNOTE you are targeting: [version 12.1 (7034.0.86)]
+
+### Desired Behavior
+I have the most basic table here 
+```js
+import pptxgen from "pptxgenjs";
+
+let pptx = new pptxgen();
+let slide = pptx.addSlide();
+
+let chartData = [
+	{
+	  "name": "Nunca",
+	  "labels": [
+		"Belleza",
+		"Moda"
+	  ],
+	  "values": [
+		0.058,
+		0.023
+	  ]
+	}
+  ]
+
+slide.addChart("bar", chartData);
+
+pptx.writeFile({ fileName: "PptxGenJS-Demo"});
+```
+
+here is what the result looks on [PowerPoint online](https://gcdnb.pbrd.co/images/7WwgvMho7pVB.png?o=1)
+
+
+and also on [google slides](https://gcdnb.pbrd.co/images/bdVzAh4rCian.png?o=1)
+
+### Observed Behavior
+But when it comes to keynote this is [what I see](https://gcdnb.pbrd.co/images/khy1LRVFol5d.png?o=1), it says : "the file format is invalid"
+
+From more complex attempts I know what text renders fine only graphs and stuff are the issue
+
+### Steps to Reproduce
+run `npm init and npm i pptxgenjs` in an empty folder and run the above code 
+`n---COMMENTS---`n
+=====ISSUE 1239=====
+### [BUG] Hyperlink on Image does not work with Special Character like &`nWe appreciate your feedback - to help the team understand your needs please complete the following template to ensure we have the details to help.
+
+### Submission Guidelines
+
+- **If you are not using the latest release, please update and see if the issue is resolved before submitting an issue**
+- General questions or high-level topics should be posted in [Discussions](https://github.com/gitbrent/PptxGenJS/discussions)
+- Please browse the online [Documentation](https://gitbrent.github.io/PptxGenJS/) to see if your question is already addressed there
+
+### Issue Category
+
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+pptxgenjs: "3.12.0",
+ppt: "Microsoft┬« PowerPoint┬« for Microsoft 365 MSO (Version 2303 Build 16.0.16227.20202) 64-bit"
+running on node
+
+### Desired Behavior
+Expect Hyperlink with any kind of characters to be properly added to image.
+
+### Observed Behavior
+Currently If hyperlink with "&" character is added to an image, it would cause the final ppt document to display the message of "Powerpoint found a problem with content in ..." when opened.
+
+
+### Steps to Reproduce
+Use this following code:
+```
+    slide.addImage({
+      hyperlink:{url:"https://google.com/hi&"},
+      w: 1,
+      h: 1,
+      path: <<someimagePAth>>,
+      y: 0,
+      x: 0,
+    });
+```
+
+
+`n---COMMENTS---`ncurrent work around will be to use
+`hyperlink:{url:encodeURIComponent(link)}`
+instead
+=====ISSUE 1236=====
+### [BUG] Copying and pasting a line chart within WPS can cause office powerpoint to report errors that need to be fixed`nWe appreciate your feedback - to help the team understand your needs please complete the following template to ensure we have the details to help.
+
+### Submission Guidelines
+
+- **If you are not using the latest release, please update and see if the issue is resolved before submitting an issue**
+- General questions or high-level topics should be posted in [Discussions](https://github.com/gitbrent/PptxGenJS/discussions)
+- Please browse the online [Documentation](https://gitbrent.github.io/PptxGenJS/) to see if your question is already addressed there
+
+### Issue Category
+
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [   3.11.0     ]
+- Please specify what version(s) of PowerPoint you are targeting: [  WPS office,  Microsoft powerpoint 2016    ]
+- Please specify what web browser you are using.................: [   chrome     ]
+
+### Desired Behavior
+Copying and pasting slides with line charts in wps office can be opened normally in microsoft office powerpoint
+
+### Observed Behavior
+Copying and pasting a line chart in wps office pops up a pop-up window that needs to be repaired after opening it in microsoft office powerpoint
+
+### Steps to Reproduce
+1πÇüDownload the demo ppt from https://gitbrent.github.io/PptxGenJS/demo/browser/index.html#charts, such as: [original.pptx](https://github.com/gitbrent/PptxGenJS/files/11097966/original.pptx)
+
+2πÇüOpen via wps office. (Official website: [WPS office](https://www.wps.cn/)
+
+3πÇüCopy slide 8 and paste and save, so we get [edited.pptx](https://github.com/gitbrent/PptxGenJS/files/11098011/edited.pptx)
+![image](https://user-images.githubusercontent.com/8341974/228468883-89535628-6ae5-41bd-95e1-d7ee6e221fe5.png)
+
+4πÇüThe repair will pop up when opening the edited.pptx with microsoft office 2016
+
+5πÇüAfter repair, all the slide which contains line chart in the file become blank`n---COMMENTS---`n
+=====ISSUE 1235=====
+### [Table] border width between 0 to 1 not working`nborder: { pt: '0.25', color: '7F7F7F' },
+
+value of pt always rounded.
+I think that from 'Math.round' in gen-tables.ts
+---
+sidesBor.forEach((val, idxb) => {
+						const intBorderW = **Math.round**(
+							Number(
+								window
+									.getComputedStyle(cell)
+									.getPropertyValue('border-' + val + '-width')
+									.replace('px', '')
+							)
+						)
+						let arrRGB = []
+						arrRGB = window
+							.getComputedStyle(cell)
+							.getPropertyValue('border-' + val + '-color')
+							.replace(/\s+/gi, '')
+							.replace('rgba(', '')
+							.replace('rgb(', '')
+							.replace(')', '')
+							.split(',')
+						const strBorderC = rgbToHex(Number(arrRGB[0]), Number(arrRGB[1]), Number(arrRGB[2]))
+						cellOpts.border[idxb] = { pt: intBorderW, color: strBorderC }
+					})
+---**
+
+`n---COMMENTS---`nI'm getting the same issue here for font sizes. It seems there are a lot of Math.round calls in the codebase that remove values allowed in Powerpoint
+=====ISSUE 1234=====
+### [BUG] - TableCell does not support hyperlinking the text.`nTableCell does not support hyperlinking the text. We are using typescript. 
+
+The code is not throwing any error but when we are opening the PPT , it throws the pop-up to repair the file. `n---COMMENTS---`n
+=====ISSUE 1233=====
+### [BUG]As soon as the composite chart is used, the repair will pop up when opening the PPT with office`n### Issue Category
+
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [ v3.11.0 ]
+- Please specify what version(s) of PowerPoint you are targeting: [ 2021 && office365 ]
+- Please specify what web browser you are using.................: [        ]
+
+### Desired Behavior
+1. Open PPT normally without any pop-up box
+2. Composite charts display normally
+
+### Observed Behavior
+Pop-up repair when opening PPT
+<img width="360" alt="25A68C38-9B73-445C-8A32-B5805041D9D3" src="https://user-images.githubusercontent.com/82356512/226304992-124b5fa5-e157-48d2-a01b-1ee9a7dcfecd.png">
+Click Repair, enter the PPT, the page with the chart becomes a blank page
+<img width="529" alt="8024D6DB-0759-40BB-9E65-E31645CF94F9" src="https://user-images.githubusercontent.com/82356512/226308843-c8e55ac9-5abd-40c7-bb4c-25eee34a0dd5.png">
+If the code related to the chart is commented, this problem will not occur
+
+**Note that not all composite charts will have this problem, and composite charts on some pages can be displayed normally**
+### Steps to Reproduce
+```js
+    const leftTypes = [
+        {
+            "type": "bar",
+            "data": [
+                {
+                    "name": "µ¥âΦ┤úΣ╜┐τö¿τÄç",
+                    "labels": ["µò░σ¡ùσîû", "σà¼σà▒", "ΦÉÑΘöÇτ«íτÉå", "σÉêσÉîΣ╕ÄΣ╗ÿµ¼╛", "Σ║ºσôüΦ«╛Φ«í", "µêÉµ£¼τ«íτÉå", "Φ┤╣τö¿µèÑΘöÇ", "µï¢Θççτ«íτÉå", "Σ║║σè¢Φ╡äµ║É", "Φ┤óσèíΘçæΦ₧ì", "Φíîµö┐σè₧σà¼", "σ«óµê╖σà│τ│╗", "Φ┐ÉΦÉÑτ«íτÉå", "σ╖Ñτ¿ïτ«íτÉå", "σ«ëσà¿", "τë⌐Σ╕Üτ«íτÉå"],
+                    "values": ["100", "100", "90.9", "80.6", "75", "73.3", "66.7", "64.2", "61.5", "57.1", "53.8", "33.3", "26.7", "16.7", "16.7", "0"]
+                }
+            ],
+            "options": {
+                "chartColors": [
+                    "599ad5"
+                ],
+                "barGrouping": "stacked",
+                "showValue": true,
+                "showLabel": true,
+                "barGapWidthPct": 250
+            }
+        },
+        {
+            "type": "line",
+            "data": [
+                {
+                    "name": "23σ╣┤Θ¥₧µáçΣ╜┐τö¿τÄç",
+                    "labels": ["µò░σ¡ùσîû", "σà¼σà▒", "ΦÉÑΘöÇτ«íτÉå", "σÉêσÉîΣ╕ÄΣ╗ÿµ¼╛", "Σ║ºσôüΦ«╛Φ«í", "µêÉµ£¼τ«íτÉå", "Φ┤╣τö¿µèÑΘöÇ", "µï¢Θççτ«íτÉå", "Σ║║σè¢Φ╡äµ║É", "Φ┤óσèíΘçæΦ₧ì", "Φíîµö┐σè₧σà¼", "σ«óµê╖σà│τ│╗", "Φ┐ÉΦÉÑτ«íτÉå", "σ╖Ñτ¿ïτ«íτÉå", "σ«ëσà¿", "τë⌐Σ╕Üτ«íτÉå"],
+                    "values": ["0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]
+                }
+            ],
+            "options": {
+                "chartColors": [
+                    "ffc000"
+                ],
+                "secondaryValAxis": true,
+                "secondaryCatAxis": true,
+                "showValue": true,
+                "showLabel": true,
+                "lineDataSymbolSize": 1
+            }
+        }
+    ]
+const props ={
+    "x": 2.066928675,
+    "y": 1.476377625,
+    "w": 11.059052663000001,
+    "h": 2.685038774,
+    "chartArea": {
+        "fill": {
+            "color": "ffffff"
+        }
+    },
+    "barDir": "col",
+    "barGrouping": "stacked",
+    "dataLabelPosition": "t",
+    "dataLabelFormatCode": "0.0\"%\"",
+    "dataLabelFontFace": "σ╛«Φ╜»Θ¢àΘ╗æ",
+    "dataLabelFontSize": 8,
+    "catAxisLabelColor": "494949",
+    "catAxisLabelFontFace": "σ╛«Φ╜»Θ¢àΘ╗æ",
+    "catAxisLabelFontSize": 8,
+    "catAxisLabelRotate": 0,
+    "showLegend": true,
+    "legendPos": "b",
+    "showTitle": true,
+    "titleFontFace": "σ╛«Φ╜»Θ¢àΘ╗æ",
+    "titleFontSize": 12,
+    "title": "σìÄΣ╕£σî║σƒƒσà¼σÅ╕µ¥âΦ┤úΣ╜┐τö¿τÄç(τ┤»Φ«í23σ╣┤)",
+    "valAxes": [
+        {
+            "showValAxisTitle": false,
+            "valAxisHidden": true,
+            "valAxisLineShow": false,
+            "valGridLine": {
+                "style": "none"
+            }
+        },
+        {
+            "showValAxisTitle": false,
+            "valAxisHidden": true,
+            "valAxisLineShow": false,
+            "valGridLine": {
+                "style": "none"
+            }
+        }
+    ],
+    "catAxes": [
+        {
+            "catAxisTitle": "Year"
+        },
+        {
+            "catAxisHidden": true
+        }
+    ]
+}
+slide.addChart(leftTypes, {
+        ...props,
+        title: `σ£░Σ║ºµ¥âΦ┤úΣ╜┐τö¿τÄç(τ┤»Φ«í2022σ╣┤)`,
+    });
+```
+`n---COMMENTS---`nBased on the demo code on the official website, I gradually realized my own needs. I observed that the problem of popping up the repair box appeared after that step of operation, and then located the problem.
+
+### 1. Run the demo code directly
+
+Γ¡ÉResult: The export is normal, the opening is normal, and the repair box does not pop up.
+
+### 2. Replace demo data with backend data
+
+Replace the chart data in the demo code with the chart data obtained from the backend.
+
+Γ¡ÉResult: The export is normal, the opening is normal, and the repair box does not pop up
+
+This step ruled out the problem of the data format. I began to guess whether it was a problem with the configuration item, so I started to check the configuration item.
+
+### 3. valAxes
+
+Since my chart doesn't need to display the y-axis on both sides, I changed this configuration to the following:
+
+```js
+// before
+valAxes: [
+    {
+        showValAxisTitle: true,
+        valAxisTitle: "Cars Produced (m)",
+        valAxisMaxVal: 10,
+        valAxisTitleColor: "1982c4",
+        valAxisLabelColor: "1982c4",
+    },
+    {
+        showValAxisTitle: true,
+        valAxisTitle: "Global Market Share (%)",
+        valAxisMaxVal: 10,
+        valAxisTitleColor: "F38940",
+        valAxisLabelColor: "F38940",
+        valGridLine: { style: "none" },
+    },
+],
+// after
+const valAxesItem = {
+    showValAxisTitle: false,
+    valAxisHidden: true,
+    valAxisLineShow: false,
+    valGridLine: { style: 'none' }
+}
+valAxes: [valAxesItem, valAxesItem]
+```
+
+Γ¡ÉResult: The export is normal, the opening is normal, and the repair box does not pop up
+
+### 4. dataLabel
+
+Because my chart needs to display the data label of each data point, I made the following configuration:
+
+```js
+const comboProps = {
+    chartArea: { fill: { color: "FFFFFF" } },
+    barDir: "col",
+    // barGrouping: "stacked", // delete this line
+    // ≡ƒæç
+    showValue: true,
+    showLabel: true,
+    dataLabelPosition: 't',
+    dataLabelFormatCode: '0.0"%"',
+    dataLabelFontFace: "σ╛«Φ╜»Θ¢àΘ╗æ",
+    dataLabelFontSize: 8,
+    // ≡ƒæå
+    catAxisLabelColor: "494949",
+    // ...more properties
+}
+```
+
+ΓÜáResult: The export is normal, and the pop-up repair box is opened.
+
+Then I will add these lines of code and comment them line by line:
+
+- Comment out `dataLabelFontSize`: still popup
+- Continue to comment out `dataLabelFontFace`: still pop-up window
+- Continue to comment out `dataLabelFontFace`: still pop-up window
+- Continue to comment out `dataLabelFormatCode`: still pop-up window
+- ΓÜáContinue to comment out `dataLabelPosition`: the pop-up window disappears and opens normally
+
+- ΓÜáComment out the `dataLabelPosition` line separately, and uncomment other attributes: the export is normal, the opening is normal, no pop-up window
+
+So I came to the source code file `pptgenjs/dist/pptxgenjs.es.js` to search for `dataLabelPosition`, and came to the 1815th line of code in the file, and checked the instructions in the **REFERENCE** URL left in the code
+
+```
+https://docs.microsoft.com/en-us/openspecs/office_standards/ms-oi29500/e2b1697c-7adc-463d-9081-3daef72f656f?redirectedfrom=MSDN
+```
+
+learned that
+
+![image-20230322104556337](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322104556337.png)
+
+The legal value of `dataLabelPosition` of the histogram of `barGrouping=clustered` is one of `InsideBase, InsideEnd, OutsideEnd, Center`, the author of pptgenjs has processed this value, the code is as follows:
+
+```js
+if (options.dataLabelPosition) {
+    // ...
+    if (options._type === CHART_TYPE.BUBBLE || options._type === CHART_TYPE.BUBBLE3D || options._type === CHART_TYPE.LINE || options._type === CHART_TYPE.SCATTER) {
+        if (!['b', 'ctr', 'l', 'r', 't'].includes(options.dataLabelPosition))
+            delete options.dataLabelPosition;
+    }
+    if (options._type === CHART_TYPE.BAR) {
+        if (!['stacked', 'percentStacked'].includes(options.barGrouping || '')) {
+            if (!['ctr', 'inBase', 'inEnd'].includes(options.dataLabelPosition))
+                delete options.dataLabelPosition;
+        }
+        if (!['clustered'].includes(options.barGrouping || '')) {
+            if (!['ctr', 'inBase', 'inEnd', 'outEnd'].includes(options.dataLabelPosition))
+                delete options.dataLabelPosition;
+        }
+    }
+}
+```
+
+It can be seen that the author hopes that when the value of `dataLabelPosition` is not the legal value of `dataLabelPosition` for a certain type of chart, clear `dataLabelPosition` and use the default value of `dataLabelPosition`.
+
+However, through `console.log('options._type:', options._type, CHART_TYPE)`, I found that when we use a composite chart, the value of `options._type` is an array, and `CHART_TYPE.XX The value of ` is a string, therefore, **in the composite chart, the above piece of code cannot clear the illegal value of `dataLabelPosition` for certain types of charts. **
+
+![image-20230322111316185](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322111316185.png)
+
+For further verification, add `console.log` statements in these places of the code
+
+![image-20230322112411424](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322112411424.png)
+
+Then execute the operation of generating PPT, and the printed results displayed in the console are as follows
+
+![image-20230322112526526](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322112526526.png)
+
+It can be seen that the logic of clearing the value of `dataLabelPosition` that is not legal is indeed not entered.
+
+So I guess, is it because the value of `dataLabelPosition` of the histogram is illegal, which caused the repair window to pop up when opening the PPT file? After all, there is a problem with the content displayed in the pop-up window. IsnΓÇÖt it a problem to use an illegal value?
+
+![image-20230322112906975](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322112906975.png)
+
+At first I thought it was a bug, but then I ran to read the official documentation, thought about it carefully, and found that the documentation divides the properties of the chart into
+
+- General attribute: General
+- Histogram/line graph/data label attributes: Bar, DataLabel, Line
+- etc
+
+At first, I didnΓÇÖt think there was any problem with writing the document like this. Now, combined with the above situation, I think the meaning of the document is to tell us that `dataLabelPosition` should not be placed in `general`, but should be placed in the separate `options` of the chart .
+
+```js
+// comboTypes
+{
+    type: ppt.charts.BAR,
+    data: [{
+        name: config.barName,
+        labels: config.labels,
+        values: config.barValues,
+    }],
+    options: { chartColors: [config.barColor], barGapWidthPct: 250, dataLabelPosition: 'outEnd', },
+},
+```
+
+Sure enough, I put it here, it exported normally, and no repair window popped up.
+
+### 5. lineDataSymbolSize
+
+This property will also cause the repair window to pop up, and strangely, the repair window will only pop up when the value of this property is 1.
+
+![image-20230322125536694](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322125536694.png)
+
+But in the documentation it shows that the value of this property can be 1-256
+
+Even if I checked the source code, I didn't understand why, so I could only wait for the author's reply.
+
+### conclusion
+
+The emergence of this problem is the result of the following points:
+
+1. The user did not use the library according to the official documentation
+2. The description in the official document is not well prepared. For example, the value of `dataLabelPosition` has different valid values that can be used in different charts, but there is no explanation in the document, but all the optional values of this attribute are placed. listed together.
+3. There is a problem with the processing logic of the illegal value of `options.dataLabelPosition` in the code.`n<<COMMENT>>`ndemo code path∩╝Üdemos/modules/demo_chart.mjs
+line∩╝Ü1761-1823`n<<COMMENT>>`nMy English is not very good. I translated the above article line by line through Google. The following is my original text. I am sorry for the inconvenience caused.`n<<COMMENT>>`nµêæΣ╗Ñσ«ÿτ╜ædemoΣ╗úτáüΣ╕║σƒ║τíÇ∩╝îΘÇÉµ¡ÑΘÇÉµ¡Ñσ«₧τÄ░Φç¬σ╖▒τÜäΘ£Çµ▒é∩╝îΦºéσ»ƒµÿ»σ£¿ΘéúΣ╕Çµ¡ÑµôìΣ╜£Σ╣ïσÉÄσç║τÄ░σ╝╣σç║Σ┐«σñìµíåΦ┐ÖΣ╕¬Θù«Θóÿ∩╝îΦ┐¢ΦÇîσ«ÜΣ╜ìΘù«ΘóÿµëÇσ£¿πÇé
+
+### 1. τ¢┤µÄÑΦ┐ÉΦíîdemoΣ╗úτáü
+
+Γ¡Éτ╗ôµ₧£∩╝Üσ»╝σç║µ¡úσ╕╕∩╝îµëôσ╝Çµ¡úσ╕╕∩╝îµ£¬σ╝╣σç║Σ┐«σñìµíåπÇé
+
+### 2. τö¿σÉÄτ½»µò░µì«µ¢┐µìódemoµò░µì«
+
+τö¿σÉÄτ½»ΦÄ╖σÅûσê░τÜäσ¢╛Φí¿µò░µì«µ¢┐µìóµÄëdemoΣ╗úτáüΣ╕¡τÜäσ¢╛Φí¿µò░µì«πÇé
+
+Γ¡Éτ╗ôµ₧£∩╝Üσ»╝σç║µ¡úσ╕╕∩╝îµëôσ╝Çµ¡úσ╕╕∩╝îµ£¬σ╝╣σç║Σ┐«σñìµíå
+
+Φ┐ÖΣ╕Çµ¡ÑµÄÆΘÖñΣ║åµò░µì«µá╝σ╝ÅτÜäΘù«Θóÿ∩╝îµêæσ╝Çσºïτî£µ╡ïµÿ»σÉªΘàìτ╜«Θí╣τÜäΘù«Θóÿ∩╝îΣ║Äµÿ»σ╝ÇσºïµÄÆµƒÑΘàìτ╜«Θí╣
+
+### 3. valAxes
+
+σ¢áΣ╕║µêæτÜäσ¢╛Φí¿Σ╕ìΘ£ÇΦªüµÿ╛τñ║Σ╕ñΦ╛╣τÜäyΦ╜┤∩╝îµëÇΣ╗ÑµêæµèèΦ┐ÖΣ╕¬Θàìτ╜«µö╣Σ╕║Σ╕ïΘ¥óΦ┐Öµá╖∩╝Ü
+
+```js
+// before
+valAxes: [
+    {
+        showValAxisTitle: true,
+        valAxisTitle: "Cars Produced (m)",
+        valAxisMaxVal: 10,
+        valAxisTitleColor: "1982c4",
+        valAxisLabelColor: "1982c4",
+    },
+    {
+        showValAxisTitle: true,
+        valAxisTitle: "Global Market Share (%)",
+        valAxisMaxVal: 10,
+        valAxisTitleColor: "F38940",
+        valAxisLabelColor: "F38940",
+        valGridLine: { style: "none" },
+    },
+],
+// after
+const valAxesItem = {
+    showValAxisTitle: false,
+    valAxisHidden: true,
+    valAxisLineShow: false,
+    valGridLine: { style: 'none' }
+}
+valAxes: [valAxesItem, valAxesItem]
+```
+
+Γ¡Éτ╗ôµ₧£∩╝Üσ»╝σç║µ¡úσ╕╕∩╝îµëôσ╝Çµ¡úσ╕╕∩╝îµ£¬σ╝╣σç║Σ┐«σñìµíå
+
+### 4. dataLabel
+
+σ¢áΣ╕║µêæτÜäσ¢╛Φí¿Θ£ÇΦªüµèèµ»ÅΣ╕¬µò░µì«τé╣τÜäµò░µì«µáçτ¡╛µÿ╛τñ║σç║µ¥Ñ∩╝îσ¢áµ¡ñµêæσüÜΣ║åσªéΣ╕ïΘàìτ╜«∩╝Ü
+
+```js
+const comboProps = {
+    chartArea: { fill: { color: "FFFFFF" } },
+    barDir: "col",
+    // barGrouping: "stacked", // delete this line
+    // ≡ƒæç
+    showValue: true,
+    showLabel: true,
+    dataLabelPosition: 't',
+    dataLabelFormatCode: '0.0"%"',
+    dataLabelFontFace: "σ╛«Φ╜»Θ¢àΘ╗æ",
+    dataLabelFontSize: 8,
+    // ≡ƒæå
+    catAxisLabelColor: "494949",
+    // ...more properties
+}
+```
+
+ΓÜáτ╗ôµ₧£∩╝Üσ»╝σç║µ¡úσ╕╕∩╝îµëôσ╝Çσ╝╣σç║Σ┐«σñìµíåπÇé
+
+τä╢σÉÄµêæσ░åµû░σó₧τÜäΦ┐ÖσçáΦíîΣ╗úτáü∩╝îΘÇÉΦíîµ│¿Θçè∩╝Ü
+
+- µ│¿ΘçèµÄë `dataLabelFontSize`  ∩╝Ü Σ╛¥µùºσ╝╣τ¬ù
+- τ╗ºτ╗¡µ│¿ΘçèµÄë `dataLabelFontFace`  ∩╝ÜΣ╛¥µùºσ╝╣τ¬ù
+- τ╗ºτ╗¡µ│¿ΘçèµÄë `dataLabelFontFace`  ∩╝ÜΣ╛¥µùºσ╝╣τ¬ù
+- τ╗ºτ╗¡µ│¿ΘçèµÄë `dataLabelFormatCode` ∩╝ÜΣ╛¥µùºσ╝╣τ¬ù
+- ΓÜáτ╗ºτ╗¡µ│¿ΘçèµÄë `dataLabelPosition` ∩╝Üσ╝╣τ¬ùµ╢êσñ▒∩╝îΣ╕öµëôσ╝Çµ¡úσ╕╕
+
+- ΓÜáσìòτï¼µ│¿ΘçèµÄë `dataLabelPosition` Φ┐ÖΣ╕ÇΦíî∩╝îσ╣╢Σ╕öσÅûµ╢êµÄëσà╢Σ╗ûσ▒₧µÇºτÜäµ│¿Θçè ∩╝Üσ»╝σç║µ¡úσ╕╕∩╝îµëôσ╝Çµ¡úσ╕╕∩╝îµùáσ╝╣τ¬ù
+
+Σ║Äµÿ»µêæµ¥Ñσê░µ║ÉτáüµûçΣ╗╢ `pptgenjs/dist/pptxgenjs.es.js` Σ╕¡µÉ£τ┤ó `dataLabelPosition`∩╝îµ¥Ñσê░Σ║åµûçΣ╗╢τÜäτ¼¼1815ΦíîΣ╗úτáüσñä∩╝îΘÇÜΦ┐çµƒÑΘÿàΣ╗úτáüΣ╕¡τòÖΣ╕ïτÜä **REFERENCE** τ╜æσ¥ÇΣ╕¡τÜäΦ»┤µÿÄ
+
+```
+https://docs.microsoft.com/en-us/openspecs/office_standards/ms-oi29500/e2b1697c-7adc-463d-9081-3daef72f656f?redirectedfrom=MSDN
+```
+
+σ╛ùτƒÑ
+
+![image-20230322104556337](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322104556337.png)
+
+`barGrouping=clustered` τÜäµƒ▒τè╢σ¢╛τÜä `dataLabelPosition` τÜäσÉêµ│òσÇ╝Σ╕║ `InsideBase, InsideEnd, OutsideEnd, Center`  σà╢Σ╕¡Σ╕ÇΣ╕¬∩╝îpptgenjsτÜäΣ╜£ΦÇàµ£ëσ»╣Φ┐ÖΣ╕¬σÇ╝Φ┐¢ΦíîσñäτÉå∩╝îΣ╗úτáüσªéΣ╕ï∩╝Ü
+
+```js
+if (options.dataLabelPosition) {
+    // ...
+    if (options._type === CHART_TYPE.BUBBLE || options._type === CHART_TYPE.BUBBLE3D || options._type === CHART_TYPE.LINE || options._type === CHART_TYPE.SCATTER) {
+        if (!['b', 'ctr', 'l', 'r', 't'].includes(options.dataLabelPosition))
+            delete options.dataLabelPosition;
+    }
+    if (options._type === CHART_TYPE.BAR) {
+        if (!['stacked', 'percentStacked'].includes(options.barGrouping || '')) {
+            if (!['ctr', 'inBase', 'inEnd'].includes(options.dataLabelPosition))
+                delete options.dataLabelPosition;
+        }
+        if (!['clustered'].includes(options.barGrouping || '')) {
+            if (!['ctr', 'inBase', 'inEnd', 'outEnd'].includes(options.dataLabelPosition))
+                delete options.dataLabelPosition;
+        }
+    }
+}
+```
+
+σÅ»Σ╗Ñτ£ïσ╛ùσç║µ¥Ñ∩╝îΣ╜£ΦÇàσ╕îµ£¢∩╝Üσ╜ô `dataLabelPosition` τÜäσÇ╝Σ╕ìµÿ»µƒÉΣ╕Çτ▒╗σ¢╛Φí¿τÜä `dataLabelPosition` τÜäσÉêµ│òσÇ╝τÜäµù╢σÇÖ∩╝îσ░▒µ╕àΘÖñµÄë `dataLabelPosition` ∩╝îΦ┐¢ΦÇîΘççτö¿ `dataLabelPosition` τÜäΘ╗ÿΦ«ñσÇ╝πÇé
+
+Σ╜åµÿ»∩╝îµêæΘÇÜΦ┐ç `console.log('options._type:', options._type, CHART_TYPE)` ∩╝îσÅæτÄ░∩╝îσ╜ôµêæΣ╗¼Σ╜┐τö¿σñìσÉêσ¢╛Φí¿τÜäµù╢σÇÖ∩╝î`options._type` τÜäσÇ╝µÿ»Σ╕ÇΣ╕¬µò░τ╗ä∩╝îΦÇî `CHART_TYPE.XX` τÜäσÇ╝µÿ»Σ╕ÇΣ╕¬σ¡ùτ¼ªΣ╕▓∩╝îσ¢áµ¡ñ∩╝î**σ£¿σñìσÉêσ¢╛Φí¿Σ╕¡∩╝îΣ╕èΘ¥óΦ┐ÖΣ╕Çµ«╡Σ╗úτáüσ╣╢Σ╕ìΦâ╜µ╕àΘÖñµÄëµƒÉτ▒╗σ¢╛Φí¿Σ╕ìσÉêµ│òτÜä `dataLabelPosition` τÜäσÇ╝πÇé**
+
+![image-20230322111316185](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322111316185.png)
+
+Σ╕║Σ║åµ¢┤Φ┐¢Σ╕Çµ¡ÑτÜäΘ¬îΦ»ü∩╝îσ£¿Σ╗úτáüτÜäΦ┐ÖσçáΣ╕¬σ£░µû╣σèáΣ╕è `console.log` Φ»¡σÅÑ
+
+![image-20230322112411424](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322112411424.png)
+
+τä╢σÉÄµëºΦíîτöƒµêÉPPTµôìΣ╜£∩╝îσ£¿µÄºσê╢σÅ░Σ╕¡τÜäµÿ╛τñ║τÜäµëôσì░τ╗ôµ₧£σªéΣ╕ï
+
+![image-20230322112526526](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322112526526.png)
+
+σÅ»Σ╗Ñτ£ïσç║∩╝îτí«σ«₧µ▓íµ£ëΦ┐¢σàÑσê░µ╕àΘÖñΣ╕ìσÉêµ│òτÜä `dataLabelPosition` τÜäσÇ╝τÜäΘÇ╗Φ╛æΣ╕¡πÇé
+
+µëÇΣ╗Ñµêæτî£µ╡ï∩╝îµÿ»σÉªσ¢áΣ╕║µƒ▒τè╢σ¢╛τÜä `dataLabelPosition` τÜäσÇ╝Σ╕ìσÉêµ│ò∩╝îµëìσ»╝Φç┤Σ║åµëôσ╝ÇPPTµûçΣ╗╢τÜäµù╢σÇÖσ╝╣σç║Σ║åΣ┐«σñìτ¬ùσæó∩╝ƒµ»òτ½ƒ∩╝îσ╝╣σç║τ¬ùΣ╕¡µÿ╛τñ║τÜäµÿ»σåàσ«╣µ£ëΘù«Θóÿ∩╝îτö¿Σ║åΣ╕ìσÉêµ│òτÜäσÇ╝Σ╕ìσ░▒µÿ»Θù«ΘóÿσÉù∩╝ƒ
+
+![image-20230322112906975](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322112906975.png)
+
+
+
+µ£¼µ¥ÑµêæΦºëσ╛ùΦ┐Öµÿ»Σ╕ÇΣ╕¬bug∩╝îΣ╜åµÿ»σÉÄµ¥ÑµêæσÅêΦ╖æσÄ╗τ£ïΣ║åΣ╕ÇΣ╕ïσ«ÿµû╣τÜäΣ╜┐τö¿µûçµíú∩╝îΣ╗öτ╗åµâ│Σ║åΣ╕ÇΣ╕ï∩╝îσÅæτÄ░µûçµíúσ░åσ¢╛Φí¿τÜäσ▒₧µÇºσêåΣ╕║
+
+- ΘÇÜτö¿σ▒₧µÇº∩╝ÜGeneral
+- µƒ▒τè╢σ¢╛/µèÿτ║┐σ¢╛/µò░µì«µáçτ¡╛σ▒₧µÇº∩╝ÜBarπÇüDataLabelπÇüLine
+- τ¡ëτ¡ë
+
+Σ╕Çσ╝Çσºïµ▓íΦºëσ╛ùµûçµíúΦ┐Öµá╖σåÖµ£ëΣ╗ÇΣ╣êΘù«Θóÿ∩╝îτÄ░σ£¿τ╗ôσÉêΣ╕èΘ¥óτÜäµâàσå╡∩╝îµêæΦºëσ╛ùµûçµíúΦ┐Öµá╖σåÖτÜäµäÅµÇ¥µÿ»σæèΦ»ëµêæΣ╗¼ `dataLabelPosition` Σ╕ìΦªüµö╛σ£¿ `general` Σ╕¡∩╝îΦÇîµÿ»σ║öΦ»Ñµö╛σ£¿σ¢╛Φí¿σìòτï¼τÜä `options` Σ╕¡πÇé
+
+```js
+// comboTypes
+{
+    type: ppt.charts.BAR,
+    data: [{
+        name: config.barName,
+        labels: config.labels,
+        values: config.barValues,
+    }],
+    options: { chartColors: [config.barColor], barGapWidthPct: 250, dataLabelPosition: 'outEnd', },
+},
+```
+
+µ₧£τä╢∩╝îµêæµö╛σ£¿Φ┐ÖΘçî∩╝îσ«âσ»╝σç║µ¡úσ╕╕∩╝îσ╣╢Σ╕öµ▓íµ£ëσ╝╣σç║Σ┐«σñìτ¬ùσÅúπÇé
+
+### 5. lineDataSymbolSize
+
+Φ┐ÖΣ╕¬σ▒₧µÇºΣ╣ƒΣ╝Üσ»╝Φç┤σ╝╣σç║Σ┐«σñìτ¬ù∩╝îΦÇîΣ╕öσÑçµÇ¬τÜäµÿ»∩╝îσ╜ôΦ┐ÖΣ╕¬σ▒₧µÇºτÜäσÇ╝Σ╕║1τÜäµù╢σÇÖ∩╝îµëìΣ╝Üσ╝╣σç║Σ┐«σñìτ¬ùπÇé
+
+![image-20230322125536694](https://typora-picgo-mac.oss-cn-hangzhou.aliyuncs.com/image-20230322125536694.png)
+
+Σ╜åµÿ»σ£¿µûçµíúΣ╕¡µÿ╛τñ║∩╝îΦ»Ñσ▒₧µÇºτÜäσÇ╝σÅ»Σ╗Ñµÿ»1-256
+
+Φ┐ÖΣ╕¬σì│Σ╜┐µƒÑτ£ïΣ║åµ║Éτáü∩╝îµêæΣ╣ƒµ▓íµâ│µÿÄτÖ╜Σ╕║Σ╗ÇΣ╣ê∩╝îσÅ¬Φâ╜τ¡ëσ╛àΣ╜£ΦÇàσ¢₧σñìΣ║åπÇé
+
+### τ╗ôΦ«║
+
+Φ┐ÖΣ╕¬Θù«ΘóÿτÜäσç║τÄ░∩╝îµÿ»Σ╗ÑΣ╕ïΦ┐Öσçáτé╣τÜäΣ╜£τö¿τ╗ôµ₧£
+
+1. τö¿µê╖µ£¬µîëτàºσ«ÿµû╣µûçµíúµ¥ÑΣ╜┐τö¿Φ»Ñσ║ô
+2. σ«ÿµû╣µûçµíúΣ╕¡µÅÅΦ┐░τÜäΣ╕ìσñƒσçåσñç∩╝îµ»öσªéΦ»┤ `dataLabelPosition` τÜäσÇ╝σ£¿Σ╕ìσÉîσ¢╛Φí¿Σ╕¡σÅ»Σ╗ÑΣ╜┐τö¿τÜäµ£ëµòêσÇ╝µÿ»Σ╕ìΣ╕Çµá╖τÜä∩╝îΣ╜åµÿ»µûçµíúΣ╕¡σ╣╢µ▓íµ£ëΦ»┤µÿÄ∩╝îΦÇîµÿ»µèèΦ┐ÖΣ╕¬σ▒₧µÇºτÜäµëÇµ£ëσÅ»ΘÇëσÇ╝Θâ╜µö╛σ£¿Σ╕ÇΦ╡╖σêùΣ║åσç║µ¥ÑπÇé
+3. Σ╗úτáüΣ╕¡σ»╣ `options.dataLabelPosition` τÜäΘ¥₧σÉêµ│òσÇ╝τÜäσñäτÉåΘÇ╗Φ╛æσ¡ÿσ£¿Θù«ΘóÿπÇé`n<<COMMENT>>`nI see your bug report has a lot of details, and I am running into the same issue! Just want to drop a note of appreciation for your report. For my case, I think I can drop the requirement for a stacked bar download at the moment, but this is very interesting and I hope is triaged eventually.`n<<COMMENT>>`nIt sounds like the crux here is that when using `stacked`, you can't set `dataLabelPosition`. Removing this line from my attempt to make stacked bar graphs worked. Thanks!
+=====ISSUE 1231=====
+### [BUG] autopage and rowspan`n### Issue Category
+
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [     v3.11.0   ]
+- Please specify what version(s) of PowerPoint you are targeting: [     2212   ]
+- Please specify what web browser you are using.................: [     Google Chrome   ]
+
+### Desired Behavior
+<!--- If you are reporting an issue please describe the expected behavior. -->
+<!--- If you are suggesting an enhancement please describe thoroughly the enhancement, how it can be achieved, and expected benefit. -->
+This issue is related to this 
+https://github.com/gitbrent/PptxGenJS/issues/983
+but it's closed and just says autopage was completely rewritten in v3.8.0 but issue is still present in the latest one, (I also tried in the v3.8.0).
+
+The Desired Behavior should be the following, the table should keep the row spanned in autoPage when there is an overflow. This is an example
+![image](https://user-images.githubusercontent.com/46205253/226124208-b17b7ff7-46be-4270-801e-e30b59a82a4c.png)
+PS: I disabled the autoPage to show up the desired behavior,
+If autopage is set to true, it should keep the spanned row.
+
+### Observed Behavior
+<!--- If you are reporting an issue please describe the behavior you expected to occur when performing the action. -->
+<!--- If you are making a suggestion or asking a question delete this section. -->
+When  set autopage to true, It's ignoring the spanned row, maybe because It's no present when reading the second slide.
+First slide
+![image](https://user-images.githubusercontent.com/46205253/226124408-fb542377-4dd1-4784-ad07-7a2077fa2416.png)
+Second slide
+![image](https://user-images.githubusercontent.com/46205253/226124432-9e49bc5f-fb68-4384-ba5b-a208e6cec41e.png)
+So It's not doing the same behavior as the desired behavior.
+
+### Steps to Reproduce
+<!--- If you are reporting an issue please describe the steps to reproduce the bug in sufficient detail to allow testing. -->
+<!--- If you are making a suggestion or asking a question delete this section. -->
+Here I provide you with a sandbox reproducing the issue, It's using v3.11.0
+https://codesandbox.io/s/ppt-autopage-rowspan-bug-cvo08z
+
+Just click on the download PPT button to see the output, and also for testing purposes to get the observed and desired behavior results you can enable and disable the autopage to see the difference, Thanks.
+
+This issue is also present also in HTML to PowerPoint feature`n---COMMENTS---`n
+I am also facing same issue using v 3.12
+
+`n<<COMMENT>>`nSame issue in 4.0.0...`n<<COMMENT>>`nI have also encountered this issue and made a fix https://github.com/gitbrent/PptxGenJS/pull/1391
+=====ISSUE 1224=====
+### [BUG] Border style of the first cell adjacent to cells with rowspan`n### Issue Category
+
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [ 3.11 ]
+- Please specify what version(s) of PowerPoint you are targeting: [ 2021 ]
+- Please specify what web browser you are using.................: [ chrome ]
+
+### Desired Behavior
+<!--- If you are reporting an issue please describe the expected behavior. -->
+The border style should also be applied to cells adjacent to cells with rowspan.
+
+
+### Observed Behavior
+<!--- If you are reporting an issue please describe the behavior you expected to occur when performing the action. -->
+The border style of the first row of cells with rowspan is not applied
+![ßäëßà│ßäÅßà│ßäàßà╡ßå½ßäëßàúßå║ 2023-02-21 ßäïßà⌐ßäîßàÑßå½ 11 00 16](https://user-images.githubusercontent.com/123144980/220228951-60d5d83d-147a-4f75-b595-8ec430d6b825.png)
+
+
+### Steps to Reproduce
+<!--- If you are reporting an issue please describe the steps to reproduce the bug in sufficient detail to allow testing. -->
+Run [demo/browser](https://gitbrent.github.io/PptxGenJS/demo/browser/index.html#html2pptx) Rowspan Demo with next table element, which is applied border style
+```
+<table id="tabRowspan" class="tabHtmlToPpt w-100">
+<thead class="table-light">
+	<tr>
+		<th class="tg-header">Last Name</th>
+		<th class="tg-header">First Name</th>
+		<th class="tg-header">Count</th>
+	</tr>
+</thead>
+<tbody>
+	<tr>
+		<td rowspan="3">Smith</td>
+		<td style="border-left: solid 5px #000;">Liz</td>
+		<td>50</td>
+	</tr>
+	<tr>
+		<td style="border-left: solid 5px #000;">Eve</td>
+		<td>94</td>
+	</tr>
+	<tr>
+		<td style="border-left: solid 5px #000;">Scott</td>
+		<td>101</td>
+	</tr>
+</tbody>
+</table>
+````n---COMMENTS---`n
+=====ISSUE 1206=====
+### [BUG] TableToSlides issue with text on Slides past the first slide generated`nHello,
+
+I am seeking to do the following:
+
+pptx.tableToSlides('myHtmlTableID', {
+  y: 1.5,
+  masterSlideName: 'MASTER_SLIDE',
+  addText: { text: 'Question One', options: { x: 0.5, y: 1, fontSize: 18 } },
+});
+
+I am seeking to put a title at the top of each slide and then have the table rows follow. This works fine on the first slide generated, but it does not work for any additional slides that are generated.
+
+First Slide:
+![image](https://user-images.githubusercontent.com/11725430/210439570-598f6196-59f4-46c0-b2a0-e55e12995efa.png)
+
+Subsequent slides:
+![image](https://user-images.githubusercontent.com/11725430/210439865-40289526-13cf-47b0-a166-eefbf787bb90.png)
+
+
+Is there a simple fix for this?
+Would you expect this to work, or is this a bug?
+
+Thanks,
+
+-----Erik
+
+`n---COMMENTS---`n
+=====ISSUE 1200=====
+### tableToSlides autoPaging not working`n### Issue Category
+
+- [ ] Enhancement
+- [ ] Bug
+- [x] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [3.11.0]
+- Please specify what version(s) of PowerPoint you are targeting: [MS PowerPoint 2016]
+- Please specify what web browser you are using.................: [FireFox 102.5.0esr (64-bit)]
+
+### Desired Behavior
+Basic test of exporting an existing table with dynamic data to PowerPoint with the tableToSlides function with auto paging to see, if it fits my needs and the table is correctly wrapped in multiple slides
+
+### Observed Behavior
+The table is not correctly wrapped in multiple slides
+
+### Question
+I used a minimal example to test this, see screenshots of the code. And I got a presentation where the table is overflowing the slide massively (see also screenshots or attached ppt). Am I doing something wrong or are there some options missing (while from documentation the default should be correct for me)?
+![table](https://user-images.githubusercontent.com/120564369/209350282-495c80b2-c757-47e8-bc99-addf41ffbd91.png)
+![functionCall](https://user-images.githubusercontent.com/120564369/209350290-f81048c7-9615-4fa3-a221-56ba123b15e0.png)
+![result](https://user-images.githubusercontent.com/120564369/209350311-595e2121-d2cd-40a8-8c73-0b5d879d27ce.png)
+[test_basic.pptx](https://github.com/gitbrent/PptxGenJS/files/10295585/test_basic.pptx)
+`n---COMMENTS---`nHi, I have the same problem(also with `addTable` method, if I have big array of rows). Can someone give me a hand please?`n<<COMMENT>>`nAs nobody provided help in here, I tried older versions.
+In version 3.7.0 auto paging is just working fine on my side
+=====ISSUE 1199=====
+### [FEATURE] allow user to provide fontScale and lnSpcReduction values with fit: 'shrink'`n### Issue Category
+
+Enhancement
+
+### Product Versions
+
+- Please specify what version of the library you are using......: 3.11.0
+- Please specify what web browser you are using.................: Chrome
+
+### Desired Behavior
+As explained in [779](https://github.com/gitbrent/PptxGenJS/issues/779), both Powerpoint and Word dynamically calculate a scaling factor and apply fontScale and lnSpcReduction values to a:normAutofit (i.e. {fit: 'shrink'} option). PptxGenJS has no way to trigger this event and calculate the scaling factor. However, there are situation when the user can calculate these values. I suggest allowing user to provide these values. The code could look something like this:
+```
+if (slideObject.options.fit) {
+    if (slideObject.options.fit.type === 'none') bodyProperties += ''
+    else if (slideObject.options.fit.type === 'shrink') bodyProperties += `<a:normAutofit${slideObject.options.fit.fontScale ? ` fontScale="${slideObject.options.fit.fontScale}"` : ''}${slideObject.options.fit.lnSpcReduction ? ` lnSpcReduction="{slideObject.options.fit.lnSpcReduction}"` : ''}/>`
+    else if (slideObject.options.fit.type === 'resize') bodyProperties += '<a:spAutoFit/>'
+}
+```
+`n---COMMENTS---`n
+=====ISSUE 1192=====
+### Math equations`n### Issue Category
+
+- [ ] Enhancement
+- [ ] Bug
+- [x] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+3.11.0 
+
+### Desired Behavior
+
+How can we create a math equation using the API?
+`n---COMMENTS---`n
+=====ISSUE 1188=====
+### Pie titleFontItalic`nHi∩╝î
+    I need  a new property titleFontItalic for the pie chartπÇéCan you add it ∩╝ƒ thanks ∩╝ü`n---COMMENTS---`nSorry∩╝î I also Neet a new Property  underline for the pie chart
+=====ISSUE 1168=====
+### [BUG|] Table Auto-Paging Error`nWe appreciate your feedback - to help the team understand your needs please complete the following template to ensure we have the details to help.
+
+### Submission Guidelines
+
+- **If you are not using the latest release, please update and see if the issue is resolved before submitting an issue**
+- General questions or high-level topics should be posted in [Discussions](https://github.com/gitbrent/PptxGenJS/discussions)
+- Please browse the online [Documentation](https://gitbrent.github.io/PptxGenJS/) to see if your question is already addressed there
+
+### Issue Category
+
+- [ ] Enhancement
+- [X] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [pptxgen.bundle.js vers 3.10.0 and 3.11.0]
+- Please specify what version(s) of PowerPoint you are targeting: [2019]
+- Please specify what web browser you are using.................: [Chrome & Edge ]
+
+### Desired Behavior
+<!--- If you are reporting an issue please describe the expected behavior. -->
+Create a PPTX file that does not produce a "repair" dialogue.
+<!--- If you are suggesting an enhancement please describe thoroughly the enhancement, how it can be achieved, and expected benefit. -->
+
+### Observed Behavior
+<!--- If you are reporting an issue please describe the behavior you expected to occur when performing the action. -->
+The PptxGenJS code produces a PowerPoint "repair" dialogue when auto-paging a table of data that extends to 2 or more slides.  It occurs under the following conditions:
+- A table row's text is split between 2 slides by the auto-paging feature AND
+- The first column's text on the 2nd slide is only 1 line and does not wrap to a 2nd line in the cell AND
+- The second column's text ends on the 1st slide so the cell is blank on the 2nd slide
+
+Making the first column's text string longer so that it wraps to a second line on the second slide does not generate the powerpoint error.
+
+Making the second column's text string longer so that it extends to the second slide also does not generate the error.
+<!--- If you are making a suggestion or asking a question delete this section. -->
+
+### Steps to Reproduce
+<!--- If you are reporting an issue please describe the steps to reproduce the bug in sufficient detail to allow testing. -->
+A test HTML file that reproduces the error is attached below:
+
+<!--- If you are making a suggestion or asking a question delete this section. -->
+[autopagingErrorExample.txt](https://github.com/gitbrent/PptxGenJS/files/9669282/autopagingErrorExample.txt)
+`n---COMMENTS---`n
+=====ISSUE 1164=====
+### [BUG] Title position is not honored in doughnut and 3.11.0`n### Issue Category
+
+- [ ] Enhancement
+- [X] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Product Versions
+
+- Please specify what version of the library you are using......: [3.11.0]
+- Please specify what version(s) of PowerPoint you are targeting: [ 365 apps for enterprise  ]
+- Please specify what web browser you are using.................: [ none ]
+
+### Desired Behavior
+With pptxgenjs I can position the title of a doughnut graph, with the `titlePos` prop on `IChartOps`, this works as it should with version 3.10.0
+
+### Observed Behavior
+With release 3.11.0, I am no longer able to change the position of the title on doughnuts, using the aforementioned titlePos prop, the title stays in the same position, regardless of what I enter as titlePos.
+
+### Steps to Reproduce
+Add doughnut graph to a slide, and specify titlePos in the chartOptions object, to move it to a desired position.
+
+`n---COMMENTS---`n
+=====ISSUE 1165=====
+### [BUG] Hyperlink isn't styled or colored based on theme`nVersion: 3.11.0
+
+### Desired Behavior
+Hyperlinks should be generated in as blue and then purple once it was visited (default link coloring). Changing the color theme does nothing to the hyperlink colors. The color theme should change the link colors as well.
+
+I am generating slide links (links that jump to another slide)
+
+This did not happen in a previous version of this library.
+
+### Observed Behavior
+Links are colored black with an underline. I have to manually color them blue so they look like links but they don't change color when clicked.
+
+### Steps to Reproduce
+This is generally what I'm doing. Just adding hyperlinks to slides:
+```
+slide.addText([{
+  text: "hyperlink", options: { hyperlink: {slide: 2} }
+}], {
+  x: .2, y: 1.2, w: 9.6, h: 5.7
+});
+````n---COMMENTS---`n
+=====ISSUE 1157=====
+### [BUG] Custom column with`nWhen using tableToSlides and the table is hidden (display: none), it's impossible to set a custom column width with the attributes `data-pptx-min-width` or `data-pptx-width` because the cells offsetWidth will always be 0.
+
+I propose to change this line:
+https://github.com/gitbrent/PptxGenJS/blob/bf143e6145c9d5e618d9c7b23a0ec96263bc590e/src/gen-tables.ts#L576
+
+to:
+`const intCalcWidth = Number(((Number(emuSlideTabW) * ((colW / intTabW) * 100)) / 100 / EMU).toFixed(2)) || 0`
+
+This will allow the user to set custom width because `intCalcWidth` will be 0 instead of NaN if `colW` and `intTabW` is 0.`n---COMMENTS---`n
+=====ISSUE 1152=====
+### section title enhancement`n
+### Category
+- [x] Enhancement
+- [ ] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+https://github.com/gitbrent/PptxGenJS/blob/13a18c1afe1565f0f9d12919ab7cbe672a025230/src/pptxgen.ts#L621
+
+check if the section title exists.
+if exists, dot push section to section arr.
+`n---COMMENTS---`n
+=====ISSUE 1145=====
+### slide.addtable option autopage, line height bug.`n### Category
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [    V3.11.0     ]
+
+Please specify what version(s) of PowerPoint you are targeting: [   last version for office 365      ]
+
+Please specify what web browser you are using: [      chrome   ]
+
+`slide.addtable` option use `autopage`∩╝îline 2nd set rowH to 1.5∩╝î
+now ,2nd page talbe line 2nd is 1.5.
+but∩╝îit should be set to default height.
+
+and other option? pls check
+
+![µê¬σ▒Å2022-08-07 14 14 12](https://user-images.githubusercontent.com/2936579/183277922-3eb1e92c-7a76-4208-9804-61ae41822031.png)
+
+![µê¬σ▒Å2022-08-07 14 14 19](https://user-images.githubusercontent.com/2936579/183277925-6b310c8d-04fc-42ef-821e-7993acda13e2.png)
+
+
+
+`n---COMMENTS---`nPlease provide source code and non-cropped screenshots.`n<<COMMENT>>`nlink: https://codesandbox.io/s/pptxgenjs-page-number-3-9-0-forked-32gvsv?file=/src/App.js
+
+page 1:
+![µê¬σ▒Å2022-08-11 07 10 05](https://user-images.githubusercontent.com/2936579/184038733-ba5c20f0-5dad-4fa5-97c5-8d5c6c1072b5.png)
+page 2(auto table):
+![µê¬σ▒Å2022-08-11 07 13 47](https://user-images.githubusercontent.com/2936579/184038958-6c6f78d7-a964-4841-b692-bf3f4697cc40.png)
+
+`n<<COMMENT>>`nI met the same issue here after enabling autoPage.
+![image](https://user-images.githubusercontent.com/50568923/186814369-7d47a22b-0a69-4a23-bc90-f4fb5dae9405.png)
+`n<<COMMENT>>`nPlease provide source code and non-cropped screenshots.`n<<COMMENT>>`n@gitbrent ,hello, can the current bug be fixed?`n<<COMMENT>>`nto be processed the issue`n<<COMMENT>>`n@gitbrent have a base app on https://stackblitz.com/?
+i can add code to this base app.
+=====ISSUE 1138=====
+### Breakline not turning false working for texts with different font styles`n### Category
+Bug
+
+### Version
+Please specify what version of the library you are using: [  3.10.0 ]
+
+### Expected / Desired Behavior / Question
+When texts with multiple styling are added, the text shouldn't break to the next line by default
+
+### Observed Behavior
+When texts with same styling are added, the text works fine but when multiple styling are added the texts breaks to a new line.
+
+### Steps to Reproduce
+Here is a [Jsfiddle](https://jsfiddle.net/2L3my0oj/1/) to recreate the bug. As you see, I have also specified `breakLine: false`.`n---COMMENTS---`nIs it the default behaviour that texts with "\n" inside the text strings sets `breakLine: true` when the mutiline  text format is used?
+=====ISSUE 1137=====
+### SlideMasterProps.margin and  placeholder.options.margin unit is diff.`n### Category
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [     3.10.0    ]
+
+this doc: SlideMasterProps.margin is `(inches) array of numbers in TRBL order. Ex:┬á[0.5, 0.75, 0.5, 0.75]`
+but,  placeholder.options.margin is `(point) array of numbers in LRBT order. Ex:┬á[10, 15, 10, 15]`
+`n---COMMENTS---`n`use slide.addTable()`
+https://github.com/gitbrent/PptxGenJS/blob/11332303676df3fd44cceee4b4c199589da9566f/src/gen-tables.ts#L318
+
+master and placeholder
+https://github.com/gitbrent/PptxGenJS/blob/5b91242275868aef95ed745215b696e117ae6ce6/src/gen-xml.ts#L394
+
+
+=====ISSUE 1136=====
+### table autopage bug`n### Category
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [     v3.10.0    ]
+
+Please specify what version(s) of PowerPoint you are targeting: [    office 365 last     ]
+
+Please specify what web browser you are using: [     chrome    ]
+
+use master placeholder and table autopage, second page no have placeholder.
+this code example:
+```
+this.pptx.defineSlideMaster({
+      title: 'community_compare',
+      background: { color: 'FFFFFF' },
+      objects: [
+        { rect: { x: 0.0, y: 0, w: '100%', h: 0.75, fill: { color: this.pptx.SchemeColor.accent1 } } },
+        {
+          placeholder: {
+            options: { name: 'title', type: 'body', x: 0, y: 0, w: 10, h: 0.75, valign: 'middle', color: 'FFFFFF' },
+            text: 'µÄ¿ΦìÉΘí╣τ¢«µªéσå╡'
+          }
+        }
+      ]
+```
+```
+
+  private addSlides2() {
+    let slide = this.pptx.addSlide({ masterName: 'community_compare' });
+    slide.addText('test table', { placeholder: 'title' });
+    let rows: pptxgen.TableRow[] = [
+      [
+        { text: 'title Lft', options: { align: 'left', fontFace: 'Arial' } },
+        { text: 'title Ctr', options: { align: 'center', fontFace: 'Verdana' } },
+        { text: 'title Rgt', options: { align: 'right', fontFace: 'Courier' } }
+      ],
+      ...
+
+    ];
+    slide.addTable(rows, {
+      x: 0,
+      y: 0.75,
+      w: 10,
+      h: 5.5,
+      autoPage: true,
+      autoPageRepeatHeader: true,
+      newSlideStartY: 0.75,
+      autoPageLineWeight: 2
+    });
+  }
+```
+`n---COMMENTS---`n![µê¬σ▒Å2022-07-29 17 42 33](https://user-images.githubusercontent.com/2936579/181732218-c4b0ca7f-bac7-4830-a977-fb460ba9f7ca.png)
+
+first page use "test table" replace placeholder.
+second page placeholder is empty.`n<<COMMENT>>`nThis is a duplicate of #625, I have a PR #1133 that should make this possible.`n<<COMMENT>>`nyes∩╝îthanksπÇé
+i guess, add option `{autoPagePlaceholder: true}` on `ITableOptions `,maybe the best solution.
+auto get this slide's text(text.option.placeholder=true),and copy to new slide.`n<<COMMENT>>`n`slide.addTable(table.rows, {autoPagePlaceholder: true}).addText('text', {options:{placeholder:'title'}})`.
+
+first add table, and set autoPagePlaceholder=true.
+after add text∩╝îif placeholder=title and slide has table and table autoPagePlaceholder=true∩╝î
+copy text to all silde.
+=====ISSUE 1135=====
+### how to use placeholder: 'tbl'`n```
+ this.pptx.defineSlideMaster({
+      title: 'community_compare',
+      background: { color: 'FFFFFF' },
+      objects: [
+        { rect: { x: 0.0, y: 0, w: '100%', h: 0.75, fill: { color: this.pptx.SchemeColor.accent1 } } },
+        {
+          placeholder: {
+            options: { name: 'title', type: 'body', x: 0, y: 0, w: 10, h: 0.75, valign: 'middle', color: 'FFFFFF' },
+            text: 'µÄ¿ΦìÉΘí╣τ¢«µªéσå╡'
+          }
+        },
+        {
+          placeholder: {
+            options: { name: 'tbl', type: 'tbl', x: 0.75, y: 0, w: 10, h: 4.9 },
+            text: 'µÄ¿ΦìÉΘí╣τ¢«µªéσå╡σåàσ«╣'
+          }
+        }
+      ],
+      slideNumber: { x: 0.3, y: '90%' } // Θí╡τáü
+    });
+```
+
+```
+
+    let slide = this.pptx.addSlide();
+    slide.addText('test table', { placeholder: 'title' });
+    let rows: pptxgen.TableRow[] = [
+      [
+        { text: 'Top Lft', options: { align: 'left', fontFace: 'Arial' } },
+        { text: 'Top Ctr', options: { align: 'center', fontFace: 'Verdana' } },
+        { text: 'Top Rgt', options: { align: 'right', fontFace: 'Courier' } }
+      ]
+    ];
+    slide.addTable(rows, { placeholder: 'tbl' });
+```
+
+this code `slide.addTable(rows, { placeholder: 'tbl' });` is error. placeholder does not exist TableProps.`n---COMMENTS---`n
+=====ISSUE 1132=====
+### titlePos  Don't work`nThank you for reporting an issue, suggesting an enhancement, or asking a question. 
+
+We appreciate your feedback - to help the team understand your needs please complete the following template to ensure we have the details to help.
+
+**Please check out the [Docs](https://gitbrent.github.io/PptxGenJS/) to see if your question is already addressed there.**
+
+### Category
+- [ ] Enhancement
+- [ ] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [         ]
+
+Please specify what version(s) of PowerPoint you are targeting: [         ]
+
+Please specify what web browser you are using: [         ]
+
+**If you are not using the latest release, please update and see if the issue is resolved before submitting an issue.**
+
+### Expected / Desired Behavior / Question
+*If you are reporting an issue please describe the expected behavior. If you are suggesting an enhancement please describe thoroughly the enhancement, how it can be achieved, and expected benefit. If you are asking a question, ask away!*
+
+### Observed Behavior
+*If you are reporting an issue please describe the behavior you expected to occur when performing the action. If you are making a suggestion or asking a question delete this section.*
+
+### Steps to Reproduce
+*If you are reporting an issue please describe the steps to reproduce the bug in sufficient detail to allow testing. If you are making a suggestion or asking a question delete this section.*
+
+### Submission Guidelines
+*Delete this section after reading*
+* All suggestions, questions and issues are welcome, please let us know what's on your mind.
+* Remember to include sufficient details and context.
+* Please check back occasionally on your issue as we may have follow up questions.
+* If you have multiple suggestions, questions, or bugs please submit them in separate issues so we can track resolution.
+
+Thank you for your feedback!
+`n---COMMENTS---`n
+=====ISSUE 1055=====
+### [QUESTION]cell lost borders when been rowspan`nI set the first cell rowspan=3,give it TRBL borders.But the right(left untested) border only effect to first row.
+Though I could set the left border of cell B and C to make it.I still wonder if it output right?
+
+let pptx = new PptxGenJS();
+    let slide =pptx.addSlide();
+		
+		var arrTabRows = [
+			[
+				{ text: 'Lft', options: { rowspan:3,border:[{pt:'1',color:'c7c7c7'},{pt:'1',color:'c7c7c7'},{pt:'1',color:'c7c7c7'},{pt:'1',color:'c7c7c7'}] } },
+				{ text: 'A', options: { border:[{pt:'1',color:'E32256'},{pt:'1',color:'E32256'},{pt:'1',color:'E32256'}] } },
+				{ text: 'Top Rgt', options: { } }
+			],
+			[
+				{ text: 'B', options: { border:[{pt:'1',color:'E32256'},{pt:'1',color:'E32256'},{pt:'1',color:'E32256'}] } },
+				{ text: 'Mdl Rgt', options: {   } }
+			],
+			[
+				{ text: 'C', options: { border:[{pt:'1',color:'E32256'},{pt:'1',color:'E32256'},{pt:'1',color:'E32256'}] } },
+				{ text: 'Btm Rgt', options: { } }
+			]
+		];
+    
+		slide.addTable(
+			arrTabRows, { x:1.0, y:1.1, w:7.0, rowH:0.75, color:'020005', fontSize:16, valign:'center', align:'center', border:{pt:'1', color:'000000'} }
+		);
+
+    pptx.writeFile();
+    
+    
+![image](https://user-images.githubusercontent.com/6645976/149925462-d114647a-2b55-48a3-be13-27d9d91f0057.png)
+
+`n---COMMENTS---`nI meet this same problem,too∩╝üDo you have any solution ∩╝ƒ
+=====ISSUE 1051=====
+### word-level formatting with valign not respected`n### Category
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [3.9.0]
+
+Please specify what version(s) of PowerPoint you are targeting: [not_related]
+
+### Expected / Desired Behavior / Question
+
+```javascript
+slide.addText(
+	[
+		{ text: "1", options: { align: "center", valign: "center" } },
+		{ text: "2", options: { align: "right", valign: "bottom" } },
+	],
+	{ shape: pptx.ShapeType.rect, valign: "center" }
+);
+```
+
+For the above code, I'd expect a single textbox to be created with:
+- "1" centred horizontally and vertically
+- "2" placed in the bottom right corner
+
+### Observed Behavior
+
+Instead, "1" is centred correctly but "2" is placed to the right but is vertically centered.
+
+It may be likely that the defaut value of `valign` of the root textbox is favoured over the text sub-elements `valign` value here, but I believe this is a bug.
+`n---COMMENTS---`nI do not believe a TextBox in PowerPoint can have valign settings per line/text run, only a single vertical setting exists.
+
+If you can create such a shape in PowerPoint, please provide details.
+=====ISSUE 1048=====
+### [BUG] PowerPoint shows "Repair" dialog when auto-paginated cell contains empty value`n### Category
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [ 3.9.0 ]
+
+Please specify what version(s) of PowerPoint you are targeting: [ PowerPoint for Mac v16.56 ]
+
+### Expected / Desired Behavior
+The powerpoint should open normally with no warning. 
+
+### Observed Behavior
+Powerpoint shows a "repair" dialog. 
+
+### Possible Clues?
+The xml of the problematic slide contains two different representation for empty cells. I suspect this may cause the problem. Here is a picture for reference:
+![image](https://user-images.githubusercontent.com/36621849/147630995-8f553d7b-0ef1-42ec-94c8-e0a0b0f1b59d.png)
+
+```XML
+<a:txBody>
+    <a:bodyPr />
+    <a:lstStyle />
+    <a:p>
+        <a:endParaRPr lang="en-US" sz="800" dirty="0" />
+    </a:p>
+</a:txBody>
+```
+This pattern corresponds with the cell under Col1 in the overflowed line.
+
+AND
+
+```XML
+<a:txBody>
+    <a:bodyPr />
+    <a:lstStyle />
+</a:txBody>
+```
+This pattern corresponds with the cells under Col3 and Col4 in the overflow line.
+
+The latter one **does not include <a:p> tag.** All of the slides contain the latter pattern cannot be properlly rendered without repairing.
+
+The problem seems to be related to the length of the content overflowing. If there are only several words overflowing, than it is very likely to triggert the dialog. Please check the pictures below.
+
+This one TRIGGERS the "Repair" dialog. And less words overflowing TRIGGERS.
+![image](https://user-images.githubusercontent.com/36621849/147630995-8f553d7b-0ef1-42ec-94c8-e0a0b0f1b59d.png)
+
+This one DOES NOT. And more words overflowing DOES NOT trigger.
+![image](https://user-images.githubusercontent.com/36621849/147630806-a28afded-a991-4baf-95f5-f8d7c88a9020.png)
+
+### Steps to Reproduce
+Please feel free to change the length of the long text if the snippet below does not trigger the problem.
+
+```JavaScript
+const testExport = async () => {
+  let pptx = new pptxgen()
+  pptx.layout = 'LAYOUT_WIDE'
+  let slide = pptx.addSlide()
+  let tableRows = [
+    [
+      {text: "Col 1"},
+      {text: "Col 2"},
+      {text: "Col 3"},
+      {text: "Col 4"},
+    ],
+    [
+      {text: "Test"},
+      {text: "Long long long long long long long long long long long long long long long long long long " +
+          "long long long long long long long long long long long long long long long long long "},
+      {text: "Test"},
+      {text: "Test"},
+    ]
+  ]
+  slide.addTable(tableRows, {
+    x: 0.5,
+    y: 1.2,
+    w: 12,
+    h: '35%',
+    rowH: 0.35,
+    border: {
+      type: 'solid',
+      pt: 1,
+    },
+    fontSize: 8,
+    autoPage: true,
+    autoPageRepeatHeader: true,
+    autoPageSlideStartY: 1.2,
+  })
+
+  await pptx.writeFile({fileName: 'test.pptx'})
+}
+```
+`n---COMMENTS---`n
+=====ISSUE 1031=====
+### Multiple colors AND multiple data sets`nI'm looking for a way to combine multiple data sets with my own array of colors.
+
+An idea is to check for the presence of an array of arrays in chartColors:
+
+```
+chartColors: [
+    ["2196F3", "2196F3", "2196F3", "2196F3"],
+    ["CCCCCC", "CCCCCC"", "CCCCCC"", "CCCCCC"],
+]
+```
+When i change bar colors manually via Powerpoint the color is appears in /c:barChart/c:ser/c:spPr/a:solidFill/a:srgbClr
+
+Would a pull request be accepted or could we sponsor the maintainer to implement this feature?`n---COMMENTS---`n![Screenshot 2023-06-02 173655](https://github.com/gitbrent/PptxGenJS/assets/10042028/55245729-1980-464d-9c2f-6dd969ec3c7c)
+I also want same feature as the attached image.
+Is there any way to accomplish this?
+=====ISSUE 1011=====
+### Apply Shadow in table cell.`nThank you for reporting an issue, suggesting an enhancement, or asking a question. 
+
+We appreciate your feedback - to help the team understand your needs please complete the below template to ensure we have the details to help. Thanks!
+
+**Please check out the [Docs](https://gitbrent.github.io/PptxGenJS/docs/installation.html) to see if your question is already addressed there. This will help us ensure our documentation covers the most frequent questions.**
+
+### Category
+- [ ] Enhancement
+- [X] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [    3.8.0     ]
+
+Please specify what version(s) of PowerPoint you are targeting: [    Powerpoint 365 v16     ]
+
+*If you are not using the latest release, please update and see if the issue is resolved before submitting an issue.*
+
+### Expected / Desired Behavior / Question
+Applied shadow options within a **table cell**
+```javascript
+let shadowOpts = { type: "outer", color: "0000ff", blur: 4, offset: 6, angle: 90, opacity: 0.4 };
+
+slide.addText([
+	{
+		text: severity.capitalize() + "\n",
+		options: { fill: fillColour, align: "center", bold: false, fontSize: 11, color: textColour, fontFace: "Open Sans (Body)", breakline: true },
+	},
+	{ text: "Γûá", options: { shadow: shadowOpts, fill: fillColour, align: "center", bold: false, fontSize: 25, color: sevBox, fontFace: "Open Sans (Body)" } },
+]);
+```
+Expected shadow to appear
+
+### Observed Behavior
+No shadow effects shown
+
+### Steps to Reproduce
+Use addTable functionality and apply shadow in options of a table cell.
+`n---COMMENTS---`nJust wanted to clarify. Shadow options work when applying in text  in general but only fails when trying to apply this within a cell in table.`n<<COMMENT>>`nConfirmed issue. The `shadow` property is not being applied on a text-run basis.
+
+Created branch: https://github.com/gitbrent/PptxGenJS/tree/issue-1011
+
+=====ISSUE 1005=====
+### addTable: Array expected!`nAfter the latest upgrade to the library, all my tables are throwing error that array expected although it was working until I updated the library. Is there any change in the format we send table array or what this issue is exactly?
+Please find below the array structure which I am passing right now.
+```javascript
+[
+    [
+        {
+            "text": 1
+        },
+        {
+            "text": "Robust process and policy",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        },
+        {
+            "text": "Met",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        }
+    ],
+    [
+        {
+            "text": 2
+        },
+        {
+            "text": "Brilliant Basics",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        },
+        {
+            "text": "Met",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        }
+    ],
+    [
+        {
+            "text": 3
+        },
+        {
+            "text": "Client Satisfaction",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        },
+        {
+            "text": "Met",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        }
+    ],
+    [
+        {
+            "text": 4
+        },
+        {
+            "text": "Controls & Compliance",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        },
+        {
+            "text": "Met",
+            "options": {
+                "align": "left",
+                "color": "000000",
+                "fontSize": 12,
+                "margin": [
+                    3,
+                    3,
+                    3,
+                    3
+                ],
+                "_lineIdx": 0,
+                "border": [
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    },
+                    {
+                        "type": "solid",
+                        "color": "c7c7c7",
+                        "pt": 1
+                    }
+                ],
+                "autoPageCharWeight": null
+            }
+        }
+    ]
+]
+````n---COMMENTS---`nSame problem here... you can see by putting `verbose: true` that it tries to distribute the rows across two slides, however the function `getSlidesForTableRows` seems to always return an array with the first item `{rows: []}`, hence the error.
+
+IMHO, this is a breaking bug :( I have to pin the library to the previous version..`n<<COMMENT>>`nExperiencing the same bug with 3.8.0 and 3.9.0.  I believe part of the issue lies with [this line](https://github.com/gitbrent/PptxGenJS/blob/ee91ab89d8be05a38ca7b526fc26f112e8ba5cd3/src/gen-tables.ts#L429) that's part of auto-paging tables. In my erroring code, this block is never entered, so `newTableRowSlide.rows` remains empty and `newTableRowSlide` is immediately appended to the returned values as noted above.  `n<<COMMENT>>`nExperiencing the same problem after update. Will it be fixed soon? Went back to the previous version.`n<<COMMENT>>`nHi, just wanted to say that we are facing the same error on our project. Actually using 3.9.0, will downgrade.`n<<COMMENT>>`n@Nadeem-02 the sample you provided works for me:
+
+```javascript
+let pptx = new PptxGenJS();
+let slide = pptx.addSlide();
+
+let arrTabRows = [
+	[
+		{
+			text: 1,
+		},
+		{
+			text: "Robust process and policy",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+		{
+			text: "Met",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+	],
+	[
+		{
+			text: 2,
+		},
+		{
+			text: "Brilliant Basics",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+		{
+			text: "Met",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+	],
+	[
+		{
+			text: 3,
+		},
+		{
+			text: "Client Satisfaction",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+		{
+			text: "Met",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+	],
+	[
+		{
+			text: 4,
+		},
+		{
+			text: "Controls & Compliance",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+		{
+			text: "Met",
+			options: {
+				align: "left",
+				color: "000000",
+				fontSize: 12,
+				margin: [3, 3, 3, 3],
+				_lineIdx: 0,
+				border: [
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+					{
+						type: "solid",
+						color: "c7c7c7",
+						pt: 1,
+					},
+				],
+				autoPageCharWeight: null,
+			},
+		},
+	],
+];
+
+slide.addTable(arrTabRows);
+
+pptx.writeFile({ fileName: "PptxGenJS-Issue1005.pptx" });
+```
+
+![Screen Shot 2022-05-01 at 11 59 35](https://user-images.githubusercontent.com/7218970/166156264-a6fd48d0-6380-499b-81bb-6e4ab4bdc923.png)
+
+`n<<COMMENT>>`nI was able to create this same error setting the "h" property of the table to 1 with autoPage:true.  If I remove the "h" property, error resolves. `n<<COMMENT>>`n@timbagwell I noticed that issue was present as far back as `3.3.1`, and I think it is likely still present on this version. But I do think that it's down stream from this as I hit this error whether that attribute is provided or not. I'd open a new issue for that one specifically.
+
+As @lilyjw pointed out, That [line ](https://github.com/gitbrent/PptxGenJS/blob/ee91ab89d8be05a38ca7b526fc26f112e8ba5cd3/src/gen-tables.ts#L429) does seem to be the problem, but I think the issue is upstream from there. 
+
+There is a loop, ominously prefixed with the comment `// STEP 6: **MAIN** Iterate over rows, add table content, create new slides as rows overflow` that iterates over the `tableRows[]` on [gen-tables.ts:299](https://github.com/gitbrent/PptxGenJS/blob/08e90f3a169786dcd7a3fc99e4295523ffae1d79/src/gen-tables.ts#L299) within the callback of that loop we push the contents of the `cell` onto an `array` called `currentTableRow` that is meant to contain the `text` within the cell, but instead defaults to an empty array on [gen-tables.ts:310](https://github.com/gitbrent/PptxGenJS/blob/08e90f3a169786dcd7a3fc99e4295523ffae1d79/src/gen-tables.ts#L310).
+
+If we go back to [line](https://github.com/gitbrent/PptxGenJS/blob/ee91ab89d8be05a38ca7b526fc26f112e8ba5cd3/src/gen-tables.ts#L429) @lilyjw mentioned, which has the comment `// A: add current row slide or it will be lost (only if it has rows and text)` and then iterates over `currTableRow[]` `only if it has rows and text`, which it doesn't have text because we default it to an empty `[]` so by the time we get to [gen-tables.js:725](https://github.com/gitbrent/PptxGenJS/blob/08e90f3a169786dcd7a3fc99e4295523ffae1d79/src/gen-tables.ts#L725) the value of `slides.rows[0]` is an empty array, thus throwing `Uncaught Error: addTable: Array expected! EX: 'slide.addTable( [rows], {options} );`
+
+It does appear to only be an empty array from the first `slide` and proceeding `slide`s configs seem to be correct.
+
+I should mention as well that I'm specifically using the `htmlToTable` method when I run into this, which would explain why it's not present when you test with `addTable``n<<COMMENT>>`nLate here, but i was also facing the same issue everything seems to work fine earlier and suddenly i was getting this Array expected error message in. addTable, what i did i just downgraded the library and updated it to same version again and it really worked and i am still not sure why is that if anyone facing the issue give it a try,`n<<COMMENT>>`nI am seeing this issue as well, using the same code from the examples, with version `3.12.0`
+
+**Update**: This was because I was trying to insert the table into a placeholder which had a defined height. Removing a definitive height from the table resolved the issue.`n<<COMMENT>>`nI faced the same issue. Starting with v3.8 table margin is in inches and no longer in points, so whoever is facing the issue should reset their margins.
+=====ISSUE 996=====
+### image placed in placeholder loses aspect ratio`nHi,
+I am using pptxgenjs version 3.7.1. I created a slide master with a placeholder of type "pic", with width=height=2. 
+When I insert an image with a different aspect ratio in this placeholder, its aspect ratio is not maintained, regardless of what I provide in the sizing property. I would like my image to be contained in the placeholder, while maintaining its aspect ratio.
+
+with 
+ph : PlaceholderProps
+sourceW = image.width
+sourceH = image.height
+
+`slide.addImage({data:image.src, x: ph.x, y:ph.y, w: sourceW, h: sourceH, sizing: { type: "contain", w: ph.w as number, h: ph.h as number }});`  
+--> OK
+`slide.addImage({data:image.src, placeholder: placeholder, w: sourceW, h: sourceH, sizing: { type: "contain", w: ph.w as number, h: ph.h as number }});`
+ --> KO
+
+Is this feature supported in 3.7.1? And if so, what properties should I send to addImage to get the expected result?
+
+Ideally I would like to provide the placeholder name without knowing its size and position, and just provide the sizing type.
+
+`slide.addImage({data:image.src, placeholder: placeholder, w: sourceW, h: sourceH, sizing: { type: "contain"});`
+
+Thanks
+Cl.`n---COMMENTS---`n@ccassan - so when you use the same values for `w` and `h` in the two examples above, you're saying the image has 2 different aspect ratios once generated?`n<<COMMENT>>`n@gitbrent , yes, the only difference in the two calls is the placeholder. `n<<COMMENT>>`nIt works now in 3.12.0, the ratio is maintained
+
+slide.addImage({
+        data:image.src, 
+        placeholder: placeholder, 
+        w: sourceW, 
+        h: sourceH, 
+        sizing: { type: "contain", w: ph.w as number, h: ph.h as number }
+    });
+=====ISSUE 962=====
+### Slidemaster Definition with Text Array broken from 3.4.0 => 3.5.0?`n### Category
+- [ ] Enhancement
+- [X] Bug
+- [ ] Question
+- [X] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [v3.6.0]
+
+We use a slidemaster definition containing an array of text elements. That did work perfectly including v3.4.0. 
+Since v3.5.0 this does not work anymore but I can't find any hint about that in the changelog.
+```
+pptx.defineSlideMaster({
+    title: "PLACEHOLDER_SLIDE",
+    background: { color: "FFFFFF" },
+    objects: [
+        { rect: { x: 0, y: 0, w: "100%", h: 0.75, fill: { color: "F1F1F1" } } },
+        { text: { text: [
+        { text: "Test 1", options: { bold: true, breakLine: true }},
+        { text: "Test 2", options: { bold: false, breakLine: true }},
+        { text: "Test 3", options: { bold: false }}
+        ], options: { x: 0, y: 0, w: 6, h: 0.75 } } },
+        {
+            placeholder: {
+                options: { name: "body", type: "body", x: 0.6, y: 1.5, w: 12, h: 5.25 },
+                text: "(custom placeholder text!)",
+            },
+        },
+    ],
+    slideNumber: { x: 0.3, y: "95%" },
+});
+```
+
+Example: https://jsfiddle.net/1sqp4rjb/
+
+After changing the https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@latest/dist/pptxgen.min.js to https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.4.0/dist/pptxgen.min.js the PPTX seems fine again.`n---COMMENTS---`n
+=====ISSUE 948=====
+### [QUESTION] Hyperlinks are losts in new slide when autopage is true`nThank you for reporting an issue, suggesting an enhancement, or asking a question. 
+
+We appreciate your feedback - to help the team understand your needs please complete the below template to ensure we have the details to help. Thanks!
+
+**Please check out the [Docs](https://gitbrent.github.io/PptxGenJS/docs/installation.html) to see if your question is already addressed there. This will help us ensure our documentation covers the most frequent questions.**
+
+### Category
+- [ ] Enhancement
+- [ ] Bug
+- Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [ **^3.5.0** ]
+
+Please specify what version(s) of PowerPoint you are targeting: [ **Microsoft PowerPoint for Microsoft 365 MSO(16.0.13127.21490) 32-bit** ]
+
+*If you are not using the latest release, please update and see if the issue is resolved before submitting an issue.*
+
+### Expected / Desired Behavior / Question
+*If you are reporting an issue please describe the expected behavior. If you are suggesting an enhancement please describe thoroughly the enhancement, how it can be achieved, and expected benefit. If you are asking a question, ask away!*
+Expected:
+When autopage is true, it can remain the same property(including hyperlink property) in the new slide.
+
+Actually:
+When autopage is true, the first page is ok, but the overflow content in the new slide losts the hyperlink property that I have setted in my code.
+![image](https://user-images.githubusercontent.com/18462472/117316348-19ce4d00-aebb-11eb-90d5-acb859c71f35.png)
+![image](https://user-images.githubusercontent.com/18462472/117316386-2488e200-aebb-11eb-8b43-e5446441235b.png)
+
+
+Thank you for your feedback!
+`n---COMMENTS---`n
+=====ISSUE 913=====
+### Empty Text + No Breakline Triggers Repair Dialog`nThank you for reporting an issue, suggesting an enhancement, or asking a question. 
+
+We appreciate your feedback - to help the team understand your needs please complete the below template to ensure we have the details to help. Thanks!
+
+**Please check out the [Docs](https://gitbrent.github.io/PptxGenJS/docs/installation.html) to see if your question is already addressed there. This will help us ensure our documentation covers the most frequent questions.**
+
+### Category
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [3.4.0 ]
+
+Please specify what version(s) of PowerPoint you are targeting: [2101]
+
+*If you are not using the latest release, please update and see if the issue is resolved before submitting an issue.*
+
+### Expected / Desired Behavior / Question
+*If you are reporting an issue please describe the expected behavior. If you are suggesting an enhancement please describe thoroughly the enhancement, how it can be achieved, and expected benefit. If you are asking a question, ask away!*
+
+Powerpoint should not request for repair.
+
+### Observed Behavior
+*If you are reporting an issue please describe the behavior you expected to occur when performing the action. If you are making a suggestion or asking a question delete this section.*
+
+Powerpoint is requesting for repair.
+
+### Steps to Reproduce
+*If you are reporting an issue please describe the steps to reproduce the bug in sufficient detail to allow testing. If you are making a suggestion or asking a question delete this section.*
+
+Throw the below code into a script, download the pptx and open it in Powerpoint.
+It should give you the repair dialog.
+
+```js
+const presentation = new PptxGenJS();
+const slide = presentation.addSlide();
+slide.addText([
+    {
+        // add text to the text property below to remove bug
+        // this line when empty forces Powerpoint to request repair
+        text: "",
+        options: {
+            breakLine: false,
+        }
+    },
+    {
+        text: "asd",
+        options: {
+            breakLine: true,
+        }
+    },
+], {
+    fill: {
+        color: "0000FF",
+    },
+    x: 0,
+    y: 0,
+    w: 2,
+    h: 2,
+    shape: presentation.ShapeType.rect,
+    autoFit: true,
+    color: "000000",
+    line: {},
+});
+const download = (function () {
+    presentation.writeFile('Test.pptx');
+})();
+```
+
+Thank you for your feedback!
+`n---COMMENTS---`n~~This bug only occurs where the first text is an empty string. Any additional text items can be an empty string with no issues.~~`n<<COMMENT>>`nIgnore what I said above. Not actually the case. Did some investigation though and the issue is occurring because in this function:
+`function genXmlTextRun(textObj) { ... }`
+The final return statement is returning nothing if the text string is empty which is making it skip some mandatory XML.
+forcing it to execute:
+`return "<a:r>" + genXmlTextRunProperties(textObj.options, false) + "<a:t>" + encodeXmlEntities(textObj.text) + "</a:t></a:r>";`
+as per normal builds the xml correctly and avoids the repair error.
+
+The code below is functional. What is being missed is the first <a:r>...</a:r> block. alternatively to above fix would be to prevent the <a:pPr/> from being added for an empty text block.
+
+```
+    <a:p>
+        <a:pPr/>
+        <a:r>
+            <a:rPr lang="en-US" dirty="0">
+                <a:solidFill>
+                    <a:srgbClr val="000000"/>
+                </a:solidFill>
+            </a:rPr>
+            <a:t></a:t>
+        </a:r>
+        <a:pPr/>
+        <a:r>
+            <a:rPr lang="en-US" dirty="0">
+                <a:solidFill>
+                    <a:srgbClr val="000000"/>
+                </a:solidFill>
+            </a:rPr>
+            <a:t>abc</a:t>
+        </a:r>
+        <a:endParaRPr lang="en-US" dirty="0"/>
+    </a:p>
+````n<<COMMENT>>`nHello, sorry by ressurecting an old topic. Any progress on this?
+=====ISSUE 911=====
+### writeFile() after write('base64') corrupts table`nThank you for reporting an issue, suggesting an enhancement, or asking a question. 
+
+We appreciate your feedback - to help the team understand your needs please complete the below template to ensure we have the details to help. Thanks!
+
+**Please check out the [Docs](https://gitbrent.github.io/PptxGenJS/docs/installation.html) to see if your question is already addressed there. This will help us ensure our documentation covers the most frequent questions.**
+
+### Category
+- [ ] Enhancement
+- [X] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [    3.4.0     ]
+
+Please specify what version(s) of PowerPoint you are targeting: [    n/a     ]
+
+*If you are not using the latest release, please update and see if the issue is resolved before submitting an issue.*
+
+### Expected / Desired Behavior / Question
+*If you are reporting an issue please describe the expected behavior. If you are suggesting an enhancement please describe thoroughly the enhancement, how it can be achieved, and expected benefit. If you are asking a question, ask away!*
+
+![image](https://user-images.githubusercontent.com/21201103/109361352-6ad41c00-784e-11eb-8ad8-837b9bca634f.png)
+
+### Observed Behavior
+*If you are reporting an issue please describe the behavior you expected to occur when performing the action. If you are making a suggestion or asking a question delete this section.*
+
+![image](https://user-images.githubusercontent.com/21201103/109361397-7e7f8280-784e-11eb-9348-1cf5d992bdce.png)
+
+### Steps to Reproduce
+*If you are reporting an issue please describe the steps to reproduce the bug in sufficient detail to allow testing. If you are making a suggestion or asking a question delete this section.*
+
+Sample powerpoint generation demonstrating issue.
+
+```javascript
+let ppt = new pptxgen();
+let slide = ppt.addSlide();
+slide.addTable([
+    [
+        { text: '1', options: { colspan: 4, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }},
+        { text: '2', options: { colspan: 4, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }},
+        { text: '3', options: { colspan: 4, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }}
+    ],
+    [
+        { text: '4', options: { colspan: 3, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }},
+        { text: '5', options: { colspan: 3, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }},
+        { text: '6', options: { colspan: 3, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }},
+        { text: '7', options: { colspan: 3, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }}
+    ],
+    [
+        { text: '8', options: { colspan: 4, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }},
+        { text: '9', options: { colspan: 4, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }},
+        { text: '0', options: { colspan: 4, color: 'FFFFFF', fill: '000000', border: { pt: 1, color: 'FFFFFF' } }}
+    ]
+]);
+ppt.writeFile('expected');
+ppt.write('base64').then(data => { ppt.writeFile('bugged1'); });
+ppt.write('base64'); ppt.writeFile('bugged2');
+```
+
+### Submission Guidelines
+*Delete this section after reading*
+* All suggestions, questions and issues are welcome, please let us know what's on your mind.
+* Remember to include sufficient details and context.
+* Please check back occasionally on your issue as we may have follow up questions.
+* If you have multiple suggestions, questions, or bugs please submit them in separate issues so we can track resolution.
+
+Thank you for your feedback!
+`n---COMMENTS---`nSTATUS: Confirmed using latest method opts
+
+```typescript
+let ppt = new PptxGenJS();
+let slide = ppt.addSlide();
+
+slide.addTable([
+  [
+    { text: "1", options: { colspan: 4, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+    { text: "2", options: { colspan: 4, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+    { text: "3", options: { colspan: 4, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+  ],
+  [
+    { text: "4", options: { colspan: 3, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+    { text: "5", options: { colspan: 3, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+    { text: "6", options: { colspan: 3, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+    { text: "7", options: { colspan: 3, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+  ],
+  [
+    { text: "8", options: { colspan: 4, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+    { text: "9", options: { colspan: 4, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+    { text: "0", options: { colspan: 4, color: "FFFFFF", fill: "000000", border: { pt: 1, color: "FFFFFF" } } },
+  ],
+]);
+
+ppt.writeFile({ fileName: "expected" });
+ppt.write({ outputType: "base64" }).then((_data) => ppt.writeFile({ fileName: "expected" }));
+ppt.write({ outputType: "base64" });
+ppt.writeFile({ fileName: "bugged2" });
+```
+=====ISSUE 904=====
+### writeFile() does not return`nHello,
+
+Has anyone encountered the writeFile() function not returning?  There are no errors in the console, the then() and catch() are never hit either...
+
+
+`    pptx.writeFile(fileName)
+        .then(fileName => {
+            console.log(`created file: ${fileName}`);
+        }).catch(err => {
+            console.error("ERROR:",err);
+        });
+`
+
+Thank you,
+Chris`n---COMMENTS---`nIs PptxGenJS loaded, is `pptx` instantiated?
+
+Try a test in the console:
+```javascript
+// STEP 1: Create a new Presentation
+var pptx = new PptxGenJS();
+
+// STEP 2: Add a new Slide to the Presentation
+var slide = pptx.addSlide();
+
+// STEP 3: Add any objects to the Slide (charts, tables, shapes, images, etc.)
+slide.addText(
+  'BONJOUR - CIAO - GUTEN TAG - HELLO - HOLA - NAMASTE - OL├Ç - ZDRAS-TVUY-TE - πüôπéôπü½πüíπü» - Σ╜áσÑ╜',
+  { x:0.0, y:0.25, w:'100%', h:1.5, align:'center', fontSize:24, color:'0088CC', fill:{ color:'F1F1F1' } }
+);
+
+// STEP 4: Send the PPTX Presentation to the user, using your choice of file name
+pptx.writeFile({ fileName: 'PptxGenJs-Basic-Slide-Demo' })
+````n<<COMMENT>>`nHi gitbrent,
+
+Yes, it is initiated.  I have narrowed the issue down to images.
+
+`slide.addImage({
+        path: imgPath + "logo.png",
+        x: 1,
+        y: 1,
+        w: .5,
+        h: .5,
+        sizing: { type: "contain", w: .5, h: .5 }
+    });`
+
+I have verified that the image path is correct.  Is there some way to to see where the code is stopping inside of **writeFile**()? Perhaps a logging option?
+
+Thanks again,
+Chris`n<<COMMENT>>`nIt's a promise-based operation, so you should expect a return of some kind.
+
+If you discover some exception that is preventing proper error handling, please provide the details.`n<<COMMENT>>`nIam run Angular 13 with pptgenjs 3.10.0 version in my project the PPT was not download , here pptx.writeFile()  is not working please help to me , Thanks
+=====ISSUE 856=====
+### Adding a table to a placeholder does not work`nThank you for reporting an issue, suggesting an enhancement, or asking a question. 
+
+We appreciate your feedback - to help the team understand your needs please complete the below template to ensure we have the details to help. Thanks!
+
+**Please check out the [Docs](https://gitbrent.github.io/PptxGenJS/docs/installation.html) to see if your question is already addressed there. This will help us ensure our documentation covers the most frequent questions.**
+
+### Category
+- [ ] Enhancement
+- [x] Bug
+- [ ] Question
+- [ ] Documentation gap/issue
+
+### Version
+
+Please specify what version of the library you are using: [   3.3.1      ]
+
+Please specify what version(s) of PowerPoint you are targeting: [         ]
+
+*If you are not using the latest release, please update and see if the issue is resolved before submitting an issue.*
+
+### Expected / Desired Behavior / Question
+Adding a table to a placeholder with the table type should be added inside the placeholder
+
+### Observed Behavior
+The table does not get added to the placeholder
+
+### Steps to Reproduce
+Add a table placeholder and add a table to it
+`n---COMMENTS---`n
+=====ISSUE 755=====
+### Text Option: rotate: does not work within table cells.`nPassing an array of objects with text/options values as the text value to table cells does not support the rotate option. The rotate option only worked with the .addText method.
+
+When trying to rotate the text within a table cell using 
+
+rows.push ([
+       { text: "text", options: { color: "ffffff", fill: "708371", rotate: 270 } } 
+]);
+
+The text within the table cell would not rotate. When following the other syntax, and moving the rotate option outside of the text options properties, the text within the table cell would not rotate.
+
+ `n---COMMENTS---`nSame problem here. Any follow-up on this issue would be great.`n<<COMMENT>>`nThe author has added this feature in a [commit of version 3.13.0-beta.0](https://github.com/gitbrent/PptxGenJS/commit/7c778ecdc55a69bff446281c2b7de6c27387e001) (not available in a cdn at the moment)
+Syntax looks like this : 
+`rows.push({ text: "Hello world", options: { textDirection: "vert270" } }) //Or textDirection: "vert"`
+=====ISSUE 743=====
+### Bullets fontSize is not same as text`nHey! When I am adding bullet to simple text it basically bigger than text font size itself.
+
+Adding text with bullet:
+
+`
+{
+	fontSize: 10,
+	fontFace: 'Verdana (Body)',
+	color: '383838',
+	margin: 0,
+	bullet: { marginPt: 14.5 },
+	paraSpaceAfter: 3,
+}
+`
+
+As a result I have bullet as per first paragraph. When you manually remove bullet and add it again with Powerpoint - it adds smaller bullet (example in second paragraph)
+
+![image](https://user-images.githubusercontent.com/60936507/82212350-16912880-991b-11ea-95f7-2dbe62f503e6.png)
+
+Any tips how to set bullet smaller to fin actual text font?
+`n---COMMENTS---`n
+=====ISSUE 731=====
+### catAxisLabelFrequency doesn't work with chartColors`nHello, 
+
+I'm trying to display a barchart with many data, I use "catAxisLabelFrequency" to display the date label every 7 days and it's work perfectly, but when I add chartColors option, catAxisLabelFrequency doesn't work anymore. I use the last version of PptxGenJS
+
+_My chartbar without chartColor :_ 
+<img width="644" alt="Capture dΓÇÖe╠ücran 2020-05-06 a╠Ç 17 11 47" src="https://user-images.githubusercontent.com/42438585/81194757-5243fe00-8fbd-11ea-9513-8bd146e0ed36.png">
+
+```
+slideOrganic.addChart
+      pres.ChartType.bar,
+      chartPaidOrganic,
+      { title : 'Organic reach daily', catAxisLabelFrequency: 7, catAxisLabelRotate: 45, x:5, y:3.8, w:4.6, h:1.5, showTitle: true, titleFontSize: 12, catAxisLabelFontSize: 5}
+    );
+```
+
+If I delete the option chartColors, catAxisLabelFrequency work perfectly...
+
+_My chartbar with chartColor :_ 
+<img width="649" alt="Capture dΓÇÖe╠ücran 2020-05-06 a╠Ç 17 13 02" src="https://user-images.githubusercontent.com/42438585/81194779-57a14880-8fbd-11ea-9a6b-6b229e963ae2.png">
+
+```
+slideOrganic.addChart(
+      pres.ChartType.bar,
+      chartPaidOrganic,
+      { title : 'Organic reach daily', catAxisLabelFrequency: 7, catAxisLabelRotate: 45, x:5, y:3.8, w:4.6, h:1.5, showTitle: true, titleFontSize: 12, catAxisLabelFontSize: 5, chartColors: ['169998']}
+    );
+```
+
+I'm doing something wrong or it's a bug ? 
+
+Thx, Quentin
+`n---COMMENTS---`n
+=====ISSUE 699=====
+### Decimals are not formatted as percentages in iPad`nHi all,
+While trying PPT download in iPad using Safari browser, decimals are not formatted as percentages. The code of iPad is the same as that of PC. PC is working. Here is my option.  
+```
+let extraoption = {
+	x: 0,
+	y: 1,
+	w: "90%",
+	h: 4,
+	valAxisLineShow: true,
+	showValue: true,
+	valAxisLabelFormatCode: "0.00%",
+	showPercent: true,
+	dataLabelFormatCode: "0.00%",
+};
+```
+Is this a problem with Safari?
+
+Looking forward to your answer.
+`n---COMMENTS---`nI ran the demo scripts on an iPad and all the % formatting worked fine.
+
+If you can supply a full slide code sample of when you experience the issues I'm happy to run it.`n<<COMMENT>>`n> I ran the demo scripts on an iPad and all the % formatting worked fine.
+> 
+> If you can supply a full slide code sample of when you experience the issues I'm happy to run it.
+
+This is my test code. I'm sorry I didn't make it clear.It's an error in the chart case.
+ 
+` var pptx = new Ppt();
+      let bardata = [
+        { name: "1", labels: ["Name"], values: [0.04], index: 0 },
+        { name: "2", labels: ["Name"], values: [0.03], index: 1 },
+        { name: "3", labels: ["Name"], values: [0.02], index: 2 },
+        { name: "4", labels: ["Name"], values: [0.01], index: 3 },
+        { name: "5", labels: ["Name"], values: [0.02], index: 4 }
+      ];
+      let slide1 = pptx.addSlide();
+      let baroptions = {
+        x: 0.5,
+        y: 1,
+        w: "50%",
+        h: 4,
+        barDir: "col",
+        chartColors: ["72A9DA", "F09050", "97DBE9", "8AE874", "DD5044"],
+        barGrouping: "percentStacked",
+        showTitle: true,
+        title: "Test",
+        showLabel: true,
+        showLegend: true,
+        showPercent: true,
+        showValue: true,
+        legendPos: "b",
+        valAxisLineShow: false,
+        valAxisLabelFormatCode: "0.0%",
+        dataLabelFormatCode: "0.0%",
+        dataLabelPosition: "ctr"
+      };
+      slide1.addChart(pptx.charts.BAR, bardata, baroptions);
+      pptx.exportPresentation(null).then(content => {
+        var blob = new Blob([content])
+        FileSaver.saveAs(blob, `Test.pptx`)
+      })`;`n<<COMMENT>>`nI'm not sure exactly what you are experiencing. Maybe you could share a screen grab. I'm seeing correctly formatted percentages when generated from iPad in Safari
+
+The only difference is opening on Keynote verses PowerPoint, regardless of device. Keynote drops the decimal place on the vertical axis.
+`n<<COMMENT>>`n> I'm not sure exactly what you are experiencing. Maybe you could share a screen grab. I'm seeing correctly formatted percentages when generated from iPad in Safari
+> 
+> The only difference is opening on Keynote verses PowerPoint, regardless of device. Keynote drops the decimal place on the vertical axis.
+
+Here are screenshots of both versions.
+Previously, I found that the files downloaded from the iPad were formatted on the PC. I think it's the IOS problem. I'm not sure.
+![Safari](https://user-images.githubusercontent.com/16535001/86571938-d3f7de00-bfa4-11ea-8fc3-d8245171bab4.jpg)
+![PC](https://user-images.githubusercontent.com/16535001/86571951-d6f2ce80-bfa4-11ea-9de8-9e52d581a14f.png)
+
+
+
+=====ISSUE 681=====
+### 'CatAxis in Y axis' and 'ValAxis in X axis' for scatter chart`nIs there any way to show the scatter chart be having CatAxis in Y axis and ValAxis in X axis? 
+
+I would like to make chart like this image:
+
+![image](https://user-images.githubusercontent.com/7078175/75223969-994b9100-57cd-11ea-9966-1c90516e484a.png)
+`n---COMMENTS---`n
+=====ISSUE 676=====
+### Calibri font in gen-xml.ts`nin gen-xml.ts there are couple of mentions of Calibri/Calibri light typeface
+https://github.com/gitbrent/PptxGenJS/blob/07bc8d0af8e36717f17383f3f5454b6d138c4105/src/gen-xml.ts#L1380
+https://github.com/gitbrent/PptxGenJS/blob/07bc8d0af8e36717f17383f3f5454b6d138c4105/src/gen-xml.ts#L1693
+
+Now KeyNote on Catalina at least (without any MS Office installed) complains about missing fonts
+
+![image](https://user-images.githubusercontent.com/1690228/74830760-809a3180-531c-11ea-93c9-c3e4464391c9.png)
+
+I know that probably not a lot of people use KeyNote, but from my testing replacing it with Arial seems to work just fine?`n---COMMENTS---`n
+=====ISSUE 669=====
+### AutoPaging Fails in Add Table options`nHi Gitbrent,
+
+I have used addTable method to add tables. Also I used autoPage into true to extend the table if it is 
+overflow the slide.  But autoPage option is not working properly. I have attached the PPT for your reference.
+
+kindly help me on this . I have tried all the options more than 3 days.
+
+[Gen JS.pptx](https://github.com/gitbrent/PptxGenJS/files/4191214/Gen.JS.pptx)
+`n---COMMENTS---`nI have border options is none in above PPT.
+
+looking forward your response.`n<<COMMENT>>`nI have used this library in react JS`n<<COMMENT>>`nHi @Ashok-SK 
+
+The browser demo under `/demos` has several working examples of table auto-paging. I'd look through those.`n<<COMMENT>>`nHi @gitbrent, 'autoPage' option is not working for me. I am not sure about the issue but it is not giving expected result every time. It would be good we revisit it. I am ready to help you out.`n<<COMMENT>>`n@dhavalpzala - check the /demos folder for working code. Online demo [is here](https://gitbrent.github.io/PptxGenJS/demo/browser/index.html#html2pptx).`n<<COMMENT>>`n@gitbrent - I am also facing this issue on autoPage = true
+
+It seems like, when there is a room to add a last row, within a table, in a slide, pptxgenjs adds a row IRRESPECTIVE of the row height which is based on the size of the content in the row. As a result, overflow is happening, so basically it has to add a new slide and move the overflown row onto new slide and continue future from there.
+
+please find the attached screen shot
+![image](https://user-images.githubusercontent.com/64885984/128996263-41eb25d4-a9e1-4045-8645-d03a353f1716.png)
+ 
+ please have a look at it. Thanks`n<<COMMENT>>`nI have the same issue as @maninder-pal-singh, anyone has something?`n<<COMMENT>>`nI have solved it by setting `autoPageLineWeight:0.5`
+=====ISSUE 658=====
+### Cannot add a new line (shift+enter) in a bullet without it creating another new bullet`nGreat api!
+
+I've tried every and all combinations to try to get the result below but no luck.  I even tried adding text after a bullet and using inset to mimick it, but inset does not seem to work either.  \n and \r and their combinations were also tried.
+
+Is there a way to update the api to achieve the below?
+
+- line 1
+  new line within the same bullet
+- line 2`n---COMMENTS---`nHad the same issue recently. The workaround is to break the string on \n and only add the bullet to the first string. The next one(s) you can add an empty space bullet -> bullet: { code: '0020' }. 
+
+If it was a numbered list, you would get disordered numbers because it resets to 1 when you start bullet-ing the next line. In which case you can utilize the 'startAt' property and set it to the correct order.`n<<COMMENT>>`nI had the same issue.  Is there a way to add an option to ignore new line characters so it does not create additional bullets?
+=====ISSUE 570=====
+### Multiple charts does not actually uses Secondary axis`nI was creating a combo chart
+<pre>
+var labels = ['Q1', 'Q2', 'Q3', 'Q4', 'OT'];
+     chartTypes = [
+        {
+            type: pptx.charts.BAR,
+            data: [{
+                name: 'Projected',
+                labels: labels,
+                values: [17, 26, 53, 10, 4]
+            }],
+            options: {
+                barDir: 'col'
+            }
+        }, {
+            type: pptx.charts.LINE,
+            data: [{
+                name: 'Current',
+                labels: labels,
+                values: [5, 3, 2, 4, 7]
+            }],
+            options: {
+                secondaryValAxis: true,
+                secondaryCatAxis: true
+            }
+        }
+    ];
+    var opts = {
+        x:1.0, y:1.0, w:6, h:6,
+        valAxisMaxVal: 100,
+        valAxisMinVal: 0,
+        valAxisMajorUnit: 20,
+        valAxes:[
+            {
+                showValAxisTitle: true,
+                valAxisTitle: 'Primary Value Axis'
+            }, {
+                showValAxisTitle: true,
+                valAxisTitle: 'Secondary Value Axis',
+                valGridLine: 'none'
+            }
+        ],
+        catAxes: [
+            {
+                catAxisTitle: 'Primary Category Axis'
+            }, {
+                catAxisHidden: true
+            }
+
+        ]
+    };
+</pre>
+
+
+**But turns out it does plots values on secondary axis, but the chart still doesnot uses it, unless selected in powerpoint**
+
+
+
+
+I ran the pptxgenjs-demo.js file from the PPTxGenJS, and if you look at the graph it is still using primary axis for the values
+![Screenshot (4)](https://user-images.githubusercontent.com/24632548/61273561-708b0400-a7c7-11e9-8913-060a645c7aee.png)
+ repo
+
+
+
+
+`n---COMMENTS---`nany updates on this one?`n<<COMMENT>>`n[RELATORIO ALERTA ESCOLAR ( VISITA T├ëCNICA).docx](https://github.com/user-attachments/files/23754749/RELATORIO.ALERTA.ESCOLAR.VISITA.TECNICA.docx)`n<<COMMENT>>`nCRIARA O INFOGRAFICO
+
+=====ISSUE 568=====
+### Libroffice and Keynote compatibility (probably others programs too)`nI used the same code in https://jsfiddle.net/p85by1tf/ which is the fiddle of pptxGenJs website, and the Data is the example data from examples.
+
+The same code generates different 'pie' and 'donut' charts in microsoft office and libreoffice. I'm worried about this compatibilization, I have clients that use the most diverse programs. I have tested the other graphs and they do not cause major problems. please take a look at the screenshots below generated by microsoft office and librofice.
+
+microsoft office:
+![image](https://user-images.githubusercontent.com/33490097/60657433-c0f97d80-9e27-11e9-844f-82dad340fcaa.png)
+
+
+librofice:
+
+![WhatsApp Image 2019-07-02 at 05 05 02 (1)](https://user-images.githubusercontent.com/33490097/60657454-ce166c80-9e27-11e9-8187-5afaf47b7669.jpeg)
+
+Have you ever had such a problem? How can i fix it?
+it seems that on microsoft office it takes the key 'label' which is a array of labels, that is correctly, but in librofice it take the 'name' atribute.
+
+
+`n---COMMENTS---`nI also encounter this. In my case, in the secondary axis is not showing in keynote but displaying properly in MS PowerPoint.
+ 
+ON MS powerpoint
+![image](https://user-images.githubusercontent.com/49848585/78652765-c1620000-78f4-11ea-808f-6b57034fed46.png)
+
+Apple keynote
+![image](https://user-images.githubusercontent.com/49848585/78652879-e6ef0980-78f4-11ea-98b7-4112a8658574.png)
+
+same slide, same script. different output. 
+
+=====ISSUE 548=====
+### Option to set Axis Postion to On tick marks`nIn almost all charts except area chart, the default selected option for Axis position is `Between tick marks`, is there any way we can change it to `On tick marks`? 
+
+The option is available in open xml sdk as [CrossBetween](https://docs.microsoft.com/en-us/dotnet/api/documentformat.openxml.drawing.charts.crossbetween?view=openxml-2.8.1) class`n---COMMENTS---`n@somprabhsharma did you find a solution? I'm looking for the same configuration.
+=====ISSUE 514=====
+### pptxgen JS line and bar chart plot discarding null values `nI seems like similer issue reported as #392.
+
+I am also facing same issue   while generating line, bar  or mixed mode chart. Data Points of values are replaced with next available valid value.  Due to business restrictions, i cannot replace null with zero :(
+
+Also  solutions suggested in #392, `displayBlanksAs `dosen't  help here
+
+Here is my reference fiddle  https://jsfiddle.net/vikasnale/wbfh7dn4/2/
+
+Please guide
+
+Regards,
+Vikas`n---COMMENTS---`nHi @vikasnale 
+
+Thanks for reporting this and including a fiddle.
+
+I'll check into why this wasn't addressed with the fix for Issue #392 
+
+=====ISSUE 487=====
+### cannot add an array of text objects using addText() for addSlidesForTable()`nHi Team,
+
+I'm aware of being able to use the addText() option for the method addSlidesForTable() to include text in master slide, as per issue #427 .
+
+```
+var pptx = new PptxGenJS();
+var objOpts = {x:1.10, y:0.8, h:"100%", master:"MASTER_SLIDE", w:10.3};
+objOpts.addText = { 
+ text: "Table Title", 
+ opts: { 
+   x: 0.5, 
+   y: 0.5, 
+   fontSize:12 
+ } 
+};
+pptx.addSlidesForTable('table-id', objOpts);
+```
+
+However, that only allow adding of **one** text object but does not allow an array of text objects, as shown below. An array of text objects will result in **no text** being inserted into the slide at all.
+
+```
+objOpts.addText = ([
+ {
+   text: "Text 1",
+   opts: {
+         x: 0.5,
+         y: 0.5,
+         fontSize: 18
+     }
+ }, {
+    text: "Text 2",
+    opts: {
+         x: 0.5,
+         y: 1.0,
+         fontSize: 20
+     }
+ }
+]);
+```
+
+I am aware that I can also make use of the objects option in pptx.defineSlideMaster() to add texts, however that would result in the added text **not editable** in the slide. (I would like it to be editable)
+
+```
+pptx.defineSlideMaster({
+ title: "MASTER_SLIDE",
+ objects: [{
+  text: {
+   text: "Text 1",
+   options: {
+     x: 0.5,
+     y: 0.5,
+     fontSize: 18
+   }
+  }
+ }, {
+  text: {
+    text: "Text 1",
+    options: {
+     x: 0.5,
+     y: 0.5,
+     fontSize: 18
+   }
+  }
+ }]
+});
+```
+
+Kindly assist.
+
+Thank you.`n---COMMENTS---`nMaster text isn't editable by design.  You'll want to use regular objects and not create Slide Masters.`n<<COMMENT>>`nHi, thanks for your reply.
+
+As I am using the method addSlidesForTable() to create a HTML table, is there any ways I can add multiple text objects to the same slide with the HTML table?
+
+As I've mentioned above that it seems like only one text object can be included instead of multiple text objects.
+
+I've looked through the library codes and am wondering if it's possible to check whether the opts.addText is an array and perform a loop for newSlide.addText() at line 5309:
+
+`if ( opts.addText  ) newSlide.addText(  opts.addText.text,   (opts.addText.opts  || {}) );
+`
+`n<<COMMENT>>`nThe `addSlidesForTable()` method merely converts an HMTL table into PPT slides.  It's not meant to be used to build up complicated formatting, etc.
+
+You'll want to use `addTable()` and format from there.  See `examples` for code.
+
+![screen shot 2019-01-27 at 11 50 43](https://user-images.githubusercontent.com/7218970/51804709-dab7e880-2229-11e9-8353-06f63ad57894.png)
+
+![screen shot 2019-01-27 at 11 50 49](https://user-images.githubusercontent.com/7218970/51804710-db507f00-2229-11e9-851b-2d7874995888.png)
+`n<<COMMENT>>`nReading through this thread I'm confused as to whether it's possible to add more than one piece of editable text to a slide generated via `tableToSlides`.  The normal usage of the `slide.addText` method accepts an array of objects whereas the `tableToSlides` method only accept one object. Is this intentional or am I simply using it wrong?`n<<COMMENT>>`n@elezotte - this section of the code has aged quite a bit and wasn't kept up to date with its peer methods.
+
+I'll have to update it to handle array instead of solitary objects.
+
+https://github.com/gitbrent/PptxGenJS/blob/0f115ab46bd4f6cb18e26f418194597688b19402/src/gen-tables.ts#L551-L554`n<<COMMENT>>`nHi, I know this is kinda old, but was it resolved?
+=====ISSUE 468=====
+### Add ability to set Chart 'x' / 'y' values to a percentage value (eg: '50%')`nHi,
+
+When setting the x, and y values for positioning a chart (bar chart in my case), it does not have an impact on the chart location, whatever I try (%-es, inches), the chart stays at 2.54cm x 2.54cm.
+
+The 'w:' and 'h:' attributes work fine.
+
+I am a novice coder, so could not check the issue inside the source code, which is still a bit daunting for me. 
+
+Thank you for this great library.
+
+Best,
+Jan`n---COMMENTS---`nHi @Slidemagic 
+
+* Please open `examples/pptxgenjs-demo.html` in your web browser.
+* Run the Charts demos to see what's possible.
+* The code is well organized and documented here: `examples/pptxgenjs-demo.js`
+
+That should be enough to get you started.
+
+![screen shot 2019-01-03 at 21 55 34](https://user-images.githubusercontent.com/7218970/50673615-b8250d80-0fa4-11e9-845c-384262aed968.png)
+
+![screen shot 2019-01-03 at 21 56 42](https://user-images.githubusercontent.com/7218970/50673618-bc512b00-0fa4-11e9-8c16-d720db85d670.png)
+`n<<COMMENT>>`nThank you @gitbrent,
+
+I researched my issue more. The inch-es work fine for 'x:' and 'y:, putting a percentage value (for example '50%') does not, it causes them to fall back to the default 1.0 inch. I looked inside the example file, and there, only absolute inches are used, not %-es.
+
+For the moment I have reverted to inches (the default width of a 16:9 or 4:3 PPT chart is 10 inch), hopefully this can be fixed? I had a look at your "smart parse" though, and everything looked fine. Anyway, the current 'hack' is working for me at the moment
+
+Btw, %-es work brilliantly for images as well, while your API says you can only use inch-es.
+
+Thank you for all this great stuff.
+`n<<COMMENT>>`n@Slidemagic the following validation within addChartDefinition is whats reverting you to the default 1 inch value
+
+```
+options.x = (typeof options.x !== 'undefined' && options.x != null && !isNaN(options.x) ? options.x : 1);
+options.y = (typeof options.y !== 'undefined' && options.y != null && !isNaN(options.y) ? options.y : 1);
+```
+
+As a string, the % input will fail validation. If needed, you could submit a PR to update this.`n<<COMMENT>>`n> If needed, you could submit a PR to update this.
+
+Thank you @ReimaFrgos. I am just getting started in coding, and am probably close, but not completely ready yet to start making changes to open source code. I will try to fix things in my local version first.
+
+I am coming up against more things that I would like to adjust (I have been designing PowerPoint presentations as a professional for more than a decade) and am slowly building my confidence as a coder. Hopefully I can make code contributions here soon. Until, I will just flag things.   
+
+`n<<COMMENT>>`nThis is not an enhancement but a bug because the documentation states "0-n OR 'n%'. (Ex:┬á{x:'50%'}" as examples of possible values. 
+
+Source: https://gitbrent.github.io/PptxGenJS/docs/api-charts.html`n<<COMMENT>>`n> Thank you @gitbrent,
+> 
+> I researched my issue more. The inch-es work fine for 'x:' and 'y:, putting a percentage value (for example '50%') does not, it causes them to fall back to the default 1.0 inch. I looked inside the example file, and there, only absolute inches are used, not %-es.
+> 
+> For the moment I have reverted to inches (the default width of a 16:9 or 4:3 PPT chart is 10 inch), hopefully this can be fixed? I had a look at your "smart parse" though, and everything looked fine. Anyway, the current 'hack' is working for me at the moment
+> 
+> Btw, %-es work brilliantly for images as well, while your API says you can only use inch-es.
+> 
+> Thank you for all this great stuff.
+
+In my case, the default width is 13.333 inches for 16:9.`n<<COMMENT>>`nI've been using this function to convert a percentage into inches based on the layout: 
+
+```
+function turnPercentageIntoInches(pptx, percentage, isY){
+
+    // Made to cover a bug in pptxgenjs: https://github.com/gitbrent/PptxGenJS/issues/468
+
+    let layout = pptx.getLayout();
+
+    let size = (isY ? layout.height : layout.width)*1.1;
+    return (size / 100000000)*percentage;
+}
+```
+=====ISSUE 453=====
+### Layout cleared after save`nIt seems that `pptx.save()` clears customized layout.
+
+```
+pptx.setLayout({ name: 'mylayout', width: 8.5, height: 11});
+// {name: "custom", width: 7772400, height: 10058400}
+
+pptx.save();
+
+pptx.getLayout();
+// {name: "screen16x9", width: 9144000, height: 5143500}
+```
+
+Is it supposed to happen, and if there's way to preserve the user customized layout?
+
+Thank you.`n---COMMENTS---`n
+=====ISSUE 446=====
+### Printing with powerpoint "notes" print layout does not show slide`nI generate presentations with a single image per slide, but after upgrading I can no longer print these presentations with the "notes" layout print option. You can see in my screenshot that nothing renders in the print preview when "notes" is selected as the layout option. This worked correctly in version 1.10.0, but I have recently upgraded to 2.4.0 in order to add slide notes. Example code included which worked for me in v1.10, I can supply images if need be (but any image should work).
+
+![image](https://user-images.githubusercontent.com/830191/49482407-e7006600-f7e3-11e8-9d26-8da5f07d54fe.png)
+
+```let pptx = new PptxGenJS();
+this.slides.forEach(fileName => {
+    let pptSlide = pptx.addNewSlide();
+    pptSlide.addImage({
+        x: 0,
+        y: 0,
+        w: 1.7777777778,
+        h: 1,
+        path: getFilePath(fileName),
+        sizing: {
+            type: 'cover',
+            w: 10,
+            h: 5.625,
+        }
+    });
+});
+return new Promise(resolve => {
+    pptx.save('http', (buffer) => {
+        resolve(buffer);
+    });
+});`n---COMMENTS---`nDoes the image print in other Layouts?`n<<COMMENT>>`nYes. It also prints if I manually change the notes master options. The slide image checkbox is off by default, and I didn't get the sense that the slide notes master was configurable from your library.
+
+![image](https://user-images.githubusercontent.com/830191/49553553-162eda00-f8ad-11e8-94e3-126ac44fc18d.png)
+`n<<COMMENT>>`n@gitbrent Any chance there you could add an option to control the notes master options in an upcoming release? Or perhaps you could point me in the right direction, and I could try to add this feature for you?`n<<COMMENT>>`n@benjanik I'm not even sure where to start with this one. 
+
+You're absolutely welcome to dig through the unzipped PPTX file's Slides to see what the XML output should be versus what's being generated now and/or figure out which options are impacting this. 
+
+Please submit a pull request when you get it working and i'll add it to the codebase.`n<<COMMENT>>`nStill interested in this, any idea where I could take a look ? Otherwise I'll dive in the xml
+
+EDIT: I notice that if I comment the two lines related to notesSlides below https://github.com/gitbrent/PptxGenJS/blob/7c778ecdc55a69bff446281c2b7de6c27387e001/src/pptxgen.ts#L533
+
+Then the generated Ppt display a warning when opening in MS Powperpoint, and then displays the note page properly.
+
+```js
+// zip.file(`ppt/notesSlides/notesSlide${idx + 1}.xml`, genXml.makeXmlNotesSlide(slide))
+// zip.file(`ppt/notesSlides/_rels/notesSlide${idx + 1}.xml.rels`, genXml.makeXmlNotesSlideRel(idx + 1))
+```
+
+I suspect we currently do something wrong when building the Notes slides (either `makeXmlNotesSlide`, `makeXmlNotesSlideRel`) . The MSFT doc on the topic for further research https://learn.microsoft.com/en-us/office/open-xml/working-with-notes-slides
+
+=====ISSUE 399=====
+### New anchor connection feature for shapes and lines`nI needed this feature so I created a first pass of the feature in the pull request`n---COMMENTS---`nNote: Pull Request for this feature = Issue #398 `n<<COMMENT>>`nwill this anchor feature be added to a release in the near future ? `n<<COMMENT>>`nany hope that this connecting anchor will be implemented ? 
+it is a really important feature when creating organizational diagrams, flowcharts etc to have the lines snapped to the boxes when moving the boxes around.
+=====ISSUE 307=====
+### How I can group by shapes with PptxGenJS?`nHello. Could you help me?
+Maybe you know Can I group 2 shapes with PptxGenJS?
+
+Thanks a lot.
+Have a good day.
+
+
+`n---COMMENTS---`nHi @sensone,
+
+That feature does not exist as of yet.`n<<COMMENT>>`nThis is a planned future feature?`n<<COMMENT>>`nI've been digging around how to implement a few features in PptxGenJS. One thing I'd like to do is group shapes. Underneath the root `p:spTree` element in the slide XML, there are two child elements: `p:nvGrpSpPr` and `p:grpSpPr` (each with their own child elements). Following that is a bunch of `p:Sp` elements that contain the actual shapes / other elements.
+
+To implement a group, I think it's as "simple" as creating a `p:grpSp` as a child of the `p:spTree` element, adding the group properties (i.e. `p:nvGrpSpPr` and `p:grpSpPr`), and then adding child `p:Sp` elements. 
+
+There are two tricky things to this though:
+1) If you don't calculate the bounding box of the child elements correctly, PowerPoint will draw the boundary for the group in the default location (i.e. top left corner)
+2) To do this properly, it would make sense to treat the slide as a special case of a group, and then move the xml generation for the slide objects into a method for a group.
+
+I'm actually hacking away at this right now, but it's going to require refactoring that XML generation code. Before I get too deeply into this, what do you think @gitbrent ? I think the wacky bounding box for a group is something that can be lived with, but the refactoring could be quite fragile?
+
+The api could work something like
+
+```
+let mygroup = slide.addGroup()
+mygroup.addShape(...)
+mygroup.addText(...)
+
+slide.data.length == 1
+mygroup.data.length == 2
+```
+`n<<COMMENT>>`nHi @hirenj 
+
+Thanks for the analysis. I have not researched grouping enough to understand what was required for a grouping API.
+
+Is calculating a bounding box the only way to create groups? That sounds really cumbersome.
+
+If you can come up with a group API that would be a great contribution, so I appreciate your time working on this.
+* Be sure to check the [OOXML shape spec](http://officeopenxml.com/prSlide-shapeTree.php)
+* Be sure you're working with the [version-3.0](https://github.com/gitbrent/PptxGenJS/tree/version-3.0) branch which is typescript and is much easier to patch (it'll be out soon)`n<<COMMENT>>`nI think bounding box is the only way to do it, but I also don't think it is
+strictly necessary to do. I can attach a generated file with the broken
+bounding box, and you can see that PowerPoint seems to correct it once you
+select, or group/ungroup.
+
+[basic_groups.pptx](https://github.com/gitbrent/PptxGenJS/files/3650590/basic_groups.pptx)
+
+I made progress on this last night, and have the basic implementation
+working right now. I'm pretty sure things like master slides and the table
+functionality might be broken. Do you have tests for these features that I
+can run?
+
+Also, I'd like to decompose the xml generation into separate files just to
+make it easier to see what the overall logic is. I was thinking of a
+subfolder of src called genxml , and encapsulating all the table stuff in
+one, text in another etc.
+
+I've created another top level class called Group: the Slide class had a
+field called rootGroup and it no longer has a data field. The methods to
+e.g. addShape on the slide now proxy to the rootGroup, that contains the
+actual implementation of the method.
+
+I'm a bit worried about memory leaks with the rootGroup field, and
+associated ownerSlide field on the groups. Ideally this should be
+implemented as entries in a WeakMap that are wrapped up in accessors.`n<<COMMENT>>`nHi,
+I've done the decomposition for the XML generation into seperate files too - all of this is sitting in the [groups branch](/hirenj/PptxGenJS/tree/groups) of my fork. I'm going to hold off on doing any more changes for now until this gets tested on to make sure that I haven't introduced any regressions.
+
+At least for the most basic use case, it looks like it works pretty nicely (with the proviso that the bounding box for the groups is completely off).
+
+```js
+var PptxGenJS = require('./src/bld/pptxgen.cjs');
+
+var pptx = new PptxGenJS();
+var slide = pptx.addNewSlide();
+var group = slide.addGroup();
+group.addText('Hello World!', { x:1.5, y:1.5, fontSize:18, color:'363636' });
+group.addText('Hello World!', { x:2.5, y:1.5, fontSize:18, color:'FF3636' });
+group.addShape(pptx.shapes.LINE,      { x:4.15, y:4.40, w:5, h:0, line:'FF0000', lineSize:1 });
+slide.addShape(pptx.shapes.LINE,      { x:1, y:4.40, w:5, h:0, line:'FFFF00', lineSize:1 });
+
+pptx.writeFile('Sample Presentation').then( done => console.log(done) );
+```
+
+I think the code re-factoring that I did was a necessary step so that the types of objects that can be added in can be cleanly scaled up. The structure opens the door for things like centralising id generation for objects and adding new shape types (e.g. arbitrary polygons!). The first of those things is a prerequisite for tackling the big thing I'd like to put in - rudimentary animation support.`n<<COMMENT>>`nHey @hirenj , do you think you'll continue to work on your branch, or do you have any information about when / if it could potentially be merged into master?`n<<COMMENT>>`nI've just taken a quick look at merging the changes in from the branch into master. Unfortunately it's not a clean merge (which I expected as it's mucking around with internals). I don't have the time right now to merge it in, although I do have a pretty good idea of what tasks need to be done to realise the merge (since the pptx stuff is already figured out). I can come back to this in maybe a month or two? Or I'm happy for someone else to implement this directly upon master if you want to discuss the design / approach in this thread?`n<<COMMENT>>`nAny help landing this feature would be appreciated.`n<<COMMENT>>`nHi @hirenj, @gitbrent,  We are looking for grouping feature. Could you please let us know the way forward?`n<<COMMENT>>`nI'm afraid I haven't had the time to do anything with this - but would some documentation as to what I was trying to achieve help at all? I'd imagine that my changes will be very much out of sync with the current codebase now, and it'll be easier to implement it from scratch again?`n<<COMMENT>>`nHi all, any progress since the summer? Seems like a lot has been figured out already.. not sure if I am able to contribute (don't know the codebase at all..) but I would be able to provide feedback or have a look at any changes. Is https://github.com/hirenj/PptxGenJS/commits/groups still the most recent branch?
+
+One thing to note is that in PowerPoint you can set rotation for a group and it rotates the items in the group (but all together, not individually). Might be something to keep in mind. As far as I can see there are no other things to be configured for a group (other than position and size obviously).`n<<COMMENT>>`nThe addition of grouping functionality requires quite a bit of plumbing on the back-end that has not been designed or developed. `n<<COMMENT>>`nHi,
+
+Yeah this is I think the major point holding up implementation. Basically
+when I was working on this, I moved internals around so that you could
+treat a group the same as a top level object that you add slide elements
+to. This enabled recursive groups etc.
+
+I would expect that the backend design has changed since then, so I canΓÇÖt
+estimate how long it would take to add this to the design. My trick back
+then was to switch around the object hierarchy so that the methods to add
+things to slides sit in a class that both slide and group classes inherit
+from.
+
+Unfortunately, because of *waves hand at general state of world*
+everything, I canΓÇÖt commit to proposing a finished redesign for Brent to
+simply sign off on.
+
+I guess the way to make progress on this is that Brent suggests an
+appropriate forum to talk about a redesign (another gh issue, or email?),
+and then I can participate in that, and then hopefully there is someone
+lined up to implement it?
+
+On Mon, 7 Dec 2020 at 04.33, Brent Ely <notifications@github.com> wrote:
+
+> The addition of grouping functionality requires quite a bit of plumbing on
+> the back-end that has not been designed or developed.
+>
+> ΓÇö
+> You are receiving this because you were mentioned.
+> Reply to this email directly, view it on GitHub
+> <https://github.com/gitbrent/PptxGenJS/issues/307#issuecomment-739642199>,
+> or unsubscribe
+> <https://github.com/notifications/unsubscribe-auth/AABF7VOGEE3KGV5PZCDEPRDSTREJPANCNFSM4EVDNVUQ>
+> .
+>
+`n<<COMMENT>>`nHi, I also need this functionality and I have a working POC here: [groups branch in lukevella/PptxGenJs](https://github.com/lukevella/PptxGenJS/tree/groups). The API is based on what @hirenj suggested. 
+
+**Example Usage**
+
+```ts
+const group = slide.addGroup()
+group.addText("Hello", { x: 1, y: 1, w: 3, h: 1 })
+group.addText("World", { x: 2, y: 2, w:3, h: 1 })
+```
+
+The main change that allows this to happen is that I updated the parameters for functions that generate object definitions so that the `target` and `slide` are separate parameters. `target` is now a type `Container` which is an object that holds a list of slide objects ΓÇô in this case it can be either a `Slide` or a `Group`.
+
+```diff
+- export function addTextDefinition(target: PresSlide, text: TextProps[], opts: TextPropsOptions, isPlaceholder: boolean) {
++ export function addTextDefinition(target: Container, slide: PresSlide, text: TextProps[], opts: TextPropsOptions, isPlaceholder: boolean) {
+```
+
+The other change is splitting the xml generation function so that we can recursively generate XML for grouped slide objects. For this I created  `slideItemObjsToXml()`. Besides generating XML for a list of slide objects this function also returns position and size values that can contain the slide objects in the list. This is needed when creating groups since the position and size of the group object is based on its contents.
+
+There's still some work to be done to get this ready but if @gitbrent is interested in this approach I'm happy to polish this up a bit further and publish a PR.`n<<COMMENT>>`nHey @lukevella 
+Thanks for adding group functionality.
+Do you have any timeline on when we can merge this PR to master. I am waiting  for this feature.
+cc: @gitbrent `n<<COMMENT>>`n@ishantmehta012 I'm just waiting for feedback from @gitbrent. If he's happy with this direction I'm happy to help get this ready.`n<<COMMENT>>`n@lukevella This looks like a great implementation! Glad to see that someone picked this up.`n<<COMMENT>>`n@gitbrent @lukevella Are either of you guys still planning on merging in https://github.com/gitbrent/PptxGenJS/pull/929 ?`n<<COMMENT>>`nHi, first of all, thanks for the great library. PPTXGenJS is the de-facto standard to generate a PPTX in JS. AWESOME Job.
+Group would be a good piece of functionality nice to have. Are you planning to merge it?
+I'm working on a React renderer based on Yoga Layout, (something like react-pdf but for pptx) and Grouping is something i'm interested in.
+Thanks`n<<COMMENT>>`nThanks @marcog83 !
+
+The ability to group objects will be in Version 4.0. You can keep track of the feature via the Discussions tab.`n<<COMMENT>>`n@gitbrent thanks a lot for the feedback, it is actually a great news.
+as I said I'm working on a react renderer you can find here...
+https://github.com/marcog83/pptx-renderer
+it is still a POC. i wish I could make it as stable as possible and share it with the community
+`n<<COMMENT>>`nIs there any timeline for this?`n<<COMMENT>>`nSecond this MR. Great package but just need to be able to make groupings. Anyone forked it with the MR?
+=====ISSUE 275=====
+### Advanced Option of Paragraph Spacing (Before After and Line spacing)`nHi Brent,
+
+How are you? Hope you're doing great! If we could enhance the pack with the advanced options of paragraph spacing (paragraph spacing before and after and different line spacing options), PptxGenJS would be fully comprehensive. 
+
+Right now the line spacing options only have the exact spacing...
+
+Many many thank Brent. You're the best! :-)
+
+Kind regards,
+
+Ps: Could you leave your email address, please.  `n---COMMENTS---`n +1 for additional features of paragraph styling. This is a great library and I managed to get beautiful results by playing with it just couple of hours, but I also quickly realised that there are couple features that would be necessary for fine tuning. 
+- Paragraph spacing as mentioned
+- Paragraph indentation: I attached the image before and after changing Indentation (before text and hanging) from default 0.95cm to 0.3 cm. Currently there seems to be no way of controlling the position of bullets relative to bulleted text, right?
+![image](https://user-images.githubusercontent.com/42303/38416072-3ef00a2a-399c-11e8-89ea-3fb89ccdcac2.png)
+![image](https://user-images.githubusercontent.com/42303/38416147-849a1f16-399c-11e8-8211-fd9c39793f83.png)
+
+`n<<COMMENT>>`nHi Guys,
+
+There are now two options for paragraph spacing: `paraSpaceBefore` and `paraSpaceAfter`.
+
+```
+var pptx = new PptxGenJS();
+var slide = pptx.addNewSlide();
+
+slide.addText(
+    'Paragraph spacing - before:12pt / after:24px',
+    { x:1.5, y:1.5, w:6, h:2, fill:'F1F1F1', paraSpaceBefore:12, paraSpaceAfter:24 }
+);
+
+pptx.save('PptxGenJS-ParaSpacing');
+```
+
+## Docs: [Text API](https://gitbrent.github.io/PptxGenJS/docs/api-text.html#text-options)
+
+![screen shot 2018-04-17 at 23 19 38](https://user-images.githubusercontent.com/7218970/38911915-099864d0-4298-11e8-8a5a-59fee4db5555.png)
+`n<<COMMENT>>`nAwesome, thank you! 
+Now that you are working on it, indentation options would be super super addition to API :)`n<<COMMENT>>`n>   ![image](https://user-images.githubusercontent.com/42303/38416147-849a1f16-399c-11e8-8211-fd9c39793f83.png)
+
+I also really need to control "**Indentation**" -> Special: "**Hanging**" By: some "**n**" value.
+=====ISSUE 258=====
+### Word level formatting with Right align`nWhen using word level formatting, with aligning (horizontal align - left, right or center) option causes the text parts to break line,
+even if I use breakLine as false in each of the text parts.
+
+ex:
+```
+slide.addText(
+  [
+      { text:'word-level formatting', options:{ breakLine:false} },
+      { text:'...in the same textbox', options:{} }
+  ],
+  { x:0.5, y:4.1, margin:0.1, align: left }
+);
+```
+This will render as
+```
+word-level formatting
+...in the same textbox
+```
+This a help-wanted.`n---COMMENTS---`ni got the same issue
+`        var issue4ppt = []
+        if (issueCell.text() != '') {
+            issueCell.find(".tbl-issue").each(function (index) {
+				var regionText= $(this).find(".cel-region").eq(0).text()
+				var region=index==0? regionText:'\n'+regionText
+                var issue = trimText($(this).find(".cel-issue").eq(0).text())
+                issue4ppt.push({
+                    text: region,
+                    options: tableCellTextBold
+                }, {
+                    text: issue,
+                })
+            })
+        }`
+
+result:
+AMS: 
+some text
+EMEA: 
+some text
+`n<<COMMENT>>`nI have been having a similar problem, and I think I might have come up with a solution.  I think line 3670 which is currently:
+
+`else if ( idx > 0 && (typeof textObj.options.bullet !== 'undefined' || typeof textObj.options.align !== 'undefined') ) {`
+
+could be crudely replaced with something like this: 
+
+`			else if ( idx > 0 && (typeof textObj.options.bullet !== 'undefined' || 
+				(typeof textObj.options.align !== 'undefined' && textObj.options.align != arrTextObjects[idx - 1].options.align))) {`
+
+
+This code wouldn't catch the situation where a synonym for alignment is used (i.e. 'r' and 'right').  I could create a more robust solution and create a pull request if that would be helpful.`n<<COMMENT>>`nI've been using the edit by @gdicristofaro and mostly seems OK. It does prevent \n triggering a line break within a string, although using \r in place works fine.
+=====ISSUE 146=====
+### Master Layouts and Master Slides`nHi @gitbrent,
+
+I've tried to find a contact information in this repository but unsuccessfully; thus, I've chosen this way.
+
+First of all, I really appreciate your library, it's really helpful to us and that's also the reason why I try to contribute. However, I've noticed that the feature you're calling _slide master_ is not exactly what it is supposed to be ≡ƒÖé 
+
+As I got principle in your library, master slides work as a set of object and style rules that are applied to a newly created slide in a static way. That means, elements defined in master slide object are added to every single slide even if these slides use the same master. Slide layouts are generated for each slide.
+
+Whereas if you generate a file in PowerPoint, it works as follows: a slide is attached to a slide layout, not to the master slide. So, if you want multiple slides to have the same layout, you just link them to the slide layout file. These slide layouts are then attached to the master files.
+This principle ensures user who opens such a generated file to be able to update slide layouts and master slide and to apply the changes they perform to all the slides that follow a particular slide layout. And this is what I need.
+
+I know it's difficult to implement methods for creating master file or layout because these files' structure seems to be really complicated. Thus, I'd suggest to pass ready XML definitions of master file and slide layouts to the library. Then, at the moment of creating a slide, name of a layout (that the slide should be attached to) would be passed as an argument. This ensures proper generating relation between layouts and slides.
+
+Now I need your opinion. We need to work with proper master slides and slide layout so I'm ready to implement this. The original solution of master slide would be preserved to provide backward compatibility, of course. 
+
+I hope I described the issue clearly. 
+
+Thank you in advance ≡ƒÖé
+`n---COMMENTS---`nHi @kajda90 
+
+You're absolutely right.  I am using "masters" as an object pattern to cheat and not have to deal with the formal layout style. :-)
+
+I would, obviously, prefer the library to generate presentations that are as close 100% correct as it can, so i'd be interested to see what you can come up with.
+
+Thanks for your interest and for all the contributions!`n<<COMMENT>>`nThe initial version of this feature is now live.
+
+The old way of creating masters is gone - replaced with a new method `defineSlideMaster()` that creates actual Master Slide Layouts in PowerPoint.
+
+Come Version 2.0, we should be integrating 100% compliant Masters by allowing the creation of the actual Master Slide in addition to just the new Layouts.  I'm walking it forward in phases for continuity and ease of use for both new and current users.
+
+Thanks for all the work on this non-trivial feature @kajda90 !!`n<<COMMENT>>`nIs there a way to use a manually created presentation and their master layout and master slides within this tool? I was just thinking that the layout and design could be done much easier using the native tool and then data applied dynamically using this library. `n<<COMMENT>>`n@heavysixer that's what I was thinking.  While I really like the options to define the master slides from JS, it would be very interesting if you could somehow just include the contents of a pre-branded ppt file in the library, and use that.  Although, I'm not quite sure how you would add new sliders following a master slide layout if you haven't defined it in the JS yourself. `n<<COMMENT>>`nUnfortunately, importing existing Presentations is one of the features I have no plans to support, so that kind of eliminates the use of existing master layouts.`n<<COMMENT>>`nhi @gitbrent , thank you for building this wonderful library. I wanted to check if there is a way to update/create the main master layout. 
+![image](https://user-images.githubusercontent.com/51448308/59038031-08740480-8890-11e9-8308-7b984c4ecab1.png)
+
+`n<<COMMENT>>`n![image](https://user-images.githubusercontent.com/1103788/71575796-39b46a80-2b29-11ea-88ab-ea7a6bd31b08.png)
+
+I would also like to manipulate both "Slide Master" and "Layout"`n<<COMMENT>>`n@gitbrent Hi Brent, thank you for creating this wonderful library. I think an option to import an existing master layout from a customer's presentation would be a really useful feature. Is that against your philosophy? Have you looked into it and determined it to be a tough problem? Would it be possible to commission such a feature or would you accept a pull request?`n<<COMMENT>>`n@libardo - pptxgenjs will never ingest other files. we create presentations, thats it. :)
+=====ISSUE 102=====
+### How to add gradient fill to shapes?`nThis is sample slide which I'm trying to export using [PptxGenJS](https://github.com/gitbrent/PptxGenJS)
+
+![new common slides](https://user-images.githubusercontent.com/17859100/27174852-20b4aae2-51db-11e7-9348-d448399475b6.jpg)
+
+
+How to add gradient fill to shapes?
+`n---COMMENTS---`nHi @sangramjagtap ,
+
+Thanks for the question/issue.
+
+The library does support gradients as of yet.  I've added this to the enhancement list.`n<<COMMENT>>`nThanks for the clarification.
+
+On Wed, Jun 21, 2017 at 8:24 AM, Brent Ely <notifications@github.com> wrote:
+
+> Hi @sangramjagtap <https://github.com/sangramjagtap> ,
+>
+> Thanks for the question/issue.
+>
+> The library does support gradients as of yet. I've added this to the
+> enhancement list.
+>
+> ΓÇö
+> You are receiving this because you were mentioned.
+> Reply to this email directly, view it on GitHub
+> <https://github.com/gitbrent/PptxGenJS/issues/102#issuecomment-309948530>,
+> or mute the thread
+> <https://github.com/notifications/unsubscribe-auth/ARCCHKHgUd-ng9TKjjU6ZLkW5dEaB6miks5sGIXngaJpZM4N69Ru>
+> .
+>
+
+
+
+-- 
+Thanks & Regards,
+Sangram M. Jagtap
+
+Email: sangramjagtap7@gmail.com <sangram.jagtap@mindstix.com>
+Phone: +91 844 644 6043
+Skype: sangramjagtap7
+`n<<COMMENT>>`nfyi - I've implemented this. I'll open up a PR when I get a chance. 
+
+Here's an example showing the fill on a slide master as the background. 
+```
+    pptx.defineSlideMaster( {
+	title: 'TITLE_SLIDE',
+	bkgd:   { fill: {type:'gradient', stops: [{ pos: 0, color:'C1F15E' }, { pos: 62, color:'90BA3F' }, { pos: 100, color:'7FA03E'}],
+			 linearAngle: 90, linearScaled: false}},
+	objects: [
+	    { 'image':{x:0,y:0,w:"100%", h:"100%", path: 'bee-background.png',
+		       sizing: {type: 'cover', x:0, y:0, w:"100%", h:"100%"}}},
+	    { 'rect': {x:"50%", y:0, w:'41%', h:"90%", fill:'FFFFFF',
+		       line:'74A50F', lineSize:1}},
+	    { 'rect': {x:"51%", y:0, w:'39%', h:"30%", fill:'71685A',
+		       line:'000000', lineSize:0}},
+	    { 'line': {x:"51%", y:"88%", w:'39%',line:'94C601',
+		       lineSize:6}},
+	    { 'image': { x:"70%", y:"60%", w:2.1, h:2.1, path:'bee-right.png' } }
+	]
+    });
+```
+The way it's implemented, it works on both slide masters and also slide shapes that currently support the 'fill' option, e.g. images and text. 
+
+The way the background is currently implemented in slide masters means it would be awfully hard to have both an image and also a fill. That threw me for a while until I realized basically there is no need to specify a background image - just specify fill as the background and then add an image that fills the entire slide. 
+
+Here is the slide created from the above:
+![image](https://user-images.githubusercontent.com/1385538/37236854-33088412-23da-11e8-9a4e-4e0f8f98058c.png)
+`n<<COMMENT>>`n@gitbrent  you open to a PR on this? if so, anything you're looking for in particular in a PR?`n<<COMMENT>>`nHi @pstoll,
+
+Absolutely, PR's are always welcome.
+
+Content-wise:
+* The feature added using the same style the current code is in
+* A demo of the feature added to `pptxgenjs-demo.js`
+* A blurb showing the options/sample in the `README``n<<COMMENT>>`nHi @pstoll !
+
+You said you implemented this and wanted to open PR. Unfortunately still no PR here ≡ƒÿó.
+
+Do you want some help ? We could try to open the PR with you if you want because we need this feature too ≡ƒÿä 
+
+Have a great day !
+`n<<COMMENT>>`nAny news about that ?`n<<COMMENT>>`nSorry, lost track of this. Let me see if I can dig this up.`n<<COMMENT>>`nThanks, and so ? :D`n<<COMMENT>>`nHi @pstoll,
+Do you have any great news about a PR for gradient background ?`n<<COMMENT>>`nHello @pstoll,
+Any update ? This would be helpful for my app :)`n<<COMMENT>>`nThe same, need to set gradient to slides`n<<COMMENT>>`nHi All,
+
+It appears Perry hasn't been on GitHub for awhile and the clone he made of the repo was never patched for gradient support.
+
+As the community is interested in this, i've tagged it for triage so i can scope what needs to be coded to support this functionality. I'll circle back after `3.0` is released (soon!).`n<<COMMENT>>`nHi,
+Are there any news? Gradient is still not working :( 
+Thanks`n<<COMMENT>>`nI have an almost complete gradient implementation that I'll submit a PR for. It's functional and supports linear, radial, rectangular, and path gradients.
+Still cleaning up some of the code before I create a PR.`n<<COMMENT>>`n@ReimaFrgos hey, any news on this ? I saw your branch https://github.com/ReimaFrgos/PptxGenJS/tree/92+103-AddGradientSupport there is nothing on it yet, do you need a hand ? `n<<COMMENT>>`n@ReimaFrgos @hilnius I have a partial solution, I would like to help with the issue`n<<COMMENT>>`nHello, this is my first github post so please excuse me if I break protocol.  Unless I am mistaken the gradient feature still does not seem to be implemented.  Is it still being worked on and or investigated?
+
+Thank you.
+`n<<COMMENT>>`nHi! 
+@gitbrent @ReimaFrgos do you guys still want to release this feature? If so I'll definitely wait on it, if not I'll work around it!
+
+Thanks :)
+
+`n<<COMMENT>>`nI've pushed this PR if people are interested. I have only done one implementation in the demo suite and haven't modified the docs. If anyone want's to contribute to the PR for those then please go ahead. https://github.com/gitbrent/PptxGenJS/pull/1295
+
+This could potentially be used to add gradients to slide backgrounds and object outlines as well.`n<<COMMENT>>`n@sambauers: I noticed your PR related to the gradient solution for demo purposes. Do you happen to have a more complete solution, or have you made further progress on it since then? Any updates would be greatly appreciated!`n<<COMMENT>>`nNo, sorry I havenΓÇÖt touched it since then. I moved on to a different library for PPTX generation.`n<<COMMENT>>`n> No, sorry I havenΓÇÖt touched it since then. I moved on to a different library for PPTX generation.
+
+There are other JS libraries? I've scoured the web and this is the only one I can find`n<<COMMENT>>`nhello everyone! Has there been an update to the gradient filling of slide graphics?`n<<COMMENT>>`nHI All, I added a PR #1469 that should address this issue.
+=====ISSUE 98=====
+### Images or shapes inside cell?`n@gitbrent 
+Is it possible to insert images or shapes in a cell.
+Say there is a number 13 with a small Apple or circle next to it, is it possible?`n---COMMENTS---`nHi @Vishwaas ,
+
+Thanks for the question.
+
+No, it's not possible to add shapes/images into table cells as of yet.`n<<COMMENT>>`n@gitbrent  thanks, figured out another solution.
+
+One more question, how to set scaleHeight and scaleWidth of BLOCK_ARC shape?
+I believe that option doesn't exist as of now?`n<<COMMENT>>`nHi @Vishwaas ,
+
+Correct, those options don't exist.`n<<COMMENT>>`n@gitbrent  thanks, great job btw, all the best with it.`n<<COMMENT>>`nThanks! :-)`n<<COMMENT>>`nhey there, just checking on this issue again, is it still not possible to add shapes nor images to cells? `n<<COMMENT>>`nHi @thitemple 
+
+Correct - support for adding shapes into table cells has yet to be added.
+
+I'll re-open this issue and flag it as an enhancement request.`n<<COMMENT>>`nHello @Vishwaas 
+
+What is your solution / workaround in order to put images in a table ?
+
+Thank you`n<<COMMENT>>`nHi there, checking yet again if support for shapes in table cells has been added? Thank you!`n<<COMMENT>>`nI have a workaround since this library supports Unicode special characters so I added special character instead of actual shape
+https://www.w3schools.com/charsets/ref_utf_geometric.asp`n<<COMMENT>>`n> I have a workaround since this library supports Unicode special characters so I added special character instead of actual shape
+> https://www.w3schools.com/charsets/ref_utf_geometric.asp
+
+Hi akshaygoyal88. Could you please share your code snippet how you achieved it. I am trying but I dont see the symbol when ppt is downloaded. I see it as a string. Thanks`n<<COMMENT>>`nHi there, checking yet again if support for shapes in table cells has been added? If there are any other alternate approach then please suggest. `n<<COMMENT>>`nHi, 
+Checking if adding images inside table cells have been added? 
+Thank you
+
+`n<<COMMENT>>`nHello,
+Also checking if images or shapes can be added to table cell?`n<<COMMENT>>`nHello! We really need it!
+=====ISSUE 93=====
+### Line Gradient Support`nIs there a way to set the color of a line shape to a gradient?`n---COMMENTS---`nHi @rwhitmore90 ,
+
+Thanks for the question.
+
+There is not presently any color options for gradients.`n<<COMMENT>>`nIs it possible to implement something manually? My problem is part of our master template requires a line with a gradient.
+
+I found this link which shows the key part is the <a:gs> tag http://www.brandwares.com/bestpractices/2016/05/xml-hacking-graduated-color-table-borders/ 
+
+<a:ln w="19050">
+  <a:gradFill>
+    <a:gsLst>
+      <a:gs pos="0">
+        <a:schemeClr val="bg1"/>
+      </a:gs>
+      <a:gs pos="25000">
+        <a:srgbClr val="B7E6FF"/>
+      </a:gs>
+      <a:gs pos="100000">
+        <a:schemeClr val="accent1"/>
+      </a:gs>
+    </a:gsLst>
+    <a:lin ang="0" scaled="0"/>
+  </a:gradFill>
+</a:ln>`n<<COMMENT>>`nHi @rwhitmore90 ,
+
+There's no way to pass in custom XML, could you use an image instead of a line as a workaround?`n<<COMMENT>>`nThis would be addressed by my implementation I reference in #102 `n<<COMMENT>>`nAny news about this ?`n<<COMMENT>>`nHI All, I added a PR #1469 that should address this issue.

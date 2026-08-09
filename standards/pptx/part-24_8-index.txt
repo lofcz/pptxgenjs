@@ -1,0 +1,189 @@
+<!-- 8 Index | pages 168-170 of 170 -->
+
+A                                                       CT_ShowEventRecordList 54
+                                                        CT_ShowMediaControls 55
+Animation info extensions 20                                 CT_ShredTransition 55
+Applicability 14                                             CT_TriggerEventRecord 55
+Attributes                                               Content part extensions 20
+  bounceEnd 40                                         conveyor element 28
+  bwMode 40                                                 creationId 28
+  dur 40                                           CT_BrowseMode complex type 41
+  presetBounceEnd 41                                   CT_ChartTrackingRefBased complex type 61
+                                                   CT_CommentThreading complex type 62
+B                                                       CT_ContentPartNonVisual complex type 42
+                                                       CT_DefaultImageDpi complex type 42
+bmkTgt element 27                                     CT_DesignElement complex type 69
+bounceEnd attribute 40                                  CT_DiscardImageEditData complex type 43
+browseMode element 27                                CT_ExtendedGuide complex type 62
+bwMode attribute 40                                      CT_ExtendedGuideList complex type 63
+                                                          CT_FlyThroughTransition complex type 43
+C                                                             CT_GlitterTransition complex type 43
+                                                        CT_LaserTrace complex type 44
+                                                           CT_LaserTraceList complex type 44Change tracking 167
+                                                         CT_LaserTracePoint complex type 45Change tracking extensions 23
+                                                             CT_LeftRightDirectionTransition complex type 45Changes Information part 17
+                                                    CT_Media complex type 47Charting extensions 25
+                                                   CT_MediaBookmark complex type 46chartTrackingRefBased element 59
+                                                      CT_MediaBookmarkList complex type 46Comment extensions 23
+                                                     CT_MediaBookmarkTarget complex type 46Complex types
+                                                    CT_MediaFade complex type 48  CT_BrowseMode 41
+                                                       CT_MediaPlaybackEventRecord complex type 48  CT_ChartTrackingRefBased 61
+                                                     CT_MediaSeekEventRecord complex type 49  CT_CommentThreading 62
+                                                     CT_MediaTrim complex type 49  CT_ContentPartNonVisual 42
+                                                        CT_NullEventRecord complex type 50  CT_DefaultImageDpi 42
+                                                        CT_ParentCommentIdentifier complex type 64  CT_DesignElement 69
+                                                        CT_PresenceInfo complex type 65  CT_DiscardImageEditData 43
+                                                            CT_PresetTransition complex type 65  CT_ExtendedGuide 62
+                                                           CT_PrismTransition complex type 50  CT_ExtendedGuideList 63
+                                                 CT_RandomId complex type 51  CT_FlyThroughTransition 43
+                                                          CT_RevealTransition complex type 51  CT_GlitterTransition 43
+                                                            CT_RippleTransition complex type 52  CT_LaserTrace 44
+                                                        CT_Section complex type 52  CT_LaserTraceList 44
+                                                            CT_SectionList complex type 53  CT_LaserTracePoint 45
+                                                             CT_SectionSlideIdList complex type 53  CT_LeftRightDirectionTransition 45
+                                                             CT_SectionSlideIdListEntry complex type 53  CT_Media 47
+                                                       CT_ShowEventRecordList complex type 54  CT_MediaBookmark 46
+                                                      CT_ShowMediaControls complex type 55  CT_MediaBookmarkList 46
+                                                          CT_ShredTransition complex type 55  CT_MediaBookmarkTarget 46
+                                                        CT_TriggerEventRecord complex type 55  CT_MediaFade 48
+  CT_MediaPlaybackEventRecord 48
+  CT_MediaSeekEventRecord 49                D
+  CT_MediaTrim 49
+  CT_NullEventRecord 50                                  defaultImageDpi element 28
+  CT_ParentCommentIdentifier 64                         designElem element 69
+  CT_PresenceInfo 65                                          Details
+  CT_PresetTransition 65                                    animation info extensions 20
+  CT_PrismTransition 50                                  change tracking extensions 23
+  CT_RandomId 51                                             charting extensions 25
+  CT_RevealTransition 51                              comment extensions 23
+  CT_RippleTransition 52                                     content part extensions 20
+  CT_Section 52                                             design element extensions 26
+  CT_SectionList 53                                          extensions 18
+  CT_SectionSlideIdList 53                                   guide extensions 24
+  CT_SectionSlideIdListEntry 53                           image extensions 22
+  Office app extensions 25                                   design 26
+  section extensions 22                                      guide 24
+  slide show extensions 22                               image 22
+  slide transition extensions 18                                  ink 21
+  zoom extensions 25                                 math 23
+discardImageEditData element 29                         media 21
+doors element 29                                               narration 25
+dur attribute 40                                                   Office App 25
+                                                                 section 22
+E                                                                      slide show 22
+                                                                        slide transition 18
+Elements                                          zoom 25
+  bmkTgt 27                                                  extLst element 29
+  browseMode 27
+  chartTrackingRefBased 59                       F
+  conveyor 28
+  creationId 28                                                       ferris element 30
+  defaultImageDpi 28                                           Fields - vendor-extensible 15
+  designElem 69                                                 flash element 30
+  discardImageEditData 29                                               flip element 30
+  doors 29                                                   flythrough element 31
+  extLst 29                                                           Full XML schema 142
+   ferris 30
+  flash 30                             G
+   flip 30
+  flythrough 31                                                 gallery element 31
+  gallery 31                                                            glitter element 32
+   glitter 32                                                Glossary 12
+  honeycomb 32                                        Guide extensions 24
+  laserClr 33
+  laserTraceLst 33                       H
+  media 33
+  modId 33                                        honeycomb element 32
+  notesGuideLst 60
+  nvContentPr 34                                    I
+  pan 34
+  presenceInfo 60                                                  Image extensions 22
+  prism 34                                                      Implementer - security considerations 141
+  prstTrans 60                                                        Index of security parameters 141
+  reveal 35                                                           Informative references 14
+  ripple 36                                                           Ink extensions 21
+  sectionLst 36                                                              Introduction 12
+  showEvtLst 36
+  showMediaCtrls 37                                           L  shred 37
+  sldGuideLst 61
+                                                                   laserClr element 33
+  switch 37
+                                                              laserTraceLst 33
+  threadingInfo 61
+                                                                 Localization 15
+  vortex 38
+  warp 38
+                             M  wheelReverse 39
+  window 39
+                                                   Math extensions 23  xfrm 40
+                                                    media element 33Examples 137
+                                                      Media example 137  Media 137
+                                                      Media extensions 21  overview 137
+                                                      Media part enumeration 16  Sections 138
+                                                 modId 33  Slide Show 139
+  Slide Transitions 137
+Extensions 18                         N
+  animation info 20
+  change tracking 23                                        Narration extensions 25
+                                                             switch element 37
+O
+                                         T
+Office App extensions 25
+Overview (synopsis) 14                                      threadingInfo element 61
+                                                          Track part 17
+P                                                          Tracking changes 167
+
+pan element 34                           V
+Parameters - security index 141
+Part enumerations                                          Vendor-extensible fields 15
+  Changes Information part 17                              Versioning 15
+  media part 16                                            vortex element 38
+  Revision Information part (section 2.1.2 16,
+    section 2.1.5 17, section 2.1.6 18)         W
+  Track part 17
+presenceInfo element 60                               warp element 38
+presetBounceEnd attribute 41                             wheelReverse element 39
+prism element 34                                    window element 39
+Product behavior 165
+prstTrans element 60                        X
+
+R                                                    xfrm element 40
+                                             XML schema 142
+References 13
+  informative 14                             Z
+  normative 13
+Relationship to protocols and other structures 14          Zoom extensions 25
+reveal element 35
+Revision Information part (section 2.1.2 16, section
+    2.1.5 17, section 2.1.6 18)
+ripple element 36
+
+S
+
+Section extensions 22
+sectionLst element 36
+Sections example 138
+Security
+  implementer considerations 141
+  parameter index 141
+showEvtLst 36
+showMediaCtrls element 37
+shred element 37
+Simple types
+  ST_TransitionCenterDirectionType 56
+  ST_TransitionCornerAndCenterDirectionType 56
+  ST_TransitionLeftRightDirectionType 57
+  ST_TransitionPattern 57
+  ST_TransitionShredPattern 58
+  ST_UniversalTimeOffset 58
+sldGuideLst element 61
+Slide Show example 139
+Slide show extensions 22
+Slide transition extensions 18
+Slide Transitions example 137
+ST_TransitionCenterDirectionType simple type 56
+ST_TransitionCornerAndCenterDirectionType simple
+    type 56
+ST_TransitionLeftRightDirectionType simple type 57
+ST_TransitionPattern simple type 57
+ST_TransitionShredPattern simple type 58

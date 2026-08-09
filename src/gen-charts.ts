@@ -1878,12 +1878,14 @@ function makeCatAxis (opts: IChartOptsLib, axisId: string, valAxisId: string): s
 		})
 	}
 	// NOTE: Adding Val Axis Formatting if scatter or bubble charts
+	// ECMA-376 §5.7.2.122 CT_NumFmt: `sourceLinked` defaults to true and IGNORES formatCode (uses the linked
+	// workbook format). A custom mask only takes effect with sourceLinked="0" (issue #1309).
 	if (opts._type === CHART_TYPE.SCATTER || opts._type === CHART_TYPE.BUBBLE || opts._type === CHART_TYPE.BUBBLE3D) {
 		// X (cat) axis: honor catLabelFormatCode so x and y can be formatted independently; fall back to valAxisLabelFormatCode for back-compat (issue #1436)
 		const xAxisFmt = opts.catLabelFormatCode || opts.valAxisLabelFormatCode
-		strXml += '  <c:numFmt formatCode="' + (xAxisFmt ? encodeXmlEntities(xAxisFmt) : 'General') + '" sourceLinked="1"/>'
+		strXml += '  <c:numFmt formatCode="' + (xAxisFmt ? encodeXmlEntities(xAxisFmt) : 'General') + '" sourceLinked="0"/>'
 	} else {
-		strXml += '  <c:numFmt formatCode="' + (encodeXmlEntities(opts.catLabelFormatCode) || 'General') + '" sourceLinked="1"/>'
+		strXml += '  <c:numFmt formatCode="' + (encodeXmlEntities(opts.catLabelFormatCode) || 'General') + '" sourceLinked="0"/>'
 	}
 	if (opts._type === CHART_TYPE.SCATTER) {
 		strXml += '  <c:majorTickMark val="none"/>'
@@ -1920,7 +1922,11 @@ function makeCatAxis (opts: IChartOptsLib, axisId: string, valAxisId: string): s
 	strXml += '  </a:p>'
 	strXml += ' </c:txPr>'
 	strXml += ' <c:crossAx val="' + valAxisId + '"/>'
-	strXml += ` <c:${typeof opts.valAxisCrossesAt === 'number' ? 'crossesAt' : 'crosses'} val="${opts.valAxisCrossesAt || 'autoZero'}"/>`
+	// ECMA-376 §5.7.2.33/34: `crosses@val` is ST_Crosses (autoZero|min|max); `crossesAt@val` is a double.
+	// A numeric 0 is a legitimate crossing value, so distinguish with `??` not `||` (falsy 0 must not fall back to autoZero).
+	strXml += typeof opts.valAxisCrossesAt === 'number'
+		? ` <c:crossesAt val="${opts.valAxisCrossesAt}"/>`
+		: ` <c:crosses val="${opts.valAxisCrossesAt ?? 'autoZero'}"/>`
 	strXml += ' <c:auto val="1"/>'
 	strXml += ' <c:lblAlgn val="ctr"/>'
 	strXml += ` <c:noMultiLvlLbl val="${opts.catAxisMultiLevelLabels ? 0 : 1}"/>`
@@ -2020,10 +2026,14 @@ function makeValAxis (opts: IChartOptsLib, valAxisId: string): string {
 	strXml += '  </a:p>'
 	strXml += ' </c:txPr>'
 	strXml += ' <c:crossAx val="' + crossAxId + '"/>'
+	// ECMA-376 §5.7.2.33/34: when the user pins the category axis at an explicit value (valAxisCrossesAt is a
+	// number, e.g. 0 for issue #1245), the perpendicular value axis must also cross explicitly (crossesAt), not autoZero.
 	if (typeof opts.catAxisCrossesAt === 'number') {
 		strXml += ` <c:crossesAt val="${opts.catAxisCrossesAt}"/>`
 	} else if (typeof opts.catAxisCrossesAt === 'string') {
 		strXml += ' <c:crosses val="' + opts.catAxisCrossesAt + '"/>'
+	} else if (typeof opts.valAxisCrossesAt === 'number') {
+		strXml += ` <c:crossesAt val="${opts.valAxisCrossesAt}"/>`
 	} else {
 		const isRight = axisPos === 'r' || axisPos === 't'
 		const crosses = isRight ? 'max' : 'autoZero'

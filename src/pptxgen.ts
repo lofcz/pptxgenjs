@@ -83,7 +83,9 @@ import {
 	AddFontOptions,
 	AddSlideProps,
 	CompressionLevel,
+	CommentAuthorProps,
 	DefineLayoutProps,
+	GuideProps,
 	IPresentationProps,
 	PresLayout,
 	PresSlide,
@@ -103,6 +105,7 @@ import * as genObj from './gen-objects'
 import * as genMedia from './gen-media'
 import * as genTable from './gen-tables'
 import * as genXml from './gen-xml'
+import * as genComments from './gen-comments'
 import { warnDeprecatedOnce } from './gen-utils'
 
 const VERSION = '4.1.5'
@@ -288,6 +291,19 @@ export default class PptxGenJS implements IPresentationProps {
 		return this._sections
 	}
 
+	/**
+	 * Editor alignment guides (MS-PPTX §2.4.3.3). Emitted as `p15:sldGuideLst`.
+	 * @example pptx.guides = [{ orient: 'vert', pos: 3.5 }, { orient: 'horz', pos: 2 }]
+	 */
+	public guides: GuideProps[] = []
+
+	/**
+	 * Modern comment authors (MS-PPTX §2.16). Emitted to `ppt/authors.xml`.
+	 * Auto-populated from slide `addComment` author names if left empty.
+	 * @example pptx.commentAuthors = [{ name: 'Ada Lovelace', initials: 'AL' }]
+	 */
+	public commentAuthors: CommentAuthorProps[] = []
+
 	/** slide layout definition objects, used for generating slide layout files */
 	private readonly _slideLayouts: SlideLayout[]
 	public get slideLayouts(): SlideLayout[] {
@@ -429,6 +445,11 @@ export default class PptxGenJS implements IPresentationProps {
 			addShape: notOnMaster,
 			addTable: notOnMaster,
 			addText: notOnMaster,
+			addTransition: notOnMaster,
+			addComment: notOnMaster,
+			addZoom: notOnMaster,
+			addSectionZoom: notOnMaster,
+			addSummaryZoom: notOnMaster,
 			//
 			_name: '',
 			_presLayout: this._presLayout,
@@ -449,13 +470,14 @@ export default class PptxGenJS implements IPresentationProps {
 	 * @return {PresSlide} new Slide
 	 */
 	private readonly addNewSlide = (options?: AddSlideProps): PresSlide => {
-		// Continue using sections if the first slide using auto-paging has a Section
-		const sectAlreadyInUse =
-			this.sections.length > 0 &&
-			this.sections[this.sections.length - 1]._slides.filter(slide => slide._slideNum === this.slides[this.slides.length - 1]._slideNum).length > 0
+		// Continue using sections if the slide being paged (the last slide) already belongs to a Section.
+		// Find the section that actually contains the parent slide - NOT only the last section - so that
+		// autopaged slides follow their parent even when a later section exists (issue #1405).
+		const parentSlideNum = this.slides.length > 0 ? this.slides[this.slides.length - 1]._slideNum : undefined
+		const parentSect = this.sections.filter(sect => sect._slides.some(slide => slide._slideNum === parentSlideNum))[0]
 
 		const opts: AddSlideProps = options ?? {}
-		opts.sectionTitle = sectAlreadyInUse ? this.sections[this.sections.length - 1].title : undefined
+		opts.sectionTitle = parentSect ? parentSect.title : undefined
 
 		return this.addSlide(opts)
 	}
@@ -589,7 +611,7 @@ export default class PptxGenJS implements IPresentationProps {
 			zip.file('ppt/_rels/presentation.xml.rels', genXml.makeXmlPresentationRels(this.slides))
 			zip.file('ppt/theme/theme1.xml', genXml.makeXmlTheme(this))
 			zip.file('ppt/presentation.xml', genXml.makeXmlPresentation(this))
-			zip.file('ppt/presProps.xml', genXml.makeXmlPresProps())
+			zip.file('ppt/presProps.xml', genXml.makeXmlPresProps(this))
 			zip.file('ppt/tableStyles.xml', genXml.makeXmlTableStyles())
 			zip.file('ppt/viewProps.xml', genXml.makeXmlViewProps())
 
@@ -598,12 +620,21 @@ export default class PptxGenJS implements IPresentationProps {
 				zip.file(`ppt/slideLayouts/slideLayout${idx + 1}.xml`, genXml.makeXmlLayout(layout))
 				zip.file(`ppt/slideLayouts/_rels/slideLayout${idx + 1}.xml.rels`, genXml.makeXmlSlideLayoutRel(idx + 1, this.slideLayouts))
 			})
+			// Modern threaded comments (MS-PPTX §2.16): resolve authors once, emit authors + per-slide comment parts.
+			const hasComments = this.slides.some(s => (s.comments ?? []).length > 0)
+			const commentAuthors = hasComments ? genComments.collectCommentAuthors(this.slides, this.commentAuthors) : []
+			if (hasComments) {
+				zip.folder('ppt/comments')
+				zip.file('ppt/authors.xml', genComments.makeXmlCommentAuthors(commentAuthors))
+			}
 			this.slides.forEach((slide, idx) => {
-				zip.file(`ppt/slides/slide${idx + 1}.xml`, genXml.makeXmlSlide(slide))
+				zip.file(`ppt/slides/slide${idx + 1}.xml`, genXml.makeXmlSlide(slide, this._sections))
 				zip.file(`ppt/slides/_rels/slide${idx + 1}.xml.rels`, genXml.makeXmlSlideRel(this.slides, this.slideLayouts, idx + 1))
 				// Create all slide notes related items. Notes of empty strings are created for slides which do not have notes specified, to keep track of _rels.
 				zip.file(`ppt/notesSlides/notesSlide${idx + 1}.xml`, genXml.makeXmlNotesSlide(slide))
 				zip.file(`ppt/notesSlides/_rels/notesSlide${idx + 1}.xml.rels`, genXml.makeXmlNotesSlideRel(idx + 1))
+				if ((slide.comments ?? []).length > 0)
+					zip.file(`ppt/comments/commentSlide${idx + 1}.xml`, genComments.makeXmlSlideComments(slide, commentAuthors))
 			})
 			zip.file('ppt/slideMasters/slideMaster1.xml', genXml.makeXmlMaster(this.masterSlide, this.slideLayouts))
 			zip.file('ppt/slideMasters/_rels/slideMaster1.xml.rels', genXml.makeXmlMasterRel(this.masterSlide, this.slideLayouts))

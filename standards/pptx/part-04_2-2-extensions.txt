@@ -1,0 +1,444 @@
+<!-- 2.2 Extensions | pages 18-26 of 170 -->
+
+ Root namespace                          http://schemas.microsoft.com/office/powerpoint/2018/8/main
+
+ Source relationship                       http://schemas.microsoft.com/office/2018/10/relationships/comments
+
+An instance of a Comment part specifies a set of comments included by a PresentationML document.
+
+A Comment part MUST be the target of an explicit relationship from the Slide part ([ISO/IEC29500-
+1:2016] section 13.3.8).
+
+The root element for a part of this content type MUST be cmLst (section 2.16.1.2).
+
+A Comment part MUST be located within the package containing the relationships part (expressed
+syntactically, the TargetMode attribute of the Relationship element ([ISO/IEC29500-2:2012]
+section 6.5.3.4) MUST be Internal.
+
+2.1.6 Author Part
+
+The following table specifies a new Author part that can be stored in a PresentationML document.
+
+ Part Components                    Value
+
+ Content type                             application/vnd.ms-powerpoint.authors+xml
+
+ Root namespace                          http://schemas.microsoft.com/office/powerpoint/2018/8/main
+
+ Source relationship                        http://schemas.microsoft.com/office/2018/10/relationships/authors
+
+An instance of an Author part specifies a set of authors included by a PresentationML document.
+
+A package MUST contain zero or one Author part. If it exists, that part MUST be the target of an
+implicit relationship from the Presentation part ([ISO/IEC29500-1:2016] section 13.3.6).
+
+The root element for a part of this content type MUST be authorLst (section 2.16.1.1).
+
+An Author part MUST be located within the package containing the relationships part (expressed
+syntactically, the TargetMode attribute of the Relationship element ([ISO/IEC29500-2:2012]
+section 6.5.3.4) MUST be Internal.
+
+An Author part MUST NOT have implicit or explicit relationships to other parts specified in
+[ISO/IEC29500-1:2016] or this document
+
+2.2  Extensions
+
+This section specifies the elements from [ISO/IEC29500-1:2016] that are extended by this format.
+Either the Ignorable attribute ([ISO/IEC29500-3:2015] section 7.2), AlternateContent element
+([ISO/IEC29500-3:2015] section 7.5), or the extLst element ([ISO/IEC29500-1:2016] section
+19.2.1.12) MUST be used to maintain compatibility with [ISO/IEC29500-1:2016] implementations.
+
+2.2.1  Slide Transition Extensions
+
+The sld element ([ISO/IEC29500-1:2016] section 19.3.1.38), the sldLayout element
+([ISO/IEC29500-1:2016] section 19.3.1.39), and the sldMaster element ([ISO/IEC29500-1:2016]
+section 19.3.1.42) are extended by the addition of an AlternateContent child element
+([ISO/IEC29500-3:2015] section 7.5), whose structure is specified in the following table.
+ http://schemas.microsoft.com/office/powerpoint/2010/main      19.3.1.50)
+
+ Choice:                                                       transition ([ISO/IEC29500-1:2016] section
+                                                                19.3.1.50) http://schemas.microsoft.com/office/powerpoint/2012/main
+
+ Choice:                                                       transition ([ISO/IEC29500-1:2016] section
+ http://schemas.microsoft.com/office/powerpoint/2015/09/main   19.3.1.50)
+
+
+ Fallback                                                       transition ([ISO/IEC29500-1:2016] section
+                                                                19.3.1.50)
+
+The transition element ([ISO/IEC29500-1:2016] section 19.3.1.50) is extended by the addition of
+the following child elements to the xsd:choice content model of the CT_SlideTransition complex
+type ([ISO/IEC29500-1:2016] section A.3):
+
+   vortex (section 2.3.1.30)
+
+  switch (section 2.3.1.29)
+
+   flip (section 2.3.1.11)
+
+   ripple (section 2.3.1.24)
+
+  honeycomb (section 2.3.1.15)
+
+  prism (section 2.3.1.22)
+
+  doors (section 2.3.1.7)
+
+  window (section 2.3.1.33)
+
+   ferris (section 2.3.1.9)
+
+   gallery (section 2.3.1.13)
+
+  conveyor (section 2.3.1.3)
+
+  pan (section 2.3.1.21)
+
+   glitter (section 2.3.1.14)
+
+  warp (section 2.3.1.31)
+
+   flythrough (section 2.3.1.12)
+
+   flash (section 2.3.1.10)
+
+  shred (section 2.3.1.28)
+
+   reveal (section 2.3.1.23)
+
+  wheelReverse (section 2.3.1.32)
+
+  morph (section 2.6.1.1)
+
+   prstTrans (section 2.4.1.5)
+2.2.2 Animation Info Extensions
+
+The sld element ([ISO/IEC29500-1:2016] section 19.3.1.38), the sldLayout element
+([ISO/IEC29500-1:2016] section 19.3.1.39), and the sldMaster element ([ISO/IEC29500-1:2016]
+section 19.3.1.42) are extended by the addition of an AlternateContent child element
+([ISO/IEC29500-3:2015] section 7.5), whose structure is specified in the following table.
+
+ AlternateContent components                           Child element
+
+ Choice:                                               timing ([ISO/IEC29500-1:2016] section
+ http://schemas.microsoft.com/office/powerpoint/2010/main   19.3.1.48)
+
+ Fallback                                               timing ([ISO/IEC29500-1:2016] section
+                                                             19.3.1.48)
+
+The tgtEl descendant element ([ISO/IEC29500-1:2016] section 19.5.81) of the timing element is
+extended by the addition of the following child elements to the xsd:choice content model of the
+CT_TLTimeTargetElement complex type ([ISO/IEC29500-1:2016] section A.3): bmkTgt (section
+2.3.1.1).
+
+The cTn descendant element ([ISO/IEC29500-1:2016] section 19.5.33) of the timing element is
+extended by the addition of the following attribute to the CT_TLCommonTimeNodeData complex
+type ([ISO/IEC29500-1:2016] section A.3): presetBounceEnd (section 2.3.2.4).
+
+The anim descendant element ([ISO/IEC29500-1:2016] section 19.5.1) of the timing element is
+extended by the addition of the following attribute to the CT_TLAnimateBehavior complex type
+([ISO/IEC29500-1:2016] section A.3): bounceEnd (section 2.3.2.1).
+
+The animMotion descendant element ([ISO/IEC29500-1:2016] section 19.5.4) of the timing element
+is extended by the addition of the following attribute to the CT_TLAnimateMotionBehavior complex
+type ([ISO/IEC29500-1:2016] section A.3): bounceEnd (section 2.3.2.1).
+
+The animRot descendant element ([ISO/IEC29500-1:2016] section 19.5.5) of the timing element is
+extended by the addition of the following attribute to the CT_TLAnimateRotationBehavior complex
+type ([ISO/IEC29500-1:2016] section A.3): bounceEnd (section 2.3.2.1).
+
+The animScale descendant element ([ISO/IEC29500-1:2016] section 19.5.6) of the timing element
+is extended by the addition of the following attribute to the CT_TLAnimateScaleBehavior complex
+type ([ISO/IEC29500-1:2016] section A.3): bounceEnd (section 2.3.2.1).
+
+2.2.3 Content Part Extensions
+
+The grpSp element ([ISO/IEC29500-1:2016] section 19.3.1.22) is extended by the addition of an
+AlternateContent child element ([ISO/IEC29500-3:2015] section 7.5), whose structure is specified
+in the following table.
+
+ AlternateContent components                           Child element
+
+ Choice:                                               contentPart ([ISO/IEC29500-1:2016] section
+ http://schemas.microsoft.com/office/powerpoint/2010/main   19.3.1.14)
+
+ Fallback                                           sp ([ISO/IEC29500-1:2016] section 19.3.1.43)
+  nvContentPartPr (section 2.3.1.20)
+
+  xfrm (section 2.3.1.34)
+
+   extLst (section 2.3.1.8).
+
+The contentPart element ([ISO/IEC29500-1:2016] section 19.3.1.14) is further extended by the
+addition of the following attribute to the CT_Rel complex type ([ISO/IEC29500-1:2016] section A.3):
+bwMode (section 2.3.2.2).
+
+2.2.3.1 Ink Extensions
+
+The spTree element ([ISO/IEC29500-1:2016] section 19.3.1.45) and the grpSp element
+([ISO/IEC29500-1:2016] section 19.3.1.22) are extended by the addition of an AlternateContent child
+element<1> whose structure is specified in the following table.
+
+ AlternateContent components                               Child element
+
+ Choice:                                                          contentPart ([ISO/IEC29500-1:2016]
+ http://schemas.microsoft.com/office/powerpoint/2010/main       section 19.3.1.14)
+ http://schemas.microsoft.com/office/powerpoint/2014/inkAction
+ ([MS-ODRAWXML] section 2.21)
+
+ Fallback                                                                pic ([ISO/IEC29500-1:2016] section
+                                                                 19.3.1.37)
+
+
+2.2.4 Media Extensions
+
+The extLst child element of the nvPr element ([ISO/IEC29500-1:2016] section 19.3.1.33) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.
+
+ Ext uri                                             Child element
+
+ {DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}       media (section 2.3.1.18)
+
+The extLst child element of the showPr element ([ISO/IEC29500-1:2016] section 19.2.1.30) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.
+
+ Ext uri                                             Child element
+
+ {2FDB2607-1784-4EEB-B798-7EB5836EED8A}        showMediaCtrls (section 2.3.1.27)
+
+
+2.2.4.1 TracksInfo Extensions
+
+The extLst child element of the media element (section 2.3.1.18) is extended by the addition of a
+new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11), whose structure is specified in the
+following table:
+2.2.5 Section Extensions
+
+The extLst child element of the presentation element ([ISO/IEC29500-1:2016] section 19.2.1.26) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table:
+
+ Ext uri                                             Child element
+
+ {521415D9-36F7-43E2-AB2F-B90AF26B5E84}         sectionLst (section 2.3.1.25)
+
+
+2.2.6  Slide Show Extensions
+
+The extLst child element of the showPr element ([ISO/IEC29500-1:2016] section 19.2.1.30) is
+extended by the addition of new ext child elements ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structures are specified in the following table.
+
+ Ext uri                                              Child element
+
+ {F99C55AA-B7CB-42B0-86F8-08522FDF87E8}        browseMode (section 2.3.1.2)
+
+ {EC167BDD-8182-4AB7-AECC-EB403E3ABB37}         laserClr (section 2.3.1.16)
+
+The extLst child element of the sld element ([ISO/IEC29500-1:2016] section 19.3.1.38) is extended
+by the addition of new ext child elements ([ISO/IEC29500-1:2016] section 19.2.1.11), whose
+structures are specified in the following table.
+
+ Ext uri                                             Child element
+
+ {3A86A75C-4F4B-4683-9AE1-C65F6400EC91}         laserTraceLst (section 2.3.1.17)
+
+ {E180D4A7-C9FB-4DFB-919C-405C955672EB}       showEvtLst (section 2.3.1.26)
+
+
+2.2.7 Image Extensions
+
+The extLst child element of the presentationPr element ([ISO/IEC29500-1:2016] section 19.2.1.27)
+is extended by the addition of new ext child elements ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structures are specified in the following table.
+
+ Ext uri                                              Child element
+
+ {E76CE94A-603C-4142-B9EB-6D1370010A27}         discardImageEditData (section 2.3.1.6)
+
+ {D31A062A-798A-4329-ABDD-BBA856620510}        defaultImageDpi (section 2.3.1.5)
+is extended by the addition of new ext child elements ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structures are specified in the following table.
+
+ Ext uri                                              Child element
+
+ {4599F94E-CEE6-441E-89CC-EB005ECD8F06}        a14:m ([MS-ODRAWXML] section 2.3.1.11)
+
+
+2.2.9 Change Tracking Extensions
+
+The extLst child element of the nvPr element ([ISO/IEC29500-1:2016] section 19.3.1.33) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.
+
+  Ext uri                                            Child element
+
+ {D42A27DB-BD31-4B8C-83A1-F6EECF244321}      modId (section 2.3.1.19)
+
+The extLst child element of the cSld element ([ISO/IEC29500-1:2016] section 19.3.1.16) is extended
+by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11), whose
+structure is specified in the following table.
+
+  Ext uri                                            Child element
+
+ {BB962C8B-B14F-4D97-AF65-F5344CB8AC3E}        creationId (section 2.3.1.4)
+
+
+2.2.10 Comment Extensions
+
+The extLst child element of the cmAuthor element ([ISO/IEC29500-1:2016] section 19.4.2) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<2>
+
+  Ext uri                                            Child element
+
+ {19B8F6BF-5375-455C-9EA6-DF929625EA0E}        presenceInfo (section 2.4.1.4)
+
+The extLst child element of the cm element ([ISO/IEC29500-1:2016] section 19.4.1) is extended by
+the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11), whose structure
+is specified in the following table.<3>
+
+  Ext uri                                            Child element
+
+ {C676402C-5697-4E1C-873F-D02D1690AC5C}        threadingInfo (section 2.4.1.7)
+
+The extLst child element of the sld element ([ISO/IEC29500-1:2016] section 19.3.1.38) is extended
+by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11), whose
+structure is specified in the following table.<4>
+2.2.11 Guide Extensions
+
+The extLst child element of the presentation element ([ISO/IEC29500-1:2016] section 19.2.1.26) is
+extended by the addition of new ext child elements ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structures are specified in the following table.<5>
+
+ Ext uri                                             Child element
+
+ {EFAFB233-063F-42B5-8137-9DF3F51BA10A}         sldGuideLst (section 2.4.1.6)
+
+ {2D200454-40CA-4A62-9FC3-DE9A4176ACB9}        notesGuideLst (section 2.4.1.3)
+
+The extLst child element of the sldLayout element ([ISO/IEC29500-1:2016] section 19.3.1.39) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<6>
+
+ Ext uri                                             Child element
+
+ {DCECCB84-F9BA-43D5-87BE-67443E8EF086}        sldGuideLst (section 2.4.1.6)
+
+The extLst child element of the sldMaster element ([ISO/IEC29500-1:2016] section 19.3.1.42) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<7>
+
+ Ext uri                                             Child element
+
+ {27BBF7A9-308A-43DC-89C8-2F10F3537804}        sldGuideLst (section 2.4.1.6)
+
+The extLst child element of the handoutMaster element ([ISO/IEC29500-1:2016] section 19.3.1.24)
+is extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<8>
+
+ Ext uri                                             Child element
+
+ {56416CCD-93CA-4268-BC5B-53C4BB910035}        sldGuideLst (section 2.4.1.6)
+
+The extLst child element of the notesMaster element ([ISO/IEC29500-1:2016] section 19.3.1.27) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<9>
+
+ Ext uri                                             Child element
+
+ {620B2872-D7B9-4A21-9093-7833F8D536E1}        sldGuideLst (section 2.4.1.6)
+is extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<10>
+
+ Ext uri                                              Child element
+
+ {FD5EFAAD-0ECE-453E-9831-46B23BE46B34}         chartTrackingRefBased (section 2.4.1.1)
+
+
+2.2.13 Office App Extensions
+
+The spTree element ([ISO/IEC29500-1:2016] section 19.3.1.45) and the grpSp element
+([ISO/IEC29500-1:2016] section 19.3.1.22) are extended by the addition of an AlternateContent
+child element whose structure is specified in the following table.
+
+ AlternateContent components                                         Child element
+
+ Choice:                                                          webextensionref ([MS-OWEXML]
+ http://schemas.microsoft.com/office/webextensions/webextension/2010/11   section 2.1.3)
+ http://schemas.microsoft.com/office/powerpoint/2013/contentapp
+
+ Fallback                                                                   pic ([ISO/IEC29500-1:2016]
+                                                                                 section 19.3.1.37)
+
+
+2.2.14 Narration Extensions
+
+The extLst child element of the nvPr element ([ISO/IEC29500-1:2016] section 19.3.1.33) is
+extended by the addition of a new ext child element<11> ([ISO/IEC29500-1:2016] section
+19.2.1.11), whose structure is specified in the following table.
+
+ Ext uri                                              Child element
+ {42D2F446-02D8-4167-A562-619A0277C38B}          isNarration (section 2.4.1.2)
+
+
+2.2.15 Zoom Extensions
+
+The spTree element ([ISO/IEC29500-1:2016] section 19.3.1.45) and the grpSp element
+([ISO/IEC29500-1:2016] section 19.3.1.22) are extended by the addition of an AlternateContent
+child element whose structure is specified in the following tables.
+
+ AlternateContent components                                  Child element
+
+ Choice:                                                  sectionZm (section 2.9.1.1)
+ http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom
+
+ Fallback                                                           pic ([ISO/IEC29500-1:2016] section
+                                                                    19.3.1.37)
+ http://schemas.microsoft.com/office/powerpoint/2016/slidezoom
+
+ Fallback                                                         pic ([ISO/IEC29500-1:2016] section
+                                                                  19.3.1.37)
+
+
+ AlternateContent components                                    Child element
+
+ Choice:                                           summaryZm (section 2.11.1.1)
+ http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom
+
+ Fallback                                                  grpSp ([ISO/IEC29500-1:2016] section
+                                                                      19.3.1.22)
+
+
+2.2.16 View Mode Extensions
+
+The extLst child element of the presentationPr element ([ISO/IEC29500-1:2016] section 19.2.1.27)
+is extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<12>
+
+ Ext uri                                              Child element
+
+ {1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}       readonlyRecommended (section 2.14.1.1)
+
+
+2.2.17 Design Element Extensions
+
+The extLst child element of the nvPr element ([ISO/IEC29500-1:2016] section 19.3.1.33) is
+extended by the addition of a new ext child element<13> ([ISO/IEC29500-1:2016] section
+19.2.1.11), whose structure is specified in the following table.
+
+ Ext uri                                              Child element
+ {386F3935-93C4-4BCD-93E2-E3B085C9AB24}        designElem (section 2.5.3.1)
+
+
+2.2.18 Classification Element Extensions
+
+The extLst child element of the nvPr element ([ISO/IEC29500-1:2016] section 19.3.1.33) is
+extended by the addition of a new ext child element ([ISO/IEC29500-1:2016] section 19.2.1.11),
+whose structure is specified in the following table.<14>
+
+ Ext uri                                              Child element
+
+ {1162E1C5-73C7-4A58-AE30-91384D911F3F}           classification (section 2.15.1.1)

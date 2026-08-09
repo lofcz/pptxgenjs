@@ -2,13 +2,64 @@
  * PptxGenJS: Media Methods
  */
 
-import { imageSize } from 'image-size'
 import { IMG_BROKEN, SLIDE_OBJECT_TYPES } from './core-enums'
 import { PresSlide, SlideLayout, ISlideRelMedia } from './core-interfaces'
 import { applySvgFillColor, applySvgFillToDataUrl } from './gen-utils'
 
 /** Images are measured in pixels; PowerPoint slide dimensions are inches at 96 DPI */
 const IMAGE_DPI = 96
+
+/**
+ * Read the natural pixel dimensions of a raster image from its header bytes.
+ * Self-contained replacement for the `image-size` package (PNG/JPEG/GIF/BMP).
+ * Format refs: PNG spec §11.2.2 (IHDR is always the first chunk, width/height big-endian at bytes 16-24);
+ * JPEG (JFIF) SOF0-SOF15 markers carry height then width big-endian; GIF87a/89a logical-screen descriptor
+ * little-endian at bytes 6-10; BMP DIB header little-endian at bytes 18-26. SVG is sized separately (gen-objects).
+ *
+ * Declared dims are header-only (we never decode pixels), so clamp to a sane ceiling: a maliciously crafted
+ * header can claim 0xFFFFFFFF px and emit a ~44-million-inch slide (a corrupt pptx). PowerPoint's max slide is
+ * 56 in (5376 px @ 96 DPI); 100 000 px is generous headroom for legit high-res sources while rejecting bombs.
+ */
+const MAX_IMAGE_PX = 100000
+
+function imageDimensions(bytes: Uint8Array): { width?: number; height?: number } {
+	if (bytes.length < 10) return {} // every supported header's dims start at/after byte 6
+	const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+	const sane = (w: number, h: number) => (w > 0 && h > 0 && w <= MAX_IMAGE_PX && h <= MAX_IMAGE_PX ? { width: w, height: h } : {})
+
+	// PNG: 8-byte signature 89 50 4E 47 0D 0A 1A 0A, then IHDR length(4)+type(4)+width(4)+height(4)
+	if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+		if (bytes.length < 24) return {}
+		return sane(dv.getUint32(16, false), dv.getUint32(20, false))
+	}
+
+	// GIF: 'GIF87a'/'GIF89a', logical screen width/height little-endian at bytes 6-10
+	if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
+		return sane(dv.getUint16(6, true), dv.getUint16(8, true))
+	}
+
+	// BMP: 'BM', DIB width/height little-endian at bytes 18-26 (signed; height may be negative = top-down)
+	if (bytes[0] === 0x42 && bytes[1] === 0x4d) {
+		if (bytes.length < 26) return {}
+		return sane(Math.abs(dv.getInt32(18, true)), Math.abs(dv.getInt32(22, true)))
+	}
+
+	// JPEG: FF D8, then walk marker segments until a Start-Of-Frame (C0-CF except C4/C8/CC) carries the dims
+	if (bytes[0] === 0xff && bytes[1] === 0xd8) {
+		let off = 2
+		while (off + 9 <= bytes.length) {
+			if (bytes[off] !== 0xff) { off++; continue }
+			const marker = bytes[off + 1]
+			const isSOF = marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc
+			if (isSOF) return sane(dv.getUint16(off + 7, false), dv.getUint16(off + 5, false))
+			if (marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7)) { off += 2; continue } // no length
+			const segLen = dv.getUint16(off + 2, false)
+			off += 2 + segLen
+		}
+	}
+
+	return {}
+}
 
 /**
  * Decode a base64 (or data-url) string into bytes, in Node or the browser
@@ -36,12 +87,15 @@ export function applyNaturalImageSizes(layout: PresSlide | SlideLayout): void {
 		.forEach(obj => {
 			const strData = layout._relsMedia.find(rel => rel.rId === obj.imageRid)?.data
 			if (!obj.options || typeof strData !== 'string' || !strData || strData === IMG_BROKEN) return
+			// An image bound to a placeholder inherits the placeholder's w/h (slide XML resolves it); sizing it
+			// to its natural pixel dims instead would collapse it to ~px/96 inches (issue #996).
+			if (obj.options.placeholder) return
 			try {
-				const dims = imageSize(base64ToBytes(strData))
-				if (dims.width && dims.height) {
-					obj.options.w = dims.width / IMAGE_DPI
-					obj.options.h = dims.height / IMAGE_DPI
-				}
+			const dims = imageDimensions(base64ToBytes(strData))
+			if (dims.width && dims.height) {
+				obj.options.w = dims.width / IMAGE_DPI
+				obj.options.h = dims.height / IMAGE_DPI
+			}
 			} catch (_ex) {
 				// Unreadable/unsupported image: keep the 1x1 inch default
 			}

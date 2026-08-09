@@ -28,6 +28,7 @@ import {
 	ObjectOptions,
 	PresLayout,
 	PresSlide,
+	SectionProps,
 	ShadowProps,
 	ShapeLineProps,
 	SlideLayout,
@@ -39,6 +40,7 @@ import {
 	TextPropsOptions,
 } from './core-interfaces'
 import { createTimingXml } from './gen-animations'
+import { genXmlTransition } from './gen-transition'
 import {
 	convertRotationDegrees,
 	createColorElement,
@@ -104,6 +106,8 @@ function genXmlTblPr (opts: TableProps): string {
 		['lastCol', opts.lastCol],
 		['bandRow', opts.bandRow],
 		['bandCol', opts.bandCol],
+		// ECMA-376 §5.1.6.13: `rtl` on <a:tblPr> lays the table out right-to-left (issue #1291)
+		['rtl', opts.rtlMode],
 	]
 	const attrs = flags
 		.filter(([, val]) => typeof val === 'boolean')
@@ -120,8 +124,25 @@ function genXmlTblPr (opts: TableProps): string {
  * @param {ShapeLineProps} line - line options
  * @return {string} XML
  */
+/**
+ * Builds `<p14:trim>` / `<p14:fade>` / `<p14:bmkLst>` children of `<p14:media>` (MS-PPTX §2.3.3.14).
+ * Times are ST_UniversalTimeOffset (ms).
+ */
+function genXmlMediaExtras (opts: ObjectOptions): string {
+	let xml = ''
+	if (opts.trim && (typeof opts.trim.st === 'number' || typeof opts.trim.end === 'number'))
+		xml += `<p14:trim${typeof opts.trim.st === 'number' ? ` st="${Math.round(opts.trim.st)}"` : ''}${typeof opts.trim.end === 'number' ? ` end="${Math.round(opts.trim.end)}"` : ''}/>`
+	if (opts.fade && (typeof opts.fade.in === 'number' || typeof opts.fade.out === 'number'))
+		xml += `<p14:fade${typeof opts.fade.in === 'number' ? ` in="${Math.round(opts.fade.in)}"` : ''}${typeof opts.fade.out === 'number' ? ` out="${Math.round(opts.fade.out)}"` : ''}/>`
+	if (opts.bookmarks && opts.bookmarks.length > 0)
+		xml += `<p14:bmkLst>${opts.bookmarks.map(b => `<p14:bmk name="${encodeXmlEntities(b.name)}" time="${Math.round(b.time)}"/>`).join('')}</p14:bmkLst>`
+	return xml
+}
+
 function genXmlLine (line: ShapeLineProps): string {
-	let xml = line.width ? `<a:ln w="${valToPts(line.width)}">` : '<a:ln>'
+	// ECMA-376 §5.1.2.1.34: `<a:ln>` carries `w` and `cap` attributes (cap = line ending style, issue #782)
+	const attrs = (line.width ? ` w="${valToPts(line.width)}"` : '') + (line.cap && ['flat', 'sq', 'rnd'].includes(line.cap) ? ` cap="${line.cap}"` : '')
+	let xml = `<a:ln${attrs}>`
 	if (line.color) xml += genXmlColorSelection(line)
 	if (line.dashType) xml += `<a:prstDash val="${line.dashType}"/>`
 	if (line.beginArrowType) xml += `<a:headEnd type="${line.beginArrowType}"/>`
@@ -251,6 +272,20 @@ function resolveShapeId (options: ObjectOptions | undefined, idx: number, usedId
  * @param {PresSlide|SlideLayout} slideObject - slide object created within createSlideObject
  * @return {string} XML string with <p:cSld> as the root
  */
+/**
+ * Resolve section/summary zoom `zoomSectionTitle` to the section's stable GUID (`zoomSectionId`).
+ * Throws if the named section doesn't exist, since a dangling anchor produces a repair prompt.
+ */
+function resolveZoomSections (slide: PresSlide, sections?: SectionProps[]): void {
+	;(slide._slideObjects ?? []).forEach(obj => {
+		if (obj._type !== SLIDE_OBJECT_TYPES.zoom || obj.zoomKind === 'slide' || !obj.zoomSectionTitle) return
+		const sect = (sections ?? []).find(s => s.title === obj.zoomSectionTitle)
+		if (!sect) throw new Error(`addZoom() error: no section named "${obj.zoomSectionTitle}" — call addSection({ title }) first`)
+		if (!sect._id) sect._id = getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
+		obj.zoomSectionId = `{${sect._id}}`
+	})
+}
+
 function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 	let strSlideXml: string = slide._name ? `<p:cSld name="${encodeXmlEntities(slide._name)}">` : '<p:cSld>'
 	let intTableNum = 1
@@ -339,9 +374,21 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 			if (typeof slideItemObj.options.h !== 'undefined') cy = getSmartParseNumber(slideItemObj.options.h, 'Y', slide._presLayout)
 		}
 
-		// Set w/h now that smart parse is done
+		// Set w/h now that smart parse is done.
+		// `getSmartParseNumber` guesses units per-value (<100=inches, >=100=EMU), so `w:2899, h:97` mixes EMU
+		// and inches. The sizing fns only use imgSize for a *ratio*, so normalize to a common unit before they
+		// corrupt `srcRect` with a garbage aspect (issue #1286). Frame `cx`/`cy` below keep their own values.
 		let imgWidth = cx
 		let imgHeight = cy
+		if (slideItemObj.options?.sizing?.type) {
+			// `getSmartParseNumber` guesses units per-value (<100=inches, >=100=EMU), so `w:2899, h:97` mixes
+			// EMU and inches and corrupts the sizing aspect/`srcRect` (issue #1286). boxDim is always EMU, so
+			// coerce both image dims to EMU: whichever raw value was taken as inches (<100) is re-read as EMU.
+			const rawW = slideItemObj.options.w
+			const rawH = slideItemObj.options.h
+			if (typeof rawW === 'number' && rawW < 100 && typeof rawH === 'number' && rawH >= 100) imgWidth = rawW
+			else if (typeof rawH === 'number' && rawH < 100 && typeof rawW === 'number' && rawW >= 100) imgHeight = rawH
+		}
 
 		// If using a placeholder then inherit it's position
 		if (placeholderObj) {
@@ -349,6 +396,10 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 			if (placeholderObj.options?.y || placeholderObj.options?.y === 0) y = getSmartParseNumber(placeholderObj.options?.y, 'Y', slide._presLayout)
 			if (placeholderObj.options?.w || placeholderObj.options?.w === 0) cx = getSmartParseNumber(placeholderObj.options?.w, 'X', slide._presLayout)
 			if (placeholderObj.options?.h || placeholderObj.options?.h === 0) cy = getSmartParseNumber(placeholderObj.options?.h, 'Y', slide._presLayout)
+			// Re-sync the image frame: imgWidth/imgHeight were snapshotted from cx/cy before this block, so a
+			// placeholder's w/h would otherwise be lost and the frame stay at the 1x1 default (issue #996).
+			imgWidth = cx
+			imgHeight = cy
 		}
 		//
 		if (slideItemObj.options.flipH) locationAttr += ' flipH="1"'
@@ -374,9 +425,11 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				// STEP 1: Start Table XML
 				// NOTE: Non-numeric cNvPr id values will trigger "presentation needs repair" type warning in MS-PPT-2013
 				strXml = `<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="${intTableNum * (slide._slideNum ?? 0) + 1}" name="${slideItemObj.options.objectName}"/>`
+				// When the table binds to a master/layout placeholder, emit `<p:ph type="tbl"/>` (ECMA-376 §4.4.1.33, issue #856)
+				const tblPh = placeholderObj ? genXmlPlaceholder(placeholderObj) : ''
 				strXml +=
 					'<p:cNvGraphicFramePr><a:graphicFrameLocks noGrp="1"/></p:cNvGraphicFramePr>' +
-					'  <p:nvPr><p:extLst><p:ext uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"><p14:modId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1579011935"/></p:ext></p:extLst></p:nvPr>' +
+					`  <p:nvPr>${tblPh}<p:extLst><p:ext uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"><p14:modId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1579011935"/></p:ext></p:extLst></p:nvPr>` +
 					'</p:nvGraphicFramePr>'
 				strXml += `<p:xfrm><a:off x="${x || (x === 0 ? 0 : EMU)}" y="${y || (y === 0 ? 0 : EMU)}"/><a:ext cx="${cx || (cx === 0 ? 0 : EMU)}" cy="${cy || EMU
 				}"/></p:xfrm>`
@@ -778,8 +831,14 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					const boxY = getSmartParseNumber(sizing.y || 0, 'Y', slide._presLayout)
 
 					strSlideXml += ImageSizingXml[sizing.type]({ w: imgWidth, h: imgHeight }, { w: boxW, h: boxH, x: boxX, y: boxY })
-					imgWidth = boxW
-					imgHeight = boxH
+					// ECMA-376 §5.1.10.55: `srcRect` crops the source blip; the `<a:ext>` frame is the independent
+					// on-slide bounding box. Only `cover`/`contain` resize the frame to the fitted box. For `crop`
+					// the frame must keep the user's w/h container - collapsing it to the crop box (or 0) breaks
+					// rendering (issue #1399).
+					if (sizing.type !== 'crop') {
+						imgWidth = boxW
+						imgHeight = boxH
+					}
 				} else {
 					strSlideXml += '  <a:stretch><a:fillRect/></a:stretch>'
 				}
@@ -838,8 +897,15 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += `  <a:videoFile r:link="rId${slideItemObj.mediaRid}"/>`
 					strSlideXml += '  <p:extLst>'
 					strSlideXml += '   <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
-					strSlideXml += `    <p14:media xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}"/>`
+					// MS-PPTX §2.3.3.14 CT_Media: trim/fade/bmkLst children (issue-gap #6). Self-close when none (preserves prior output).
+					const mediaExtras = genXmlMediaExtras(slideItemObj.options)
+					strSlideXml += mediaExtras
+						? `    <p14:media xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}">${mediaExtras}    </p14:media>`
+						: `    <p14:media xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}"/>`
 					strSlideXml += '   </p:ext>'
+					// MS-PPTX §2.2.14 Narration: isNarration flag on the media shape's nvPr.
+					if (slideItemObj.options.isNarration)
+						strSlideXml += `   <p:ext uri="{42D2F446-02D8-4167-A562-619A0277C38B}"><p15:isNarration xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main" val="1"/></p:ext>`
 					strSlideXml += '  </p:extLst>'
 					strSlideXml += ' </p:nvPr>'
 					strSlideXml += ' </p:nvPicPr>'
@@ -848,11 +914,60 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += `  <a:xfrm${locationAttr}><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm>`
 					strSlideXml += '  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
 					strSlideXml += ' </p:spPr>'
-					strSlideXml += '</p:pic>'
-				}
-				break
+				strSlideXml += '</p:pic>'
+			}
+			break
 
-			case SLIDE_OBJECT_TYPES.chart:
+		case SLIDE_OBJECT_TYPES.zoom: {
+			// MS-PPTX §2.2.15: mc:AlternateContent { Choice p16:{sldZm|sectionZm|summaryZm} | Fallback }.
+			const zOpts = slideItemObj.options
+			const zKind = slideItemObj.zoomKind ?? 'slide'
+			const zRid = slideItemObj.zoomRid ?? 0
+			const zId = getUuid('{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}')
+			const zRet = zOpts.returnToParent === false ? '0' : '1'
+			const zShowBg = zOpts.showBg === false ? '0' : '1'
+			const zDur = typeof zOpts.transitionDur === 'number' ? ` p14:transitionDur="${Math.round(zOpts.transitionDur)}"` : ''
+			const zGeom = `<a:xfrm${locationAttr}><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>`
+			const zFill = `<p:blipFill><a:blip r:embed="rId${zRid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>`
+			const zmPr = `<p166:zmPr id="${zId}" returnToParent="${zRet}" showBg="${zShowBg}" imageType="preview"${zDur}>${zFill}<p:spPr>${zGeom}</p:spPr></p166:zmPr>`
+			const nsMap = {
+				slide: 'http://schemas.microsoft.com/office/powerpoint/2016/slidezoom',
+				section: 'http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom',
+				summary: 'http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom',
+			}
+			const zNs = nsMap[zKind]
+
+			strSlideXml += '<mc:AlternateContent xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">'
+			strSlideXml += `<mc:Choice Requires="p16" xmlns:p16="${zNs}" xmlns:p166="http://schemas.microsoft.com/office/powerpoint/2016/6/main" xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">`
+			if (zKind === 'slide') {
+				const zSldId = 255 + (slideItemObj.zoomSlideNum ?? 1)
+				strSlideXml += `<p16:sldZm><p16:sldZmObj sldId="${zSldId}">${zmPr}</p16:sldZmObj></p16:sldZm>`
+			} else if (zKind === 'section') {
+				strSlideXml += `<p16:sectionZm><p16:sectionZmObj sectionId="${slideItemObj.zoomSectionId}">${zmPr}</p16:sectionZmObj></p16:sectionZm>`
+			} else {
+				// §2.11 CT_SummaryZoom: summaryZmObj(s) + required layout choice (gridLayout/fixedLayout).
+				const szTitle = zOpts.zoomTitle ? ` title="${encodeXmlEntities(zOpts.zoomTitle)}"` : ''
+				const szDescr = zOpts.zoomDescr ? ` descr="${encodeXmlEntities(zOpts.zoomDescr)}"` : ''
+				const szOff = (typeof zOpts.offsetFactorX === 'number' ? ` offsetFactorX="${Math.round(zOpts.offsetFactorX)}"` : '') + (typeof zOpts.offsetFactorY === 'number' ? ` offsetFactorY="${Math.round(zOpts.offsetFactorY)}"` : '')
+				const szScale = (typeof zOpts.scaleFactorX === 'number' ? ` scaleFactorX="${Math.round(zOpts.scaleFactorX)}"` : '') + (typeof zOpts.scaleFactorY === 'number' ? ` scaleFactorY="${Math.round(zOpts.scaleFactorY)}"` : '')
+				strSlideXml += `<p16:summaryZm><p16:summaryZmObj sectionId="${slideItemObj.zoomSectionId}"${szTitle}${szDescr}${szOff}${szScale}>${zmPr}</p16:summaryZmObj><p16:gridLayout/></p16:summaryZm>`
+			}
+			strSlideXml += '</mc:Choice>'
+			// Fallback for older readers: pic for slide/section zoom; grpSp for summary zoom (§2.2.15).
+			if (zKind === 'summary') {
+				strSlideXml += `<mc:Fallback><p:grpSp><p:nvGrpSpPr><p:cNvPr id="${shapeId}" name="${zOpts.objectName}"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:grpSp></mc:Fallback>`
+			} else {
+				strSlideXml += '<mc:Fallback><p:pic><p:nvPicPr>'
+				strSlideXml += `<p:cNvPr id="${shapeId}" name="${zOpts.objectName}" descr="${encodeXmlEntities(zOpts.altText || '')}"/>`
+				strSlideXml += '<p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>'
+				strSlideXml += zFill
+				strSlideXml += `<p:spPr>${zGeom}</p:spPr></p:pic></mc:Fallback>`
+			}
+			strSlideXml += '</mc:AlternateContent>'
+			break
+		}
+
+		case SLIDE_OBJECT_TYPES.chart:
 				strSlideXml += '<p:graphicFrame>'
 				strSlideXml += ' <p:nvGraphicFramePr>'
 				strSlideXml += `   <p:cNvPr id="${shapeId}" name="${slideItemObj.options.objectName}" descr="${encodeXmlEntities(slideItemObj.options.altText || '')}"/>`
@@ -1168,6 +1283,8 @@ function genXmlTextRunProperties (opts: ObjectOptions | TextPropsOptions, isDefa
 		runProps += ' baseline="30000"'
 	}
 	runProps += opts.charSpacing ? ` spc="${Math.round(opts.charSpacing * 100)}" kern="0"` : '' // IMPORTANT: Also disable kerning; otherwise text won't actually expand
+	// ECMA-376 §5.1.12.64 ST_TextCapsType: render-only capitalization (issue #1312)
+	runProps += opts.caps && ['none', 'small', 'all'].includes(opts.caps) ? ` cap="${opts.caps}"` : ''
 	runProps += ' dirty="0">'
 	// Color / Font / Highlight / Outline are children of <a:rPr>, so add them now before closing the runProperties tag
 	if (opts.color || opts.fontFace || opts.outline || (typeof opts.underline === 'object' && opts.underline.color)) {
@@ -1223,6 +1340,7 @@ const A14_NS = 'http://schemas.microsoft.com/office/drawing/2010/main'
 const MATH_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/math'
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 const MC_NS = 'http://schemas.openxmlformats.org/markup-compatibility/2006'
+const P14_NS = 'http://schemas.microsoft.com/office/powerpoint/2010/main'
 
 /**
  * Normalize caller-supplied OMML for PowerPoint.
@@ -1319,6 +1437,12 @@ function genXmlBodyProperties (slideObject: ISlideObject | TableCell): string {
 		// C: Add rtl after margins
 		bodyProperties += ' rtlCol="0"'
 
+		// Text columns — ECMA-376 §5.1.5.1.4 CT_TextBodyProperties@numCol/@spcCol (issue #1320)
+		if (slideObject.options._bodyProp.numCol && slideObject.options._bodyProp.numCol > 1) {
+			bodyProperties += ` numCol="${slideObject.options._bodyProp.numCol}"`
+			if (slideObject.options._bodyProp.spcCol) bodyProperties += ` spcCol="${slideObject.options._bodyProp.spcCol}"`
+		}
+
 		// D: Add anchorPoints
 		if (slideObject.options._bodyProp.anchor) bodyProperties += ' anchor="' + slideObject.options._bodyProp.anchor + '"' // VALS: [t,ctr,b]
 		if (slideObject.options._bodyProp.vert) bodyProperties += ' vert="' + slideObject.options._bodyProp.vert + '"' // VALS: [eaVert,horz,mongolianVert,vert,vert270,wordArtVert,wordArtVertRtl]
@@ -1335,8 +1459,14 @@ function genXmlBodyProperties (slideObject: ISlideObject | TableCell): string {
 			// NOTE: Use of '<a:noAutofit/>' instead of '' causes issues in PPT-2013!
 			if (slideObject.options.fit === 'none') bodyProperties += ''
 			// NOTE: Shrink does not work automatically - PowerPoint calculates the `fontScale` value dynamically upon resize
-			// else if (slideObject.options.fit === 'shrink') bodyProperties += '<a:normAutofit fontScale="85000" lnSpcReduction="20000"/>' // MS-PPT > Format shape > Text Options: "Shrink text on overflow"
 			else if (slideObject.options.fit === 'shrink') bodyProperties += '<a:normAutofit/>'
+			// Object form: explicit fontScale/lnSpcReduction percentages (ECMA-376 §5.1.5.1.3, issue #1199).
+			// Values are 0-100%; normAutofit stores 1000ths of a percent (100000 = 100%).
+			else if (typeof slideObject.options.fit === 'object' && slideObject.options.fit?.type === 'shrink') {
+				const fs = slideObject.options.fit.fontScale
+				const ls = slideObject.options.fit.lnSpcReduction
+				bodyProperties += `<a:normAutofit${typeof fs === 'number' ? ` fontScale="${Math.round(fs * 1000)}"` : ''}${typeof ls === 'number' ? ` lnSpcReduction="${Math.round(ls * 1000)}"` : ''}/>`
+			}
 			else if (slideObject.options.fit === 'resize') bodyProperties += '<a:spAutoFit/>'
 		}
 		//
@@ -1696,6 +1826,15 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 		strXml += `<Override PartName="/ppt/notesSlides/notesSlide${idx + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>`
 	})
 
+	// STEP 5b: Modern threaded comments (MS-PPTX §2.16) — only when a slide has comments.
+	if (slides.some(s => (s.comments ?? []).length > 0)) {
+		strXml += '<Override PartName="/ppt/authors.xml" ContentType="application/vnd.ms-powerpoint.authors+xml"/>'
+		slides.forEach((slide, idx) => {
+			if ((slide.comments ?? []).length > 0)
+				strXml += `<Override PartName="/ppt/comments/commentSlide${idx + 1}.xml" ContentType="application/vnd.ms-powerpoint.comments+xml"/>`
+		})
+	}
+
 	// STEP 6: Add rels
 	; (masterSlide?._relsChart ?? []).forEach(rel => {
 		strXml += ' <Override PartName="' + rel.Target + '" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>'
@@ -1808,8 +1947,11 @@ export function makeXmlPresentationRels (slides: PresSlide[]): string {
 		`<Relationship Id="rId${intRelNum + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/presProps" Target="presProps.xml"/>` +
 		`<Relationship Id="rId${intRelNum + 2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/viewProps" Target="viewProps.xml"/>` +
 		`<Relationship Id="rId${intRelNum + 3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>` +
-		`<Relationship Id="rId${intRelNum + 4}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>` +
-		'</Relationships>'
+		`<Relationship Id="rId${intRelNum + 4}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>`
+	// MS-PPTX §2.1.6: implicit authors rel from presentation (only when comments exist).
+	if (slides.some(s => (s.comments ?? []).length > 0))
+		strXml += `<Relationship Id="rId${intRelNum + 5}" Type="http://schemas.microsoft.com/office/2018/10/relationships/authors" Target="authors.xml"/>`
+	strXml += '</Relationships>'
 
 	return strXml
 }
@@ -1880,9 +2022,16 @@ function collectSlideAnimations (slide: PresSlide): SlideObjectAnimation[] {
  * @param {PresSlide} slide - the slide object to transform into XML
  * @return {string} XML
  */
-export function makeXmlSlide (slide: PresSlide): string {
+export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): string {
+	// Pre-assign stable section GUIDs and resolve any section/summary zoom anchors on this slide
+	// (MS-PPTX §2.9/§2.11) before slideObjectToXml runs, so zoom XML can reference them.
+	if (sections) sections.forEach(s => { if (!s._id) s._id = getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx') })
+	resolveZoomSections(slide, sections)
+
 	const animations = collectSlideAnimations(slide)
 	const timingXml = animations.length > 0 ? createTimingXml(animations) : ''
+	const transitionXml = genXmlTransition(slide)
+	const hasTrans = transitionXml.length > 0
 
 	return (
 		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
@@ -1890,10 +2039,12 @@ export function makeXmlSlide (slide: PresSlide): string {
 		'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" ' +
 		`xmlns:m="${MATH_NS}" ` +
 		`xmlns:a14="${A14_NS}" ` +
-		`xmlns:mc="${MC_NS}" mc:Ignorable="a14"` +
+		(hasTrans ? `xmlns:p14="${P14_NS}" ` : '') +
+		`xmlns:mc="${MC_NS}" mc:Ignorable="a14${hasTrans ? ' p14' : ''}"` +
 		`${slide?.hidden ? ' show="0"' : ''}>` +
 		`${slideObjectToXml(slide)}` +
 		'<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>' +
+		`${transitionXml}` +
 		`${timingXml}` +
 		'</p:sld>'
 	)
@@ -1919,7 +2070,11 @@ export function getNotesFromSlide (slide: PresSlide): string {
  * @returns {string} XML
  */
 export function makeXmlNotesMaster (): string {
-	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}<p:notesMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr><p:sp><p:nvSpPr><p:cNvPr id="2" name="Header Placeholder 1"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="hdr" sz="quarter"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="2971800" cy="458788"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0"/><a:lstStyle><a:lvl1pPr algn="l"><a:defRPr sz="1200"/></a:lvl1pPr></a:lstStyle><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp><p:sp><p:nvSpPr><p:cNvPr id="3" name="Date Placeholder 2"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="dt" idx="1"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="3884613" y="0"/><a:ext cx="2971800" cy="458788"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0"/><a:lstStyle><a:lvl1pPr algn="r"><a:defRPr sz="1200"/></a:lvl1pPr></a:lstStyle><a:p><a:fld id="{5282F153-3F37-0F45-9E97-73ACFA13230C}" type="datetimeFigureOut"><a:rPr lang="en-US"/><a:t>7/23/19</a:t></a:fld><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp><p:sp><p:nvSpPr><p:cNvPr id="4" name="Slide Image Placeholder 3"/><p:cNvSpPr><a:spLocks noGrp="1" noRot="1" noChangeAspect="1"/></p:cNvSpPr><p:nvPr><p:ph type="sldImg" idx="2"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="685800" y="1143000"/><a:ext cx="5486400" cy="3086100"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/><a:ln w="12700"><a:solidFill><a:prstClr val="black"/></a:solidFill></a:ln></p:spPr><p:txBody><a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="ctr"/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp><p:sp><p:nvSpPr><p:cNvPr id="5" name="Notes Placeholder 4"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" sz="quarter" idx="3"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="685800" y="4400550"/><a:ext cx="5486400" cy="3600450"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0"/><a:lstStyle/><a:p><a:pPr lvl="0"/><a:r><a:rPr lang="en-US"/><a:t>Click to edit Master text styles</a:t></a:r></a:p><a:p><a:pPr lvl="1"/><a:r><a:rPr lang="en-US"/><a:t>Second level</a:t></a:r></a:p><a:p><a:pPr lvl="2"/><a:r><a:rPr lang="en-US"/><a:t>Third level</a:t></a:r></a:p><a:p><a:pPr lvl="3"/><a:r><a:rPr lang="en-US"/><a:t>Fourth level</a:t></a:r></a:p><a:p><a:pPr lvl="4"/><a:r><a:rPr lang="en-US"/><a:t>Fifth level</a:t></a:r></a:p></p:txBody></p:sp><p:sp><p:nvSpPr><p:cNvPr id="6" name="Footer Placeholder 5"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="ftr" sz="quarter" idx="4"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="0" y="8685213"/><a:ext cx="2971800" cy="458787"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="b"/><a:lstStyle><a:lvl1pPr algn="l"><a:defRPr sz="1200"/></a:lvl1pPr></a:lstStyle><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp><p:sp><p:nvSpPr><p:cNvPr id="7" name="Slide Number Placeholder 6"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="sldNum" sz="quarter" idx="5"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="3884613" y="8685213"/><a:ext cx="2971800" cy="458787"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr vert="horz" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="b"/><a:lstStyle><a:lvl1pPr algn="r"><a:defRPr sz="1200"/></a:lvl1pPr></a:lstStyle><a:p><a:fld id="{CE5E9CC1-C706-0F49-92D6-E571CC5EEA8F}" type="slidenum"><a:rPr lang="en-US"/><a:t>‹#›</a:t></a:fld><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp></p:spTree><p:extLst><p:ext uri="{BB962C8B-B14F-4D97-AF65-F5344CB8AC3E}"><p14:creationId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1024086991"/></p:ext></p:extLst></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:notesStyle><a:lvl1pPr marL="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl1pPr><a:lvl2pPr marL="457200" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl2pPr><a:lvl3pPr marL="914400" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl3pPr><a:lvl4pPr marL="1371600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl4pPr><a:lvl5pPr marL="1828800" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl5pPr><a:lvl6pPr marL="2286000" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl6pPr><a:lvl7pPr marL="2743200" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl7pPr><a:lvl8pPr marL="3200400" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl8pPr><a:lvl9pPr marL="3657600" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl9pPr></p:notesStyle></p:notesMaster>`
+	// ECMA-376 §4.4.1.24 CT_NotesMaster = cSld + EG_TopLevelSlide(clrMap) + hf? + notesStyle? + extLst?
+	// No placeholder shapes are required. PowerPoint's repair strips <p:ph> placeholder <p:sp> shapes from a
+	// notesMaster (issue #1443), so emit a spec-compliant empty spTree: bg + clrMap + notesStyle only.
+	const notesStyle = `<p:notesStyle><a:lvl1pPr marL="0" algn="l" defTabSz="914400" rtl="0" eaLnBrk="1" latinLnBrk="0" hangingPunct="1"><a:defRPr sz="1200" kern="1200"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill><a:latin typeface="+mn-lt"/><a:ea typeface="+mn-ea"/><a:cs typeface="+mn-cs"/></a:defRPr></a:lvl1pPr></p:notesStyle>`
+	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}<p:notesMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>${notesStyle}</p:notesMaster>`
 }
 
 /**
@@ -2020,7 +2175,8 @@ export function makeXmlSlideLayoutRel (layoutNumber: number, slideLayouts: Slide
  * @return {string} XML
  */
 export function makeXmlSlideRel (slides: PresSlide[], slideLayouts: SlideLayout[], slideNumber: number): string {
-	return slideObjectRelationsToXml(slides[slideNumber - 1], [
+	const slide = slides[slideNumber - 1]
+	const rels = [
 		{
 			target: `../slideLayouts/slideLayout${getLayoutIdxForSlide(slides, slideLayouts, slideNumber)}.xml`,
 			type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout',
@@ -2029,7 +2185,11 @@ export function makeXmlSlideRel (slides: PresSlide[], slideLayouts: SlideLayout[
 			target: `../notesSlides/notesSlide${slideNumber}.xml`,
 			type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide',
 		},
-	])
+	]
+	// MS-PPTX §2.1.5: explicit comment rel from a slide that has threaded comments.
+	if ((slide.comments ?? []).length > 0)
+		rels.push({ target: `../comments/commentSlide${slideNumber}.xml`, type: 'http://schemas.microsoft.com/office/2018/10/relationships/comments' })
+	return slideObjectRelationsToXml(slide, rels)
 }
 
 /**
@@ -2149,17 +2309,35 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
 	}
 	strXml += '</p:defaultTextStyle>'
 
-	// STEP 6: Add Sections (if any)
-	if (pres.sections && pres.sections.length > 0) {
-		strXml += '<p:extLst><p:ext uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}">'
-		strXml += '<p14:sectionLst xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">'
-		pres.sections.forEach(sect => {
-			strXml += `<p14:section name="${encodeXmlEntities(sect.title)}" id="{${getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')}}"><p14:sldIdLst>`
-			sect._slides.forEach(slide => (strXml += `<p14:sldId id="${slide._slideId}"/>`))
-			strXml += '</p14:sldIdLst></p14:section>'
+	// STEP 6: Add Sections and/or Guides (either forces an extLst)
+	const hasSections = pres.sections && pres.sections.length > 0
+	const hasGuides = pres.guides && pres.guides.length > 0
+	if (hasSections || hasGuides) {
+		strXml += '<p:extLst>'
+		if (hasSections) {
+			strXml += '<p:ext uri="{521415D9-36F7-43E2-AB2F-B90AF26B5E84}">'
+			strXml += '<p14:sectionLst xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">'
+			pres.sections.forEach(sect => {
+				// Stable GUID so section/summary zoom objects can anchor to it (MS-PPTX §2.9/§2.11).
+				if (!sect._id) sect._id = getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
+				strXml += `<p14:section name="${encodeXmlEntities(sect.title)}" id="{${sect._id}}"><p14:sldIdLst>`
+				sect._slides.forEach(slide => (strXml += `<p14:sldId id="${slide._slideId}"/>`))
+				strXml += '</p14:sldIdLst></p14:section>'
+			})
+			strXml += '</p14:sectionLst></p:ext>'
+		}
+		// MS-PPTX §2.2.11 Guide Extensions: p15:sldGuideLst under presentation extLst (issue-gap #3).
+		// `pos` is EMU relative to the left (vert) / top (horz) edge; `clr` child is required (§2.4.3.3).
+		strXml += '<p:ext uri="{EFAFB233-063F-42B5-8137-9DF3F51BA10A}"><p15:sldGuideLst xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main">'
+		;(pres.guides ?? []).forEach((g, i) => {
+			const pos = Math.round((g.pos ?? 0) * EMU)
+			const clr = g.color ?? 'A0A0A0'
+			strXml +=
+				`<p15:guide id="${i + 1}" orient="${g.orient === 'horz' ? 'horz' : 'vert'}" pos="${pos}"` +
+				`${g.name ? ` name="${encodeXmlEntities(g.name)}"` : ''}${g.userDrawn === false ? ' userDrawn="0"' : ' userDrawn="1"'}>` +
+				`<p15:clr><a:srgbClr val="${clr}"/></p15:clr></p15:guide>`
 		})
-		strXml += '</p14:sectionLst></p:ext>'
-		strXml += '<p:ext uri="{EFAFB233-063F-42B5-8137-9DF3F51BA10A}"><p15:sldGuideLst xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main"/></p:ext>'
+		strXml += '</p15:sldGuideLst></p:ext>'
 		strXml += '</p:extLst>'
 	}
 
@@ -2172,8 +2350,23 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
  * Create `ppt/presProps.xml`
  * @return {string} XML
  */
-export function makeXmlPresProps (): string {
-	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}<p:presentationPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>`
+export function makeXmlPresProps (pres?: IPresentationProps): string {
+	// MS-PPTX presentationPr extensions (issue-gap #4): defaultImageDpi / discardImageEditData (p14),
+	// readonlyRecommended (p1710). Each lives in a namespaced ext under extLst.
+	const exts: string[] = []
+	if (pres?.defaultImageDpi && pres.defaultImageDpi > 0)
+		exts.push(`<p:ext uri="{D31A062A-798A-4329-ABDD-BBA856620510}"><p14:defaultImageDpi xmlns:p14="${P14_NS}" val="${Math.round(pres.defaultImageDpi)}"/></p:ext>`)
+	if (pres?.discardImageEditData)
+		exts.push(`<p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}"><p14:discardImageEditData xmlns:p14="${P14_NS}" val="1"/></p:ext>`)
+	if (pres?.readonlyRecommended)
+		exts.push(`<p:ext uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"><p1710:readonlyRecommended xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main" val="1"/></p:ext>`)
+
+	const extLst = exts.length > 0 ? `<p:extLst>${exts.join('')}</p:extLst>` : ''
+	return (
+		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
+		'<p:presentationPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' +
+		`${extLst}</p:presentationPr>`
+	)
 }
 
 /**

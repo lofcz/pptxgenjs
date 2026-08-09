@@ -3,7 +3,7 @@
  * PptxGenJS Interfaces
  */
 
-import { CHART_NAME, PLACEHOLDER_TYPE, SHAPE_NAME, SLIDE_OBJECT_TYPES, TEXT_HALIGN, TEXT_VALIGN, WRITE_OUTPUT_TYPE } from './core-enums'
+import { CHART_NAME, PLACEHOLDER_TYPE, SHAPE_NAME, SLIDE_OBJECT_TYPES, TEXT_HALIGN, TEXT_VALIGN, TRANSITION_TYPE, WRITE_OUTPUT_TYPE } from './core-enums'
 
 // Core Types
 // ==========
@@ -579,6 +579,12 @@ export interface ShapeLineProps extends ShapeFillProps {
 	 */
 	dashType?: 'solid' | 'dash' | 'dashDot' | 'lgDash' | 'lgDashDot' | 'lgDashDotDot' | 'sysDash' | 'sysDot'
 	/**
+	 * Line ending cap style. ECMA-376 §5.1.2.1.34 `<a:ln>@cap` / ST_LineCap: `flat` (default), `sq` (square, extends half width), `rnd` (round).
+	 * @since v4.1.0 (issue #782)
+	 * @default 'flat'
+	 */
+	cap?: 'flat' | 'sq' | 'rnd'
+	/**
 	 * Begin arrow type
 	 * @since v3.3.0
 	 */
@@ -1052,6 +1058,26 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 * @example '/sounds/simpsons_haha.mp3' // embed mp3 audio clip from local directory
 	 */
 	path?: string
+	/**
+	 * Trim playback start/end (milliseconds). MS-PPTX §2.3.3.18 `p14:media/p14:trim`.
+	 * @example { st: 1000, end: 500 } // skip first 1s and last 0.5s
+	 */
+	trim?: { st?: number; end?: number }
+	/**
+	 * Audio fade in/out durations (milliseconds). MS-PPTX §2.3.3.15 `p14:media/p14:fade`.
+	 * @example { in: 500, out: 1000 }
+	 */
+	fade?: { in?: number; out?: number }
+	/**
+	 * Media bookmarks (name + ms timestamp). MS-PPTX §2.3.3.11/12 `p14:media/p14:bmkLst`.
+	 * @example [{ name: 'chorus', time: 30000 }]
+	 */
+	bookmarks?: { name: string; time: number }[]
+	/**
+	 * Mark the shape as a narration recording. MS-PPTX §2.2.14 `isNarration`.
+	 * @default false
+	 */
+	isNarration?: boolean
 }
 
 // shapes =========================================================================================
@@ -1416,11 +1442,21 @@ export interface TableProps extends PositionProps, TextBaseProps, ObjectNameProp
 	 */
 	bandCol?: boolean
 	/**
+	 * Lay the table out right-to-left (column order reversed) - ECMA-376 §5.1.6.13 `a:tblPr@rtl`
+	 * @default false
+	 */
+	rtlMode?: boolean
+	/**
 	 * Table style id (GUID of a built-in PowerPoint table style)
 	 * - required for `bandRow`/`firstRow`/etc. to have a visible effect
 	 * @example '{5C22544A-7EE6-4342-B048-85BDC9FD1C3A}' // "Medium Style 2 - Accent 1"
 	 */
 	tableStyleId?: string
+	/**
+	 * Placeholder name to bind this table to (from a slide master/layout `placeholder` object of `type:'tbl'`).
+	 * Emits `<p:ph type="tbl"/>` on the graphicFrame and inherits the placeholder geometry (ECMA-376 §4.4.1.33/§4.8.14, issue #856).
+	 */
+	placeholder?: string
 	/**
 	 * Animation configuration
 	 * - Can be a simple animation name or full configuration object
@@ -1483,12 +1519,31 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 		rIns?: number
 		tIns?: number
 		bIns?: number
+		numCol?: number
+		spcCol?: number
 		vert?: 'eaVert' | 'horz' | 'mongolianVert' | 'vert' | 'vert270' | 'wordArtVert' | 'wordArtVertRtl'
 		wrap?: boolean
 	}
 	_lineIdx?: number
 
 	baseline?: number
+	/**
+	 * Number of text columns (>=2 flows text across columns). ECMA-376 §5.1.5.1.4 `@numCol` (issue #1320)
+	 * @default undefined (single column)
+	 */
+	columns?: number
+	/**
+	 * Gap between text columns in inches. ECMA-376 §5.1.5.1.4 `@spcCol` (issue #1320)
+	 * @default 0
+	 */
+	columnGap?: number
+	/**
+	 * Text capitalization applied at render time (does not change stored characters).
+	 * ECMA-376 §5.1.5.2.1 `CT_TextCharacterProperties@cap` / §5.1.12.64 `ST_TextCapsType`:
+	 * - `none` no capitalization, `small` small caps, `all` all caps
+	 * @default undefined (no cap attribute)
+	 */
+	caps?: 'none' | 'small' | 'all'
 	/**
 	 * Character spacing
 	 */
@@ -1505,10 +1560,14 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 * Both PowerPoint and Word dynamically calculate a scaling factor and apply it when edit/resize occurs.
 	 *
 	 * There is no way for this library to trigger that behavior, sorry.
+	 *
+	 * Pass an object `{ type:'shrink', fontScale?, lnSpcReduction? }` to write explicit
+	 * `<a:normAutofit>` scaling attributes (ECMA-376 §5.1.5.1.3): `fontScale` and `lnSpcReduction`
+	 * are percentages 0–100 (issue #1199).
 	 * @since v3.3.0
 	 * @default "none"
 	 */
-	fit?: 'none' | 'shrink' | 'resize'
+	fit?: 'none' | 'shrink' | 'resize' | { type: 'shrink'; fontScale?: number; lnSpcReduction?: number }
 	/**
 	 * Shape fill
 	 * @example { color:'FF0000' } // hex color (red)
@@ -2272,6 +2331,17 @@ export interface ISlideObject {
 	mtype?: MediaType
 	mediaRid?: number
 	shape?: SHAPE_NAME
+	// zoom (MS-PPTX §2.9-§2.11)
+	/** zoom kind: slide | section | summary @internal */
+	zoomKind?: 'slide' | 'section' | 'summary'
+	/** 1-based target slide number (slide zoom) @internal */
+	zoomSlideNum?: number
+	/** target section title (section/summary zoom) @internal */
+	zoomSectionTitle?: string
+	/** resolved target section GUID (braced `{…}`), set at build @internal */
+	zoomSectionId?: string
+	/** cover/thumbnail image rId @internal */
+	zoomRid?: number
 }
 // PRIVATE ^^^
 
@@ -2326,6 +2396,8 @@ export interface WriteFileProps extends WriteBaseProps {
 export interface SectionProps {
 	_type: 'user' | 'default'
 	_slides: PresSlide[]
+	/** Stable GUID for section-zoom anchors (MS-PPTX §2.9). Auto-assigned at build if unset. @internal */
+	_id?: string
 
 	/**
 	 * Section title
@@ -2418,6 +2490,22 @@ export interface ObjectOptions extends ImageProps, PositionProps, ShapeProps, Ta
 	margin?: Margin
 	colW?: number | number[] // table
 	rowH?: number | number[] // table
+	// MS-PPTX §2.3.3.14 media extras + §2.2.14 narration (media objects only)
+	trim?: { st?: number; end?: number }
+	fade?: { in?: number; out?: number }
+	bookmarks?: { name: string; time: number }[]
+	isNarration?: boolean
+	// MS-PPTX §2.8 CT_ZoomObjectProperties (zoom objects only)
+	returnToParent?: boolean
+	showBg?: boolean
+	transitionDur?: number
+	// MS-PPTX §2.11 CT_SummaryZoomObject attrs (summary zoom only)
+	zoomTitle?: string
+	zoomDescr?: string
+	offsetFactorX?: number
+	offsetFactorY?: number
+	scaleFactorX?: number
+	scaleFactorY?: number
 }
 export interface SlideBaseProps {
 	_bkgdImgRid?: number
@@ -2483,6 +2571,122 @@ export interface PresSlide extends SlideBaseProps {
 	 * Slide number options
 	 */
 	slideNumber?: SlideNumberProps
+	/**
+	 * Slide transition. Emitted as `<p:transition>` (ECMA-376 §19.3.1.50 `CT_SlideTransition`).
+	 * @example { type: 'fade', duration: 700 }
+	 * @example { type: 'push', direction: 'l', advClick: false, advTm: 3000 }
+	 */
+	transition?: SlideTransitionProps
+	/**
+	 * Add a slide transition (convenience method; sets `transition`).
+	 * @example slide.addTransition({ type: 'morph', duration: 800 })
+	 */
+	addTransition: (options: SlideTransitionProps) => PresSlide
+	/**
+	 * Threaded comments on this slide (MS-PPTX §2.16). Emitted to `ppt/comments/commentSlide<N>.xml`.
+	 */
+	comments?: CommentProps[]
+	/**
+	 * Add a threaded comment to this slide.
+	 * @example slide.addComment({ text: 'Review this', author: 'Ada', x: 1, y: 1 })
+	 */
+	addComment: (comment: CommentProps) => PresSlide
+	/**
+	 * Add a Slide Zoom object linking to another slide (MS-PPTX §2.10 `p16:sldZm`).
+	 * Rendered inside `mc:AlternateContent` with a `pic` fallback for older readers.
+	 * @example slide.addZoom({ slideNum: 3, x: 1, y: 4, w: 2, h: 1.13 })
+	 */
+	addZoom: (options: ZoomProps) => PresSlide
+	/**
+	 * Add a Section Zoom object linking to a section's first slide (MS-PPTX §2.9 `p16:sectionZm`).
+	 * Rendered inside `mc:AlternateContent` with a `pic` fallback.
+	 * @example slide.addSectionZoom({ sectionTitle: 'Intro', x: 1, y: 4, w: 2, h: 1.13 })
+	 */
+	addSectionZoom: (options: SectionZoomProps) => PresSlide
+	/**
+	 * Add a Summary Zoom object linking to a section (MS-PPTX §2.11 `p16:summaryZm`).
+	 * Rendered inside `mc:AlternateContent` with a `grpSp` fallback.
+	 * @example slide.addSummaryZoom({ sectionTitle: 'Intro', x: 1, y: 4, w: 2, h: 1.13 })
+	 */
+	addSummaryZoom: (options: SummaryZoomProps) => PresSlide
+}
+/** Base Zoom navigation options. MS-PPTX §2.8 `CT_ZoomObjectProperties`. */
+interface ZoomBaseProps extends PositionProps, ObjectNameProps {
+	/** Cover/thumbnail image (base64 data URI or path). Defaults to a plain preview tile. */
+	cover?: string
+	/** Return to the zoom-source slide after viewing the target. @default true */
+	returnToParent?: boolean
+	/** Use the destination slide's background. @default true */
+	showBg?: boolean
+	/** Zoom transition duration (ms). Omit to use the destination slide's own transition. */
+	transitionDur?: number
+	/** Optional alt text. */
+	altText?: string
+}
+/** A Slide Zoom navigation object. MS-PPTX §2.10 `CT_SlideZoom`. */
+export interface ZoomProps extends ZoomBaseProps {
+	/** 1-based slide number to zoom to. */
+	slideNum: number
+}
+/** A Section Zoom navigation object. MS-PPTX §2.9 `CT_SectionZoom`. */
+export interface SectionZoomProps extends ZoomBaseProps {
+	/** Title of the target section (must match an `addSection({ title })`). */
+	sectionTitle: string
+}
+/** A Summary Zoom navigation object. MS-PPTX §2.11 `CT_SummaryZoom`. */
+export interface SummaryZoomProps extends ZoomBaseProps {
+	/** Title of the target section (must match an `addSection({ title })`). */
+	sectionTitle: string
+	/** Alt-text title on the zoom object. */
+	title?: string
+	/** Alt-text description on the zoom object. */
+	descr?: string
+	/** X offset from default layout (percent, 100000 = 100%). @default 0 */
+	offsetFactorX?: number
+	/** Y offset from default layout (percent). @default 0 */
+	offsetFactorY?: number
+	/** X scale from default layout (percent). @default 100000 */
+	scaleFactorX?: number
+	/** Y scale from default layout (percent). @default 100000 */
+	scaleFactorY?: number
+}
+/**
+ * Slide transition options. ECMA-376 §19.3.1.50 `CT_SlideTransition`.
+ * Modern (MS-PPTX) transition types are emitted inside `<mc:AlternateContent>` with a base-type fallback.
+ */
+export interface SlideTransitionProps {
+	/**
+	 * Transition type.
+	 * ECMA-376 base: 'blinds'|'checker'|'circle'|'comb'|'cover'|'cut'|'diamond'|'dissolve'|'fade'|
+	 * 'newsflash'|'none'|'plus'|'pull'|'push'|'random'|'randomBar'|'split'|'strips'|'wedge'|'wheel'|'wipe'|'zoom'.
+	 * MS-PPTX 2010+ (emitted via AlternateContent): 'conveyor'|'doors'|'ferris'|'flash'|'flip'|'flythrough'|
+	 * 'gallery'|'glitter'|'honeycomb'|'morph'|'pan'|'prism'|'reveal'|'ripple'|'shred'|'switch'|'vortex'|'warp'|'wheelReverse'|'window'.
+	 */
+	type: TRANSITION_TYPE
+	/**
+	 * Transition direction. Meaning depends on type:
+	 * side (push/wipe/vortex/pan): 'l'|'r'|'u'|'d'; orientation (blinds/checker/comb/randomBar/doors): 'horz'|'vert';
+	 * eight-dir (cover/pull/ferris/gallery/conveyor/flip/switch): 'l'|'r'|'u'|'d'|'lu'|'ru'|'ld'|'rd';
+	 * corner (strips): 'lu'|'ru'|'ll'|'rl'; in/out (split/zoom/warp): 'in'|'out'.
+	 */
+	direction?: string
+	/**
+	 * Transition speed.
+	 * @default 'fast'
+	 */
+	speed?: 'slow' | 'med' | 'fast'
+	/**
+	 * Duration in milliseconds (MS-PPTX `p14:dur` extension; overrides `speed`).
+	 */
+	duration?: number
+	/** Advance on mouse click. @default true */
+	advClick?: boolean
+	/** Auto-advance after N milliseconds. */
+	advTm?: number
+	/** `wheel` only: number of spokes. @default 4 */
+	spokes?: number
+	/** `fade`/`cut` only: transition through black. @default false */
+	thruBlk?: boolean
 }
 export interface AddSlideProps {
 	masterName?: string // TODO: 20200528: rename to "masterTitle" (createMaster uses `title` so lets be consistent)
@@ -2517,9 +2721,79 @@ export interface PresentationProps {
 	 * @example 0 // first slide displays as "0"
 	 */
 	firstSlideNum: number
+	/**
+	 * Alignment guides shown in PowerPoint's editor (ruler guides). MS-PPTX §2.4.3.3 `CT_ExtendedGuide`.
+	 * Emitted as `p15:sldGuideLst` under `<p:presentation>` extLst.
+	 * @example [{ orient: 'vert', pos: 3.5 }, { orient: 'horz', pos: 2, color: 'FF0000' }] // pos in inches
+	 */
+	guides?: GuideProps[]
+	/**
+	 * Default DPI used when compressing/saving images. MS-PPTX §2.3.1.5 `defaultImageDpi`.
+	 * Only applies when image compression is on. @example 220
+	 */
+	defaultImageDpi?: number
+	/**
+	 * Discard image editing data (crop info, imgProps) on save. MS-PPTX §2.3.1.6 `discardImageEditData`.
+	 * @default false
+	 */
+	discardImageEditData?: boolean
+	/**
+	 * Recommend the document open read-only. MS-PPTX §2.14.1.1 `readonlyRecommended`.
+	 * @default false
+	 */
+	readonlyRecommended?: boolean
+	/**
+	 * Modern comment authors (MS-PPTX §2.16 `authorLst`). Emitted to `ppt/authors.xml`.
+	 * Comments reference authors by index. Auto-populated from slide comments if left empty.
+	 * @example [{ name: 'Ada Lovelace', initials: 'AL' }]
+	 */
+	commentAuthors?: CommentAuthorProps[]
 	subject: string
 	theme?: ThemeProps
 	title: string
+}
+/** A modern-comment author. MS-PPTX §2.16.3.1 `CT_Author`. */
+export interface CommentAuthorProps {
+	/** Author display name (required). */
+	name: string
+	/** Author initials. */
+	initials?: string
+	/** Stable GUID. Auto-generated if omitted. */
+	id?: string
+	/** Unique user id (presence). Defaults to `id`. */
+	userId?: string
+	/** Identity provider that produced userId. @default 'None' */
+	providerId?: string
+}
+/** A threaded comment on a slide. MS-PPTX §2.16.3.3 `CT_Comment`. */
+export interface CommentProps {
+	/** Comment body text. */
+	text: string
+	/** Author index into `pptx.commentAuthors` (0-based) or author name. @default 0 */
+	author?: number | string
+	/** X position (inches) of the comment badge. */
+	x?: number
+	/** Y position (inches) of the comment badge. */
+	y?: number
+	/** Replies to this comment. */
+	replies?: { text: string; author?: number | string }[]
+	/** ISO date; defaults to now. */
+	startDate?: string
+}
+/**
+ * An editor alignment guide. MS-PPTX §2.4.3.3 `CT_ExtendedGuide` / §2.4.3.4 `CT_ExtendedGuideList`.
+ */
+export interface GuideProps {
+	/** Guide orientation. @default 'vert' */
+	orient?: 'horz' | 'vert'
+	/** Position from the left (vert) or top (horz) edge of the slide, in inches. @default 0 */
+	pos?: number
+	/** Guide line color (hex). @default theme accent */
+	color?: HexColor
+	/** Optional guide name. */
+	name?: string
+	/** Mark as user-drawn. @default true */
+	userDrawn?: boolean
 }
 // PRIVATE interface
 export interface IPresentationProps extends PresentationProps {

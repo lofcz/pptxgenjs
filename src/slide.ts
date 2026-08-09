@@ -6,6 +6,7 @@ import { CHART_NAME, SHAPE_NAME } from './core-enums'
 import {
 	AddSlideProps,
 	BackgroundProps,
+	CommentProps,
 	HexColor,
 	IChartMulti,
 	IChartOpts,
@@ -18,13 +19,17 @@ import {
 	MediaProps,
 	PresLayout,
 	PresSlide,
+	SectionZoomProps,
 	ShapeProps,
 	SlideLayout,
 	SlideNumberProps,
+	SlideTransitionProps,
+	SummaryZoomProps,
 	TableProps,
 	TableRow,
 	TextProps,
 	TextPropsOptions,
+	ZoomProps,
 } from './core-interfaces'
 import * as genObj from './gen-objects'
 
@@ -53,6 +58,8 @@ export default class Slide {
 	public _slideNumberProps?: SlideNumberProps
 	public _slideObjects: ISlideObject[]
 	public _newAutoPagedSlides?: PresSlide[]
+	public transition?: SlideTransitionProps
+	public comments?: CommentProps[]
 
 	constructor(params: {
 		addSlide: (options?: AddSlideProps) => PresSlide
@@ -205,6 +212,62 @@ export default class Slide {
 	 */
 	addNotes(notes: string): Slide {
 		genObj.addNotesDefinition(this, notes)
+		return this
+	}
+
+	/**
+	 * Add a slide transition (`<p:transition>`, ECMA-376 §19.3.1.50 / MS-PPTX §2.2.1)
+	 * @param {SlideTransitionProps} options - transition options
+	 * @example slide.addTransition({ type: 'morph', duration: 800 })
+	 * @return {Slide} this Slide
+	 */
+	addTransition(options: SlideTransitionProps): Slide {
+		this.transition = options
+		return this
+	}
+
+	/**
+	 * Add a threaded comment to this slide (MS-PPTX §2.16)
+	 * @param {CommentProps} comment - comment options
+	 * @example slide.addComment({ text: 'Review this', author: 'Ada', x: 1, y: 1 })
+	 * @return {Slide} this Slide
+	 */
+	addComment(comment: CommentProps): Slide {
+		this.comments = this.comments ?? []
+		this.comments.push(comment)
+		return this
+	}
+
+	/**
+	 * Add a Slide Zoom navigation object (MS-PPTX §2.10)
+	 * @param {ZoomProps} options - zoom options
+	 * @example slide.addZoom({ slideNum: 3, x: 1, y: 4, w: 2, h: 1.13 })
+	 * @return {Slide} this Slide
+	 */
+	addZoom(options: ZoomProps): Slide {
+		genObj.addZoomDefinition(this, options)
+		return this
+	}
+
+	/**
+	 * Add a Section Zoom navigation object (MS-PPTX §2.9)
+	 * @param {SectionZoomProps} options - section zoom options
+	 * @example slide.addSectionZoom({ sectionTitle: 'Intro', x: 1, y: 4, w: 2, h: 1.13 })
+	 * @return {Slide} this Slide
+	 */
+	addSectionZoom(options: SectionZoomProps): Slide {
+		genObj.addSectionZoomDefinition(this, options)
+		return this
+	}
+
+	/**
+	 * Add a Summary Zoom navigation object (MS-PPTX §2.11)
+	 * @param {SummaryZoomProps} options - summary zoom options
+	 * @example slide.addSummaryZoom({ sectionTitle: 'Intro', x: 1, y: 4, w: 2, h: 1.13 })
+	 * @return {Slide} this Slide
+	 */
+	addSummaryZoom(options: SummaryZoomProps): Slide {
+		genObj.addSummaryZoomDefinition(this, options)
 		return this
 	}
 

@@ -1,0 +1,1424 @@
+<!-- 5 Appendix A: Full XML Schemas | pages 142-164 of 170 -->
+
+attributes, complex types, and simple types specified in this document. Any schema references to
+namespaces included in [ISO/IEC29500-1:2016] refer specifically to the transitional schemas, as
+specified in [ISO/IEC29500-4:2016].
+
+ Schema name                                                                 Prefix   Section
+
+ http://schemas.microsoft.com/office/powerpoint/2010/main Schema              p14     5.1
+
+ http://schemas.microsoft.com/office/powerpoint/2012/main Schema               None.   5.2
+
+ http://schemas.microsoft.com/office/powerpoint/2015/09/main Schema           p159    5.4
+
+ http://schemas.microsoft.com/office/powerpoint/2015/10/main Schema           p1510   5.5
+
+ http://schemas.microsoft.com/office/powerpoint/2015/main Schema              p16     5.6
+
+ http://schemas.microsoft.com/office/powerpoint/2016/6/main Schema            p166    5.7
+
+ http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom Schema         psez     5.8
+
+ http://schemas.microsoft.com/office/powerpoint/2016/slidezoom Schema             pslz     5.9
+
+ http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom Schema       psuz    5.10
+
+ http://schemas.microsoft.com/office/powerpoint/2019/9/main/command Schema    pc2     5.15
+
+ http://schemas.microsoft.com/office/powerpoint/2022/06/main/command Schema   pc226   5.18
+
+ http://schemas.microsoft.com/office/powerpoint/2013/main/command Schema      pc       5.3
+
+ http://schemas.microsoft.com/office/powerpoint/2017/3/main Schema            p173    5.12
+
+ http://schemas.microsoft.com/office/powerpoint/2017/10/main Schema           p1710   5.11
+
+ http://schemas.microsoft.com/office/powerpoint/2018/4/main Schema            p184    5.13
+
+ http://schemas.microsoft.com/office/powerpoint/2022/03/main Schema            None.   5.17
+
+ http://schemas.microsoft.com/office/powerpoint/2022/08/main Schema            None.   5.19
+
+ http://schemas.microsoft.com/office/powerpoint/2018/8/main Schema            p188    5.14
+
+ http://schemas.microsoft.com/office/powerpoint/2020/02/main Schema           p202    5.16
+
+ http://schemas.microsoft.com/office/powerpoint/2023/02/main Schema            None.   5.20
+
+
+5.1  http://schemas.microsoft.com/office/powerpoint/2010/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    xmlns:p173="http://schemas.microsoft.com/office/powerpoint/2017/3/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:a14="http://schemas.microsoft.com/office/drawing/2010/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    schemaLocation="shared-relationshipReference.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_UniversalTimeOffset">
+        <xsd:restriction base="xsd:string"/>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_TransitionPattern">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="diamond"/>
+          <xsd:enumeration value="hexagon"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_TransitionCenterDirectionType">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="center"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_TransitionShredPattern">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="strip"/>
+          <xsd:enumeration value="rectangle"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_TransitionCornerAndCenterDirectionType">
+        <xsd:union memberTypes="p:ST_TransitionCornerDirectionType
+    ST_TransitionCenterDirectionType"/>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_TransitionLeftRightDirectionType">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="l"/>
+          <xsd:enumeration value="r"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_LeftRightDirectionTransition">
+        <xsd:attribute name="dir" type="ST_TransitionLeftRightDirectionType"/>
+      </xsd:complexType>
+      <xsd:element name="vortex" type="p:CT_SideDirectionTransition"/>
+      <xsd:element name="switch" type="CT_LeftRightDirectionTransition"/>
+      <xsd:element name="flip" type="CT_LeftRightDirectionTransition"/>
+      <xsd:complexType name="CT_RippleTransition">
+        <xsd:attribute name="dir" type="ST_TransitionCornerAndCenterDirectionType" use="optional"
+    default="center"/>
+      </xsd:complexType>
+      <xsd:element name="ripple" type="CT_RippleTransition"/>
+      <xsd:element name="honeycomb" type="p:CT_Empty"/>
+      <xsd:complexType name="CT_PrismTransition">
+        <xsd:attribute name="dir" type="p:ST_TransitionSideDirectionType" use="optional"
+    default="l"/>
+        <xsd:attribute name="isContent" type="xsd:boolean" use="optional" default="false"/>
+        <xsd:attribute name="isInverted" type="xsd:boolean" use="optional" default="false"/>
+      </xsd:complexType>
+      <xsd:element name="prism" type="CT_PrismTransition"/>
+      <xsd:element name="doors" type="p:CT_OrientationTransition"/>
+      <xsd:element name="window" type="p:CT_OrientationTransition"/>
+      <xsd:element name="ferris" type="CT_LeftRightDirectionTransition"/>
+      <xsd:element name="gallery" type="CT_LeftRightDirectionTransition"/>
+      <xsd:element name="conveyor" type="CT_LeftRightDirectionTransition"/>
+      <xsd:element name="pan" type="p:CT_SideDirectionTransition"/>
+      <xsd:complexType name="CT_GlitterTransition">
+        <xsd:attribute name="dir" type="p:ST_TransitionSideDirectionType" use="optional"
+    default="l"/>
+      <xsd:element name="glitter" type="CT_GlitterTransition"/>
+      <xsd:complexType name="CT_FlyThroughTransition">
+        <xsd:attribute name="dir" type="p:ST_TransitionInOutDirectionType" use="optional"
+    default="in"/>
+        <xsd:attribute name="hasBounce" type="xsd:boolean" use="optional" default="false"/>
+      </xsd:complexType>
+      <xsd:element name="warp" type="p:CT_InOutTransition"/>
+      <xsd:element name="flythrough" type="CT_FlyThroughTransition"/>
+      <xsd:element name="flash" type="p:CT_Empty"/>
+      <xsd:complexType name="CT_ShredTransition">
+        <xsd:attribute name="pattern" type="ST_TransitionShredPattern" use="optional"
+    default="strip"/>
+        <xsd:attribute name="dir" type="p:ST_TransitionInOutDirectionType" use="optional"
+    default="in"/>
+      </xsd:complexType>
+      <xsd:element name="shred" type="CT_ShredTransition"/>
+      <xsd:complexType name="CT_RevealTransition">
+        <xsd:attribute name="thruBlk" type="xsd:boolean" use="optional" default="false"/>
+        <xsd:attribute name="dir" type="ST_TransitionLeftRightDirectionType" use="optional"
+    default="l"/>
+      </xsd:complexType>
+      <xsd:element name="reveal" type="CT_RevealTransition"/>
+      <xsd:complexType name="CT_MediaBookmarkTarget">
+        <xsd:attribute name="spid" type="a:ST_DrawingElementId" use="required"/>
+        <xsd:attribute name="bmkName" type="xsd:string" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="wheelReverse" type="p:CT_WheelTransition"/>
+      <xsd:attribute name="dur" type="p14:ST_UniversalTimeOffset"/>
+      <xsd:element name="bmkTgt" type="CT_MediaBookmarkTarget"/>
+      <xsd:attribute name="presetBounceEnd" type="s:ST_PositiveFixedPercentage"/>
+      <xsd:attribute name="bounceEnd" type="s:ST_PositiveFixedPercentage"/>
+      <xsd:complexType name="CT_ContentPartNonVisual">
+        <xsd:sequence>
+          <xsd:element name="cNvPr" type="a:CT_NonVisualDrawingProps" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="cNvContentPartPr" type="a14:CT_NonVisualInkContentPartProperties"
+    minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="nvPr" type="p:CT_ApplicationNonVisualDrawingProps" minOccurs="1"
+    maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="nvContentPartPr" type="CT_ContentPartNonVisual"/>
+      <xsd:attribute name="bwMode" type="a:ST_BlackWhiteMode"/>
+      <xsd:element name="xfrm" type="a:CT_Transform2D"/>
+      <xsd:element name="extLst" type="p:CT_ExtensionListModify"/>
+      <xsd:complexType name="CT_MediaTrim">
+        <xsd:attribute name="st" type="p14:ST_UniversalTimeOffset" use="optional" default="0"/>
+        <xsd:attribute name="end" type="p14:ST_UniversalTimeOffset" use="optional" default="0"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_MediaFade">
+        <xsd:attribute name="in" type="p14:ST_UniversalTimeOffset" use="optional" default="0"/>
+        <xsd:attribute name="out" type="p14:ST_UniversalTimeOffset" use="optional" default="0"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_MediaBookmark">
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="time" type="p14:ST_UniversalTimeOffset"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_MediaBookmarkList">
+        <xsd:sequence>
+          <xsd:element name="bmk" type="CT_MediaBookmark" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_Media">
+        <xsd:sequence>
+          <xsd:element name="trim" type="CT_MediaTrim" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="fade" type="CT_MediaFade" minOccurs="0" maxOccurs="1"/>
+        <xsd:attributeGroup ref="a:AG_Blob"/>
+      </xsd:complexType>
+      <xsd:element name="media" type="CT_Media"/>
+      <xsd:complexType name="CT_SectionSlideIdListEntry">
+        <xsd:attribute name="id" type="p:ST_SlideId" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SectionSlideIdList">
+        <xsd:sequence>
+          <xsd:element name="sldId" type="CT_SectionSlideIdListEntry" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_Section">
+        <xsd:sequence>
+          <xsd:element name="sldIdLst" type="CT_SectionSlideIdList" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string"/>
+        <xsd:attribute name="id" type="s:ST_Guid"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SectionList">
+        <xsd:sequence>
+          <xsd:element name="section" type="CT_Section" minOccurs="1" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="sectionLst" type="CT_SectionList"/>
+      <xsd:complexType name="CT_BrowseMode">
+        <xsd:attribute name="showStatus" type="xsd:boolean" use="optional" default="true"/>
+      </xsd:complexType>
+      <xsd:element name="browseMode" type="CT_BrowseMode"/>
+      <xsd:element name="laserClr" type="a:CT_Color"/>
+      <xsd:complexType name="CT_DefaultImageDpi">
+        <xsd:attribute name="val" type="xsd:unsignedInt" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="defaultImageDpi" type="CT_DefaultImageDpi"/>
+      <xsd:complexType name="CT_DiscardImageEditData">
+        <xsd:attribute name="val" type="xsd:boolean" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="discardImageEditData" type="CT_DiscardImageEditData"/>
+      <xsd:complexType name="CT_ShowMediaControls">
+        <xsd:attribute name="val" type="xsd:boolean" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="showMediaCtrls" type="CT_ShowMediaControls"/>
+      <xsd:complexType name="CT_LaserTracePoint">
+        <xsd:attribute name="t" type="p14:ST_UniversalTimeOffset" use="required"/>
+        <xsd:attribute name="x" type="a:ST_Coordinate" use="required"/>
+        <xsd:attribute name="y" type="a:ST_Coordinate" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_LaserTrace">
+        <xsd:sequence>
+          <xsd:element name="tracePt" type="CT_LaserTracePoint" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_LaserTraceList">
+        <xsd:sequence>
+          <xsd:element name="tracePtLst" type="CT_LaserTrace" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="laserTraceLst" type="CT_LaserTraceList"/>
+      <xsd:complexType name="CT_RandomId">
+        <xsd:attribute name="val" type="xsd:unsignedInt" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="creationId" type="CT_RandomId"/>
+      <xsd:element name="modId" type="CT_RandomId"/>
+        <xsd:attribute name="objId" type="a:ST_DrawingElementId" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_NullEventRecord">
+        <xsd:attribute name="time" type="p14:ST_UniversalTimeOffset" use="required"/>
+        <xsd:attribute name="objId" type="a:ST_DrawingElementId" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_MediaPlaybackEventRecord">
+        <xsd:attribute name="time" type="p14:ST_UniversalTimeOffset" use="required"/>
+        <xsd:attribute name="objId" type="a:ST_DrawingElementId" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_MediaSeekEventRecord">
+        <xsd:attribute name="time" type="p14:ST_UniversalTimeOffset" use="required"/>
+        <xsd:attribute name="objId" type="a:ST_DrawingElementId" use="required"/>
+        <xsd:attribute name="seek" type="p14:ST_UniversalTimeOffset" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_ShowEventRecordList">
+        <xsd:sequence>
+          <xsd:choice minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="triggerEvt" type="CT_TriggerEventRecord"/>
+            <xsd:element name="playEvt" type="CT_MediaPlaybackEventRecord"/>
+            <xsd:element name="stopEvt" type="CT_MediaPlaybackEventRecord"/>
+            <xsd:element name="pauseEvt" type="CT_MediaPlaybackEventRecord"/>
+            <xsd:element name="resumeEvt" type="CT_MediaPlaybackEventRecord"/>
+            <xsd:element name="seekEvt" type="CT_MediaSeekEventRecord"/>
+            <xsd:element name="nullEvt" type="CT_NullEventRecord"/>
+          </xsd:choice>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="showEvtLst" type="CT_ShowEventRecordList"/>
+    </xsd:schema>
+
+
+5.2  http://schemas.microsoft.com/office/powerpoint/2012/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2012/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2012/main"
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:complexType name="CT_PresetTransition"
+    xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main">
+        <xsd:attribute name="prst" type="xsd:string"/>
+        <xsd:attribute name="invX" type="xsd:boolean" use="optional" default="false"/>
+        <xsd:attribute name="invY" type="xsd:boolean" use="optional" default="false"/>
+      </xsd:complexType>
+      <xsd:element name="prstTrans" type="CT_PresetTransition"
+    xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main"/>
+      <xsd:complexType name="CT_PresenceInfo">
+        <xsd:attribute name="userId" type="xsd:string" use="required"/>
+        <xsd:attribute name="providerId" type="xsd:string" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_ParentCommentIdentifier">
+        <xsd:attribute name="authorId" type="xsd:unsignedInt"/>
+        <xsd:attribute name="idx" type="xsd:unsignedInt"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentThreading">
+        </xsd:sequence>
+        <xsd:attribute name="timeZoneBias" type="xsd:int"/>
+      </xsd:complexType>
+      <xsd:element name="presenceInfo" type="CT_PresenceInfo"/>
+      <xsd:element name="threadingInfo" type="CT_CommentThreading"/>
+      <xsd:complexType name="CT_ExtendedGuide">
+        <xsd:sequence>
+          <xsd:element name="clr" type="a:CT_Color" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:unsignedInt" use="required"/>
+        <xsd:attribute name="name" type="xsd:string" use="optional" default=""/>
+        <xsd:attribute name="orient" type="p:ST_Direction" use="optional" default="vert"/>
+        <xsd:attribute name="pos" type="a:ST_Coordinate32" use="optional" default="0"/>
+        <xsd:attribute name="userDrawn" type="xsd:boolean" use="optional" default="false"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_ExtendedGuideList">
+        <xsd:sequence>
+          <xsd:element name="guide" type="CT_ExtendedGuide" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="sldGuideLst" type="CT_ExtendedGuideList"/>
+      <xsd:element name="notesGuideLst" type="CT_ExtendedGuideList"/>
+      <xsd:complexType name="CT_ChartTrackingRefBased">
+        <xsd:attribute name="val" type="xsd:boolean" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="chartTrackingRefBased" type="CT_ChartTrackingRefBased"/>
+      <xsd:complexType name="CT_IsNarration"
+    xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main">
+        <xsd:attribute name="val" type="xsd:boolean" use="optional" default="false"/>
+      </xsd:complexType>
+      <xsd:element name="isNarration" type="CT_IsNarration"
+    xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main"/>
+    </xsd:schema>
+
+
+5.3  http://schemas.microsoft.com/office/powerpoint/2013/main/command
+    Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2013/main/command"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2013/main/command"
+    xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command"
+    xmlns:pc226="http://schemas.microsoft.com/office/powerpoint/2022/06/main/command"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    xmlns:ac="http://schemas.microsoft.com/office/drawing/2013/main/command"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.microsoft.com/office/drawing/2013/main/command"
+    schemaLocation="dml-cmd.xsd"/>
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2022/06/main/command"
+    schemaLocation="ms-pptxCmd226.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_CreationId">
+        <xsd:restriction base="xsd:unsignedInt"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_DocumentMoniker"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_MainMasterMoniker">
+        <xsd:attribute name="cId" type="ST_CreationId" use="optional"/>
+        <xsd:attribute name="sldId" type="p:ST_SlideMasterId" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SlideLayoutMoniker">
+        <xsd:attribute name="cId" type="ST_CreationId" use="optional"/>
+        <xsd:attribute name="sldId" type="p:ST_SlideLayoutId" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentMoniker">
+        <xsd:attribute name="authorId" type="xsd:unsignedInt" use="required"/>
+        <xsd:attribute name="idx" type="p:ST_Index" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentAuthorMoniker">
+        <xsd:attribute name="id" type="xsd:unsignedInt" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_DocumentMonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SlideBaseMonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_MainMasterMonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SlideLayoutMonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SlideMonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentMonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentAuthorMonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="cmAuthorMkLst" type="CT_CommentAuthorMonikerList"/>
+      <xsd:element name="cmMkLst" type="CT_CommentMonikerList"/>
+      <xsd:element name="docMkLst" type="CT_DocumentMonikerList"/>
+      <xsd:element name="sldBaseMkLst" type="CT_SlideBaseMonikerList"/>
+      <xsd:element name="sldLayoutMkLst" type="CT_SlideLayoutMonikerList"/>
+      <xsd:element name="sldMasterMkLst" type="CT_MainMasterMonikerList"/>
+      <xsd:element name="sldMkLst" type="CT_SlideMonikerList"/>
+      <xsd:simpleType name="ST_CommentChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="add"/>
+          <xsd:enumeration value="del"/>
+          <xsd:enumeration value="mod"/>
+          <xsd:enumeration value="replId"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_CommentChanges">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="cmMkLst" type="CT_CommentMonikerList" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_CommentChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:simpleType name="ST_CommentAuthorChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="add"/>
+          <xsd:enumeration value="del"/>
+          <xsd:enumeration value="mod"/>
+          <xsd:enumeration value="replId"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_CommentAuthorChangeBits">
+        <xsd:list itemType="ST_CommentAuthorChangeBit"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_CommentAuthorChanges">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="cmAuthorMkLst" type="CT_CommentAuthorMonikerList" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_CommentAuthorChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:simpleType name="ST_SlideChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="addSp"/>
+          <xsd:enumeration value="delSp"/>
+          <xsd:enumeration value="modSp"/>
+          <xsd:enumeration value="spOrd"/>
+          <xsd:enumeration value="new"/>
+          <xsd:enumeration value="add"/>
+          <xsd:enumeration value="del"/>
+          <xsd:enumeration value="mod"/>
+          <xsd:enumeration value="ord"/>
+          <xsd:enumeration value="replId"/>
+          <xsd:enumeration value="modTransition"/>
+          <xsd:enumeration value="modMedia"/>
+          <xsd:enumeration value="setBg"/>
+          <xsd:enumeration value="setFolMasterAnim"/>
+          <xsd:enumeration value="setFolMasterObjs"/>
+          <xsd:enumeration value="modClrScheme"/>
+          <xsd:enumeration value="addAnim"/>
+          <xsd:enumeration value="delAnim"/>
+          <xsd:enumeration value="modAnim"/>
+          <xsd:enumeration value="replTag"/>
+          <xsd:enumeration value="delTag"/>
+          <xsd:enumeration value="setClrOvrMap"/>
+          <xsd:enumeration value="delDesignElem"/>
+          <xsd:enumeration value="modShow"/>
+          <xsd:enumeration value="addCm"/>
+          <xsd:enumeration value="delCm"/>
+          <xsd:enumeration value="modCm"/>
+          <xsd:enumeration value="chgLayout"/>
+          <xsd:enumeration value="modNotes"/>
+          <xsd:enumeration value="modNotesTx"/>
+          <xsd:enumeration value="setSldSyncInfo"/>
+          <xsd:enumeration value="newSectionLinks"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_SlideChangeBits">
+        <xsd:list itemType="ST_SlideChangeBit"/>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="sldMkLst" type="CT_SlideMonikerList" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="spChg" type="ac:CT_ShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="grpChg" type="ac:CT_GroupShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="graphicFrameChg" type="ac:CT_GraphicFrameChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="picChg" type="ac:CT_PictureChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="inkChg" type="ac:CT_InkChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="cxnChg" type="ac:CT_ConnectorChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="cmChg" type="CT_CommentChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_SlideChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:simpleType name="ST_SlideLayoutChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="addSp"/>
+          <xsd:enumeration value="delSp"/>
+          <xsd:enumeration value="modSp"/>
+          <xsd:enumeration value="spOrd"/>
+          <xsd:enumeration value="new"/>
+          <xsd:enumeration value="add"/>
+          <xsd:enumeration value="del"/>
+          <xsd:enumeration value="mod"/>
+          <xsd:enumeration value="ord"/>
+          <xsd:enumeration value="replId"/>
+          <xsd:enumeration value="modTransition"/>
+          <xsd:enumeration value="modMedia"/>
+          <xsd:enumeration value="setBg"/>
+          <xsd:enumeration value="setFolMasterAnim"/>
+          <xsd:enumeration value="setFolMasterObjs"/>
+          <xsd:enumeration value="modClrScheme"/>
+          <xsd:enumeration value="addAnim"/>
+          <xsd:enumeration value="delAnim"/>
+          <xsd:enumeration value="modAnim"/>
+          <xsd:enumeration value="replTag"/>
+          <xsd:enumeration value="delTag"/>
+          <xsd:enumeration value="setClrOvrMap"/>
+          <xsd:enumeration value="delDesignElem"/>
+          <xsd:enumeration value="modShow"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_SlideLayoutChangeBits">
+        <xsd:list itemType="ST_SlideLayoutChangeBit"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_SlideLayoutChanges">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="sldLayoutMkLst" type="CT_SlideLayoutMonikerList" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="spChg" type="ac:CT_ShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="grpChg" type="ac:CT_GroupShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="graphicFrameChg" type="ac:CT_GraphicFrameChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="picChg" type="ac:CT_PictureChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="inkChg" type="ac:CT_InkChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_SlideLayoutChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:simpleType name="ST_MainMasterChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="addSp"/>
+          <xsd:enumeration value="delSp"/>
+          <xsd:enumeration value="modSp"/>
+          <xsd:enumeration value="spOrd"/>
+          <xsd:enumeration value="new"/>
+          <xsd:enumeration value="add"/>
+          <xsd:enumeration value="del"/>
+          <xsd:enumeration value="mod"/>
+          <xsd:enumeration value="ord"/>
+          <xsd:enumeration value="replId"/>
+          <xsd:enumeration value="modTransition"/>
+          <xsd:enumeration value="modMedia"/>
+          <xsd:enumeration value="setBg"/>
+          <xsd:enumeration value="setFolMasterAnim"/>
+          <xsd:enumeration value="setFolMasterObjs"/>
+          <xsd:enumeration value="modClrScheme"/>
+          <xsd:enumeration value="addAnim"/>
+          <xsd:enumeration value="delAnim"/>
+          <xsd:enumeration value="modAnim"/>
+          <xsd:enumeration value="replTag"/>
+          <xsd:enumeration value="delTag"/>
+          <xsd:enumeration value="setClrOvrMap"/>
+          <xsd:enumeration value="delDesignElem"/>
+          <xsd:enumeration value="modShow"/>
+          <xsd:enumeration value="addSldLayout"/>
+          <xsd:enumeration value="delSldLayout"/>
+          <xsd:enumeration value="modSldLayout"/>
+          <xsd:enumeration value="sldLayoutOrd"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_MainMasterChangeBits">
+        <xsd:list itemType="ST_MainMasterChangeBit"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_MainMasterChanges">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="sldMasterMkLst" type="CT_MainMasterMonikerList" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="spChg" type="ac:CT_ShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="grpChg" type="ac:CT_GroupShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="graphicFrameChg" type="ac:CT_GraphicFrameChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="picChg" type="ac:CT_PictureChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="inkChg" type="ac:CT_InkChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="cxnChg" type="ac:CT_ConnectorChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="sldLayoutChg" type="CT_SlideLayoutChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_MainMasterChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:simpleType name="ST_DocumentChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="undo"/>
+          <xsd:enumeration value="redo"/>
+          <xsd:enumeration value="ext"/>
+          <xsd:enumeration value="delSld"/>
+          <xsd:enumeration value="modSld"/>
+          <xsd:enumeration value="sldOrd"/>
+          <xsd:enumeration value="addMainMaster"/>
+          <xsd:enumeration value="delMainMaster"/>
+          <xsd:enumeration value="modMainMaster"/>
+          <xsd:enumeration value="mainMasterOrd"/>
+          <xsd:enumeration value="addSection"/>
+          <xsd:enumeration value="delSection"/>
+          <xsd:enumeration value="modSection"/>
+          <xsd:enumeration value="addCmAuthor"/>
+          <xsd:enumeration value="delCmAuthor"/>
+          <xsd:enumeration value="modCmAuthor"/>
+          <xsd:enumeration value="replTag"/>
+          <xsd:enumeration value="delTag"/>
+          <xsd:enumeration value="addCustShow"/>
+          <xsd:enumeration value="delCustShow"/>
+          <xsd:enumeration value="modCustShow"/>
+          <xsd:enumeration value="modNotesMaster"/>
+          <xsd:enumeration value="modHandout"/>
+          <xsd:enumeration value="modShowInfo"/>
+          <xsd:enumeration value="addOsfTaskPaneApp"/>
+          <xsd:enumeration value="delOsfTaskPaneApp"/>
+          <xsd:enumeration value="setSldSz"/>
+          <xsd:enumeration value="modRtl"/>
+          <xsd:enumeration value="modChgInfo"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_DocumentChangeBits">
+        <xsd:list itemType="ST_DocumentChangeBit"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_DocumentChanges">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="docMkLst" type="CT_DocumentMonikerList" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="sldChg" type="CT_SlideChanges" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="sldMasterChg" type="CT_MainMasterChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="cmAuthorChg" type="CT_CommentAuthorChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_DocumentChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_DocumentChangesList">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="docChg" type="CT_DocumentChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_ChangesInfo">
+        <xsd:sequence>
+          <xsd:element name="docChgLst" type="CT_DocumentChangesList" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="chgInfo" type="CT_ChangesInfo"/>
+    </xsd:schema>
+    targetNamespace= http://schemas.microsoft.com/office/powerpoint/2015/09/main
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2015/09/main"
+    xmlns:p159="http://schemas.microsoft.com/office/powerpoint/2015/09/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_TransitionMorphOption">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="byObject"/>
+          <xsd:enumeration value="byWord"/>
+          <xsd:enumeration value="byChar"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_MorphTransition">
+        <xsd:attribute name="option" type="ST_TransitionMorphOption" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="morph" type="CT_MorphTransition"/>
+    </xsd:schema>
+
+
+5.5  http://schemas.microsoft.com/office/powerpoint/2015/10/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2015/10/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2015/10/main"
+    xmlns:p1510="http://schemas.microsoft.com/office/powerpoint/2015/10/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_ClientID"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+        <xsd:restriction base="xsd:string"/>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_ClientRevisionNumber"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+        <xsd:restriction base="xsd:unsignedInt"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_ClientRevision"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+        <xsd:attribute name="id" type="ST_ClientID" use="required"/>
+        <xsd:attribute name="v" type="ST_ClientRevisionNumber" use="optional" default="0"/>
+        <xsd:attribute name="vWet" type="ST_ClientRevisionNumber" use="optional" default="0"/>
+        <xsd:attribute name="dt" type="xsd:dateTime" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_ClientRevisionList"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+        <xsd:sequence>
+          <xsd:element name="client" type="CT_ClientRevision" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_RevisionInfo"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+        <xsd:sequence>
+          <xsd:element name="revLst" type="CT_ClientRevisionList" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="revInfo" type="CT_RevisionInfo"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>
+5.6  http://schemas.microsoft.com/office/powerpoint/2015/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2015/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2015/main"
+    xmlns:p16="http://schemas.microsoft.com/office/powerpoint/2015/main"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes">
+      <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:complexType name="CT_DesignElement">
+        <xsd:attribute name="val" type="xsd:boolean"/>
+      </xsd:complexType>
+      <xsd:element name="designElem" type="CT_DesignElement"/>
+    </xsd:schema>
+
+
+5.7  http://schemas.microsoft.com/office/powerpoint/2016/6/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    xmlns:p166="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2010/main"
+    schemaLocation="ms-pptx14.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_ZoomObjectImageType">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="preview"/>
+          <xsd:enumeration value="cover"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_ZoomObjectProperties">
+        <xsd:sequence>
+          <xsd:element name="blipFill" type="a:CT_BlipFillProperties" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="spPr" type="a:CT_ShapeProperties" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+        <xsd:attribute name="returnToParent" type="xsd:boolean" use="optional" default="true"/>
+        <xsd:attribute name="imageType" type="ST_ZoomObjectImageType" use="optional"
+    default="preview"/>
+        <xsd:attribute name="transitionDur" type="p14:ST_UniversalTimeOffset" use="optional"/>
+        <xsd:attribute name="showBg" type="xsd:boolean" use="optional" default="true"/>
+      </xsd:complexType>
+    </xsd:schema>
+    targetNamespace= http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom"
+    xmlns:psez="http://schemas.microsoft.com/office/powerpoint/2016/sectionzoom"
+    xmlns:p166="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    schemaLocation="ms-pptx166.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:complexType name="CT_SectionZoomObject">
+        <xsd:sequence>
+          <xsd:element name="zmPr" type="p166:CT_ZoomObjectProperties" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="sectionId" type="s:ST_Guid" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SectionZoom">
+        <xsd:sequence>
+          <xsd:element name="sectionZmObj" type="CT_SectionZoomObject" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="sectionZm" type="CT_SectionZoom"/>
+    </xsd:schema>
+
+
+5.9  http://schemas.microsoft.com/office/powerpoint/2016/slidezoom Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2016/slidezoom"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2016/slidezoom"
+    xmlns:pslz="http://schemas.microsoft.com/office/powerpoint/2016/slidezoom"
+    xmlns:p166="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    schemaLocation="ms-pptx166.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:complexType name="CT_SlideZoomObject">
+        <xsd:sequence>
+          <xsd:element name="zmPr" type="p166:CT_ZoomObjectProperties" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="sldId" type="p:ST_SlideId" use="required"/>
+        <xsd:attribute name="cId" type="xsd:unsignedInt" use="optional"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_SlideZoom">
+        <xsd:sequence>
+          <xsd:element name="sldZmObj" type="CT_SlideZoomObject" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="sldZm" type="CT_SlideZoom"/>
+5.10 http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom"
+    xmlns:psuz="http://schemas.microsoft.com/office/powerpoint/2016/summaryzoom"
+    xmlns:p166="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2016/6/main"
+    schemaLocation="ms-pptx166.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:complexType name="CT_SummaryZoomObject">
+        <xsd:sequence>
+          <xsd:element name="zmPr" type="p166:CT_ZoomObjectProperties" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="sectionId" type="s:ST_Guid" use="required"/>
+        <xsd:attribute name="title" type="xsd:string" use="optional" default=""/>
+        <xsd:attribute name="descr" type="xsd:string" use="optional" default=""/>
+        <xsd:attribute name="offsetFactorX" type="a:ST_Percentage" use="optional" default="0"/>
+        <xsd:attribute name="offsetFactorY" type="a:ST_Percentage" use="optional" default="0"/>
+        <xsd:attribute name="scaleFactorX" type="a:ST_Percentage" use="optional"
+    default="100000"/>
+        <xsd:attribute name="scaleFactorY" type="a:ST_Percentage" use="optional"
+    default="100000"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_GridLayout"/>
+      <xsd:complexType name="CT_FixedLayout"/>
+      <xsd:complexType name="CT_SummaryZoom">
+        <xsd:sequence>
+          <xsd:element name="summaryZmObj" type="CT_SummaryZoomObject" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:choice minOccurs="1" maxOccurs="1">
+            <xsd:element name="gridLayout" type="CT_GridLayout"/>
+            <xsd:element name="fixedLayout" type="CT_FixedLayout"/>
+          </xsd:choice>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="summaryZm" type="CT_SummaryZoom"/>
+    </xsd:schema>
+
+
+5.11 http://schemas.microsoft.com/office/powerpoint/2017/10/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2017/10/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2017/10/main"
+    xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:complexType name="CT_ReadonlyRecommended">
+        <xsd:attribute name="val" type="xsd:boolean" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="readonlyRecommended" type="CT_ReadonlyRecommended"/>
+5.12 http://schemas.microsoft.com/office/powerpoint/2017/3/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2017/3/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2017/3/main"
+    xmlns:p173="http://schemas.microsoft.com/office/powerpoint/2017/3/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_DisplayLocation">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="media"/>
+          <xsd:enumeration value="slide"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_Track">
+        <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+        <xsd:attribute name="label" type="xsd:string" use="required"/>
+        <xsd:attribute name="lang" type="a:ST_TextLanguageID" use="optional"/>
+        <xsd:attributeGroup ref="a:AG_Blob"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TrackList">
+        <xsd:sequence>
+          <xsd:element name="track" type="CT_Track" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TracksInfo">
+        <xsd:sequence>
+          <xsd:element name="trackLst" type="CT_TrackList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="displayLoc" type="ST_DisplayLocation" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="tracksInfo" type="CT_TracksInfo"/>
+    </xsd:schema>
+
+
+5.13 http://schemas.microsoft.com/office/powerpoint/2018/4/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2018/4/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2018/4/main"
+    xmlns:p184="http://schemas.microsoft.com/office/powerpoint/2018/4/main"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:simpleType name="ST_ClassificationOutcomeType">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="none"/>
+          <xsd:enumeration value="hdr"/>
+          <xsd:enumeration value="ftr"/>
+          <xsd:enumeration value="watermark"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_ClassificationOutcome">
+        <xsd:attribute name="val" type="ST_ClassificationOutcomeType"/>
+      </xsd:complexType>
+      <xsd:element name="classification" type="CT_ClassificationOutcome"/>
+    </xsd:schema>
+    targetNamespace= http://schemas.microsoft.com/office/powerpoint/2018/8/main
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    xmlns:p188="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    xmlns:p223="http://schemas.microsoft.com/office/powerpoint/2022/03/main"
+    xmlns:p228="http://schemas.microsoft.com/office/powerpoint/2022/08/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:pc="http://schemas.microsoft.com/office/powerpoint/2013/main/command"
+    xmlns:ac="http://schemas.microsoft.com/office/drawing/2013/main/command"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.microsoft.com/office/drawing/2013/main/command"
+    schemaLocation="dml-cmd.xsd"/>
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2022/03/main"
+    schemaLocation="ms-pptxReactions223.xsd"/>
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2022/08/main"
+    schemaLocation="ms-pptxTasks228.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_AuthorId">
+        <xsd:restriction base="s:ST_Guid"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_Author">
+        <xsd:sequence>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="ST_AuthorId" use="required"/>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="initials" type="xsd:string" use="optional"/>
+        <xsd:attribute name="userId" type="xsd:string" use="required"/>
+        <xsd:attribute name="providerId" type="xsd:string" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_AuthorList">
+        <xsd:sequence>
+          <xsd:element name="author" type="CT_Author" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:simpleType name="ST_AuthorIdList">
+        <xsd:list itemType="ST_AuthorId"/>
+      </xsd:simpleType>
+      <xsd:element name="authorLst" type="CT_AuthorList"/>
+      <xsd:simpleType name="ST_CommentStatus">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="active"/>
+          <xsd:enumeration value="resolved"/>
+          <xsd:enumeration value="closed"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_CommentId">
+        <xsd:restriction base="s:ST_Guid"/>
+      </xsd:simpleType>
+      <xsd:group name="EG_CommentProperties">
+        <xsd:sequence>
+          <xsd:element name="txBody" type="a:CT_TextBody" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:group>
+      <xsd:attributeGroup name="AG_CommentProperties">
+        <xsd:attribute name="id" type="ST_CommentId" use="required"/>
+        <xsd:attribute name="authorId" type="ST_AuthorId" use="required"/>
+        <xsd:attribute name="status" type="ST_CommentStatus" use="optional" default="active"/>
+        <xsd:sequence>
+          <xsd:group ref="EG_CommentProperties" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attributeGroup ref="AG_CommentProperties"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentReplyList">
+        <xsd:sequence>
+          <xsd:element name="reply" type="CT_CommentReply" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentUnknownAnchor"/>
+      <xsd:group name="EG_CommentAnchor">
+        <xsd:choice>
+          <xsd:element ref="pc:sldMkLst" minOccurs="1" maxOccurs="1"/>
+          <xsd:element ref="ac:deMkLst" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element ref="ac:txMkLst" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="unknownAnchor" type="CT_CommentUnknownAnchor" minOccurs="1"
+    maxOccurs="1"/>
+        </xsd:choice>
+      </xsd:group>
+      <xsd:complexType name="CT_Comment">
+        <xsd:sequence>
+          <xsd:group ref="EG_CommentAnchor" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="pos" type="a:CT_Point2D" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="replyLst" type="CT_CommentReplyList" minOccurs="0" maxOccurs="1"/>
+          <xsd:group ref="EG_CommentProperties" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attributeGroup ref="AG_CommentProperties"/>
+        <xsd:attribute name="startDate" type="xsd:dateTime" use="optional"/>
+        <xsd:attribute name="dueDate" type="xsd:dateTime" use="optional"/>
+        <xsd:attribute name="assignedTo" type="ST_AuthorIdList" use="optional" default=""/>
+        <xsd:attribute name="complete" type="s:ST_PositiveFixedPercentage" default="0%"
+    use="optional"/>
+        <xsd:attribute name="title" type="xsd:string" use="optional" default=""/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentList">
+        <xsd:sequence>
+          <xsd:element name="cm" type="CT_Comment" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="cmLst" type="CT_CommentList"/>
+      <xsd:complexType name="CT_CommentRelationship">
+        <xsd:attribute ref="r:id" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="commentRel" type="CT_CommentRelationship"/>
+    </xsd:schema>
+
+
+5.15 http://schemas.microsoft.com/office/powerpoint/2019/9/main/command
+    Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2019/9/main/command"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2019/9/main/command"
+    xmlns:pc2="http://schemas.microsoft.com/office/powerpoint/2019/9/main/command"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:p188="http://schemas.microsoft.com/office/powerpoint/2018/8/main">
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    schemaLocation="ms-pptx188.xsd"/>
+      <xsd:complexType name="CT_CommentV2MonikerList">
+        <xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+          <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="cmMkLst" type="CT_CommentV2MonikerList"/>
+      <xsd:element name="cmRplyMkLst" type="CT_CommentReplyV2MonikerList"/>
+      <xsd:complexType name="CT_CommentV2Moniker">
+        <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_CommentReplyV2Moniker">
+        <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+      </xsd:complexType>
+    </xsd:schema>
+
+
+5.16 http://schemas.microsoft.com/office/powerpoint/2020/02/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2020/02/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2020/02/main"
+    xmlns:p202="http://schemas.microsoft.com/office/powerpoint/2020/02/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.openxmlformats.org/drawingml/2006/main"
+    schemaLocation="dml-main.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:complexType name="CT_DesignerTag">
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="val" type="xsd:string" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_DesignerTagList">
+        <xsd:sequence>
+          <xsd:element name="designTag" type="CT_DesignerTag" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="designTagLst" type="CT_DesignerTagList"/>
+      <xsd:complexType name="CT_DesignerDrawingProps">
+        <xsd:sequence>
+          <xsd:element ref="p202:designTagLst" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="edtDesignElem" type="xsd:boolean" use="optional" default="false"/>
+      </xsd:complexType>
+      <xsd:element name="designPr" type="CT_DesignerDrawingProps"/>
+    </xsd:schema>
+
+
+5.17 http://schemas.microsoft.com/office/powerpoint/2022/03/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2022/03/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2022/03/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:complexType name="CT_ReactionInstance"
+    xmlns:p188="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+        <xsd:sequence>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_Reaction"
+    xmlns:p188="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+        <xsd:sequence>
+          <xsd:element name="instance" type="CT_ReactionInstance" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+        <xsd:attribute name="type" type="xsd:string" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_Reactions"
+    xmlns:p188="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+        <xsd:sequence>
+          <xsd:element name="rxn" type="CT_Reaction" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="reactions" type="CT_Reactions"
+    xmlns:p188="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"/>
+    </xsd:schema>
+
+
+5.18 http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+    Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2022/06/main/command"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2022/06/main/command"
+    xmlns:pc226="http://schemas.microsoft.com/office/powerpoint/2022/06/main/command"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:pc2="http://schemas.microsoft.com/office/powerpoint/2019/9/main/command"
+    xmlns:ac="http://schemas.microsoft.com/office/drawing/2013/main/command"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.microsoft.com/office/drawing/2013/main/command"
+    schemaLocation="dml-cmd.xsd"/>
+      <xsd:import namespace="http://schemas.microsoft.com/office/powerpoint/2019/9/main/command"
+    schemaLocation="ms-pptxMonikerList2.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    schemaLocation="shared-commonSimpleTypes.xsd"/>
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:simpleType name="ST_CommentReplyV2ChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="add"/>
+          <xsd:enumeration value="del"/>
+          <xsd:enumeration value="mod"/>
+          <xsd:enumeration value="modRxn"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_CommentReplyV2ChangeBits">
+        <xsd:list itemType="ST_CommentReplyV2ChangeBit"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_CommentReplyV2Changes">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element ref="pc2:cmRplyMkLst" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_CommentReplyV2ChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:simpleType name="ST_CommentV2ChangeBit">
+        <xsd:restriction base="xsd:token">
+          <xsd:enumeration value="add"/>
+          <xsd:enumeration value="modRxn"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+      <xsd:simpleType name="ST_CommentV2ChangeBits">
+        <xsd:list itemType="ST_CommentV2ChangeBit"/>
+      </xsd:simpleType>
+      <xsd:complexType name="CT_CommentV2Changes">
+        <xsd:sequence>
+          <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+          <xsd:element ref="pc2:cmMkLst" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="cmRplyChg" type="CT_CommentReplyV2Changes" minOccurs="0"
+    maxOccurs="unbounded"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="chg" type="ST_CommentV2ChangeBits" use="required"/>
+      </xsd:complexType>
+      <xsd:element name="cmChg" type="CT_CommentV2Changes"/>
+    </xsd:schema>
+
+
+5.19 http://schemas.microsoft.com/office/powerpoint/2022/08/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2022/08/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2022/08/main"
+    xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"
+    xmlns:p188="http://schemas.microsoft.com/office/powerpoint/2018/8/main"
+    xmlns:s="http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:complexType name="CT_TaskScheduleEventInfo"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:attribute name="stDt" type="xsd:dateTime" use="optional"/>
+        <xsd:attribute name="endDt" type="xsd:dateTime" use="optional"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskProgressEventInfo"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:attribute name="val" type="s:ST_PositiveFixedPercentage" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskTitleEventInfo"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:attribute name="val" type="xsd:string" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskAssignUnassignUser"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:attribute name="authorId" type="p188:ST_AuthorId" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskUnknownRecord"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd"/>
+      <xsd:complexType name="CT_CommentAnchor"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskAnchor"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:sequence>
+          <xsd:element name="comment" type="CT_CommentAnchor" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskHistoryEvent"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:sequence>
+          <xsd:element name="atrbtn" type="CT_TaskAssignUnassignUser" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="anchr" type="CT_TaskAnchor" minOccurs="0" maxOccurs="1"/>
+          <xsd:choice minOccurs="0" maxOccurs="1">
+            <xsd:element name="asgn" type="CT_TaskAssignUnassignUser" minOccurs="1"
+    maxOccurs="1"/>
+            <xsd:element name="add" type="p:CT_Empty" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="title" type="CT_TaskTitleEventInfo" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="date" type="CT_TaskScheduleEventInfo" minOccurs="1"
+    maxOccurs="1"/>
+            <xsd:element name="pcntCmplt" type="CT_TaskProgressEventInfo" minOccurs="1"
+    maxOccurs="1"/>
+            <xsd:element name="unasgnAll" type="p:CT_Empty" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="undo" type="CT_TaskUndo" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="unknown" type="CT_TaskUnknownRecord" minOccurs="1" maxOccurs="1"/>
+          </xsd:choice>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="time" type="xsd:dateTime" use="required"/>
+        <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskHistory"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:sequence>
+          <xsd:element name="event" type="CT_TaskHistoryEvent" minOccurs="0"
+    maxOccurs="unbounded"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:complexType name="CT_TaskDetails"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd">
+        <xsd:sequence>
+          <xsd:element name="history" type="CT_TaskHistory" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="taskDetails" type="CT_TaskDetails"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:odoc="http://schemas.microsoft.com/internal/obd"/>
+    </xsd:schema>
+
+
+5.20 http://schemas.microsoft.com/office/powerpoint/2023/02/main Schema
+
+    <xsd:schema elementFormDefault="qualified"
+    targetNamespace="http://schemas.microsoft.com/office/powerpoint/2023/02/main"
+    xmlns="http://schemas.microsoft.com/office/powerpoint/2023/02/main"
+    xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+      <xsd:import namespace="http://schemas.openxmlformats.org/presentationml/2006/main"
+    schemaLocation="pml.xsd"/>
+      <xsd:complexType name="CT_PlaceholderTypeACB">
+        <xsd:sequence>
+          <xsd:choice minOccurs="1" maxOccurs="1">
+            <xsd:element name="cameo" type="p:CT_Empty"/>
+            <xsd:element name="unknown" type="p:CT_Empty"/>
+          </xsd:choice>
+        <xsd:sequence>
+          <xsd:element name="type" type="CT_PlaceholderTypeACB" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="phTypeExt" type="CT_PlaceholderTypeExtension"/>
+    </xsd:schema>

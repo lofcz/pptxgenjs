@@ -1,0 +1,172 @@
+<!-- 2.19 powerpoint/2022/06/main/command | pages 123-125 of 170 -->
+
+2.19 http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+2.19.1 Elements
+
+2.19.1.1    cmChg
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+A CT_CommentV2Changes element that specifies the edits made to a comment on a slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="cmChg" type="CT_CommentV2Changes"/>
+
+
+See section 5.18 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.19.2 Attributes
+
+None.
+
+2.19.3 Complex Types
+
+2.19.3.1    CT_CommentReplyV2Changes
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+Referenced by: CT_CommentV2Changes
+
+A complex type that specifies information about edits to a comment reply.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+metadata common to content model changes.
+
+pc2:cmRplyMkLst: A CT_CommentReplyV2MonikerList element that specifies a content moniker that
+identifies the comment reply that was edited.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC-29500-4] section A.3) element that specifies the extension
+list. All future extensions to the comment reply change descriptor will be stored in the extension list.
+
+Attributes:
+
+chg: An ST_CommentReplyV2ChangeBits attribute that specifies the types of edits made to the
+comment reply.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentReplyV2Changes">
+      <xsd:sequence>
+      </xsd:sequence>
+      <xsd:attribute name="chg" type="ST_CommentReplyV2ChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.18 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.19.3.2    CT_CommentV2Changes
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+Referenced by: cmChg
+
+A complex type that specifies information about edits to a comment.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+metadata common to content model changes.
+
+pc2:cmMkLst: A CT_CommentV2MonikerList element that specifies a content moniker that identifies
+the edited comment.
+
+cmRplyChg: A CT_CommentReplyV2Changes element that specifies the edits made to a reply on the
+comment.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC-29500-4] section A.3) element that specifies the extension
+list. All future extensions to the comment change descriptor will be stored in the extension list.
+
+Attributes:
+
+chg: An ST_CommentV2ChangeBits attribute that specifies the types of edits made to the comment.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentV2Changes">
+      <xsd:sequence>
+        <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+        <xsd:element ref="pc2:cmMkLst" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="cmRplyChg" type="CT_CommentReplyV2Changes" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="chg" type="ST_CommentV2ChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.18 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.19.4 Simple Types
+
+2.19.4.1    ST_CommentReplyV2ChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+Referenced by: ST_CommentReplyV2ChangeBits
+ add     Comment Reply: Add
+
+ del      Comment Reply: Delete
+
+ mod     Comment Reply: Modify
+
+ modRxn  Comment Reply Reaction: Modify
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentReplyV2ChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="add"/>
+        <xsd:enumeration value="del"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="modRxn"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.18 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.19.4.2    ST_CommentReplyV2ChangeBits
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+Referenced by: CT_CommentReplyV2Changes
+
+A simple type specifying a list of changes to a comment reply
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentReplyV2ChangeBits">
+      <xsd:list itemType="ST_CommentReplyV2ChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.18 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.19.4.3    ST_CommentV2ChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+Referenced by: ST_CommentV2ChangeBits
+
+A simple type specifying the edit made to the comment.
+
+ Value    Meaning
+
+ add      Comment: Add
+
+ del      Comment: Delete

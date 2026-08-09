@@ -1,0 +1,118 @@
+<!-- 2.21 powerpoint/2022/03/main | pages 132-133 of 170 -->
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskUndo">
+      <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.11   CT_TaskUnknownRecord
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskHistoryEvent
+
+A complex type that specifies an unknown record in task history. This is for future extension.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskUnknownRecord"/>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.4 Simple Types
+
+None.
+
+2.21 http://schemas.microsoft.com/office/powerpoint/2022/03/main
+
+2.21.1 Elements
+
+2.21.1.1     reactions
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/03/main
+
+A CT_Reactions element that specifies reactions information associated with the parent element where
+this extension is rooted.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="reactions" type="CT_Reactions"/>
+
+
+See section 5.17 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.21.2 Attributes
+
+None.
+2.21.3.1    CT_Reaction
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/03/main
+
+Referenced by: CT_Reactions
+
+A complex type that specifies information about a specific reaction type.
+
+Child Elements:
+
+instance: A CT_ReactionInstance element that specifies information about a user’s instance of a
+reaction.
+
+Attributes:
+
+type: A xsd:string ([XMLSCHEMA2/2] section 3.2.1) attribute that specifies the reaction type. This
+SHOULD correspond to a Unicode representation of an emoji.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_Reaction">
+      <xsd:sequence>
+        <xsd:element name="instance" type="CT_ReactionInstance" minOccurs="0"
+    maxOccurs="unbounded"/>
+      </xsd:sequence>
+      <xsd:attribute name="type" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.17 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.21.3.2    CT_ReactionInstance
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/03/main
+
+Referenced by: CT_Reaction
+
+A complex type that represents a reaction that a particular user has made.
+
+Child Elements:
+
+extLst: A p:CT_ExtensionList ([ISO/IEC-29500-4] section A.3) element that specifies the extension
+list. All future extensions to reaction instances will be stored in the extension list.
+
+Attributes:
+
+time: A xsd:dateTime ([XMLSCHEMA2/2] section 3.2.7) attribute that specifies the time, in UTC, the
+instance was added.
+
+authorId: An ST_AuthorId attribute that specifies the author id of the user that reacted.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_ReactionInstance">
+      <xsd:sequence>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>

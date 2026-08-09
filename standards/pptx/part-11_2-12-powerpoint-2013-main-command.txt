@@ -1,0 +1,1461 @@
+<!-- 2.12 powerpoint/2013/main/command | pages 81-105 of 170 -->
+
+Attributes:
+
+sectionId: A s:ST_Guid ([ISO/IEC29500-4:2016] section A.8.9) attribute that specifies the section ID
+that the Summary Zoom object links to.
+
+title: An xsd:string ([XMLSCHEMA2/2] section 3.2.1) attribute that specifies the Alt text title of the
+Summary Zoom object.
+
+descr: An xsd:string ([XMLSCHEMA2/2] section 3.2.1) attribute that specifies the Alt text description
+of the Summary Zoom object.
+
+offsetFactorX: An a:ST_Percentage ([ISO/IEC29500-4:2016] section 17.2.2.2) attribute that
+specifies the percentage that the object is offset on the x-axis from the default layout.
+
+offsetFactorY: An a:ST_Percentage ([ISO/IEC29500-4:2016] section 17.2.2.2) attribute that
+specifies the percentage that the object is offset on the y-axis from the default layout.
+
+scaleFactorX: An a:ST_Percentage ([ISO/IEC29500-4:2016] section 17.2.2.2) attribute that specifies
+the percentage that the object is scaled on the x-axis from the default layout.
+
+scaleFactorY: An a:ST_Percentage ([ISO/IEC29500-4:2016] section 17.2.2.2) attribute that specifies
+the percentage that the object is scaled on the y-axis from the default layout.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SummaryZoomObject">
+      <xsd:sequence>
+        <xsd:element name="zmPr" type="p166:CT_ZoomObjectProperties" minOccurs="1"
+    maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="sectionId" type="s:ST_Guid" use="required"/>
+      <xsd:attribute name="title" type="xsd:string" use="optional" default=""/>
+      <xsd:attribute name="descr" type="xsd:string" use="optional" default=""/>
+      <xsd:attribute name="offsetFactorX" type="a:ST_Percentage" use="optional" default="0"/>
+      <xsd:attribute name="offsetFactorY" type="a:ST_Percentage" use="optional" default="0"/>
+      <xsd:attribute name="scaleFactorX" type="a:ST_Percentage" use="optional" default="100000"/>
+      <xsd:attribute name="scaleFactorY" type="a:ST_Percentage" use="optional" default="100000"/>
+    </xsd:complexType>
+
+
+See section 5.10 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.11.4 Simple Types
+
+None.
+
+2.12 http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+2.12.1 Elements
+
+2.12.1.1    chgInfo
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A CT_ChangesInfo element that specifies the edits made to a PresentationML document.
+    <xsd:element name="chgInfo" type="CT_ChangesInfo"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.1.2    cmAuthorMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A CT_CommentAuthorMonikerList element that specifies the content moniker information associated
+with a comment author.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="cmAuthorMkLst" type="CT_CommentAuthorMonikerList"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.1.3    cmMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A CT_CommentMonikerList element that specifies the content moniker information associated with a
+comment.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="cmMkLst" type="CT_CommentMonikerList"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.1.4    docMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A CT_DocumentMonikerList element that specifies the content moniker information associated with a
+presentation document.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="docMkLst" type="CT_DocumentMonikerList"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.1.5    sldBaseMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="sldBaseMkLst" type="CT_SlideBaseMonikerList"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.1.6     sldLayoutMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A CT_SlideLayoutMonikerList element that specifies the content moniker information associated with a
+slide layout.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="sldLayoutMkLst" type="CT_SlideLayoutMonikerList"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.1.7    sldMasterMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A CT_MainMasterMonikerList element that specifies the content moniker information associated with a
+master slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="sldMasterMkLst" type="CT_MainMasterMonikerList"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.1.8     sldMkLst
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_Comment
+
+A CT_SlideMonikerList element that specifies the content moniker information associated with a
+presentation slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+
+
+    <xsd:element name="sldMkLst" type="CT_SlideMonikerList"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+2.12.3 Complex Types
+
+2.12.3.1    CT_ChangesInfo
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: chgInfo
+
+A complex type that specifies metadata regarding the edits made to the document and the authors of
+those edits.
+
+Child Elements:
+
+docChgLst: A CT_DocumentChangesList element that specifies metadata regarding the edits made to
+the document by a single user.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_ChangesInfo">
+      <xsd:sequence>
+        <xsd:element name="docChgLst" type="CT_DocumentChangesList" minOccurs="0"
+    maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.2    CT_CommentAuthorChanges
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_DocumentChanges
+
+A complex type that specifies the edits made to a comment author object.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies the
+metadata common to content model change descriptors.
+
+cmAuthorMkLst: A CT_CommentAuthorMonikerList element that specifies a content moniker that
+identifies the edited comment author object.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the comment author change descriptor will be stored in the
+extension list.
+
+Attributes:
+
+chg: An ST_CommentAuthorChangeBits attribute that specifies the types of edits made to the
+comment author object.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+        <xsd:element name="cmAuthorMkLst" type="CT_CommentAuthorMonikerList" minOccurs="1"
+    maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="chg" type="ST_CommentAuthorChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.3    CT_CommentAuthorMoniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A complex type that specifies the content moniker information associated with a comment author.
+
+Attributes:
+
+id: An xsd:unsignedInt ([XMLSCHEMA2/2] section 3.3.22) attribute that specifies the ID of the
+comment author (see the id attribute in [ISO/IEC29500-1:2016] section 19.4.2).
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentAuthorMoniker">
+      <xsd:attribute name="id" type="xsd:unsignedInt" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.4    CT_CommentAuthorMonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_CommentAuthorChanges, cmAuthorMkLst
+
+A complex type that specifies a list of content monikers that together uniquely identify a comment
+author in a document. The sequence of child elements MUST be a valid
+COMMENTAUTHORMONIKERLIST as specified in the following ABNF (specified in [RFC5234]) grammar.
+
+COMMENTAUTHORMONIKERLIST = DOCUMENTMONIKERLIST (section 2.12.3.11)
+COMMENTAUTHORMONIKER
+
+COMMENTAUTHORMONIKER = pc:cmAuthorMk (section 2.12.3.3)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentAuthorMonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+Referenced by: CT_SlideChanges
+
+A complex type that specifies information about edits to a comment.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+metadata common to content model changes.
+
+cmMkLst: A CT_CommentMonikerList element that specifies a content moniker that identifies the
+edited comment.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the comment change descriptor will be stored in the extension
+list.
+
+Attributes:
+
+chg: An ST_CommentChangeBits attribute that specifies the types of edits made to the comment.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentChanges">
+      <xsd:sequence>
+        <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="cmMkLst" type="CT_CommentMonikerList" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="chg" type="ST_CommentChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.6    CT_CommentMoniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A complex type that specifies the content moniker information associated with a comment.
+
+Attributes:
+
+authorId: An xsd:unsignedInt ([XMLSCHEMA2/2] section 3.3.22) attribute that specifies the author
+of the comment. It refers to the ID of an author in the comment author list for the document (see the
+authorId attribute in [ISO/IEC29500-1:2016] section 19.4.1).
+
+idx: A p:ST_Index ([ISO/IEC29500-1:2016] section 19.7.3) attribute that specifies the unique index
+of the comment (see the idx attribute in [ISO/IEC29500-1:2016] section 19.4.1).
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentMoniker">
+      <xsd:attribute name="authorId" type="xsd:unsignedInt" use="required"/>
+      <xsd:attribute name="idx" type="p:ST_Index" use="required"/>
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.7    CT_CommentMonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_CommentChanges, cmMkLst
+
+A complex type that specifies a list of content monikers that together uniquely identify a comment in a
+document. The sequence of child elements MUST be a valid COMMENTMONIKERLIST as specified in
+the following ABNF (specified in [RFC5234]) grammar.
+
+COMMENTMONIKERLIST = SLIDEMONIKERLIST (section 2.12.3.21) COMMENTMONIKER
+
+COMMENTMONIKER = pc:cmMk (section 2.12.3.6)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentMonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.8    CT_DocumentChanges
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_DocumentChangesList
+
+A complex type that specifies metadata about edits to the presentation document.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+metadata common to content model changes.
+
+docMkLst: A CT_DocumentMonikerList element that specifies a content moniker that identifies the
+edited document.
+
+sldChg: A CT_SlideChanges element that specifies the edits made to a slide in the document.
+
+sldMasterChg: A CT_MainMasterChanges element that specifies the edits made to a master slide in
+the document.
+
+cmAuthorChg: A CT_CommentAuthorChanges element that specifies the edits made to a comment
+author data object in the document.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the document change descriptor will be stored in the extension
+list.
+
+Attributes:
+complex type.
+
+
+    <xsd:complexType name="CT_DocumentChanges">
+      <xsd:sequence>
+        <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="docMkLst" type="CT_DocumentMonikerList" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="sldChg" type="CT_SlideChanges" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="sldMasterChg" type="CT_MainMasterChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="cmAuthorChg" type="CT_CommentAuthorChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="chg" type="ST_DocumentChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.9    CT_DocumentChangesList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_ChangesInfo
+
+A complex type that specifies metadata regarding the edits made to the document by a single user.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+information about the user making the edits.
+
+docChg: A CT_DocumentChanges element that specifies metadata regarding a single edit to the
+document.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the document changes list will be stored in the extension list.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_DocumentChangesList">
+      <xsd:sequence>
+        <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="docChg" type="CT_DocumentChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.10   CT_DocumentMoniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A complex type that specifies the content moniker information associated with a presentation
+document.
+    <xsd:complexType name="CT_DocumentMoniker"/>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.11   CT_DocumentMonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_DocumentChanges, docMkLst
+
+A complex type that specifies a list of content monikers that together identify a presentation
+document. The sequence of child elements MUST be a valid DOCUMENTMONIKERLIST as specified in
+the following ABNF (specified in [RFC5234]) grammar.
+
+DOCUMENTMONIKERLIST = DOCUMENTMONIKER
+
+DOCUMENTMONIKER = pc:docMk (section 2.12.3.10)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_DocumentMonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.12   CT_MainMasterChanges
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_DocumentChanges
+
+A complex type that specifies metadata about edits to a master slide.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+metadata common to content model changes.
+
+sldMasterMkLst: A CT_MainMasterMonikerList element that specifies a content moniker that
+identifies the edited master slide.
+
+spChg: An ac:CT_ShapeChanges ([MS-ODRAWXML] section 2.29.3.16) element that specifies the
+edits made to a shape on the master slide.
+
+grpChg: An ac:CT_GroupShapeChanges ([MS-ODRAWXML] section 2.29.3.7) element that specifies
+the edits made to a group shape on the master slide.
+
+graphicFrameChg: An ac:CT_GraphicFrameChanges ([MS-ODRAWXML] section 2.29.3.19)
+element that specifies the edits made to a graphic frame on the master slide.
+inkChg: An ac:CT_InkChanges ([MS-ODRAWXML] section 2.29.3.10) element that specifies the
+edits made to an ink object on the master slide.
+
+cxnChg: An ac:CT_ConnectorChanges ([MS-ODRAWXML] section 2.29.3.2) element that specifies
+the edits made to a connector on the master slide.
+
+sldLayoutChg: A CT_SlideLayoutChanges element that specifies the edits made to a slide layout of
+the master slide.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the master slide change descriptor will be stored in the
+extension list.
+
+Attributes:
+
+chg: An ST_MainMasterChangeBits attribute that specifies the types of edits made to the master slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_MainMasterChanges">
+      <xsd:sequence>
+        <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="sldMasterMkLst" type="CT_MainMasterMonikerList" minOccurs="1"
+    maxOccurs="1"/>
+        <xsd:element name="spChg" type="ac:CT_ShapeChanges" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="grpChg" type="ac:CT_GroupShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="graphicFrameChg" type="ac:CT_GraphicFrameChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="picChg" type="ac:CT_PictureChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="inkChg" type="ac:CT_InkChanges" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="cxnChg" type="ac:CT_ConnectorChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="sldLayoutChg" type="CT_SlideLayoutChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="chg" type="ST_MainMasterChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.13   CT_MainMasterMoniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A complex type that specifies the content moniker information associated with a master slide.
+
+Attributes:
+
+cId: An ST_CreationId attribute that specifies the creation ID of the master slide (see section
+2.3.1.4).
+
+sldId: A p:ST_SlideMasterId ([ISO/IEC29500-1:2016] section 19.7.16) attribute that specifies the
+identifier of the master slide.
+    <xsd:complexType name="CT_MainMasterMoniker">
+      <xsd:attribute name="cId" type="ST_CreationId" use="optional"/>
+      <xsd:attribute name="sldId" type="p:ST_SlideMasterId" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.14   CT_MainMasterMonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_MainMasterChanges, sldMasterMkLst
+
+A complex type that specifies a list of content monikers that together uniquely identify a master slide
+in a document. The sequence of child elements MUST be a valid MAINMASTERMONIKERLIST as
+specified in the following ABNF (specified in [RFC5234]) grammar.
+
+MAINMASTERMONIKERLIST = DOCUMENTMONIKERLIST (section 2.12.3.11) MAINMASTERMONIKER
+
+MAINMASTERMONIKER = pc:sldMasterMk (section 2.12.3.13)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_MainMasterMonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.15   CT_SlideBaseMonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: sldBaseMkLst
+
+A complex type that specifies a list of content monikers that together uniquely identify an object in a
+document. The sequence of child elements MUST be a valid SLIDEBASEMONIKERLIST as specified in
+the following ABNF (specified in [RFC5234]) grammar.
+
+SLIDEBASEMONIKERLIST = MAINMASTERMONIKERLIST (section 2.12.3.14) /
+SLIDELAYOUTMONIKERLIST (section 2.12.3.19) / SLIDEMONIKERLIST (section 2.12.3.21)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideBaseMonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+2.12.3.16   CT_SlideChanges
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_DocumentChanges
+
+A complex type that specifies information about edits to a slide.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+metadata common to content model changes.
+
+sldMkLst: A CT_SlideMonikerList element that specifies a content moniker that identifies the edited
+slide.
+
+spChg: An ac:CT_ShapeChanges ([MS-ODRAWXML] section 2.29.3.16) element that specifies the
+edits made to a shape on the slide.
+
+grpChg: An ac:CT_GroupShapeChanges ([MS-ODRAWXML] section 2.29.3.7) element that specifies
+the edits made to a group shape on the slide.
+
+graphicFrameChg: An ac:CT_GraphicFrameChanges ([MS-ODRAWXML] section 2.29.3.19)
+element that specifies the edits made to a graphic frame on the slide.
+
+picChg: An ac:CT_PictureChanges ([MS-ODRAWXML] section 2.29.3.13) element that specifies the
+edits made to a picture on the slide.
+
+inkChg: An ac:CT_InkChanges ([MS-ODRAWXML] section 2.29.3.10) element that specifies the
+edits made to an ink object on the slide.
+
+cxnChg: An ac:CT_ConnectorChanges ([MS-ODRAWXML] section 2.29.3.2) element that specifies
+the edits made to a connector on the slide.
+
+cmChg: A CT_CommentChanges element that specifies the edits made to a comment on the slide.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the slide change descriptor will be stored in the extension list
+
+Attributes:
+
+chg: An ST_SlideChangeBits attribute that specifies the types of edits made to the slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideChanges">
+      <xsd:sequence>
+        <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="sldMkLst" type="CT_SlideMonikerList" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="spChg" type="ac:CT_ShapeChanges" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="grpChg" type="ac:CT_GroupShapeChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="graphicFrameChg" type="ac:CT_GraphicFrameChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="picChg" type="ac:CT_PictureChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="inkChg" type="ac:CT_InkChanges" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="cxnChg" type="ac:CT_ConnectorChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+      <xsd:attribute name="chg" type="ST_SlideChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.17   CT_SlideLayoutChanges
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_MainMasterChanges
+
+A complex type that specifies the metadata about edits to a slide layout.
+
+Child Elements:
+
+chgData: An ac:CT_ChangesData ([MS-ODRAWXML] section 2.29.3.1) element that specifies
+metadata common to content model changes.
+
+sldLayoutMkLst: A CT_SlideLayoutMonikerList element that specifies a content moniker that
+identifies the edited slide layout.
+
+spChg: An ac:CT_ShapeChanges ([MS-ODRAWXML] section 2.29.3.16) element that specifies the
+edits made to a shape on the slide layout.
+
+grpChg: An ac:CT_GroupShapeChanges ([MS-ODRAWXML] section 2.29.3.7) element that specifies
+the edits made to a group shape on the slide layout.
+
+graphicFrameChg: An ac:CT_GraphicFrameChanges ([MS-ODRAWXML] section 2.29.3.19)
+element that specifies the edits made to a graphic frame on the slide layout.
+
+picChg: An ac:CT_PictureChanges ([MS-ODRAWXML] section 2.29.3.13) element that specifies the
+edits made to a picture on the slide layout.
+
+inkChg: An ac:CT_InkChanges ([MS-ODRAWXML] section 2.29.3.10) element that specifies the
+edits made to an ink object on the slide layout.
+
+cxnChg: An ac:CT_ConnectorChanges ([MS-ODRAWXML] section 2.29.3.2) element that specifies
+the edits made to a connector on the slide layout.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC29500-4:2016] section A.3) element that specifies the
+extension list. All future extensions to the slide layout change descriptor will be stored in the extension
+list.
+
+Attributes:
+
+chg: An ST_SlideLayoutChangeBits attribute that specifies the types of edits made to the slide layout.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideLayoutChanges">
+      <xsd:sequence>
+        <xsd:element name="chgData" type="ac:CT_ChangesData" minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="sldLayoutMkLst" type="CT_SlideLayoutMonikerList" minOccurs="1"
+    maxOccurs="1"/>
+        <xsd:element name="spChg" type="ac:CT_ShapeChanges" minOccurs="0" maxOccurs="unbounded"/>
+    maxOccurs="unbounded"/>
+        <xsd:element name="picChg" type="ac:CT_PictureChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="inkChg" type="ac:CT_InkChanges" minOccurs="0" maxOccurs="unbounded"/>
+        <xsd:element name="cxnChg" type="ac:CT_ConnectorChanges" minOccurs="0"
+    maxOccurs="unbounded"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="chg" type="ST_SlideLayoutChangeBits" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.18   CT_SlideLayoutMoniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A complex type that specifies the content moniker information associated with a slide layout.
+
+Attributes:
+
+cId: An ST_CreationId attribute that specifies the creation ID of the slide layout (see section 2.3.1.4).
+
+sldId: A p:ST_SlideLayoutId ([ISO/IEC29500-1:2016] section 19.7.14) attribute that specifies the
+identifier of the slide layout.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideLayoutMoniker">
+      <xsd:attribute name="cId" type="ST_CreationId" use="optional"/>
+      <xsd:attribute name="sldId" type="p:ST_SlideLayoutId" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.19   CT_SlideLayoutMonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_SlideLayoutChanges, sldLayoutMkLst
+
+A complex type that specifies a list of content monikers that together uniquely identify a slide layout in
+a document. The sequence of child elements MUST be a valid SLIDELAYOUTMONIKERLIST as specified
+in the following ABNF (specified in [RFC5234]) grammar.
+
+SLIDELAYOUTMONIKERLIST = MAINMASTERMONIKERLIST (section 2.12.3.14) SLIDELAYOUTMONIKER
+
+SLIDELAYOUTMONIKER = pc:sldLayoutMk (section 2.12.3.18)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideLayoutMonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.20   CT_SlideMoniker
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+A complex type that specifies the content moniker information associated with a slide.
+
+Attributes:
+
+cId: An ST_CreationId attribute that specifies the creation ID of the slide (see section 2.3.1.4).
+
+sldId: A p:ST_SlideId ([ISO/IEC29500-4:2016] section A.4) attribute that specifies the identifier of
+the slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideMoniker">
+      <xsd:attribute name="cId" type="ST_CreationId" use="optional"/>
+      <xsd:attribute name="sldId" type="p:ST_SlideId" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.3.21    CT_SlideMonikerList
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_SlideChanges, sldMkLst, CT_Comment
+
+A complex type that specifies a list of content monikers that together uniquely identify a slide in a
+document. The sequence of child elements MUST be a valid SLIDEMONIKERLIST as specified in the
+following ABNF (specified in [RFC5234]) grammar.
+
+SLIDEMONIKERLIST = DOCUMENTMONIKERLIST (section 2.12.3.11) SLIDEMONIKER
+
+SLIDEMONIKER = pc:sldMk (section 2.12.3.20)
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_SlideMonikerList">
+      <xsd:sequence>
+        <xsd:any minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+2.12.4.1    ST_CommentAuthorChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: ST_CommentAuthorChangeBits
+
+A simple type specifying the edit made to the comment author.
+
+ Value  Meaning
+
+ add    Comment Author: Add
+
+ del    Comment Author: Delete
+
+ mod    Comment Author: Modify
+
+ replId  Comment Author ID: Replace
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentAuthorChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="add"/>
+        <xsd:enumeration value="del"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="replId"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.2    ST_CommentAuthorChangeBits
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_CommentAuthorChanges
+
+A simple type specifying a list of changes to a comment author.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentAuthorChangeBits">
+      <xsd:list itemType="ST_CommentAuthorChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.3    ST_CommentChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: ST_CommentChangeBits
+ add    Comment: Add
+
+ del     Comment: Delete
+
+ mod    Comment: Modify
+
+ replId  Comment ID: Modify
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="add"/>
+        <xsd:enumeration value="del"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="replId"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.4    ST_CommentChangeBits
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_CommentChanges
+
+A simple type specifying a list of changes to a comment.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentChangeBits">
+      <xsd:list itemType="ST_CommentChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.5     ST_CreationId
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_SlideMoniker, CT_MainMasterMoniker, CT_SlideLayoutMoniker
+
+A simple type that specifies the creation ID of a slide, master slide, or slide layout (see section
+2.3.1.4).
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CreationId">
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.6    ST_DocumentChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: ST_DocumentChangeBits
+
+A simple type specifying the edit made to the document.
+
+ Value             Meaning
+
+ undo              Undo
+
+ redo               Redo
+
+ ext                   External
+
+ custSel             Custom Selection
+
+ mod               Document: Modify
+
+ addSld             Add Slide
+
+ delSld                Delete Slide
+
+ modSld              Modify Slide
+
+ sldOrd               Modify Slide Order
+
+ addMainMaster      Add Main Slide Master
+
+ delMainMaster        Delete Main Slide Master
+
+ modMainMaster       Modify Main Slide Master
+
+ mainMasterOrd       Reorder Main Slide Master
+
+ addSection         Add Section
+
+ delSection            Delete Section
+
+ modSection           Modify Section
+
+ addCmAuthor       Add Comment Author
+
+ delCmAuthor          Delete Comment Author
+
+ modCmAuthor        Modify Comment Author
+
+ replTag              Replace String Tag
+
+ delTag                Delete String Tag
+
+ addCustShow        Add Custom Show
+
+ delCustShow          Delete Custom Show
+
+ modCustShow        Modify Custom Show
+ modHandout          Modify Handouts Master
+
+ modShowInfo         Modify Show Info
+
+ addOsfTaskPaneApp  Add Task Pane App Content
+
+ delOsfTaskPaneApp   Delete Task Pane App Content
+
+ setSldSz             Set Slide Size
+
+ modRtl               Modify Right-to-Left properties
+
+ modChgInfo          Modify Changes Info
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_DocumentChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="undo"/>
+        <xsd:enumeration value="redo"/>
+        <xsd:enumeration value="ext"/>
+        <xsd:enumeration value="custSel"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="addSld"/>
+        <xsd:enumeration value="delSld"/>
+        <xsd:enumeration value="modSld"/>
+        <xsd:enumeration value="sldOrd"/>
+        <xsd:enumeration value="addMainMaster"/>
+        <xsd:enumeration value="delMainMaster"/>
+        <xsd:enumeration value="modMainMaster"/>
+        <xsd:enumeration value="mainMasterOrd"/>
+        <xsd:enumeration value="addSection"/>
+        <xsd:enumeration value="delSection"/>
+        <xsd:enumeration value="modSection"/>
+        <xsd:enumeration value="addCmAuthor"/>
+        <xsd:enumeration value="delCmAuthor"/>
+        <xsd:enumeration value="modCmAuthor"/>
+        <xsd:enumeration value="replTag"/>
+        <xsd:enumeration value="delTag"/>
+        <xsd:enumeration value="addCustShow"/>
+        <xsd:enumeration value="delCustShow"/>
+        <xsd:enumeration value="modCustShow"/>
+        <xsd:enumeration value="modNotesMaster"/>
+        <xsd:enumeration value="modHandout"/>
+        <xsd:enumeration value="modShowInfo"/>
+        <xsd:enumeration value="addOsfTaskPaneApp"/>
+        <xsd:enumeration value="delOsfTaskPaneApp"/>
+        <xsd:enumeration value="setSldSz"/>
+        <xsd:enumeration value="modRtl"/>
+        <xsd:enumeration value="modChgInfo"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+Referenced by: CT_DocumentChanges
+
+A simple type specifying a list of edits to a presentation.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_DocumentChangeBits">
+      <xsd:list itemType="ST_DocumentChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.8    ST_MainMasterChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: ST_MainMasterChangeBits
+
+An enumeration specifying the edit made to the Main Master.
+
+ Value           Meaning
+
+ addSp           Add Shape
+
+ delSp              Delete Shape
+
+ modSp             Modify Shape
+
+ spOrd             Reorder Shape
+
+ new            New
+
+ add             Add
+
+ del                 Delete
+
+ mod               Modify
+
+ ord               Reorder
+
+ replId             Replace ID
+
+ modTransition      Modify Transition
+
+ modMedia          Modify Media
+
+ setBg             Set Background
+
+ setFolMasterAnim   Set Follow Master Animations
+
+ setFolMasterObjs   Set Follow Master Objects
+
+ modClrScheme     Modify Color Scheme
+
+ addAnim         Add Animation
+ modAnim          Modify Animation
+
+ replTag            Replace String Tag
+
+ delTag             Delete String Tag
+
+ setClrOvrMap      Set Color Override Map
+
+ delDesignElem      Delete Design Element
+
+ modShow          Modify Show/Hide information
+
+ addSldLayout      Add Slide Layout
+
+ delSldLayout       Delete Slide Layout
+
+ modSldLayout      Modify Slide Layout
+
+ sldLayoutOrd       Reorder Slide Layout
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_MainMasterChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="addSp"/>
+        <xsd:enumeration value="delSp"/>
+        <xsd:enumeration value="modSp"/>
+        <xsd:enumeration value="spOrd"/>
+        <xsd:enumeration value="new"/>
+        <xsd:enumeration value="add"/>
+        <xsd:enumeration value="del"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="ord"/>
+        <xsd:enumeration value="replId"/>
+        <xsd:enumeration value="modTransition"/>
+        <xsd:enumeration value="modMedia"/>
+        <xsd:enumeration value="setBg"/>
+        <xsd:enumeration value="setFolMasterAnim"/>
+        <xsd:enumeration value="setFolMasterObjs"/>
+        <xsd:enumeration value="modClrScheme"/>
+        <xsd:enumeration value="addAnim"/>
+        <xsd:enumeration value="delAnim"/>
+        <xsd:enumeration value="modAnim"/>
+        <xsd:enumeration value="replTag"/>
+        <xsd:enumeration value="delTag"/>
+        <xsd:enumeration value="setClrOvrMap"/>
+        <xsd:enumeration value="delDesignElem"/>
+        <xsd:enumeration value="modShow"/>
+        <xsd:enumeration value="addSldLayout"/>
+        <xsd:enumeration value="delSldLayout"/>
+        <xsd:enumeration value="modSldLayout"/>
+        <xsd:enumeration value="sldLayoutOrd"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+Referenced by: CT_MainMasterChanges
+
+A simple type specifying a list of edits to a master slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_MainMasterChangeBits">
+      <xsd:list itemType="ST_MainMasterChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.10   ST_SlideChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: ST_SlideChangeBits
+
+A simple type specifying the edit made to the slide.
+
+ Value           Meaning
+
+ addSp           Add Shape
+
+ delSp              Delete Shape
+
+ modSp             Modify Shape
+
+ spOrd             Reorder Shape
+
+ new            New
+
+ add             Add
+
+ del                 Delete
+
+ mod               Modify
+
+ ord               Reorder
+
+ replId             Replace ID
+
+ modTransition      Modify Transition
+
+ modMedia          Modify Media
+
+ setBg             Set Background
+
+ setFolMasterAnim   Set Follow Master Animation
+
+ setFolMasterObjs   Set Follow Master Object
+
+ modClrScheme     Modify Color Scheme
+
+ addAnim         Add Animation
+ modAnim          Modify Animation
+
+ replTag            Replace String Tag
+
+ delTag             Delete String Tag
+
+ setClrOvrMap      Set Color Override map
+
+ delDesignElem      Delete Design Element
+
+ modShow          Modify Show/hide info
+
+ addCm           Add comment
+
+ delCm              Delete comment
+
+ modCm            Modify comment
+
+ chgLayout        Change Layout
+
+ modNotes          Modify Speaker Notes
+
+ modNotesTx        Modify Speaker Notes Text
+
+ setSldSyncInfo     Set Slide Sync info
+
+ newSectionLinks   New Section Links
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_SlideChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="addSp"/>
+        <xsd:enumeration value="delSp"/>
+        <xsd:enumeration value="modSp"/>
+        <xsd:enumeration value="spOrd"/>
+        <xsd:enumeration value="new"/>
+        <xsd:enumeration value="add"/>
+        <xsd:enumeration value="del"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="ord"/>
+        <xsd:enumeration value="replId"/>
+        <xsd:enumeration value="modTransition"/>
+        <xsd:enumeration value="modMedia"/>
+        <xsd:enumeration value="setBg"/>
+        <xsd:enumeration value="setFolMasterAnim"/>
+        <xsd:enumeration value="setFolMasterObjs"/>
+        <xsd:enumeration value="modClrScheme"/>
+        <xsd:enumeration value="addAnim"/>
+        <xsd:enumeration value="delAnim"/>
+        <xsd:enumeration value="modAnim"/>
+        <xsd:enumeration value="replTag"/>
+        <xsd:enumeration value="delTag"/>
+        <xsd:enumeration value="setClrOvrMap"/>
+        <xsd:enumeration value="delDesignElem"/>
+        <xsd:enumeration value="modShow"/>
+        <xsd:enumeration value="addCm"/>
+        <xsd:enumeration value="delCm"/>
+        <xsd:enumeration value="modCm"/>
+        <xsd:enumeration value="setSldSyncInfo"/>
+        <xsd:enumeration value="newSectionLinks"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.11   ST_SlideChangeBits
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: CT_SlideChanges
+
+A simple type specifying a list of edits to a slide.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_SlideChangeBits">
+      <xsd:list itemType="ST_SlideChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.12.4.12   ST_SlideLayoutChangeBit
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2013/main/command
+
+Referenced by: ST_SlideLayoutChangeBits
+
+An enumeration specifying the type of edit made to a slide layout.
+
+ Value           Meaning
+
+ addSp            Shape: Add
+
+ delSp             Shape: Delete
+
+ modSp           Shape: Modify
+
+ spOrd            Shape: Modify Order
+
+ new                 Slide: New
+
+ add                  Slide: Add
+
+ del                  Slide: Delete
+
+ mod                 Slide: Modify
+
+ ord                  Slide: Reorder
+
+ replId               Slide: Replace ID
+
+ modTransition       Slide: Modify Transition
+ setBg                Slide: Set Background
+
+ setFolMasterAnim   Slide: Set Follow Master Animations
+
+ setFolMasterObjs    Slide: Set Follow Master Objects
+
+ modClrScheme      Slide: Modify Color Scheme
+
+ addAnim            Slide: Add Animation
+
+ delAnim             Slide: Delete Animation
+
+ modAnim            Slide: Modify Animation
+
+ replTag              Slide: Replace String Tag
+
+ delTag               Slide: Delete String Tag
+
+ setClrOvrMap       Slide: Set Color override mapping
+
+ delDesignElem      Slide: Delete Design Element
+
+ modShow           Slide: Modify show/hide properties
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_SlideLayoutChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="addSp"/>
+        <xsd:enumeration value="delSp"/>
+        <xsd:enumeration value="modSp"/>
+        <xsd:enumeration value="spOrd"/>
+        <xsd:enumeration value="new"/>
+        <xsd:enumeration value="add"/>
+        <xsd:enumeration value="del"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="ord"/>
+        <xsd:enumeration value="replId"/>
+        <xsd:enumeration value="modTransition"/>
+        <xsd:enumeration value="modMedia"/>
+        <xsd:enumeration value="setBg"/>
+        <xsd:enumeration value="setFolMasterAnim"/>
+        <xsd:enumeration value="setFolMasterObjs"/>
+        <xsd:enumeration value="modClrScheme"/>
+        <xsd:enumeration value="addAnim"/>
+        <xsd:enumeration value="delAnim"/>
+        <xsd:enumeration value="modAnim"/>
+        <xsd:enumeration value="replTag"/>
+        <xsd:enumeration value="delTag"/>
+        <xsd:enumeration value="setClrOvrMap"/>
+        <xsd:enumeration value="delDesignElem"/>
+        <xsd:enumeration value="modShow"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.3 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).

@@ -1,0 +1,341 @@
+<!-- 2.20 powerpoint/2022/08/main | pages 126-131 of 170 -->
+
+ modTsk  Comment Task: Modify
+
+ modRxn  Comment Reaction: Modify
+
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentV2ChangeBit">
+      <xsd:restriction base="xsd:token">
+        <xsd:enumeration value="add"/>
+        <xsd:enumeration value="del"/>
+        <xsd:enumeration value="mod"/>
+        <xsd:enumeration value="modTsk"/>
+        <xsd:enumeration value="modRxn"/>
+      </xsd:restriction>
+    </xsd:simpleType>
+
+
+See section 5.18 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.19.4.4    ST_CommentV2ChangeBits
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/06/main/command
+
+Referenced by: CT_CommentV2Changes
+
+A simple type specifying a list of changes to a comment.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+simple type.
+
+
+    <xsd:simpleType name="ST_CommentV2ChangeBits">
+      <xsd:list itemType="ST_CommentV2ChangeBit"/>
+    </xsd:simpleType>
+
+
+See section 5.18 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20 http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+2.20.1 Elements
+
+2.20.1.1     taskDetails
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+A CT_TaskDetails element that specifies additional task details.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+element.
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.2 Attributes
+
+None.
+
+2.20.3 Complex Types
+
+2.20.3.1    CT_CommentAnchor
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskAnchor
+
+A complex type that specifies the comment or reply in which the task related action was performed.
+
+Attributes:
+
+id: A s:ST_Guid ([ISO/IEC-29500-4] section A.8.9) attribute that specifies the id of the comment or
+reply in which the task related action was performed.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_CommentAnchor">
+      <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.2    CT_TaskAnchor
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskHistoryEvent
+
+A complex type that specifies information about the task event’s anchor.
+
+Child Elements:
+
+comment: A CT_CommentAnchor element that specifies the comment or reply in which the task
+related action was performed.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC-29500-4] section A.3) element that specifies the extension
+list. All future extensions to the task anchor will be stored in the extension list.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskAnchor">
+      <xsd:sequence>
+        <xsd:element name="comment" type="CT_CommentAnchor" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.3    CT_TaskAssignUnassignUser
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskHistoryEvent
+
+A complex type that specifies the identity details of the person who the task event is attributed.
+
+Attributes:
+
+authorId: An ST_AuthorId attribute that specifies the document author id for the person who the task
+event is attributed.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskAssignUnassignUser">
+      <xsd:attribute name="authorId" type="p188:ST_AuthorId" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.4     CT_TaskDetails
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: taskDetails
+
+An element that contains additional task details.
+
+Child Elements:
+
+history: A CT_TaskHistory element that specifies the history of the changes made to the task.
+
+extLst: A p:CT_ExtensionList ([ISO/IEC-29500-4] section A.3) element that specifies the extension
+list. All future extensions to the task details will be stored in the extension list.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskDetails">
+      <xsd:sequence>
+        <xsd:element name="history" type="CT_TaskHistory" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.5    CT_TaskHistory
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+Child Elements:
+
+event: A CT_TaskHistoryEvent element that specifies a single change made to a task.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskHistory">
+      <xsd:sequence>
+        <xsd:element name="event" type="CT_TaskHistoryEvent" minOccurs="0"
+    maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.6    CT_TaskHistoryEvent
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskHistory
+
+A complex type that specifies a single kind of change done to a task.
+
+Child Elements:
+
+atrbtn: A CT_TaskAssignUnassignUser element that specifies the author id of the user who initiated
+the change.
+
+anchr: A CT_TaskAnchor element that specifies the object type to which the change is related.
+
+asgn: A CT_TaskAssignUnassignUser element that specifies the event record created when a task is
+assigned to a particular person.
+
+add: A p:CT_Empty ([ISO/IEC29500-4:2016] section A.4) element that specifies the event record
+created when a task is created.
+
+title: A CT_TaskTitleEventInfo element that specifies the event record created when a task title is
+specified.
+
+date: A CT_TaskScheduleEventInfo element that specifies the event record created when a task
+schedule is changed.
+
+pcntCmplt: A CT_TaskProgressEventInfo element that specifies the event record created when a task
+progress changes.
+
+unasgnAll: A p:CT_Empty ([ISO/IEC29500-4:2016] section A.4) element that specifies the event
+record created when a task has been unassigned from all persons.
+
+undo: A CT_TaskUndo element that specifies the event record created when a task event record is
+undone.
+
+unknown: A CT_TaskUnknownRecord element that specifies the event record created when a task
+has an unknown change. This is for future extension.
+Attributes:
+
+time: A xsd:dateTime ([XMLSCHEMA2/2] section 3.2.7) attribute that specifies the time, in UTC, that
+the task change occurred.
+
+id: A s:ST_Guid ([ISO/IEC-29500-4] section A.8.9) attribute that specifies the unique id for this
+change event.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskHistoryEvent">
+      <xsd:sequence>
+        <xsd:element name="atrbtn" type="CT_TaskAssignUnassignUser" minOccurs="1" maxOccurs="1"/>
+        <xsd:element name="anchr" type="CT_TaskAnchor" minOccurs="0" maxOccurs="1"/>
+        <xsd:choice minOccurs="0" maxOccurs="1">
+          <xsd:element name="asgn" type="CT_TaskAssignUnassignUser" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="add" type="p:CT_Empty" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="title" type="CT_TaskTitleEventInfo" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="date" type="CT_TaskScheduleEventInfo" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="pcntCmplt" type="CT_TaskProgressEventInfo" minOccurs="1"
+    maxOccurs="1"/>
+          <xsd:element name="unasgnAll" type="p:CT_Empty" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="undo" type="CT_TaskUndo" minOccurs="1" maxOccurs="1"/>
+          <xsd:element name="unknown" type="CT_TaskUnknownRecord" minOccurs="1" maxOccurs="1"/>
+        </xsd:choice>
+        <xsd:element name="extLst" type="p:CT_ExtensionList" minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="time" type="xsd:dateTime" use="required"/>
+      <xsd:attribute name="id" type="s:ST_Guid" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.7    CT_TaskProgressEventInfo
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskHistoryEvent
+
+A complex type that specifies information about the task progression.
+
+Attributes:
+
+val: A s:ST_PositiveFixedPercentage ([ISO/IEC-29500-4] section A.8.9) attribute that specifies the
+whole number value representing the percent complete for the task (0-100).
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskProgressEventInfo">
+      <xsd:attribute name="val" type="s:ST_PositiveFixedPercentage" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+Referenced by: CT_TaskHistoryEvent
+
+A complex type that specifies information about the task schedule.
+
+Attributes:
+
+stDt: A xsd:dateTime ([XMLSCHEMA2/2] section 3.2.7) attribute that specifies the DateTime, in UTC,
+when the task assigned was scheduled to start. If this attribute is omitted, there is no start date.
+
+endDt: A xsd:dateTime ([XMLSCHEMA2/2] section 3.2.7) attribute that specifies the DateTime, in
+UTC, when the assigned task is due. If this attribute is omitted, there is no due date.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskScheduleEventInfo">
+      <xsd:attribute name="stDt" type="xsd:dateTime" use="optional"/>
+      <xsd:attribute name="endDt" type="xsd:dateTime" use="optional"/>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.9     CT_TaskTitleEventInfo
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskHistoryEvent
+
+A complex type that specifies information about a task title change.
+
+Attributes:
+
+val: A xsd:string ([XMLSCHEMA2/2] section 3.2.1) attribute that specifies the title for the task.
+
+The following W3C XML Schema ([XMLSCHEMA1/2] section 2.1) fragment specifies the contents of this
+complex type.
+
+
+    <xsd:complexType name="CT_TaskTitleEventInfo">
+      <xsd:attribute name="val" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+
+See section 5.19 for the full W3C XML Schema ([XMLSCHEMA1/2] section 2.1).
+
+2.20.3.10   CT_TaskUndo
+
+Target namespace: http://schemas.microsoft.com/office/powerpoint/2022/08/main
+
+Referenced by: CT_TaskHistoryEvent
+
+A complex type that specifies a task change that has been undone.
+
+Attributes:

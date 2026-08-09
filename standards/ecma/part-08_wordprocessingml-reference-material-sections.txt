@@ -1,0 +1,3085 @@
+<!-- WordprocessingML Reference Material - Sections | pages 1383-1447 of 6045 -->
+
+     Attributes                                            Description
+
+                   </w:sdt>
+
+                   The multiLine attribute on the text element in this structured document tag's properties
+                       specify that an application may allow soft line breaks to be added to the run contents of
+                     the structured document tag. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SdtText">
+    <attribute name="multiLine" type="ST_OnOff"/>
+</complexType>
+
+2.6    Sections
+
+WordprocessingML does not natively store the concept of pages, since it is based on paragraphs and runs (which
+are laid out on to pages by consumers of this content). However, although there is no concept of storing pages
+in the WordprocessingML format, it is often necessary to store information about a page or group of pages in a
+document, in order to store information that is to be used to format the pages on which a set of paragraphs will
+appear. In WordprocessingML, this information is stored via the use of sections.
+
+In WordprocessingML, sections are groupings of paragraphs that have a specific set of properties used to define
+the pages on which the text will appear, as well as other section-level (applying to all paragraphs' appearance)
+properties.
+
+[Example: Consider a document with four paragraphs of text that is to be printed on a page in landscape mode,
+followed by ten paragraphs of text that are to be printed in portrait mode. This requirement implies information
+about the page(s) used to lay out each grouping of text—the first four paragraphs could require one page, or
+ten.
+
+Therefore, rather than try to cache knowledge of the number of pages and their properties (which is likely to
+become invalid if the XML is manipulated by a producer that does not understand page layout), this information
+is stored by breaking the document into two sections, as follows:
+
+  <w:p>
+    …
+  </w:p>
+  <w:p>
+    …
+  </w:p>
+  <w:p>
+    …
+  </w:p>
+
+
+                                                                                      594
+  <w:p>
+    <w:sectPr>
+      …
+      (section one properties go here)
+      <w:pgSz ... w:orient="landscape" />
+      …
+    </w:sectPr>
+    …
+  </w:p>
+  …
+  <w:p>
+    <w:sectPr>
+      …
+      (section two properties go here)
+      <w:pgSz ... w:orient="landscape" />
+      …
+    </w:sectPr>
+    …
+  </w:p>
+
+end example]
+
+2.6.1     bidi (Right to Left Section Layout)
+
+This element specifies that this section shall be presented using a right-to-left page direction. This property only
+affects section-level properties, and does not affect the layout of text within the contents of this section.
+
+[Example: Consider a section with the bidi property set as follows:
+
+  <w:sectPr>
+    ...
+    <w:bidi/>
+  </w:sectPr>
+
+This section direction is now right-to-left, which means that all section level properties are displayed right-to-left
+(e.g., page numbers are displayed on the right of text; columns are populated from right-to-left). However, the
+layout of text is determined by properties applied at the text level. end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+val (On/Off Value)     Specifies a binary value for the property defined by the parent XML element.
+
+
+                                                                                      595
+     Attributes                                            Description
+
+                A value of on, 1, or true specifies that the property shall be explicitly applied. This is the
+                       default value for this attribute, and is implied when the parent element is present, but
+                         this attribute is omitted.
+
+                A value of off, 0, or false specifies that the property shall be explicitly turned off.
+
+                     [Example: For example, consider the following on/off property:
+
+                   <w:… w:val="off"/>
+
+                   The val attribute explicitly declares that the property is turned off. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OnOff">
+    <attribute name="val" type="ST_OnOff"/>
+</complexType>
+
+2.6.2    bottom (Bottom Border)
+
+This element specifies the presentation and display of the page border displayed at the bottom of each page in
+this section.
+
+[Example: Consider a section in which all pages shall have a bottom border consisting of a repeated image of an
+apple, like this:
+
+
+This border would result in the following WordprocessingML:
+
+
+                                                                                      596
+  <w:sectPr>
+    …
+    <w:pgBorders>
+      <w:bottom w:val="apples" .../>
+    </w:pgBorders>
+    …
+  </w:sectPr>
+
+Because the page only has a border at the bottom, only the bottom element is specified within the set of page
+borders. end example]
+
+When a document has a bottom border that is relative to the page edges (using the offsetFrom attribute on
+pgBorders), it shall span the bottom edge of the page at the location defined by its properties, stopping when:
+
+        It intersects with the corresponding left or right page border (if one is specified).
+        It reaches the edge of the page.
+
+[Example: In the example above, no left or right border was specified in the WordprocessingML, so a consumer
+shall draw the border from one edge of the page to the other. end example]
+
+When a document has a bottom border that is relative to the text (using the offsetFrom attribute on
+pgBorders), it shall span only the necessary width to satisfy the requirement of spanning the width of the text.
+
+
+                                          Parent Elements
+pgBorders (§2.6.10)
+
+
+     Attributes                                            Description
+color (Border Color)   Specifies the color for this border.
+
+                       This color may either be presented as a hex value (in RRGGBB format), or auto to allow a
+                   consumer to automatically determine the border color as appropriate.
+
+                     [Example: Consider a border color with value auto, as follows:
+
+                   <w:bottom … w:color="auto"/>
+
+                       This color therefore may be automatically be modified by a consumer as appropriate, for
+                    example, in order to ensure that the border can be distinguished against the page's
+                   background color. end example]
+
+                                  If the border style (the val attribute) specifies the use of an art border, this attribute is
+                      ignored. As well, if the border specifies the use of a theme color via the themeColor
+                        attribute, this value is superseded by the theme color value.
+
+                   The possible values for this attribute are defined by the ST_HexColor simple type
+
+
+                                                                                      597
+     Attributes                                            Description
+
+                       (§2.18.43).
+frame (Create         Specifies whether the specified border should be modified to create a frame effect by
+Frame Effect)         reversing the border's appearance from the edge nearest the text to the edge furthest
+                   from the text.
+
+                                  If this attribute is omitted, then the border is not given any frame effect.
+
+                     [Example: Consider a bottom border which shall appear with a frame effect, which is
+                       specified in the following WordprocessingML:
+
+                   <w:bottom w:frame="true" ... />
+
+                       This frame's val is true, indicating that the border frame effect shall be applied. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+shadow (Border       Specifies whether this border should be modified to create the appearance of a shadow.
+Shadow)
+                     For the right and bottom borders, this is accomplished by duplicating the border below
+                  and right of the normal border location. For the right and top borders, this is
+                    accomplished by moving the order down and to the right of its original location.
+
+                                  If this attribute is omitted, then the border is not given the shadow effect.
+
+                     [Example: Consider a top border which shall appear with a shadow effect, resulting in the
+                      following WordprocessingML:
+
+                   <w:bottom w:shadow="true" ... />
+
+                       This frame's val is true, indicating that the shadow effect shall be applied to the border.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+space (Border         Specifies the spacing offset that shall be used to place this border on the parent object.
+Spacing
+Measurement)     When a document has a page border that is relative to the page edges (using a value of
+                   page in the offsetFrom attribute on pgBorders (§2.6.10)), it shall specify the distance
+                  between the edge of the page and the beginning of this border in points.
+
+               When a document has a page border that is relative to the text extents (using a value of
+                   text in the offsetFrom attribute on pgBorders (§2.6.10)), or any other border type, it
+                         shall specify the distance between the edge of the object and the beginning of this
+                    border in points.
+
+                     [Example: Consider a document with a set of page borders all specified to appear 24
+
+
+                                                                                      598
+     Attributes                                            Description
+
+                      points from the edge of the page. The resulting WordprocessingML would be as follows:
+
+                   <w:pgBorders w:offsetFrom="page">
+                     <w:bottom … w:space="24/>
+                   </w:pgBorders
+
+                   The offsetFrom attribute specifies that the space value will provide the offset of the
+                   page border from the page edge, and the value of the space attribute specifies that the
+                   page offset shall be 24 points. end example]
+
+                   The possible values for this attribute are defined by the ST_PointMeasure simple type
+                       (§2.18.75).
+sz (Border Width)     Specifies the width of the current border.
+
+                                  If the border style (val attribute) specifies a line border, the width of this border is
+                       specified in measurements of eighths of a point, with a minimum value of two (one-
+                      fourth of a point) and a maximum value of 96 (twelve points). Any values outside this
+                    range may be reassigned to a more appropriate value.
+
+                                  If the border style (val attribute) specifies an art border, the width of this border is
+                       specified in measurements of points, with a minimum value of one and a maximum value
+                      of 31. Any values outside this range may be reassigned to a more appropriate value.
+
+                     [Example: Consider a document with a three point wide dashed line border on all sides,
+                        resulting in the following WordprocessingML markup:
+
+                   <w:top w:val="dashed" w:sz="24" …/>
+                   <w:left w:val="dashed" w:sz="24" …/>
+                   <w:bottom w:val="dashed" w:sz="24" …/>
+                   <w:right w:val="dashed" w:sz="24" …/>
+
+                   The border style is specified using the val attribute, and because that border style is a
+                         line border (dashed), the sz attribute specifies the size in eighths of a point (24 eighths of
+                   a point = 3 points). end example]
+
+                   The possible values for this attribute are defined by the ST_EighthPointMeasure simple
+                     type (§2.18.27).
+themeColor           Specifies a theme color to be applied to the current border.
+(Border Theme
+Color)              The specified theme color is a reference to one of the predefined theme colors, located
+                         in the document's Theme part,which allows color information to be set centrally in the
+                   document.
+
+                     [Example: Consider a set of borders configured to use the accent2 theme color, resulting
+                         in the following WordprocessingML markup:
+
+
+                                                                                      599
+     Attributes                                            Description
+
+                   <w:top … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:bottom … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:left … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:right … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+
+                   The borders have a color with an RGB value of FFA8A0, however, because the
+                   themeColor attribute is specified, that value is ignored in favor of the accent2 theme
+                       color specified for this document. end example]
+
+                   The possible values for this attribute are defined by the ST_ThemeColor simple type
+                       (§2.18.104).
+themeShade          Specifies the shade value applied to the supplied theme color (if any) for this border
+(Border Theme        instance.
+Color Shade)
+                                  If the themeShade is supplied, then it is applied to the RGB value of the theme color
+                     (from the theme part) to determine the final color applied to this border.
+
+                   The themeShade value is stored as a hex encoding of the shade value (from 0–255)
+                      applied to the current border.
+
+                     [Example: Consider a shade of 40% applied to a border in a document. This shade is
+                       calculated as follows:
+
+                                         𝑆𝑥𝑚𝑙= 0.4 ∗255
+                                = 102
+                                   = 66(𝑕𝑒𝑥)
+
+                   The resulting themeShade value in the file format would be 66. end example]
+
+                    Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                     as follows:
+                           Convert the color to the HSL color format (values from 0 to 1)
+                          Modify the luminance factor as follows:
+
+                                                                      L′ = L ∗Shadepercentage
+
+                           Convert the resultant HSL color to RGB
+
+                     [Example: Consider a document with a background using the accent2 theme color,
+                  whose RGB value (in RRGGBB hex format) is C0504D.
+
+
+                                                                                      600
+     Attributes                                            Description
+
+                   The equivalent HSL color value would be          , 0.48,0.53  .                                                                  360
+
+                     Applying the shade formula with a shade percentage of 75% to the luminance, we get:
+                                                                        𝐿′ = 0.53 ∗0.75
+                                = 0.39698
+
+                     Taking the resulting HSL color value of          , 0.48,0.39698 and converting back to RGB,                                                               360
+               we get 943634.
+
+                       This transformed value can be seen in the resulting background's color attribute:
+
+                   <w:top w:val="single" w:sz="4" w:space="24"
+                     w:color="943634" w:themeColor="accent2"
+                     w:themeShade="BF"/>
+
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                     type (§2.18.106).
+themeTint (Border    Specifies the tint value applied to the supplied theme color (if any) for this border
+Theme Color Tint)     instance.
+
+                                  If the themeTint is supplied, then it is applied to the RGB value of the theme color (from
+                     the theme part) to determine the final color applied to this border.
+
+                   The themeTint value is stored as a hex encoding of the tint value (from 0–255) applied to
+                     the current border.
+
+                     [Example: Consider a tint of 60% applied to a border in a document. This tint is calculated
+                     as follows:
+
+                                         𝑇𝑥𝑚𝑙= 0.6 ∗255
+                                = 153
+                                   = 99(𝑕𝑒𝑥)
+
+                   The resulting themeTint value in the file format would be 99. end example]
+
+                    Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                     as follows:
+                           Convert the color to the HSL color format (values from 0 to 1)
+                          Modify the luminance factor as follows:
+
+                                                                L′ = L ∗Tintpct + 1 − Tintpct
+
+                           Convert the resultant HSL color to RGB
+
+
+                                                                                      601
+     Attributes                                            Description
+
+
+                     [Example: Consider a document with a background using the accent2 theme color,
+                  whose RGB value (in RRGGBB hex format) is 4F81BD.
+
+                                                                  213
+                   The equivalent HSL color value would be          , 0.45,0.53  .                                                                  360
+
+                     Applying the tint formula with a tint percentage of 60% to the luminance, we get:
+                                                                   𝐿′ = 0.53 ∗0.6 + 1 −.6
+                              = 0.71
+
+                                                               213
+                     Taking the resulting HSL color value of          , 0.45,0.71 and converting back to RGB, we                                                               360
+                      get 95B3D7.
+
+                       This transformed value can be seen in the resulting background's color attribute:
+
+                   <w:top w:val="single" w:sz="4" w:space="24"
+                     w:color="95B3D7" w:themeColor="accent2"
+                     w:themeTint="99"/>
+
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                     type (§2.18.106).
+val (Border Style)      Specifies the style of border used on this object.
+
+                       This border can either be an art border (a repeated image along the borders - only valid
+                        for page borders) or a line border (a line format repeated along the borders) - see the
+                     simple type definition for a description of each border style.
+
+                     [Example: Consider a left border resulting in the following WordprocessingML:
+
+                   <w:left w:val="single" …/>
+
+                       This border's val is single, indicating that the border style is a single line. end example]
+
+                   The possible values for this attribute are defined by the ST_Border simple type (§2.18.4).
+
+
+                                                                                      602
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Border">
+    <attribute name="val" type="ST_Border" use="required"/>
+    <attribute name="color" type="ST_HexColor" use="optional"/>
+    <attribute name="themeColor" type="ST_ThemeColor" use="optional"/>
+    <attribute name="themeTint" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="themeShade" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="sz" type="ST_EighthPointMeasure" use="optional"/>
+    <attribute name="space" type="ST_PointMeasure" use="optional"/>
+    <attribute name="shadow" type="ST_OnOff" use="optional"/>
+    <attribute name="frame" type="ST_OnOff" use="optional"/>
+</complexType>
+
+2.6.3      col (Single Column Definition)
+
+This element specifies the properties for a single column of text within this section.
+
+[Example: Consider a single column with a width of two inches, which also has a one-inch space after the
+column, resulting in the following WordprocessingML:
+
+  <w:cols … >
+    <w:col w:w="2880" w:space="1440"/>
+    …
+  </w:cols>
+
+The resulting column specifies its width of 2,880 twentieths of a point and space following of 1,440 twentieths
+of a point. end example]
+
+The contents of the col element are only used to calculate the number and size of columns if the fixedWidth
+attribute is set to false or omitted.
+
+
+                                          Parent Elements
+cols (§2.6.4)
+
+
+     Attributes                                            Description
+space (Space Before   Specifies the spacing (in twentieths of a point) between the current column and the next
+Following Column)    column.
+
+                     [Example: Consider a text column that is to have a one-inch space after it. This text
+                  column spacing would therefore be 1x72=144 points wide, which translates to 1,440
+                     twentieths of a point. The resulting WordprocessingML specifies that spacing width in
+                     twentieths of a point:
+
+                   <w:col … w:space="1440"/>
+
+                   end example]
+
+
+                                                                                      603
+     Attributes                                            Description
+
+                     For the last text column in the section, no spacing is allowed after the column, and, if
+                      present, any space value is ignored.
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+w (Column Width)     Specifies the width (in twentieths of a point) of this text column.
+
+                     [Example: Consider a text column, which is to be two inches wide. This text column
+                  would therefore be 2x72=144 points wide, which translates to 2,880 twentieths of a
+                       point. The resulting WordprocessingML specifies that column width in twentieths of a
+                       point:
+
+                   <w:col … w:w="2880"/>
+
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Column">
+    <attribute name="w" type="ST_TwipsMeasure" use="optional"/>
+    <attribute name="space" type="ST_TwipsMeasure" use="optional"/>
+</complexType>
+
+2.6.4      cols (Column Definitions)
+
+This element specifies the set of columns defined for this section in the document.
+
+[Example: Consider a document in which a section defines two columns of 4.16" and 1.83", respectively,
+resulting in the following WordprocessingML:
+
+  <w:cols w:equalWidth="0">
+    <w:col w:w="2640" w:space="720"/>
+    <w:col w:w="6000"/>
+  </w:cols>
+
+The cols element defines the set of columns defined for this section, which because equalWidth is 0, are
+defined by the number of col elements contained in the column definition. In this case, the first column is 2,640
+twentieths of a point wide (as 2640/1440ths of an inch equals 1.83 inches) with one-half of an inch space after,
+and the second column is 6,000 twentieths of a point wide (4.16 inches). end example]
+
+Based on the presence of the equalWidth attribute, a consumer shall render the columns using:
+
+        If equalWidth is true, then the columns are defined using the data stored as attributes of the cols
+       element (defined below).
+
+
+                                                                                      604
+        If equalWidth is false, then the columns are defined using the presence and data on each child col
+       element (§2.6.3).
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+                                         Child Elements                                        Subclause
+col (Single Column Definition)                                                                      §2.6.3
+
+
+     Attributes                                            Description
+equalWidth (Equal    Specifies whether all text columns in the current section are of equal width.
+Column Widths)
+                                  If this attribute is present and its value is set to true, on, or 1, then all columns for this
+                       text section are of an equal width and are calculated as follows:
+                          Take width of page (from margin to margin)
+                           Divide by number of columns specified in num attribute
+                           For each column, leave space after as defined in the space attribute
+                          Remaining width of each column is the text column width.
+
+                                  If this attribute is present and its value is set to false, off, or 0, then all columns for this
+                       text section are of different widths and are defined by each col element as follows:
+                          Each col element defines a single column
+                          Each w attribute defines the text column width
+                          Each space attribute defines the space after the text column
+
+                     [Example: Consider a section with column information defined as follows:
+
+                   <w:cols w:num="3" w:space="1440"
+                     w:equalWidth="1">
+                     <w:col w:w="2880" w:space="2880" />
+                     <w:col w:w="2880" w:space="1440" />
+                     <w:col w:w="2880" />
+                   </w:cols>
+
+                       This set of columns has a equalWidth value set to 1, therefore the col elements are
+                      ignored, and there are three equally sized columns (num value of 3), each with one inch
+                     (space value of 1440 twentieths of a point) of space after. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+num (Number of      Specifies the number of text columns in the current section.
+Equal Width
+Columns)                    If all columns are not of equal width (the equalWidth attribute is not set), then this
+                   element is ignored, and the number of columns is defined by the number of col elements
+
+
+                                                                                      605
+     Attributes                                            Description
+                     defined under the cols element.
+
+                     [Example: Consider a section with column information defined as follows:
+
+                   <w:cols w:num="3" w:space="1440"
+                     w:equalWidth="1">
+                     …
+                   </w:cols>
+
+                       This set of columns has a equalWidth value set to 1, therefore there are three equally
+                       sized columns, as the num attribute has a value of 3. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+sep (Draw Line        Specifies if a vertical line is drawn between each of the text columns in this section.
+Between Columns)
+                                  If set to true, on, or 1, then a vertical line shall be drawn in the center of the spacing
+                  between each column in this section.
+
+                     [Example: Consider a section with column information defined as follows:
+
+                   <w:cols w:sep="1">
+                     …
+                   </w:cols>
+
+                       This set of columns has a sep value set to 1, therefore there shall be a vertical line
+                      separating each column in this section. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+space (Spacing        Specifies the spacing between text columns in the current section.
+Between Equal
+Width Columns)          If all columns are not of equal width (the equalWidth attribute is not set), then this
+                   element is ignored, and the spacing after columns is defined by the space attribute on
+                   each of the col elements defined under the cols element.
+
+                     [Example: Consider a section with column information defined as follows:
+
+                   <w:cols w:num="3" w:space="1440"
+                     w:equalWidth="1">
+                     …
+                   </w:cols>
+
+                       This set of columns has a equalWidth value set to 1, therefore there are three equally
+                       sized columns, each with one inch (space value of 1440 twentieths of a point) of space
+                         after. end example]
+
+
+                                                                                      606
+     Attributes                                            Description
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Columns">
+    <sequence minOccurs="0">
+       <element name="col" type="CT_Column" maxOccurs="45"/>
+    </sequence>
+    <attribute name="equalWidth" type="ST_OnOff" use="optional"/>
+    <attribute name="space" type="ST_TwipsMeasure" use="optional"/>
+    <attribute name="num" type="ST_DecimalNumber" use="optional"/>
+    <attribute name="sep" type="ST_OnOff" use="optional"/>
+</complexType>
+
+2.6.5     docGrid (Document Grid)
+
+This element specifies the settings for the document grid, which enables precise layout of full-width East Asian
+language characters within a document by specifying the desired number of characters per line and lines per
+page for all East Asian text content in this section.
+
+[Example: Consider a document with the document grid defined to allow 20 characters per line, and 20 lines per
+page by snapping characters to the grid (type attribute of snapToChars) as follows:
+
+
+As shown, this document allows for only 20 East Asian characters per line by adjusting the inter-character
+spacing to ensure that there are only 20 characters per line. end example]
+
+If Latin text is interspersed on this line, then it is placed across the number of grid units needed to fit the
+content, but all other grid positions are unaffected.
+
+
+                                                                                      607
+[Example: Consider the example above with the addition of the text "Latin text" in English, as follows:
+
+
+The Latin text spans two grid units, so it is placed in the center of those two units; no other grid positions are
+affected, so the text on the second line now spans two additional grid units. end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+charSpace             Specifies the number of characters to be allowed on the document grid for each line in
+(Document Grid        this section.
+Character Pitch)
+                       This attribute's value shall be specified by multiplying the difference between the desired
+                      character pitch and the character pitch for that character in the font size of the Normal
+                      font by 4096.
+
+                       This value shall then be used to add the character pitch for the specified point size to
+                   each character in the section [Note: This results in text in the Normal style having a
+                         specific number of characters per line. end note]
+
+                     [Example: Consider a section with a Normal font size of 11 points on which a 21 point
+                       pitch document grid has been defined.. The resulting WordprocessingML would be
+                     defined as follows:
+
+                   <w:docGrid w:charSize="40960" …/>
+
+                   The charSpace attribute specifies a value of 40960, which means that the delta between
+
+
+                                                                                      608
+     Attributes                                            Description
+
+                     the character pitch of each character in the grid and the Normal font is 10 points,
+                        resulting in a character pitch of 11+10 = 21 points for all characters in this section. end
+                    example]
+
+                        Individual runs of text can override the line pitch information specified for the document
+                        grid by specifying that the run text shall not snap to the document grid via the
+                   snapToGrid element (§2.3.2.32).
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+linePitch              Specifies the number of lines to be allowed on the document grid for the current page
+(Document Grid      assuming all lines have equal line pitch applied to them. This line pitch shall not be added
+Line Pitch)            to any line which appears within a table cell unless the adjustLineHeightInTable
+                   element (§2.15.3.1) is present in the document's compatibility settings.
+
+                       This attribute is specified in twentieths of a point, and defines the pitch for each line of
+                       text on this page such that the desired number of single spaced lines of text fits on the
+                      current page.
+
+                     [Example: Consider a standard 8.5x11" page on which a 20 character wide, 20 line
+                  document grid has been defined. The resulting WordprocessingML would be defined as
+                       follows:
+
+                   <w:docGrid w:linePitch="684" …/>
+
+                   The linePitch attribute specifies that 34.2 points is to the amount of pitch allowed for
+                   each line on this page in order to maintain the specific document grid. end example]
+
+                        Individual paragraphs can override the line pitch information specified for the document
+                        grid by either:
+                           Specifying an exact line spacing value using the lineRule attribute of value exact
+                        on the spacing element (§2.3.1.33).
+                           Specifying that the paragraph text shall not snap to the document grid via the
+                         snapToGrid element (§2.3.1.32).
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+type (Document       Specifies the type of the current document grid, which defines the grid behavior.
+Grid Type)
+                   The grid can define a grid which snaps all East Asian characters to grid positions, but
+                      leaves Latin text with its default spacing; a grid which adds the specified character pitch
+                      to each character on each row; or a grid which affects only the line pitch for the current
+                        section.
+
+                     [Example: Consider the document discussed above with the document grid defined to
+
+
+                                                                                      609
+     Attributes                                            Description
+
+                     allow 20 characters per line, and 20 lines per page by snapping characters to the grid as
+                       follows:
+
+
+                       This document has a type attribute of snapToChars, which specifies that the grid shall
+                      force East Asian characters to fit 20 to a line. end example]
+
+                   The possible values for this attribute are defined by the ST_DocGrid simple type
+                       (§2.18.18).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_DocGrid">
+    <attribute name="type" type="ST_DocGrid"/>
+    <attribute name="linePitch" type="ST_DecimalNumber"/>
+    <attribute name="charSpace" type="ST_DecimalNumber"/>
+</complexType>
+
+2.6.6     formProt (Only Allow Editing of Form Fields)
+
+This element specifies that the contents of the current section shall be protected such that they cannot be
+edited by a user (if the consumer is displaying the document and allowing the user to make modification) except
+for the text contained in any form field or embedded control that is part of the current section.
+
+[Example: Consider a section consisting of three paragraphs of text and a single text form field, located at the
+beginning of the second paragraph. If this section is protected in this manner, a user would only be permitted to
+edit the contents of the text form field, and all other contents would be locked to prevent user edits. end
+example]
+
+
+                                                                                      610
+The enforcement of this property is determined by the documentProtection element (§2.15.1.28), as it is
+possible to specify protection without turning it on.
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+val (On/Off Value)     Specifies a binary value for the property defined by the parent XML element.
+
+                A value of on, 1, or true specifies that the property shall be explicitly applied. This is the
+                       default value for this attribute, and is implied when the parent element is present, but
+                         this attribute is omitted.
+
+                A value of off, 0, or false specifies that the property shall be explicitly turned off.
+
+                     [Example: For example, consider the following on/off property:
+
+                   <w:… w:val="off"/>
+
+                   The val attribute explicitly declares that the property is turned off. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OnOff">
+    <attribute name="val" type="ST_OnOff"/>
+</complexType>
+
+2.6.7      left (Left Border)
+
+This element specifies the presentation and display of the page border displayed at the left of each page in this
+section.
+
+[Example: Consider a section in which all pages have a left border consisting of a repeated image of an umbrella,
+like this:
+
+
+                                                                                      611
+This border would result in the following WordprocessingML:
+
+  <w:sectPr>
+    …
+    <w:pgBorders>
+      <w:left w:val="seattle" …/>
+    </w:pgBorders>
+    …
+  </w:sectPr>
+
+Because the page only has a border at the left, only the left element is specified within the set of page borders.
+end example]
+
+When a document has a left border that is relative to the page edges (using the offsetFrom attribute value of
+page on pgBorders), it shall span the left edge of the page at the location defined by its properties, stopping
+when:
+
+        It intersects with the corresponding top or bottom page border (if one is specified).
+        It reaches the edge of the page.
+
+[Example: In the example above, no top or bottom border was specified in the WordprocessingML, so a
+consumer shall draw the border from one edge of the page to the other. end example]
+
+When a document has a left border that is relative to the text (using the offsetFrom attribute value of text on
+pgBorders), it shall span only the necessary width to satisfy the requirement of spanning the width of the text.
+
+
+                                          Parent Elements
+
+
+                                                                                      612
+                                          Parent Elements
+pgBorders (§2.6.10)
+
+
+     Attributes                                            Description
+color (Border Color)   Specifies the color for this border.
+
+                       This color may either be presented as a hex value (in RRGGBB format), or auto to allow a
+                   consumer to automatically determine the border color as appropriate.
+
+                     [Example: Consider a border color with value auto, as follows:
+
+                   <w:bottom … w:color="auto"/>
+
+                       This color therefore may be automatically be modified by a consumer as appropriate, for
+                    example, in order to ensure that the border can be distinguished against the page's
+                   background color. end example]
+
+                                  If the border style (the val attribute) specifies the use of an art border, this attribute is
+                      ignored. As well, if the border specifies the use of a theme color via the themeColor
+                        attribute, this value is superseded by the theme color value.
+
+                   The possible values for this attribute are defined by the ST_HexColor simple type
+                       (§2.18.43).
+frame (Create         Specifies whether the specified border should be modified to create a frame effect by
+Frame Effect)         reversing the border's appearance from the edge nearest the text to the edge furthest
+                   from the text.
+
+                                  If this attribute is omitted, then the border is not given any frame effect.
+
+                     [Example: Consider a bottom border which shall appear with a frame effect, which is
+                       specified in the following WordprocessingML:
+
+                   <w:bottom w:frame="true" ... />
+
+                       This frame's val is true, indicating that the border frame effect shall be applied. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+shadow (Border       Specifies whether this border should be modified to create the appearance of a shadow.
+Shadow)
+                     For the right and bottom borders, this is accomplished by duplicating the border below
+                  and right of the normal border location. For the right and top borders, this is
+                    accomplished by moving the order down and to the right of its original location.
+
+                                  If this attribute is omitted, then the border is not given the shadow effect.
+
+
+                                                                                      613
+     Attributes                                            Description
+
+
+                     [Example: Consider a top border which shall appear with a shadow effect, resulting in the
+                      following WordprocessingML:
+
+                   <w:bottom w:shadow="true" ... />
+
+                       This frame's val is true, indicating that the shadow effect shall be applied to the border.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+space (Border         Specifies the spacing offset that shall be used to place this border on the parent object.
+Spacing
+Measurement)     When a document has a page border that is relative to the page edges (using a value of
+                   page in the offsetFrom attribute on pgBorders (§2.6.10)), it shall specify the distance
+                  between the edge of the page and the beginning of this border in points.
+
+               When a document has a page border that is relative to the text extents (using a value of
+                   text in the offsetFrom attribute on pgBorders (§2.6.10)), or any other border type, it
+                         shall specify the distance between the edge of the object and the beginning of this
+                    border in points.
+
+                     [Example: Consider a document with a set of page borders all specified to appear 24
+                      points from the edge of the page. The resulting WordprocessingML would be as follows:
+
+                   <w:pgBorders w:offsetFrom="page">
+                     <w:bottom … w:space="24/>
+                   </w:pgBorders
+
+                   The offsetFrom attribute specifies that the space value will provide the offset of the
+                   page border from the page edge, and the value of the space attribute specifies that the
+                   page offset shall be 24 points. end example]
+
+                   The possible values for this attribute are defined by the ST_PointMeasure simple type
+                       (§2.18.75).
+sz (Border Width)     Specifies the width of the current border.
+
+                                  If the border style (val attribute) specifies a line border, the width of this border is
+                       specified in measurements of eighths of a point, with a minimum value of two (one-
+                      fourth of a point) and a maximum value of 96 (twelve points). Any values outside this
+                    range may be reassigned to a more appropriate value.
+
+                                  If the border style (val attribute) specifies an art border, the width of this border is
+                       specified in measurements of points, with a minimum value of one and a maximum value
+                      of 31. Any values outside this range may be reassigned to a more appropriate value.
+
+
+                                                                                      614
+     Attributes                                            Description
+
+                     [Example: Consider a document with a three point wide dashed line border on all sides,
+                        resulting in the following WordprocessingML markup:
+
+                   <w:top w:val="dashed" w:sz="24" …/>
+                   <w:left w:val="dashed" w:sz="24" …/>
+                   <w:bottom w:val="dashed" w:sz="24" …/>
+                   <w:right w:val="dashed" w:sz="24" …/>
+
+                   The border style is specified using the val attribute, and because that border style is a
+                         line border (dashed), the sz attribute specifies the size in eighths of a point (24 eighths of
+                   a point = 3 points). end example]
+
+                   The possible values for this attribute are defined by the ST_EighthPointMeasure simple
+                     type (§2.18.27).
+themeColor           Specifies a theme color to be applied to the current border.
+(Border Theme
+Color)              The specified theme color is a reference to one of the predefined theme colors, located
+                         in the document's Theme part,which allows color information to be set centrally in the
+                   document.
+
+                     [Example: Consider a set of borders configured to use the accent2 theme color, resulting
+                         in the following WordprocessingML markup:
+
+                   <w:top … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:bottom … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:left … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:right … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+
+                   The borders have a color with an RGB value of FFA8A0, however, because the
+                   themeColor attribute is specified, that value is ignored in favor of the accent2 theme
+                       color specified for this document. end example]
+
+                   The possible values for this attribute are defined by the ST_ThemeColor simple type
+                       (§2.18.104).
+themeShade          Specifies the shade value applied to the supplied theme color (if any) for this border
+(Border Theme        instance.
+Color Shade)
+                                  If the themeShade is supplied, then it is applied to the RGB value of the theme color
+                     (from the theme part) to determine the final color applied to this border.
+
+                   The themeShade value is stored as a hex encoding of the shade value (from 0–255)
+                      applied to the current border.
+
+
+                                                                                      615
+     Attributes                                            Description
+
+
+                     [Example: Consider a shade of 40% applied to a border in a document. This shade is
+                       calculated as follows:
+
+                                         𝑆𝑥𝑚𝑙= 0.4 ∗255
+                                = 102
+                                   = 66(𝑕𝑒𝑥)
+
+                   The resulting themeShade value in the file format would be 66. end example]
+
+                    Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                     as follows:
+                           Convert the color to the HSL color format (values from 0 to 1)
+                          Modify the luminance factor as follows:
+
+                                                                      L′ = L ∗Shadepercentage
+
+                           Convert the resultant HSL color to RGB
+
+                     [Example: Consider a document with a background using the accent2 theme color,
+                  whose RGB value (in RRGGBB hex format) is C0504D.
+
+                   The equivalent HSL color value would be          , 0.48,0.53  .                                                                  360
+
+                     Applying the shade formula with a shade percentage of 75% to the luminance, we get:
+                                                                        𝐿′ = 0.53 ∗0.75
+                                = 0.39698
+
+                     Taking the resulting HSL color value of          , 0.48,0.39698 and converting back to RGB,                                                               360
+               we get 943634.
+
+                       This transformed value can be seen in the resulting background's color attribute:
+
+                   <w:top w:val="single" w:sz="4" w:space="24"
+                     w:color="943634" w:themeColor="accent2"
+                     w:themeShade="BF"/>
+
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                     type (§2.18.106).
+themeTint (Border    Specifies the tint value applied to the supplied theme color (if any) for this border
+Theme Color Tint)     instance.
+
+                                  If the themeTint is supplied, then it is applied to the RGB value of the theme color (from
+
+
+                                                                                      616
+Attributes                                            Description
+
+                the theme part) to determine the final color applied to this border.
+
+              The themeTint value is stored as a hex encoding of the tint value (from 0–255) applied to
+                the current border.
+
+                [Example: Consider a tint of 60% applied to a border in a document. This tint is calculated
+                 as follows:
+
+                                     𝑇𝑥𝑚𝑙= 0.6 ∗255
+                             = 153
+                                = 99(𝑕𝑒𝑥)
+
+              The resulting themeTint value in the file format would be 99. end example]
+
+                Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                 as follows:
+                      Convert the color to the HSL color format (values from 0 to 1)
+                     Modify the luminance factor as follows:
+
+                                                          L′ = L ∗Tintpct + 1 − Tintpct
+
+                      Convert the resultant HSL color to RGB
+
+                [Example: Consider a document with a background using the accent2 theme color,
+              whose RGB value (in RRGGBB hex format) is 4F81BD.
+
+                                                             213
+              The equivalent HSL color value would be          , 0.45,0.53  .                                                             360
+
+                 Applying the tint formula with a tint percentage of 60% to the luminance, we get:
+                                                            𝐿′ = 0.53 ∗0.6 + 1 −.6
+                           = 0.71
+
+                                                          213
+                 Taking the resulting HSL color value of          , 0.45,0.71 and converting back to RGB, we                                                          360
+                 get 95B3D7.
+
+                  This transformed value can be seen in the resulting background's color attribute:
+
+                <w:top w:val="single" w:sz="4" w:space="24"
+                  w:color="95B3D7" w:themeColor="accent2"
+                  w:themeTint="99"/>
+
+               end example]
+
+              The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                type (§2.18.106).
+
+
+                                                                                  617
+     Attributes                                            Description
+val (Border Style)      Specifies the style of border used on this object.
+
+                       This border can either be an art border (a repeated image along the borders - only valid
+                        for page borders) or a line border (a line format repeated along the borders) - see the
+                     simple type definition for a description of each border style.
+
+                     [Example: Consider a left border resulting in the following WordprocessingML:
+
+                   <w:left w:val="single" …/>
+
+                       This border's val is single, indicating that the border style is a single line. end example]
+
+                   The possible values for this attribute are defined by the ST_Border simple type (§2.18.4).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Border">
+    <attribute name="val" type="ST_Border" use="required"/>
+    <attribute name="color" type="ST_HexColor" use="optional"/>
+    <attribute name="themeColor" type="ST_ThemeColor" use="optional"/>
+    <attribute name="themeTint" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="themeShade" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="sz" type="ST_EighthPointMeasure" use="optional"/>
+    <attribute name="space" type="ST_PointMeasure" use="optional"/>
+    <attribute name="shadow" type="ST_OnOff" use="optional"/>
+    <attribute name="frame" type="ST_OnOff" use="optional"/>
+</complexType>
+
+2.6.8    lnNumType (Line Numbering Settings)
+
+This element specifies the settings for line numbering to be displayed before each column of text in this section
+in the document.
+
+[Example: Consider the line numbering used on each page of this document, which specifies: line numbering for
+each line, restarting at one at the top of each new page. This line-numbering scheme would be defined using the
+following WordprocessingML:
+
+  <w:sectPr>
+    …
+    <w:lnNumType w:countBy="1" />
+  </w:sectPr>
+
+This content specifies that line numbers shall be included on each line, restart on each page (the default), be
+placed automatically based on the text (the default), and shall restart at one (the default). end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+                                                                                      618
+     Attributes                                            Description
+countBy (Line         Specifies the line number increments to be displayed in the current document.
+Number Increments
+to Display)           Although each line has an associated line number, only lines which are an even multiple
+                      of this value shall be displayed.
+
+                     [Example: Consider a document in which only every fifth line shall have a line number.
+                   The resulting WordprocessingML for this setting would be:
+
+                   <w:lnNumType … w:countBy="5"/>
+
+                       This setting ensures that only lines whose number is a multiple of (e.g. 5, 10, and 15) will
+                   have a line number displayed. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+distance (Distance    Specifies the distance between the text margin and the edge of any line numbers
+Between Text and    appearing in that section.
+Line Numbering)
+                     [Example: Consider a document in which the line numbering shall appear one-half inch
+                   from the text margin. The WordprocessingML for this setting is:
+
+                   <w:lnNumType … w:distance="720"/>
+
+                   The distance attribute specifies that there shall be a 720 twip spacing between the text
+                    margin and the line numbering. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+restart (Line           Specifies when the line numbering in this section shall be reset to the line number
+Numbering Restart    specified by the start attribute's value.
+Setting)
+                   The line numbering increments for each line (even if it is not displayed) until it reaches
+                     the restart point specified by this element.
+
+                     [Example: Consider the line numbering used on each page of this document, which
+                        specifies that line numbering shall restart at the top of each new page. This line
+                   numbering setting would be defined using the following WordprocessingML:
+
+                   <w:sectPr>
+                     …
+                     <w:lnNumType w:restart="newPage" ... />
+                   </w:sectPr>
+
+                   The value of newPage specifies that the line numbers shall restart at the top of each page
+
+
+                                                                                      619
+     Attributes                                            Description
+                      to the value specified by the start attribute. In this case, newPage is the default, so this
+                     value could have been omitted entirely. end example]
+
+                   The possible values for this attribute are defined by the ST_LineNumberRestart simple
+                     type (§2.18.54).
+start (Line             Specifies the starting value used for the first line whenever the line numbering is
+Numbering Starting   restarted by use of the restart attribute.
+Value)
+                     [Example: Consider a document in which line numbering shall appear on every fifth line,
+                    but the first line shall be treated as line number . This setting would require the following
+                   WordprocessingML syntax:
+
+                   <w:lnNumType w:start="3" w:countBy="5"/>
+
+                   The start attribute specifies that line numbers shall be counted starting from the
+                 number 3. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_LineNumber">
+    <attribute name="countBy" type="ST_DecimalNumber" use="optional"/>
+    <attribute name="start" type="ST_DecimalNumber" use="optional"/>
+    <attribute name="distance" type="ST_TwipsMeasure" use="optional"/>
+    <attribute name="restart" type="ST_LineNumberRestart" use="optional"/>
+</complexType>
+
+2.6.9     paperSrc (Paper Source Information)
+
+This element specifies printer-specific settings for the printer tray(s) that shall be used to print different pages in
+this section in the document.
+
+[Example: Consider a section which shall use the best possible tray when printing all pages in this section. This
+information is specified using the following WordprocessingML:
+
+  <w:paperSrc w:first="1" w:other="1" />
+
+The attributes on the paperSrc element specify the printer codes for the trays to be used when printing this
+section. end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+
+
+                                                                                      620
+     Attributes                                            Description
+first (First Page        Specifies a printer-specific code that uniquely identifies a specific printer tray to be used
+Printer Tray Code)     to print the first page of this section in the document.
+
+                A first value of 1 (the default) is specifically used to indicate that the printer shall
+                      automatically select the appropriate printer tray based on the printed page size.
+
+                     [Example: Consider a section which shall use the best possible tray when printing the first
+                   page in this section. This information is specified using the following WordprocessingML:
+
+                   <w:paperSrc w:first="1" w:other="1" />
+
+                   The first attribute on the paperSrc element specifies that the printer shall automatically
+                        select the appropriate printer tray based on the printed page size when printing the first
+                   page in this section. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+other (Non-First       Specifies a printer-specific code that uniquely identifies a specific printer tray to be used
+Page Printer Tray      to print the each subsequent (non-first) page of this section in the document.
+Code)
+                 An value of 1 (the default) is specifically used to indicate that the printer shall
+                      automatically select the appropriate printer tray based on the printed page size.
+
+                     [Example: Consider a section which shall use the best possible tray when printing the all
+                    pages in this section. This information is specified using the following WordprocessingML:
+
+                   <w:paperSrc w:first="1" w:other="1" />
+
+                   The other attribute on the paperSrc element specifies that the printer shall
+                      automatically select the appropriate printer tray based on the printed page size when
+                        printing all pages after the first in this section. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_PaperSource">
+    <attribute name="first" type="ST_DecimalNumber"/>
+    <attribute name="other" type="ST_DecimalNumber"/>
+</complexType>
+
+2.6.10    pgBorders (Page Borders)
+This element specifies the page borders for each page in this section. Each child element of the pgBorders
+element specifies a specific of border (left, right, bottom, or top).
+
+
+                                                                                      621
+[Example: Consider a page that specifies a dashed line border around each of the four sides of the page, as
+follows:
+
+
+This page border setting would be specified using the following WordprocessingML:
+
+  <w:pgBorders w:offsetFrom="page">
+    <w:top w:val="dashed" w:sz="4" w:space="24" w:color="auto" />
+    <w:left w:val="dashed" w:sz="4" w:space="24" w:color="auto" />
+    <w:bottom w:val="dashed" w:sz="4" w:space="24" w:color="auto" />
+    <w:right w:val="dashed" w:sz="4" w:space="24" w:color="auto" />
+  </w:pgBorders>
+
+The four page borders are each uniquely defined by the top, left, bottom, and right elements, respectively.
+Global settings that define the placement of all page borders are stored on the pgBorders element directly. end
+example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+                                         Child Elements                                        Subclause
+bottom (Bottom Border)                                                                           §2.6.2
+left (Left Border)                                                                                   §2.6.7
+right (Right Border)                                                                              §2.6.15
+top (Top Border)                                                                                §2.6.21
+
+
+                                                                                      622
+     Attributes                                            Description
+display (Pages to      Specifies the pages in this section on which the page border shall be printed.
+Display Page
+Borders)                     If this attribute is omitted, then the page borders shall be displayed on all pages in this
+                      section (equivalent to a value of allPages).
+
+                     [Example: Consider a section in a document for which the page border shall only be
+                      printed on the first page. This setting is specified using the following WordprocessingML:
+
+                   <w:pgBorders w:display="firstPage">
+                     …
+                   </w:pgBorders>
+
+                   The display attribute specifies that only the first page shall display the page border
+                     defined for this section. end example]
+
+                   The possible values for this attribute are defined by the ST_PageBorderDisplay simple
+                     type (§2.18.68).
+offsetFrom (Page     Specifies how the relative positioning of the page borders shall be calculated.
+Border Positioning)
+                                  If the value of this attribute is page, then the space attribute on each page border shall
+                  be interpreted as the distance from the edge of the page that shall be left before the
+                   page border.
+
+                                  If the value of this attribute is text, then the space attribute on each page border shall
+                  be interpreted as the distance from the text margins that shall be left before the page
+                      border.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pgBorders w:offsetFrom="page">
+                     <w:top w:val="dashed" w:space="24" />
+                     <w:left w:val="dashed" w:space="24" />
+                     <w:bottom w:val="dashed" w:space="24"/>
+                     <w:right w:val="dashed" w:space="24"/>
+                   </w:pgBorders>
+
+                       This fragment specifies that the page borders shall be indented 24 points from the page
+                       extents.
+
+                       This is distinct from the following fragment with identical space attribute values:
+
+                   <w:pgBorders w:offsetFrom="text">
+                     <w:top w:val="dashed" w:space="24" />
+                     <w:left w:val="dashed" w:space="24" />
+                     <w:bottom w:val="dashed" w:space="24"/>
+                     <w:right w:val="dashed" w:space="24"/>
+
+
+                                                                                      623
+     Attributes                                            Description
+
+                   </w:pgBorders>
+
+                        In this case, the page borders will be offset by 24 points, but in this case, that offset will
+                  be calculated relative to the text margins. end example]
+
+                   The possible values for this attribute are defined by the ST_PageBorderOffset simple
+                     type (§2.18.69).
+zOrder (Z-Ordering    Specifies whether the page border is positioned above or below intersecting texts and
+of Page Border)       objects in this document.
+
+                     [Example: Consider a document in which the page border shall be displayed below any
+                       intersecting text as follows:
+
+
+                       This setting is specified by setting the zOrder attribute to back, which specifies that the
+                   page border shall be display behind all intersecting text and objects. end example]
+
+                   The possible values for this attribute are defined by the ST_PageBorderZOrder simple
+                     type (§2.18.70).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_PageBorders">
+    <sequence>
+       <element name="top" type="CT_Border" minOccurs="0"/>
+       <element name="left" type="CT_Border" minOccurs="0"/>
+       <element name="bottom" type="CT_Border" minOccurs="0"/>
+       <element name="right" type="CT_Border" minOccurs="0"/>
+    </sequence>
+    <attribute name="zOrder" type="ST_PageBorderZOrder" use="optional"/>
+    <attribute name="display" type="ST_PageBorderDisplay" use="optional"/>
+    <attribute name="offsetFrom" type="ST_PageBorderOffset" use="optional"/>
+</complexType>
+
+2.6.11   pgMar (Page Margins)
+
+This element specifies the page margins for all pages in this section.
+
+[Example: Consider a page with a one-inch margin on all sides. Specifying these margins requires the following
+WordprocessingML:
+
+
+                                                                                      624
+  <w:sectPr>
+    <w:pgMar w:bottom="1440" w:top="1440" w:right="1440" w:left="1440"/>
+    …
+  </w:sectPr>
+
+This section specifies page margins of 1,440 twentieths of a point (one inch) on all sides. end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+bottom (Page         Specifies the distance (in twentieths of a point) between the bottom of the text margins
+Bottom Spacing)       for the main document and the bottom of the page for all pages in this section.
+
+                                  If the value of bottom is non-negative, then the text will be placed at the greater of:
+                          The value of bottom
+                          The extent of the footer text
+
+                     [Example: Consider a document where the footer shall start one inch of the bottom of
+                     the page extent, but the contents of the main document story specify that they shall start
+                      one-half of an inchh from the page extents. To specify these boundaries, the following
+                   page margins may specified in the WordprocessingML:
+
+                   <w:pgMar ... w:bottom="720"
+                     w:footer="1440"/>
+
+                       This fragment specifies that the footer shall start 1440 twentieths of a point from the
+                  bottom of the page, but the main document story shall start 720 twentieths of a point
+                   from the bottom of the page. Since the footer extent is guaranteed to be greater in this
+                       case, the bottom text extent ends at the top of the footer region. end example]
+
+                A negative value indicates that the contents of the main document shall be measured
+                   from the bottom of the page extent regardless of the footer for that document, and
+                      therefore shall overlap the footer text.
+
+                     [Example: Consider a document where the footer shall start one inch of the bottom of
+                     the page extent, but the contents of the main document story shall start one-half of an
+                      inch from the page extents. To specify these boundaries, the following page margins may
+                       specified in the WordprocessingML:
+
+                   <w:pgMar ... w:bottom="-720"
+                     w:footer="1440"/>
+
+                       This fragment specifies that the footer shall start 1440 twentieths of a point from the
+                  bottom of the page, and the main document story shall start 720 twentieths of a point
+
+
+                                                                                      625
+     Attributes                                            Description
+                   from the bottom of the page. Since the value of bottom is negative in this case, the
+                  bottom text extent starts one-half of an inch from the bottom of the page and overlaps
+                   any footer text. end example]
+
+                   The possible values for this attribute are defined by the ST_SignedTwipsMeasure simple
+                     type (§2.18.88).
+footer (Spacing to     Specifies the distance (in twentieths of a point) from the bottom edge of the page to the
+Bottom of Footer)    bottom edge of the footer.
+
+                     [Example: Consider a document where the footer shall start one inch above the bottom
+                      of the page extent.
+
+                  To specify this boundary, the following page margins must specified in the
+                    WordprocessingML:
+
+                   <w:pgMar … w:footer="1440"/>
+
+                       This fragment specifies that the footer shall start 1440 twentieths of a point from the
+                  bottom of the page. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+gutter (Page Gutter   Specifies the page gutter for each page in the current section.
+Spacing)
+                   The page gutter defines the amount of extra space added to the specified margin, above
+                   any existing margin values. [Note: This setting is typically used when a document is being
+                     created for binding, in order to ensure that the resulting margins are present after the
+                      binding gutter is consumed by the printed matter binding. end note]
+
+                     [Example: Consider a document where the margin shall start one inch of the left edge of
+                     the page extent after one-half of an inch is hidden by the page binding.
+
+                  To specify this condition, a user could simply use a left margin of 1.5 inches, which would
+                  be lost if the margins are later changed, or could specify a one-half inch gutters follows in
+                     the WordprocessingML:
+
+                   <w:pgMar … w:gutter="720"/>
+
+                       This fragment specifies that the gutter shall span 720 twentieths of a point, after which
+                   any margin value shall be added. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+header (Spacing to    Specifies the distance (in twentieths of a point) from the top edge of the page to the top
+Top of Header)       edge of the header.
+
+
+                                                                                      626
+     Attributes                                            Description
+
+
+                     [Example: Consider a document where the header shall start two inches below the top of
+                     the page extent. To specify this boundary, the following page margins must specified in
+                     the WordprocessingML:
+
+                   <w:pgMar … w:header="2880"/>
+
+                       This fragment specifies that the header shall start 2880 twentieths of a point from the
+                    top of the page. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+left (Left Margin       Specifies the distance (in twentieths of a point) between the left edge of the page and
+Spacing)             the left edge of the text extents for this document.
+
+                     [Example: Consider a document where the left text extent shall start two inches inside
+                     the page extent. To specify this boundary, the following page margins must specified in
+                     the WordprocessingML:
+
+                   <w:pgMar … w:left="2880"/>
+
+                       This fragment specifies that the left margin shall span 2880 twentieths of a point from
+                     the left edge of the page. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+right (Right Margin    Specifies the distance (in twentieths of a point) between the right edge of the page and
+Spacing)             the right edge of the text extents for this document.
+
+                     [Example: Consider a document where the right text extent shall start one inch inside the
+                     page.
+
+                  To specify this boundary, the following page margins must specified in the
+                    WordprocessingML:
+
+                   <w:pgMar … w:right="1440"/>
+
+                       This fragment specifies that the right margin shall span 1440 twentieths of a point from
+                     the right edge of the page. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+top (Top Margin       Specifies the distance (in twentieths of a point) between the top of the text margins for
+Spacing)             the main document and the top of the page for all pages in this section.
+
+
+                                                                                      627
+     Attributes                                            Description
+                                  If the value of top is non-negative, then the text will be placed at the greater of:
+                          The value of top
+                          The extent of the header text
+
+                     [Example: Consider a document where the header shall start one inch from the top of the
+                   page extent, but the contents of the main document story specify that they shall start
+                      one-half of an inch from the page extents. To specify these boundaries, the following
+                   page margins may specified in the WordprocessingML:
+
+                   <w:pgMar … w:top="720" w:header="1440"/>
+
+                       This fragment specifies that the header shall start 1440 twentieths of a point from the
+                    top of the page, but the main document story shall start 720 twentieths of a point from
+                     the top of the page. Since the header extent is guaranteed to be greater in this case, the
+                  main text extent ends at the bottom of the header region. end example]
+
+                A negative value indicates that the contents of the main document shall be measured
+                   from the top of the page extent regardless of the header for that document, and
+                      therefore shall overlap the header text.
+
+                     [Example: Consider a document where the header shall start one inch from the top of the
+                   page extent, but the contents of the main document story shall start one-half of an inch
+                   from the page extents. To specify these boundaries, the following page margins may
+                       specified in the WordprocessingML:
+
+                   <w:pgMar ... w:top="-720"
+                     w:header="1440"/>
+
+                       This fragment specifies that the header shall start 1440 twentieths of a point from the
+                    top of the page, and the main document story shall start 720 twentieths of a point from
+                     the top of the page. Since the value of top is negative in this case, the top text extent
+                         starts one-half of an inch from the top of the page and overlaps any header text. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_SignedTwipsMeasure simple
+                     type (§2.18.88).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_PageMar">
+    <attribute name="top" type="ST_SignedTwipsMeasure" use="required"/>
+    <attribute name="right" type="ST_TwipsMeasure" use="required"/>
+    <attribute name="bottom" type="ST_SignedTwipsMeasure" use="required"/>
+    <attribute name="left" type="ST_TwipsMeasure" use="required"/>
+    <attribute name="header" type="ST_TwipsMeasure" use="required"/>
+    <attribute name="footer" type="ST_TwipsMeasure" use="required"/>
+    <attribute name="gutter" type="ST_TwipsMeasure" use="required"/>
+</complexType>
+
+
+                                                                                      628
+2.6.12   pgNumType (Page Numbering Settings)
+
+This element specifies the page numbering settings for all page numbers that appear in the contents of the
+current section.
+
+[Example: Consider a section in which the page numbers shall start at page 25. The following WordprocessingML
+syntax specifies that requirement:
+
+  <w:sectPr>
+    …
+    <w:pgNumType w:start="25"/>
+  </w:sectPr>
+
+The pgNumType element specifies that numbering on this section shall start from page number 25. end
+example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+chapSep (Chapter     Specifies the separator character that shall appear between the chapter and page
+Separator           number, if a chapter style has been set for page numbers in this section.
+Character)
+                                  If the chapStyle attribute is not present, or its specified heading level does not have an
+                      associated numbering format, then this value is ignored, since no chapter number is
+                    output by the field.
+
+                     [Example: Consider a section in a document in which the chapter shall be separated from
+                     the page number using a colon character. This constraint would be specified using the
+                      following WordprocessingML:
+
+                   <w:pgNumType w:chapSep="colon" chapStyle="1" />
+
+                   The chapSep attribute declares that the chapter and page number shall be separated by
+                   a colon (e.g. 1:1 for chapter one, page one). end example]
+
+                   The possible values for this attribute are defined by the ST_ChapterSep simple type
+                        (§2.18.9).
+chapStyle (Chapter    Specifies the one-based index of the heading style applied to chapter titles in the
+Heading Style)       document which shall be used as chapter headings in all page numbers for this section,
+                   by locating the nearest heading of that style and extracting the numbering information.
+
+                                  If the specified heading style does not exist in the current section, or does not have a
+                   numbering format, then any previous level heading format shall be used as needed as the
+                       specified chapter number. If no heading has numbering information and/or is used in the
+
+
+                                                                                      629
+     Attributes                                            Description
+
+                        section, then the chapter and chapter separator shall be omitted from the page
+                   numbering data.
+
+                     [Example: Consider a page number in a section with page numbering properties that
+                       specify a chapStyle of 1 (Heading 1 style) and a chapSep of dash.
+
+                       This means that for each page number in this section, the numbering value of the nearest
+                    Heading 1 style is used for the chapter value, and is followed by a dash, then the page n
+                 umber in that section. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+fmt (Page Number     Specifies the number format that shall be used for all page numbering in this section.
+Format)
+                     [Example: A fmt value of lowerLetter indicates that a consumer shall use lowercase
+                         letters for each page in this section: a,b,c… end example]
+
+                   The possible values for this attribute are defined by the ST_NumberFormat simple type
+                       (§2.18.66).
+start (Starting Page    Specifies the page number that appears on the first page of the section.
+Number)
+                                  If this value is omitted, numbering will continue from the highest page number in the
+                     previous section.
+
+                     [Example: Consider the following WordprocessingML:
+
+                   <w:pgNumType w:fmt="2"/>
+
+                   Because the start value is omitted, the page numbers in this section begin at the value of
+                     the highest page in the previous section.
+
+                       This means that if the previous section ended in page 7, this section would start with
+                   page 8. end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_PageNumber">
+    <attribute name="fmt" type="ST_NumberFormat" use="optional"/>
+    <attribute name="start" type="ST_DecimalNumber" use="optional"/>
+    <attribute name="chapStyle" type="ST_DecimalNumber" use="optional"/>
+    <attribute name="chapSep" type="ST_ChapterSep" use="optional"/>
+</complexType>
+
+
+                                                                                      630
+2.6.13    pgSz (Page Size)
+
+This element specifies the properties (size and orientation) for all pages in the current section.\
+
+[Example: Consider a section that shall be printed on A4 paper. The WordprocessingML for this paper size is as
+follows:
+
+  <w:pgSz w:w="11907" w:h="16839" />
+
+This output states that all pages in this section shall be 11907 twentieths of a point wide (11907 twentieths of a
+point = 8.269") and 16839 twentieths of a point high (16939 twentieths of a point = 11.694"). end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+code (Printer Paper    Specifies a printer-specific paper code for the paper type, which shall be used by the
+Code)                 printer for pages in this section.
+
+                       This code is stored to ensure the proper paper type is chosen if the specified paper size
+                   matches the sizes of multiple paper types supported by the current printer.
+
+                     [Example: Consider the following WordprocessingML fragment:
+
+                   <w:pgSz … w:code="240" />
+
+                   The code attribute specifies a value of 240, which will be sent to the printer and used by
+                     the printer to determine the appropriate paper type to use when printing.
+
+                       This value is not interpreted or modified other than storing it as specified by the printer.
+                  end example]
+
+                   The possible values for this attribute are defined by the ST_DecimalNumber simple type
+                       (§2.18.16).
+h (Page Height)        Specifies the height (in twentieths of a point) for all pages in the current section.
+
+                     [Example: Consider the following WordprocessingML:
+
+                   <w:pgSz w:w="15840" w:h="12240" />
+
+                           All pages in this section are displayed on a page that is 12240 twentieths of a point (8.5")
+                               tall. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+
+
+                                                                                      631
+     Attributes                                            Description
+orient (Page           Specifies the orientation of all pages in this section.
+Orientation)
+                       This information is used to determine the actual paper size to use on the printer.
+
+                     [Example: Pages 11" wide by 8.5" long in landscape mode use 8.5"x11" paper, because
+                     the width and height are reversed for pages in this landscape section with respect to the
+                      printed page. end example]
+
+                       This implies that the actual paper size width and height are reversed for pages in this
+                        section. If this attribute is omitted, then portrait shall be implied.
+
+                     [Example: Consider the following WordprocessingML:
+
+                   <w:pgSz w:w="15840" w:h="12240" w:orient="landscape" />
+
+                    Although the page width is 11", and page height is 8.5", according to the w and
+                 h attributes, because the orient attribute is set to landscape, pages in this section are
+                      printed on 8.5x11" paper in landscape mode. end example]
+
+                   The possible values for this attribute are defined by the ST_PageOrientation simple type
+                       (§2.18.71).
+w (Page Width)       This attribute indicates the width (in twentieths of a point) for all pages in the current
+                        section.
+
+                     [Example: Consider the following WordprocessingML:
+
+                   <w:pgSz w:w="15840" w:h="12240" />
+
+                           All pages in this section are displayed on a page that is 15840 twentieths of a point (11")
+                     wide. end example]
+
+                   The possible values for this attribute are defined by the ST_TwipsMeasure simple type
+                       (§2.18.105).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_PageSz">
+    <attribute name="w" type="ST_TwipsMeasure" use="optional"/>
+    <attribute name="h" type="ST_TwipsMeasure" use="optional"/>
+    <attribute name="orient" type="ST_PageOrientation" use="optional"/>
+    <attribute name="code" type="ST_DecimalNumber"/>
+</complexType>
+
+2.6.14    printerSettings (Reference to Printer Settings Data)
+
+This element specifies an explicit relationship to a Printer Settings part containing information about the printer
+settings used for this section.
+
+
+                                                                                      632
+If this element is omitted, than no additional settings are associated with this section.
+
+[Example: Consider a producer which needed to store additional printer settings for each section. A document
+from such a producer would have the following section properties:
+
+  <w:sectPr>
+    ...
+    <w:printerSettings r:id="rId10" />
+  </w:sectPr>
+
+The resulting Main Document part would a relationship to the appropriate Printer Settings part with a
+relationship ID of rId10. end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+id (Relationship to     Specifies the relationship ID to a specified part.
+Part)
+                   The specified relationship shall match the type required by the parent element:
+Namespace:               http://schemas.openxmlformats.org/officeDocument/2006/relationships/fo
+.../officeDocument           oter for the footerReference element
+/2006/relationshi         http://schemas.openxmlformats.org/officeDocument/2006/relationships/he
+ps                        ader for the headerReference element
+                          http://schemas.openxmlformats.org/officeDocument/2006/relationships/fo
+                            nt for the embedBold, embedBoldItalic, embedItalic, or embedRegular
+                           elements
+                          http://schemas.openxmlformats.org/officeDocument/2006/relationships/pr
+                              interSettings for the printerSettings element
+
+                     [Example: Consider an XML element which has the following id attribute:
+
+                   <… r:id="rId10" />
+
+                   The markup specifies the associated relationship part with relationship ID rId1 contains
+                     the corresponding relationship information for the parent XML element. end example]
+
+                   The possible values for this attribute are defined by the ST_RelationshipId simple type
+                         (§7.8.2.1).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Rel">
+    <attribute ref="r:id" use="required"/>
+</complexType>
+
+
+                                                                                      633
+2.6.15    right (Right Border)
+
+This element specifies the presentation and display of the page border displayed at the right of each page in this
+section.
+
+[Example: Consider a section in which all pages shall have a right border consisting of a repeated image of an
+umbrella, like this:
+
+
+This border would result in the following WordprocessingML:
+
+  <w:sectPr>
+    …
+    <w:pgBorders>
+      <w:right w:val="seattle" …/>
+    </w:pgBorders>
+    …
+  </w:sectPr>
+
+Because the page has a border at the right only, only the right element is specified within the set of page
+borders. end example]
+
+When a document has a right border that is relative to the page edges (using the offsetFrom attribute value of
+page on pgBorders), it shall span the right edge of the page at the location defined by its properties, stopping
+when:
+
+        It intersects with the corresponding top or bottom page border (if one is specified)
+        It reaches the edge of the page.
+
+
+                                                                                      634
+[Example: In the example above, no top or bottom border was specified in the WordprocessingML, so a
+consumer shall draw the border from one edge of the page to the other. end example]
+
+When a document has a right border that is relative to the text (using the offsetFrom attribute value of text on
+pgBorders), it shall only span the necessary width to satisfy the requirement of spanning the width of the text.
+
+
+                                          Parent Elements
+pgBorders (§2.6.10)
+
+
+     Attributes                                            Description
+color (Border Color)   Specifies the color for this border.
+
+                       This color may either be presented as a hex value (in RRGGBB format), or auto to allow a
+                   consumer to automatically determine the border color as appropriate.
+
+                     [Example: Consider a border color with value auto, as follows:
+
+                   <w:bottom … w:color="auto"/>
+
+                       This color therefore may be automatically be modified by a consumer as appropriate, for
+                    example, in order to ensure that the border can be distinguished against the page's
+                   background color. end example]
+
+                                  If the border style (the val attribute) specifies the use of an art border, this attribute is
+                      ignored. As well, if the border specifies the use of a theme color via the themeColor
+                        attribute, this value is superseded by the theme color value.
+
+                   The possible values for this attribute are defined by the ST_HexColor simple type
+                       (§2.18.43).
+frame (Create         Specifies whether the specified border should be modified to create a frame effect by
+Frame Effect)         reversing the border's appearance from the edge nearest the text to the edge furthest
+                   from the text.
+
+                                  If this attribute is omitted, then the border is not given any frame effect.
+
+                     [Example: Consider a bottom border which shall appear with a frame effect, which is
+                       specified in the following WordprocessingML:
+
+                   <w:bottom w:frame="true" ... />
+
+                       This frame's val is true, indicating that the border frame effect shall be applied. end
+                    example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+shadow (Border       Specifies whether this border should be modified to create the appearance of a shadow.
+
+
+                                                                                      635
+     Attributes                                            Description
+
+Shadow)
+                     For the right and bottom borders, this is accomplished by duplicating the border below
+                  and right of the normal border location. For the right and top borders, this is
+                    accomplished by moving the order down and to the right of its original location.
+
+                                  If this attribute is omitted, then the border is not given the shadow effect.
+
+                     [Example: Consider a top border which shall appear with a shadow effect, resulting in the
+                      following WordprocessingML:
+
+                   <w:bottom w:shadow="true" ... />
+
+                       This frame's val is true, indicating that the shadow effect shall be applied to the border.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+space (Border         Specifies the spacing offset that shall be used to place this border on the parent object.
+Spacing
+Measurement)     When a document has a page border that is relative to the page edges (using a value of
+                   page in the offsetFrom attribute on pgBorders (§2.6.10)), it shall specify the distance
+                  between the edge of the page and the beginning of this border in points.
+
+               When a document has a page border that is relative to the text extents (using a value of
+                   text in the offsetFrom attribute on pgBorders (§2.6.10)), or any other border type, it
+                         shall specify the distance between the edge of the object and the beginning of this
+                    border in points.
+
+                     [Example: Consider a document with a set of page borders all specified to appear 24
+                      points from the edge of the page. The resulting WordprocessingML would be as follows:
+
+                   <w:pgBorders w:offsetFrom="page">
+                     <w:bottom … w:space="24/>
+                   </w:pgBorders
+
+                   The offsetFrom attribute specifies that the space value will provide the offset of the
+                   page border from the page edge, and the value of the space attribute specifies that the
+                   page offset shall be 24 points. end example]
+
+                   The possible values for this attribute are defined by the ST_PointMeasure simple type
+                       (§2.18.75).
+sz (Border Width)     Specifies the width of the current border.
+
+                                  If the border style (val attribute) specifies a line border, the width of this border is
+                       specified in measurements of eighths of a point, with a minimum value of two (one-
+                      fourth of a point) and a maximum value of 96 (twelve points). Any values outside this
+
+
+                                                                                      636
+     Attributes                                            Description
+
+                    range may be reassigned to a more appropriate value.
+
+                                  If the border style (val attribute) specifies an art border, the width of this border is
+                       specified in measurements of points, with a minimum value of one and a maximum value
+                      of 31. Any values outside this range may be reassigned to a more appropriate value.
+
+                     [Example: Consider a document with a three point wide dashed line border on all sides,
+                        resulting in the following WordprocessingML markup:
+
+                   <w:top w:val="dashed" w:sz="24" …/>
+                   <w:left w:val="dashed" w:sz="24" …/>
+                   <w:bottom w:val="dashed" w:sz="24" …/>
+                   <w:right w:val="dashed" w:sz="24" …/>
+
+                   The border style is specified using the val attribute, and because that border style is a
+                         line border (dashed), the sz attribute specifies the size in eighths of a point (24 eighths of
+                   a point = 3 points). end example]
+
+                   The possible values for this attribute are defined by the ST_EighthPointMeasure simple
+                     type (§2.18.27).
+themeColor           Specifies a theme color to be applied to the current border.
+(Border Theme
+Color)              The specified theme color is a reference to one of the predefined theme colors, located
+                         in the document's Theme part,which allows color information to be set centrally in the
+                   document.
+
+                     [Example: Consider a set of borders configured to use the accent2 theme color, resulting
+                         in the following WordprocessingML markup:
+
+                   <w:top … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:bottom … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:left … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:right … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+
+                   The borders have a color with an RGB value of FFA8A0, however, because the
+                   themeColor attribute is specified, that value is ignored in favor of the accent2 theme
+                       color specified for this document. end example]
+
+                   The possible values for this attribute are defined by the ST_ThemeColor simple type
+                       (§2.18.104).
+themeShade          Specifies the shade value applied to the supplied theme color (if any) for this border
+(Border Theme        instance.
+
+
+                                                                                      637
+     Attributes                                            Description
+
+Color Shade)
+                                  If the themeShade is supplied, then it is applied to the RGB value of the theme color
+                     (from the theme part) to determine the final color applied to this border.
+
+                   The themeShade value is stored as a hex encoding of the shade value (from 0–255)
+                      applied to the current border.
+
+                     [Example: Consider a shade of 40% applied to a border in a document. This shade is
+                       calculated as follows:
+
+                                         𝑆𝑥𝑚𝑙= 0.4 ∗255
+                                = 102
+                                   = 66(𝑕𝑒𝑥)
+
+                   The resulting themeShade value in the file format would be 66. end example]
+
+                    Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                     as follows:
+                           Convert the color to the HSL color format (values from 0 to 1)
+                          Modify the luminance factor as follows:
+
+                                                                      L′ = L ∗Shadepercentage
+
+                           Convert the resultant HSL color to RGB
+
+                     [Example: Consider a document with a background using the accent2 theme color,
+                  whose RGB value (in RRGGBB hex format) is C0504D.
+
+                   The equivalent HSL color value would be          , 0.48,0.53  .                                                                  360
+
+                     Applying the shade formula with a shade percentage of 75% to the luminance, we get:
+                                                                        𝐿′ = 0.53 ∗0.75
+                                = 0.39698
+
+                     Taking the resulting HSL color value of          , 0.48,0.39698 and converting back to RGB,                                                               360
+               we get 943634.
+
+                       This transformed value can be seen in the resulting background's color attribute:
+
+                   <w:top w:val="single" w:sz="4" w:space="24"
+                     w:color="943634" w:themeColor="accent2"
+                     w:themeShade="BF"/>
+
+                   end example]
+
+
+                                                                                      638
+     Attributes                                            Description
+                   The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                     type (§2.18.106).
+themeTint (Border    Specifies the tint value applied to the supplied theme color (if any) for this border
+Theme Color Tint)     instance.
+
+                                  If the themeTint is supplied, then it is applied to the RGB value of the theme color (from
+                     the theme part) to determine the final color applied to this border.
+
+                   The themeTint value is stored as a hex encoding of the tint value (from 0–255) applied to
+                     the current border.
+
+                     [Example: Consider a tint of 60% applied to a border in a document. This tint is calculated
+                     as follows:
+
+                                         𝑇𝑥𝑚𝑙= 0.6 ∗255
+                                = 153
+                                   = 99(𝑕𝑒𝑥)
+
+                   The resulting themeTint value in the file format would be 99. end example]
+
+                    Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                     as follows:
+                           Convert the color to the HSL color format (values from 0 to 1)
+                          Modify the luminance factor as follows:
+
+                                                                L′ = L ∗Tintpct + 1 − Tintpct
+
+                           Convert the resultant HSL color to RGB
+
+                     [Example: Consider a document with a background using the accent2 theme color,
+                  whose RGB value (in RRGGBB hex format) is 4F81BD.
+
+                                                                  213
+                   The equivalent HSL color value would be          , 0.45,0.53  .                                                                  360
+
+                     Applying the tint formula with a tint percentage of 60% to the luminance, we get:
+                                                                   𝐿′ = 0.53 ∗0.6 + 1 −.6
+                              = 0.71
+
+                                                               213
+                     Taking the resulting HSL color value of          , 0.45,0.71 and converting back to RGB, we                                                               360
+                      get 95B3D7.
+
+                       This transformed value can be seen in the resulting background's color attribute:
+
+                   <w:top w:val="single" w:sz="4" w:space="24"
+                     w:color="95B3D7" w:themeColor="accent2"
+
+
+                                                                                      639
+     Attributes                                            Description
+
+                     w:themeTint="99"/>
+
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                     type (§2.18.106).
+val (Border Style)      Specifies the style of border used on this object.
+
+                       This border can either be an art border (a repeated image along the borders - only valid
+                        for page borders) or a line border (a line format repeated along the borders) - see the
+                     simple type definition for a description of each border style.
+
+                     [Example: Consider a left border resulting in the following WordprocessingML:
+
+                   <w:left w:val="single" …/>
+
+                       This border's val is single, indicating that the border style is a single line. end example]
+
+                   The possible values for this attribute are defined by the ST_Border simple type (§2.18.4).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Border">
+    <attribute name="val" type="ST_Border" use="required"/>
+    <attribute name="color" type="ST_HexColor" use="optional"/>
+    <attribute name="themeColor" type="ST_ThemeColor" use="optional"/>
+    <attribute name="themeTint" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="themeShade" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="sz" type="ST_EighthPointMeasure" use="optional"/>
+    <attribute name="space" type="ST_PointMeasure" use="optional"/>
+    <attribute name="shadow" type="ST_OnOff" use="optional"/>
+    <attribute name="frame" type="ST_OnOff" use="optional"/>
+</complexType>
+
+2.6.16    rtlGutter (Gutter on Right Side of Page)
+
+This element specifies that the page gutter shall be placed on the right side of the page for this section only. The
+page gutter defines the amount of extra space added to the specified margin, above any existing margin values.
+[Note: This setting is typically used when a document is being created for binding, in order to ensure that the
+resulting margins are present after the binding gutter is consumed by the printed matter binding. end note]
+
+If the gutter is set to the side of the page by the omission of the gutterAtTop element (§2.15.1.49), then each
+section's gutter is placed at the left by default, unless that default is overridden by the rtlGutter element.
+
+ [Example: Consider a document with three sections, with gutter properties defined as follows:
+
+
+                                                                                      640
+  <w:p>
+    <w:pPr>
+      <w:sectPr>
+        <w:pgMar w:gutter="1440" …/>
+        …
+      </w:sectPr>
+    </w:pPr>
+  </w:p>
+  ...
+  <w:p>
+    <w:pPr>
+      <w:sectPr>
+        <w:pgMar w:gutter="1440" …/>
+        <w:rtlGutter w:val="0" />
+        …
+      </w:sectPr>
+    </w:pPr>
+  </w:p>
+  ...
+  <w:p>
+    <w:pPr>
+      <w:sectPr>
+        <w:pgMar w:gutter="1440" …/>
+        <w:rtlGutter />
+        …
+      </w:sectPr>
+    </w:pPr>
+  </w:p>
+
+The first and second sections both place the gutter on the left side, the first by omission of the rtlGutter
+attribute, and the second by explicitly turning it off. The third section, however, moves the gutter to the right
+side via the use of the rtlGutter attribute. end example]
+
+If the gutterAtTop element (§2.15.1.49) is specified and true, then each section's gutter is at the top and this
+setting is ignored.
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+val (On/Off Value)     Specifies a binary value for the property defined by the parent XML element.
+
+
+                                                                                      641
+     Attributes                                            Description
+
+                A value of on, 1, or true specifies that the property shall be explicitly applied. This is the
+                       default value for this attribute, and is implied when the parent element is present, but
+                         this attribute is omitted.
+
+                A value of off, 0, or false specifies that the property shall be explicitly turned off.
+
+                     [Example: For example, consider the following on/off property:
+
+                   <w:… w:val="off"/>
+
+                   The val attribute explicitly declares that the property is turned off. end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_OnOff">
+    <attribute name="val" type="ST_OnOff"/>
+</complexType>
+
+2.6.17    sectPr (Previous Section Properties)
+When specified as a child element of sectPrChange, the sectPr element specifies a set of section properties that
+were modified when the document was set to track all revisions.
+
+[Example: If the page orientation was changed with revision tracking enabled, the following WordprocessingML
+defines the contents of that change:
+
+  <w:sectPr>
+    …
+    <w:sectPrChange …>
+      <w:sectPr>
+        <w:pgSz w:w="15840" w:h="12240"/>
+      </w:sectPr>
+    </w:sectPrChange>
+  </w:sectPr>
+
+The properties that were changed as part of this revision are stored in this sectPr element. end example]
+
+
+                                          Parent Elements
+sectPrChange (§2.13.5.34)
+
+
+                                         Child Elements                                        Subclause
+bidi (Right to Left Section Layout)                                                                   §2.6.1
+
+
+                                                                                      642
+                                         Child Elements                                        Subclause
+cols (Column Definitions)                                                                           §2.6.4
+docGrid (Document Grid)                                                                          §2.6.5
+endnotePr (Section-Wide Endnote Properties)                                                     §2.11.5
+footnotePr (Section-Wide Footnote Properties)                                                   §2.11.12
+formProt (Only Allow Editing of Form Fields)                                                        §2.6.6
+lnNumType (Line Numbering Settings)                                                             §2.6.8
+noEndnote (Suppress Endnotes In Document)                                                    §2.11.16
+paperSrc (Paper Source Information)                                                               §2.6.9
+pgBorders (Page Borders)                                                                       §2.6.10
+pgMar (Page Margins)                                                                           §2.6.11
+pgNumType (Page Numbering Settings)                                                          §2.6.12
+pgSz (Page Size)                                                                                 §2.6.13
+printerSettings (Reference to Printer Settings Data)                                               §2.6.14
+rtlGutter (Gutter on Right Side of Page)                                                           §2.6.16
+textDirection (Text Flow Direction)                                                               §2.6.20
+titlePg (Different First Page Headers and Footers)                                                  §2.10.6
+type (Section Type)                                                                              §2.6.22
+vAlign (Vertical Text Alignment on Page)                                                          §2.6.23
+
+
+     Attributes                                            Description
+rsidDel (Section       Specifies a unique identifier used to track the editing session when the section mark for
+Deletion Revision      this section was deleted from the document.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidR (Section         Specifies a unique identifier used to track the editing session when the section mark for
+Addition Revision      this section was added to the document.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+
+                                                                                      643
+     Attributes                                            Description
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidRPr (Physical      Specifies a unique identifier used to track the editing session when the physical character
+Section Mark         representing this section mark was last formatted.
+Character Revision
+ID)                        All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidSect (Section      Specifies a unique identifier used to track the editing session when the physical character
+Properties Revision    representing this section mark was last formatted.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SectPrBase">
+    <sequence>
+       <group ref="EG_SectPrContents" minOccurs="0"/>
+    </sequence>
+    <attributeGroup ref="AG_SectPrAttributes"/>
+</complexType>
+
+2.6.18    sectPr (Document Final Section Properties)
+
+This element defines the section properties for the final section of the document. [Note: For any other section
+the properties are stored as a child element of the paragraph element corresponding to the last paragraph in
+the given section. end note]
+
+
+                                                                                      644
+[Example: Consider a document with multiple sections. For all sections except the final section, the sectPr
+element is stored as a child element of the last paragraph in the section. For the final section, this information is
+stored as the last child element of the body element, as follows:
+
+  <w:body>
+    <w:p>
+    …
+    </w:p>
+    …
+    <w:sectPr>
+      (final section's properties)
+    </w:sectPr>
+  </w:body>
+
+end example]
+
+
+                                          Parent Elements
+body (§2.2.2); docPartBody (§2.12.6)
+
+
+                                         Child Elements                                        Subclause
+bidi (Right to Left Section Layout)                                                                  §2.6.1
+cols (Column Definitions)                                                                          §2.6.4
+docGrid (Document Grid)                                                                          §2.6.5
+endnotePr (Section-Wide Endnote Properties)                                                    §2.11.5
+footerReference (Footer Reference)                                                              §2.10.2
+footnotePr (Section-Wide Footnote Properties)                                                  §2.11.12
+formProt (Only Allow Editing of Form Fields)                                                        §2.6.6
+headerReference (Header Reference)                                                            §2.10.5
+lnNumType (Line Numbering Settings)                                                             §2.6.8
+noEndnote (Suppress Endnotes In Document)                                                    §2.11.16
+paperSrc (Paper Source Information)                                                               §2.6.9
+pgBorders (Page Borders)                                                                       §2.6.10
+pgMar (Page Margins)                                                                           §2.6.11
+pgNumType (Page Numbering Settings)                                                          §2.6.12
+pgSz (Page Size)                                                                                §2.6.13
+printerSettings (Reference to Printer Settings Data)                                               §2.6.14
+rtlGutter (Gutter on Right Side of Page)                                                           §2.6.16
+sectPrChange (Revision Information for Section Properties)                                        §2.13.5.34
+
+
+                                                                                      645
+                                         Child Elements                                        Subclause
+textDirection (Text Flow Direction)                                                               §2.6.20
+titlePg (Different First Page Headers and Footers)                                                 §2.10.6
+type (Section Type)                                                                             §2.6.22
+vAlign (Vertical Text Alignment on Page)                                                          §2.6.23
+
+
+     Attributes                                            Description
+rsidDel (Section       Specifies a unique identifier used to track the editing session when the section mark for
+Deletion Revision      this section was deleted from the document.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidR (Section         Specifies a unique identifier used to track the editing session when the section mark for
+Addition Revision      this section was added to the document.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidRPr (Physical      Specifies a unique identifier used to track the editing session when the physical character
+Section Mark         representing this section mark was last formatted.
+Character Revision
+ID)                        All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+
+
+                                                                                      646
+     Attributes                                            Description
+rsidSect (Section      Specifies a unique identifier used to track the editing session when the physical character
+Properties Revision    representing this section mark was last formatted.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SectPr">
+    <sequence>
+       <group ref="EG_HdrFtrReferences" minOccurs="0" maxOccurs="6"/>
+       <group ref="EG_SectPrContents" minOccurs="0"/>
+       <element name="sectPrChange" type="CT_SectPrChange" minOccurs="0"/>
+    </sequence>
+    <attributeGroup ref="AG_SectPrAttributes"/>
+</complexType>
+
+2.6.19    sectPr (Section Properties)
+
+This element defines the section properties for the a section of the document. [Note: For the last section in the
+document, the section properties are stored as a child element of the body element. end note]
+
+[Example: Consider a document with multiple sections. For all sections except the final section, the sectPr
+element is stored as a child element of the last paragraph in the section, as follows:
+
+  <w:body>
+    <w:p>
+      <w:pPr>
+        <w:sectPr>
+          (final section's properties)
+        </w:sectPr>
+      </w:pPr>
+    …
+    </w:p>
+    …
+    <w:sectPr>
+      (final section's properties)
+    </w:sectPr>
+  </w:body>
+
+
+                                                                                      647
+end example]
+
+
+                                          Parent Elements
+pPr (§2.7.4.2); pPr (§2.9.24); pPr (§2.7.5.1); pPr (§2.3.1.26); pPr (§2.7.7.2)
+
+
+                                         Child Elements                                        Subclause
+bidi (Right to Left Section Layout)                                                                  §2.6.1
+cols (Column Definitions)                                                                          §2.6.4
+docGrid (Document Grid)                                                                          §2.6.5
+endnotePr (Section-Wide Endnote Properties)                                                    §2.11.5
+footerReference (Footer Reference)                                                              §2.10.2
+footnotePr (Section-Wide Footnote Properties)                                                  §2.11.12
+formProt (Only Allow Editing of Form Fields)                                                        §2.6.6
+headerReference (Header Reference)                                                            §2.10.5
+lnNumType (Line Numbering Settings)                                                             §2.6.8
+noEndnote (Suppress Endnotes In Document)                                                    §2.11.16
+paperSrc (Paper Source Information)                                                               §2.6.9
+pgBorders (Page Borders)                                                                       §2.6.10
+pgMar (Page Margins)                                                                           §2.6.11
+pgNumType (Page Numbering Settings)                                                          §2.6.12
+pgSz (Page Size)                                                                                §2.6.13
+printerSettings (Reference to Printer Settings Data)                                               §2.6.14
+rtlGutter (Gutter on Right Side of Page)                                                           §2.6.16
+sectPrChange (Revision Information for Section Properties)                                        §2.13.5.34
+textDirection (Text Flow Direction)                                                               §2.6.20
+titlePg (Different First Page Headers and Footers)                                                 §2.10.6
+type (Section Type)                                                                             §2.6.22
+vAlign (Vertical Text Alignment on Page)                                                          §2.6.23
+
+
+     Attributes                                            Description
+rsidDel (Section       Specifies a unique identifier used to track the editing session when the section mark for
+Deletion Revision      this section was deleted from the document.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+
+                                                                                      648
+     Attributes                                            Description
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidR (Section         Specifies a unique identifier used to track the editing session when the section mark for
+Addition Revision      this section was added to the document.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidRPr (Physical      Specifies a unique identifier used to track the editing session when the physical character
+Section Mark         representing this section mark was last formatted.
+Character Revision
+ID)                        All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+rsidSect (Section      Specifies a unique identifier used to track the editing session when the physical character
+Properties Revision    representing this section mark was last formatted.
+ID)
+                           All rsid* attributes throughout this document of an equal value, if present, shall indicate
+                      that those regions were modified during the same editing session.
+
+                A producer may choose to increment the revision save ID value to indicate subsequent
+                       editing sessions (editing between save actions) to indicate the order of the saves
+                    performed.
+
+                   The possible values for this attribute are defined by the ST_LongHexNumber simple type
+                       (§2.18.57).
+
+
+                                                                                      649
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SectPr">
+    <sequence>
+       <group ref="EG_HdrFtrReferences" minOccurs="0" maxOccurs="6"/>
+       <group ref="EG_SectPrContents" minOccurs="0"/>
+       <element name="sectPrChange" type="CT_SectPrChange" minOccurs="0"/>
+    </sequence>
+    <attributeGroup ref="AG_SectPrAttributes"/>
+</complexType>
+
+2.6.20    textDirection (Text Flow Direction)
+
+This element specifies the direction of the text flow for this section.
+
+[Example: Consider a document with a section in which text shall flow bottom to top vertically, and left to right
+horizontally. This setting requires the following WordprocessingML:
+
+  <w:sectPr>
+    …
+    <w:textDirection w:val="btLr" />
+  </w:sectPr>
+
+The textDirection element specifies via the btLr value in the val attribute that the text flow shall go bottom to
+top, and left to right. end example]
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+val (Direction of       Specifies the direction of the text flow for this object.
+Text Flow)
+                     [Example: Consider a document with a section in which text shall flow bottom to top
+                          vertically, and left to right horizontally. This setting requires the following
+                    WordprocessingML:
+
+                   <w:sectPr>
+                     …
+                     <w:textDirection w:val="btLr" />
+                   </w:sectPr>
+
+                   The textDirection element specifies via the btLr value in the val attribute that the text
+                     flow shall go bottom to top, and left to right. end example]
+
+                   The possible values for this attribute are defined by the ST_TextDirection simple type
+                       (§2.18.100).
+
+
+                                                                                      650
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_TextDirection">
+    <attribute name="val" type="ST_TextDirection" use="required"/>
+</complexType>
+
+2.6.21    top (Top Border)
+
+This element specifies the presentation and display of the page border displayed at the top of each page in this
+section.
+
+[Example: Consider a section in which all pages shall have a top border consisting of a repeated image of
+balloons, like this:
+
+
+This border would result in the following WordprocessingML:
+
+  <w:sectPr>
+    …
+    <w:pgBorders>
+      <w:top w:val="balloons" .../>
+    </w:pgBorders>
+    …
+  </w:sectPr>
+
+Because the page only has a border at the top, only the top element is specified within the set of page borders.
+end example]
+
+When a document has a top border that is relative to the page edges (using an offsetFrom attribute value of
+page on pgBorders), it shall span the top edge of the page at the location defined by its properties, stopping
+when:
+
+
+                                                                                      651
+        It intersects with the corresponding left or right page border (if one is specified)
+        It reaches the edge of the page.
+
+[Example: In the example above, no left or right border was specified in the WordprocessingML, so a consumer
+shall draw the border from one edge of the page to the other. end example]
+
+When a document has a top border that is relative to the text (using the offsetFrom attribute value of text on
+pgBorders), it shall only span the necessary width to satisfy the requirement of spanning the width of the text.
+
+
+                                          Parent Elements
+pgBorders (§2.6.10)
+
+
+     Attributes                                            Description
+color (Border Color)   Specifies the color for this border.
+
+                       This color may either be presented as a hex value (in RRGGBB format), or auto to allow a
+                   consumer to automatically determine the border color as appropriate.
+
+                     [Example: Consider a border color with value auto, as follows:
+
+                   <w:bottom … w:color="auto"/>
+
+                       This color therefore may be automatically be modified by a consumer as appropriate, for
+                    example, in order to ensure that the border can be distinguished against the page's
+                   background color. end example]
+
+                                  If the border style (the val attribute) specifies the use of an art border, this attribute is
+                      ignored. As well, if the border specifies the use of a theme color via the themeColor
+                        attribute, this value is superseded by the theme color value.
+
+                   The possible values for this attribute are defined by the ST_HexColor simple type
+                       (§2.18.43).
+frame (Create         Specifies whether the specified border should be modified to create a frame effect by
+Frame Effect)         reversing the border's appearance from the edge nearest the text to the edge furthest
+                   from the text.
+
+                                  If this attribute is omitted, then the border is not given any frame effect.
+
+                     [Example: Consider a bottom border which shall appear with a frame effect, which is
+                       specified in the following WordprocessingML:
+
+                   <w:bottom w:frame="true" ... />
+
+                       This frame's val is true, indicating that the border frame effect shall be applied. end
+                    example]
+
+
+                                                                                      652
+     Attributes                                            Description
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+shadow (Border       Specifies whether this border should be modified to create the appearance of a shadow.
+Shadow)
+                     For the right and bottom borders, this is accomplished by duplicating the border below
+                  and right of the normal border location. For the right and top borders, this is
+                    accomplished by moving the order down and to the right of its original location.
+
+                                  If this attribute is omitted, then the border is not given the shadow effect.
+
+                     [Example: Consider a top border which shall appear with a shadow effect, resulting in the
+                      following WordprocessingML:
+
+                   <w:bottom w:shadow="true" ... />
+
+                       This frame's val is true, indicating that the shadow effect shall be applied to the border.
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_OnOff simple type (§2.18.67).
+space (Border         Specifies the spacing offset that shall be used to place this border on the parent object.
+Spacing
+Measurement)     When a document has a page border that is relative to the page edges (using a value of
+                   page in the offsetFrom attribute on pgBorders (§2.6.10)), it shall specify the distance
+                  between the edge of the page and the beginning of this border in points.
+
+               When a document has a page border that is relative to the text extents (using a value of
+                   text in the offsetFrom attribute on pgBorders (§2.6.10)), or any other border type, it
+                         shall specify the distance between the edge of the object and the beginning of this
+                    border in points.
+
+                     [Example: Consider a document with a set of page borders all specified to appear 24
+                      points from the edge of the page. The resulting WordprocessingML would be as follows:
+
+                   <w:pgBorders w:offsetFrom="page">
+                     <w:bottom … w:space="24/>
+                   </w:pgBorders
+
+                   The offsetFrom attribute specifies that the space value will provide the offset of the
+                   page border from the page edge, and the value of the space attribute specifies that the
+                   page offset shall be 24 points. end example]
+
+                   The possible values for this attribute are defined by the ST_PointMeasure simple type
+                       (§2.18.75).
+sz (Border Width)     Specifies the width of the current border.
+
+
+                                                                                      653
+     Attributes                                            Description
+                                  If the border style (val attribute) specifies a line border, the width of this border is
+                       specified in measurements of eighths of a point, with a minimum value of two (one-
+                      fourth of a point) and a maximum value of 96 (twelve points). Any values outside this
+                    range may be reassigned to a more appropriate value.
+
+                                  If the border style (val attribute) specifies an art border, the width of this border is
+                       specified in measurements of points, with a minimum value of one and a maximum value
+                      of 31. Any values outside this range may be reassigned to a more appropriate value.
+
+                     [Example: Consider a document with a three point wide dashed line border on all sides,
+                        resulting in the following WordprocessingML markup:
+
+                   <w:top w:val="dashed" w:sz="24" …/>
+                   <w:left w:val="dashed" w:sz="24" …/>
+                   <w:bottom w:val="dashed" w:sz="24" …/>
+                   <w:right w:val="dashed" w:sz="24" …/>
+
+                   The border style is specified using the val attribute, and because that border style is a
+                         line border (dashed), the sz attribute specifies the size in eighths of a point (24 eighths of
+                   a point = 3 points). end example]
+
+                   The possible values for this attribute are defined by the ST_EighthPointMeasure simple
+                     type (§2.18.27).
+themeColor           Specifies a theme color to be applied to the current border.
+(Border Theme
+Color)              The specified theme color is a reference to one of the predefined theme colors, located
+                         in the document's Theme part,which allows color information to be set centrally in the
+                   document.
+
+                     [Example: Consider a set of borders configured to use the accent2 theme color, resulting
+                         in the following WordprocessingML markup:
+
+                   <w:top … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:bottom … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:left … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+                   <w:right … w:color="FFA8A0" w:themeColor="accent2"
+                   w:themeTint="99" />
+
+                   The borders have a color with an RGB value of FFA8A0, however, because the
+                   themeColor attribute is specified, that value is ignored in favor of the accent2 theme
+                       color specified for this document. end example]
+
+                   The possible values for this attribute are defined by the ST_ThemeColor simple type
+
+
+                                                                                      654
+     Attributes                                            Description
+
+                       (§2.18.104).
+themeShade          Specifies the shade value applied to the supplied theme color (if any) for this border
+(Border Theme        instance.
+Color Shade)
+                                  If the themeShade is supplied, then it is applied to the RGB value of the theme color
+                     (from the theme part) to determine the final color applied to this border.
+
+                   The themeShade value is stored as a hex encoding of the shade value (from 0–255)
+                      applied to the current border.
+
+                     [Example: Consider a shade of 40% applied to a border in a document. This shade is
+                       calculated as follows:
+
+                                         𝑆𝑥𝑚𝑙= 0.4 ∗255
+                                = 102
+                                   = 66(𝑕𝑒𝑥)
+
+                   The resulting themeShade value in the file format would be 66. end example]
+
+                    Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                     as follows:
+                           Convert the color to the HSL color format (values from 0 to 1)
+                          Modify the luminance factor as follows:
+
+                                                                      L′ = L ∗Shadepercentage
+
+                           Convert the resultant HSL color to RGB
+
+                     [Example: Consider a document with a background using the accent2 theme color,
+                  whose RGB value (in RRGGBB hex format) is C0504D.
+
+                   The equivalent HSL color value would be          , 0.48,0.53  .                                                                  360
+
+                     Applying the shade formula with a shade percentage of 75% to the luminance, we get:
+                                                                        𝐿′ = 0.53 ∗0.75
+                                = 0.39698
+
+                     Taking the resulting HSL color value of          , 0.48,0.39698 and converting back to RGB,                                                               360
+               we get 943634.
+
+                       This transformed value can be seen in the resulting background's color attribute:
+
+                   <w:top w:val="single" w:sz="4" w:space="24"
+                     w:color="943634" w:themeColor="accent2"
+                     w:themeShade="BF"/>
+
+
+                                                                                      655
+     Attributes                                            Description
+
+
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                     type (§2.18.106).
+themeTint (Border    Specifies the tint value applied to the supplied theme color (if any) for this border
+Theme Color Tint)     instance.
+
+                                  If the themeTint is supplied, then it is applied to the RGB value of the theme color (from
+                     the theme part) to determine the final color applied to this border.
+
+                   The themeTint value is stored as a hex encoding of the tint value (from 0–255) applied to
+                     the current border.
+
+                     [Example: Consider a tint of 60% applied to a border in a document. This tint is calculated
+                     as follows:
+
+                                         𝑇𝑥𝑚𝑙= 0.6 ∗255
+                                = 153
+                                   = 99(𝑕𝑒𝑥)
+
+                   The resulting themeTint value in the file format would be 99. end example]
+
+                    Given an RGB color defined as three hex values in RRGGBB format, the shade is applied
+                     as follows:
+                           Convert the color to the HSL color format (values from 0 to 1)
+                          Modify the luminance factor as follows:
+
+                                                                L′ = L ∗Tintpct + 1 − Tintpct
+
+                           Convert the resultant HSL color to RGB
+
+                     [Example: Consider a document with a background using the accent2 theme color,
+                  whose RGB value (in RRGGBB hex format) is 4F81BD.
+
+                                                                  213
+                   The equivalent HSL color value would be          , 0.45,0.53  .                                                                  360
+
+                     Applying the tint formula with a tint percentage of 60% to the luminance, we get:
+                                                                   𝐿′ = 0.53 ∗0.6 + 1 −.6
+                              = 0.71
+
+                                                               213
+                     Taking the resulting HSL color value of          , 0.45,0.71 and converting back to RGB, we                                                               360
+                      get 95B3D7.
+
+                       This transformed value can be seen in the resulting background's color attribute:
+
+
+                                                                                      656
+     Attributes                                            Description
+
+
+                   <w:top w:val="single" w:sz="4" w:space="24"
+                     w:color="95B3D7" w:themeColor="accent2"
+                     w:themeTint="99"/>
+
+                   end example]
+
+                   The possible values for this attribute are defined by the ST_UcharHexNumber simple
+                     type (§2.18.106).
+val (Border Style)      Specifies the style of border used on this object.
+
+                       This border can either be an art border (a repeated image along the borders - only valid
+                        for page borders) or a line border (a line format repeated along the borders) - see the
+                     simple type definition for a description of each border style.
+
+                     [Example: Consider a left border resulting in the following WordprocessingML:
+
+                   <w:left w:val="single" …/>
+
+                       This border's val is single, indicating that the border style is a single line. end example]
+
+                   The possible values for this attribute are defined by the ST_Border simple type (§2.18.4).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_Border">
+    <attribute name="val" type="ST_Border" use="required"/>
+    <attribute name="color" type="ST_HexColor" use="optional"/>
+    <attribute name="themeColor" type="ST_ThemeColor" use="optional"/>
+    <attribute name="themeTint" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="themeShade" type="ST_UcharHexNumber" use="optional"/>
+    <attribute name="sz" type="ST_EighthPointMeasure" use="optional"/>
+    <attribute name="space" type="ST_PointMeasure" use="optional"/>
+    <attribute name="shadow" type="ST_OnOff" use="optional"/>
+    <attribute name="frame" type="ST_OnOff" use="optional"/>
+</complexType>
+
+2.6.22    type (Section Type)
+
+This element specifies the type of the current section. The section type specifies how the contents of the current
+section shall be placed relative to the previous section.
+
+WordprocessingML supports five distinct types of section breaks:
+
+      Next page section breaks (the default if type is not specified), which begin the new section on the
+        following page.
+      Odd page section breaks, which begin the new section on the next odd-numbered page.
+      Even page section breaks, which begin the new section on the next even-numbered page.
+
+
+                                                                                      657
+       Continuous section breaks, which begin the new section on the following paragraph. This means that
+       continuous section breaks might not specify certain page-level section properties, since they must be
+        inherited from the following section. These breaks, however, can specify other section properties, such
+        as line numbering and footnote/endnote settings.
+      Column section breaks, which begin the new section on the next column on the page.
+
+
+                                          Parent Elements
+sectPr (§2.6.17); sectPr (§2.6.18); sectPr (§2.6.19)
+
+
+     Attributes                                            Description
+val (Section Type      Specifies the type of the current section.
+Setting)
+                     [Example: Consider a section that shall start on the next page in the document. The
+                   WordprocessingML specifying this would look like:
+
+                   <w:sectPr>
+                     …
+                     <w:type w:val="nextPage"/>
+                   </w:sectPr>
+
+                   The nextPage value specifies that this section starts on the next page. end example]
+
+                   The possible values for this attribute are defined by the ST_SectionMark simple type
+                       (§2.18.84).
+
+
+The following XML Schema fragment defines the contents of this element:
+
+<complexType name="CT_SectType">
+    <attribute name="val" type="ST_SectionMark"/>
+</complexType>
+
+2.6.23    vAlign (Vertical Text Alignment on Page)
+
+This element specifies the vertical alignment for text on pages in the current section, relative to the top and
+bottom margins in the main document story on each page.
+
+[Example: Consider a section used as a title page on which text shall be vertically centered. In order to center the
+text vertically on the page, the following WordprocessingML is used:
+
+  <w:sectPr>
+    …
+    <w:vAlign w:val="center" />
+  </w:sectPr>
+
+The vAlign value of center specifies that text shall be laid out in the center of the top and bottom text margins
+for all pages in this section. end example]
+
+
+                                                                                      658
