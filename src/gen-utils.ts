@@ -27,6 +27,46 @@ export function debugLog (...args: unknown[]): void {
 }
 
 /**
+ * Encode bytes as base64 without referencing the `Buffer` identifier.
+ * Browser bundlers (Vite) inject a broken `buffer` polyfill when they see `Buffer.from`.
+ */
+export function bytesToBase64 (bytes: Uint8Array): string {
+	let bin = ''
+	const chunk = 0x8000
+	for (let i = 0; i < bytes.length; i += chunk) {
+		bin += String.fromCharCode(...bytes.subarray(i, i + chunk))
+	}
+	return btoa(bin)
+}
+
+/** Decode base64 (or a data-URL) to bytes — browser + Node, no `Buffer`. */
+export function base64ToBytes (strData: string): Uint8Array {
+	const idxHdr = strData.indexOf('base64,')
+	const strB64 = idxHdr > -1 ? strData.substring(idxHdr + 'base64,'.length) : strData
+	const strBin = atob(strB64)
+	const bytes = new Uint8Array(strBin.length)
+	for (let idx = 0; idx < strBin.length; idx++) bytes[idx] = strBin.charCodeAt(idx)
+	return bytes
+}
+
+/** UTF-8 string → base64 */
+export function utf8ToBase64 (text: string): string {
+	return bytesToBase64(new TextEncoder().encode(text))
+}
+
+/** base64 → UTF-8 string */
+export function base64ToUtf8 (b64: string): string {
+	return new TextDecoder().decode(base64ToBytes(b64))
+}
+
+/** Latin-1 / binary string → base64 (Node `res.setEncoding('binary')` payloads) */
+export function binaryStringToBase64 (raw: string): string {
+	const bytes = new Uint8Array(raw.length)
+	for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i) & 0xff
+	return bytesToBase64(bytes)
+}
+
+/**
  * Recolor SVG markup for Martin-N `image.fill` (hex only)
  * - Replaces existing `"#RRGGBB"` / `"#RGB"` attribute values, or adds `fill` on bare `<path>` tags
  */
@@ -50,12 +90,11 @@ export function applySvgFillToDataUrl (data: string, color: string | undefined):
 	const hdr = 'base64,'
 	const idx = data.indexOf(hdr)
 	const b64 = idx > -1 ? data.substring(idx + hdr.length) : data
-	if (typeof Buffer === 'undefined') return data
 	try {
-		const svgText = Buffer.from(b64, 'base64').toString('utf8')
+		const svgText = base64ToUtf8(b64)
 		if (!svgText.includes('<svg') && !svgText.includes('<path')) return data
 		const recolored = applySvgFillColor(svgText, color)
-		const outB64 = Buffer.from(recolored, 'utf8').toString('base64')
+		const outB64 = utf8ToBase64(recolored)
 		return idx > -1 ? data.substring(0, idx + hdr.length) + outB64 : outB64
 	} catch {
 		return data

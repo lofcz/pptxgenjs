@@ -4,7 +4,7 @@
 
 import { IMG_BROKEN, SLIDE_OBJECT_TYPES } from './core-enums'
 import { PresSlide, SlideLayout, ISlideRelMedia } from './core-interfaces'
-import { applySvgFillColor, applySvgFillToDataUrl } from './gen-utils'
+import { applySvgFillColor, applySvgFillToDataUrl, base64ToBytes, binaryStringToBase64, bytesToBase64, utf8ToBase64 } from './gen-utils'
 
 /** Images are measured in pixels; PowerPoint slide dimensions are inches at 96 DPI */
 const IMAGE_DPI = 96
@@ -59,21 +59,6 @@ function imageDimensions(bytes: Uint8Array): { width?: number; height?: number }
 	}
 
 	return {}
-}
-
-/**
- * Decode a base64 (or data-url) string into bytes, in Node or the browser
- */
-function base64ToBytes(strData: string): Uint8Array {
-	const idxHdr = strData.indexOf('base64,')
-	const strB64 = idxHdr > -1 ? strData.substring(idxHdr + 'base64,'.length) : strData
-
-	if (typeof Buffer !== 'undefined') return new Uint8Array(Buffer.from(strB64, 'base64'))
-
-	const strBin = atob(strB64)
-	const bytes = new Uint8Array(strBin.length)
-	for (let idx = 0; idx < strBin.length; idx++) bytes[idx] = strBin.charCodeAt(idx)
-	return bytes
 }
 
 /**
@@ -161,10 +146,10 @@ export function encodeSlideMediaRels(layout: PresSlide | SlideLayout): Array<Pro
 							// Martin-N: SVG recolor needs UTF-8 text, not binary
 							if (svgFill && (rel.type === 'image/svg+xml' || rel.extn === 'svg')) {
 								const svgText = applySvgFillColor(fs.readFileSync(relPath, 'utf8'), svgFill)
-								rel.data = Buffer.from(svgText, 'utf8').toString('base64')
+								rel.data = utf8ToBase64(svgText)
 							} else {
 								const bitmap = fs.readFileSync(relPath)
-								rel.data = Buffer.from(bitmap).toString('base64')
+								rel.data = bytesToBase64(new Uint8Array(bitmap))
 								if (svgFill && typeof rel.data === 'string') {
 									rel.data = applySvgFillToDataUrl(rel.data, svgFill)
 								}
@@ -204,7 +189,7 @@ export function encodeSlideMediaRels(layout: PresSlide | SlideLayout): Array<Pro
 								res.setEncoding('binary') // IMPORTANT: Only binary encoding works
 								res.on('data', chunk => (raw += chunk))
 								res.on('end', () => {
-									rel.data = Buffer.from(raw, 'binary').toString('base64')
+									rel.data = binaryStringToBase64(raw)
 									candidateRels
 										.filter(dupe => dupe.isDuplicate && dupe.path === rel.path)
 										.forEach(dupe => (dupe.data = rel.data))
