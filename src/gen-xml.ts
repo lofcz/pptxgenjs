@@ -39,7 +39,7 @@ import {
 	TextProps,
 	TextPropsOptions,
 } from './core-interfaces'
-import { createTimingXml } from './gen-animations'
+import { createTimingXml, MediaPlaybackEntry } from './gen-animations'
 import { genXmlTransition } from './gen-transition'
 import {
 	convertRotationDegrees,
@@ -888,6 +888,8 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += ' </p:spPr>'
 					strSlideXml += '</p:pic>'
 				} else {
+					// ECMA-376: audio uses `<a:audioFile>`, video uses `<a:videoFile>` under nvPr.
+					const mediaFileTag = slideItemObj.mtype === 'audio' ? 'a:audioFile' : 'a:videoFile'
 					strSlideXml += '<p:pic>'
 					strSlideXml += ' <p:nvPicPr>'
 					// IMPORTANT: <p:cNvPr id="" value is critical - if not the same number as preiew image rId, PowerPoint throws error!
@@ -895,7 +897,7 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					}"><a:hlinkClick r:id="" action="ppaction://media"/></p:cNvPr>`
 					strSlideXml += ' <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>'
 					strSlideXml += ' <p:nvPr>'
-					strSlideXml += `  <a:videoFile r:link="rId${slideItemObj.mediaRid}"/>`
+					strSlideXml += `  <${mediaFileTag} r:link="rId${slideItemObj.mediaRid}"/>`
 					strSlideXml += '  <p:extLst>'
 					strSlideXml += '   <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
 					// MS-PPTX §2.3.3.14 CT_Media: trim/fade/bmkLst children (issue-gap #6). Self-close when none (preserves prior output).
@@ -1964,6 +1966,31 @@ export function makeXmlPresentationRels (slides: PresSlide[]): string {
  * @param {PresSlide} slide - slide object
  * @returns {SlideObjectAnimation[]} array of object animations with their indices
  */
+/**
+ * Collect media shapes that need a playback entry in the slide timing tree.
+ * The shape id targeted by `<p:spTgt spid>` is the media `<p:cNvPr id>`, which the
+ * media emitter computes as `mediaRid + 2`. Online (linked) videos are excluded —
+ * they don't support the embedded playback timing tree.
+ */
+function collectMediaPlayback (slide: PresSlide): MediaPlaybackEntry[] {
+	const entries: MediaPlaybackEntry[] = []
+	;(slide._slideObjects ?? []).forEach(obj => {
+		if (obj._type !== SLIDE_OBJECT_TYPES.media || obj.mtype === 'online') return
+		const o = obj.options
+		if (!o || !(o.autoplay || o.loop || o.fullScreen || o.mute)) return
+		entries.push({
+			spid: (obj.mediaRid ?? 0) + 2,
+			kind: obj.mtype === 'video' ? 'video' : 'audio',
+			autoplay: o.autoplay,
+			loop: o.loop,
+			fullScreen: o.fullScreen,
+			mute: o.mute,
+			isNarration: o.isNarration,
+		})
+	})
+	return entries
+}
+
 function collectSlideAnimations (slide: PresSlide): SlideObjectAnimation[] {
 	const animations: SlideObjectAnimation[] = []
 
@@ -2030,7 +2057,8 @@ export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): stri
 	resolveZoomSections(slide, sections)
 
 	const animations = collectSlideAnimations(slide)
-	const timingXml = animations.length > 0 ? createTimingXml(animations) : ''
+	const mediaPlayback = collectMediaPlayback(slide)
+	const timingXml = animations.length > 0 || mediaPlayback.length > 0 ? createTimingXml(animations, mediaPlayback) : ''
 	const transitionXml = genXmlTransition(slide)
 	const hasTrans = transitionXml.length > 0
 

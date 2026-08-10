@@ -1078,6 +1078,29 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 * @default false
 	 */
 	isNarration?: boolean
+	/**
+	 * Start playing the media automatically when the slide is shown (no click needed).
+	 * Implemented via the slide timing tree (`p:timing`) as a `p:video`/`p:audio` media node
+	 * whose start condition has `delay="0"` (ECMA-376 §19.5 `CT_TLMediaNode` / MS-PPTX §2.3.3).
+	 * @default false (plays on click)
+	 */
+	autoplay?: boolean
+	/**
+	 * Loop the media until stopped ("Loop until Stopped" in the PowerPoint Playback tab).
+	 * Sets `repeatCount="indefinite"` on the media node's `cTn` (ECMA-376 §19.5.33).
+	 * @default false
+	 */
+	loop?: boolean
+	/**
+	 * Play the video full-screen (`p:video@fullScrn`, ECMA-376 §19.5.92 `CT_TLMediaNodeVideo`).
+	 * @default false
+	 */
+	fullScreen?: boolean
+	/**
+	 * Mute the media's audio (`p:cMediaNode@mute`, ECMA-376 §19.5.30 `CT_TLCommonMediaNodeData`).
+	 * @default false
+	 */
+	mute?: boolean
 }
 
 // shapes =========================================================================================
@@ -2498,6 +2521,11 @@ export interface ObjectOptions extends ImageProps, PositionProps, ShapeProps, Ta
 	fade?: { in?: number; out?: number }
 	bookmarks?: { name: string; time: number }[]
 	isNarration?: boolean
+	// Playback behaviour (ECMA-376 §19.5 CT_TLMediaNode — drives the slide timing tree)
+	autoplay?: boolean
+	loop?: boolean
+	fullScreen?: boolean
+	mute?: boolean
 	// MS-PPTX §2.8 CT_ZoomObjectProperties (zoom objects only)
 	returnToParent?: boolean
 	showBg?: boolean

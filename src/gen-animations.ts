@@ -2379,117 +2379,196 @@ function getNodeType(trigger?: AnimationTrigger): string {
  * @returns complete timing XML block to insert into slide XML
  */
 
-export function createTimingXml(animations: SlideObjectAnimation[]): string {
-	if (!animations || animations.length === 0) {
+export function createTimingXml(animations: SlideObjectAnimation[], mediaPlayback?: MediaPlaybackEntry[]): string {
+	const hasAnims = !!(animations && animations.length > 0)
+	const hasMedia = !!(mediaPlayback && mediaPlayback.length > 0)
+	if (!hasAnims && !hasMedia) {
 		return ''
 	}
 
 	// Group animations by trigger type
-	const groups = groupAnimationsByTrigger(animations)
+	const groups = hasAnims ? groupAnimationsByTrigger(animations) : []
 
 	let xml = '<p:timing>'
 	xml += '<p:tnLst>'
 	xml += '<p:par>'
 	xml += '<p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot">'
 	xml += '<p:childTnLst>'
-	xml += '<p:seq concurrent="1" nextAc="seek">'
-	xml += '<p:cTn id="2" dur="indefinite" nodeType="mainSeq">'
-	xml += '<p:childTnLst>'
 
-	let nodeId = 3
-	let cumulativeDelay = 0 // Track cumulative delay for afterPrevious animations
+	let nodeId = 2
 
-	// Process each group
-	groups.forEach((group) => {
-		// MAIN CLICK GROUP - Contains onClick and withPrevious
-		xml += '<p:par>'
-		xml += `<p:cTn id="${nodeId}" fill="hold">`
-		xml += '<p:stCondLst><p:cond delay="indefinite"/><p:cond evt="onBegin" delay="0"><p:tn val="2"/></p:cond></p:stCondLst>'
+	// Object-animation main sequence. Omitted entirely when the slide only has media
+	// playback nodes (matches PowerPoint / python-pptx media-only timing trees).
+	if (hasAnims) {
+		xml += '<p:seq concurrent="1" nextAc="seek">'
+		xml += `<p:cTn id="${nodeId}" dur="indefinite" nodeType="mainSeq">`
 		xml += '<p:childTnLst>'
 		nodeId++
 
-		// Inner wrapper for onClick and withPrevious animations
-		xml += '<p:par>'
-		xml += `<p:cTn id="${nodeId}" fill="hold">`
-		xml += '<p:stCondLst><p:cond delay="0"/></p:stCondLst>'
-		xml += '<p:childTnLst>'
-		nodeId++
+		let cumulativeDelay = 0 // Track cumulative delay for afterPrevious animations
 
-		// Generate onClick animation(s)
-		group.onClick.forEach((shapeAnim) => {
-			const shapeId = shapeAnim.shapeId ?? shapeAnim.objectIndex + 2
-			xml += genAnimationEffectXml(shapeAnim.animation, shapeId, nodeId)
-			nodeId += 10
-			
-			// Track duration for afterPrevious
-			const duration = shapeAnim.animation.duration || 1000
-			const delay = shapeAnim.animation.delay || 0
-			if (cumulativeDelay === 0) {
-				cumulativeDelay = duration + delay
-			}
-		})
-
-		// Generate withPrevious animations (same level as onClick)
-		group.withPrevious.forEach((shapeAnim) => {
-			const shapeId = shapeAnim.shapeId ?? shapeAnim.objectIndex + 2
-			xml += genAnimationEffectXml(shapeAnim.animation, shapeId, nodeId)
-			nodeId += 10
-		})
-
-		xml += '</p:childTnLst>'
-		xml += '</p:cTn>'
-		xml += '</p:par>'
-
-		// AFTER PREVIOUS ANIMATIONS - Each gets its own <p:par> as a sibling
-		// These are SIBLINGS to the inner <p:par>, still children of the main click group
-		group.afterPrevious.forEach((shapeAnim) => {
+		// Process each group
+		groups.forEach((group) => {
+			// MAIN CLICK GROUP - Contains onClick and withPrevious
 			xml += '<p:par>'
 			xml += `<p:cTn id="${nodeId}" fill="hold">`
-			xml += `<p:stCondLst><p:cond delay="${cumulativeDelay}"/></p:stCondLst>`
+			xml += '<p:stCondLst><p:cond delay="indefinite"/><p:cond evt="onBegin" delay="0"><p:tn val="2"/></p:cond></p:stCondLst>'
 			xml += '<p:childTnLst>'
 			nodeId++
 
-			const shapeId = shapeAnim.shapeId ?? shapeAnim.objectIndex + 2
-			xml += genAnimationEffectXml(shapeAnim.animation, shapeId, nodeId)
-			nodeId += 10
+			// Inner wrapper for onClick and withPrevious animations
+			xml += '<p:par>'
+			xml += `<p:cTn id="${nodeId}" fill="hold">`
+			xml += '<p:stCondLst><p:cond delay="0"/></p:stCondLst>'
+			xml += '<p:childTnLst>'
+			nodeId++
+
+			// Generate onClick animation(s)
+			group.onClick.forEach((shapeAnim) => {
+				const shapeId = shapeAnim.shapeId ?? shapeAnim.objectIndex + 2
+				xml += genAnimationEffectXml(shapeAnim.animation, shapeId, nodeId)
+				nodeId += 10
+
+				// Track duration for afterPrevious
+				const duration = shapeAnim.animation.duration || 1000
+				const delay = shapeAnim.animation.delay || 0
+				if (cumulativeDelay === 0) {
+					cumulativeDelay = duration + delay
+				}
+			})
+
+			// Generate withPrevious animations (same level as onClick)
+			group.withPrevious.forEach((shapeAnim) => {
+				const shapeId = shapeAnim.shapeId ?? shapeAnim.objectIndex + 2
+				xml += genAnimationEffectXml(shapeAnim.animation, shapeId, nodeId)
+				nodeId += 10
+			})
 
 			xml += '</p:childTnLst>'
 			xml += '</p:cTn>'
 			xml += '</p:par>'
 
-			// Update cumulative delay for next afterPrevious
-			const duration = shapeAnim.animation.duration || 1000
-			const delay = shapeAnim.animation.delay || 0
-			cumulativeDelay += duration + delay
+			// AFTER PREVIOUS ANIMATIONS - Each gets its own <p:par> as a sibling
+			// These are SIBLINGS to the inner <p:par>, still children of the main click group
+			group.afterPrevious.forEach((shapeAnim) => {
+				xml += '<p:par>'
+				xml += `<p:cTn id="${nodeId}" fill="hold">`
+				xml += `<p:stCondLst><p:cond delay="${cumulativeDelay}"/></p:stCondLst>`
+				xml += '<p:childTnLst>'
+				nodeId++
+
+				const shapeId = shapeAnim.shapeId ?? shapeAnim.objectIndex + 2
+				xml += genAnimationEffectXml(shapeAnim.animation, shapeId, nodeId)
+				nodeId += 10
+
+				xml += '</p:childTnLst>'
+				xml += '</p:cTn>'
+				xml += '</p:par>'
+
+				// Update cumulative delay for next afterPrevious
+				const duration = shapeAnim.animation.duration || 1000
+				const delay = shapeAnim.animation.delay || 0
+				cumulativeDelay += duration + delay
+			})
+
+			// Close the main click group
+			xml += '</p:childTnLst>'
+			xml += '</p:cTn>'
+			xml += '</p:par>'
 		})
 
-		// Close the main click group
 		xml += '</p:childTnLst>'
 		xml += '</p:cTn>'
-		xml += '</p:par>'
-	})
 
-	xml += '</p:childTnLst>'
-	xml += '</p:cTn>'
+		// Add previous/next conditions
+		xml += '<p:prevCondLst>'
+		xml += '<p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond>'
+		xml += '</p:prevCondLst>'
+		xml += '<p:nextCondLst>'
+		xml += '<p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond>'
+		xml += '</p:nextCondLst>'
 
-	// Add previous/next conditions
-	xml += '<p:prevCondLst>'
-	xml += '<p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond>'
-	xml += '</p:prevCondLst>'
-	xml += '<p:nextCondLst>'
-	xml += '<p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond>'
-	xml += '</p:nextCondLst>'
+		xml += '</p:seq>'
+	}
 
-	xml += '</p:seq>'
+	// Media playback nodes are SIBLINGS of <p:seq>, children of tmRoot's childTnLst
+	// (ECMA-376 §19.5.93 example; python-pptx CT_TimeNodeList.add_video).
+	if (hasMedia) {
+		xml += genMediaPlaybackXml(mediaPlayback, nodeId)
+	}
+
 	xml += '</p:childTnLst>'
 	xml += '</p:cTn>'
 	xml += '</p:par>'
 	xml += '</p:tnLst>'
 
-	// Add build list
-	xml += genBuildListXml(animations)
+	// Build list only when there are object animations (empty bldLst can trigger repair).
+	if (hasAnims) xml += genBuildListXml(animations)
 
 	xml += '</p:timing>'
+
+	return xml
+}
+
+/**
+ * A media shape that needs a playback entry in the slide timing tree.
+ * `spid` is the shape's `<p:cNvPr id>`; `kind` selects `<p:video>` vs `<p:audio>`.
+ */
+export interface MediaPlaybackEntry {
+	spid: number
+	kind: 'video' | 'audio'
+	autoplay?: boolean
+	loop?: boolean
+	fullScreen?: boolean
+	mute?: boolean
+	/** ECMA-376 §19.5.9 `<p:audio@isNarration>` */
+	isNarration?: boolean
+}
+
+/**
+ * Builds `<p:video>`/`<p:audio>` media-node children for the slide timing tree.
+ * Emitted as direct children of tmRoot's `childTnLst` (siblings of the optional
+ * mainSeq) — ECMA-376 §19.5.93 example / python-pptx `CT_TimeNodeList.add_video`.
+ *
+ * Canonical shape (python-pptx):
+ * ```
+ * <p:video>
+ *   <p:cMediaNode vol="80000">
+ *     <p:cTn id="N" fill="hold" display="0" [repeatCount="indefinite"]>
+ *       <p:stCondLst><p:cond delay="0|indefinite"/></p:stCondLst>
+ *     </p:cTn>
+ *     <p:tgtEl><p:spTgt spid="…"/></p:tgtEl>
+ *   </p:cMediaNode>
+ * </p:video>
+ * ```
+ *
+ * - autoplay → start condition `delay="0"` (else `delay="indefinite"`, i.e. on click)
+ * - loop     → `repeatCount="indefinite"` on the media node's `cTn`
+ * - fullScreen → `fullScrn="1"` on `<p:video>` (video only)
+ * - mute     → `mute="1"` on `<p:cMediaNode>`
+ */
+export function genMediaPlaybackXml(entries: MediaPlaybackEntry[], startNodeId: number): string {
+	let nodeId = startNodeId
+	let xml = ''
+
+	entries.forEach(entry => {
+		const delay = entry.autoplay ? '0' : 'indefinite'
+		const repeat = entry.loop ? ' repeatCount="indefinite"' : ''
+		const mute = entry.mute ? ' mute="1"' : ''
+		const tag = entry.kind === 'audio' ? 'p:audio' : 'p:video'
+		const fullScrn = entry.kind === 'video' && entry.fullScreen ? ' fullScrn="1"' : ''
+		const narration = entry.kind === 'audio' && entry.isNarration ? ' isNarration="1"' : ''
+
+		xml += `<${tag}${fullScrn}${narration}>`
+		xml += `<p:cMediaNode vol="80000"${mute}>`
+		xml += `<p:cTn id="${nodeId}" fill="hold" display="0"${repeat}>`
+		xml += `<p:stCondLst><p:cond delay="${delay}"/></p:stCondLst>`
+		xml += '</p:cTn>'
+		xml += `<p:tgtEl><p:spTgt spid="${entry.spid}"/></p:tgtEl>`
+		xml += '</p:cMediaNode>'
+		xml += `</${tag}>`
+		nodeId++
+	})
 
 	return xml
 }

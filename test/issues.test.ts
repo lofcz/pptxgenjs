@@ -271,7 +271,7 @@ test('#32: masters accept any shape type, tables and media', async () => {
 	const layout = await readPart(zip, `ppt/slideLayouts/slideLayout${idx}.xml`)
 	assert.ok(layout.includes('prst="triangle"'), 'shape not rendered on the master layout')
 	assert.ok(layout.includes('<a:tbl>'), 'table not rendered on the master layout')
-	assert.ok(layout.includes('<a:videoFile'), 'media not rendered on the master layout')
+	assert.ok(layout.includes('<a:audioFile'), 'media not rendered on the master layout')
 	assert.match(await readPart(zip, `ppt/slideLayouts/_rels/slideLayout${idx}.xml.rels`), /media\/media/, 'media rel missing from the layout')
 })
 
@@ -1501,12 +1501,58 @@ test('#gap6: media trim/fade/bookmarks/isNarration emit on p14:media', async () 
 	})
 
 	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// ECMA-376: audio shapes must use <a:audioFile>, not <a:videoFile>.
+	assert.ok(slideXml.includes('<a:audioFile r:link='), 'audio must emit a:audioFile')
+	assert.ok(!slideXml.includes('<a:videoFile'), 'audio must NOT emit a:videoFile')
 	// MS-PPTX §2.3.3.14: trim/fade/bmkLst are children of p14:media.
 	assert.ok(slideXml.includes('<p14:trim st="1000" end="500"/>'), `trim missing: ${/<p14:media[\s\S]*?<\/p14:media>/.exec(slideXml)?.[0]}`)
 	assert.ok(slideXml.includes('<p14:fade in="250" out="750"/>'), 'fade missing')
 	assert.ok(slideXml.includes('<p14:bmk name="chorus" time="30000"/>'), 'bookmark missing')
 	// §2.2.14 narration flag.
 	assert.ok(slideXml.includes('<p15:isNarration') && slideXml.includes('val="1"'), 'isNarration missing')
+})
+
+test('#gap7: media autoplay/loop/fullScreen/mute emit timing-tree media nodes', async () => {
+	const pptx = new pptxgen()
+	const tinyAudio = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADQgD///////////////////////////////////////////8AAAA8TEFNRTMuMTAwAQAAAAAAAAAAABSAJAJAQgAAgAAAA0LS3ZssAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//sQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAE'
+	const slide = pptx.addSlide()
+	slide.addMedia({ type: 'audio', data: tinyAudio, x: 1, y: 1, w: 1, h: 1, autoplay: true, loop: true })
+	slide.addMedia({ type: 'video', data: tinyAudio, x: 3, y: 1, w: 2, h: 1.5, autoplay: true, fullScreen: true, mute: true })
+	// a plain media shape with no playback opts must NOT get a timing entry
+	slide.addMedia({ type: 'audio', data: tinyAudio, x: 6, y: 1, w: 1, h: 1 })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// Timing tree exists because of the playback entries.
+	assert.ok(slideXml.includes('<p:timing>'), 'no timing tree')
+	// Media nodes are direct children of tmRoot childTnLst (no wrapping <p:par>, no mainSeq for media-only).
+	assert.ok(!slideXml.includes('nodeType="mainSeq"'), 'media-only slide must not emit empty mainSeq')
+	assert.ok(!slideXml.includes('<p:bldLst>'), 'media-only slide must not emit empty bldLst')
+	// Audio node: autoplay → cond delay="0"; loop → repeatCount="indefinite" on cTn (python-pptx shape).
+	assert.ok(slideXml.includes('<p:audio>'), 'no audio media node')
+	assert.ok(
+		/<p:audio><p:cMediaNode vol="80000"><p:cTn id="\d+" fill="hold" display="0" repeatCount="indefinite"><p:stCondLst><p:cond delay="0"\/>/.test(slideXml),
+		`audio autoplay+loop shape wrong: ${/<p:audio>[\s\S]*?<\/p:audio>/.exec(slideXml)?.[0]}`
+	)
+	// Video node: fullScrn + mute + autoplay.
+	assert.ok(
+		/<p:video fullScrn="1"><p:cMediaNode vol="80000" mute="1"><p:cTn id="\d+" fill="hold" display="0"><p:stCondLst><p:cond delay="0"\/>/.test(slideXml),
+		`video fullScrn/mute/autoplay wrong: ${/<p:video[\s\S]*?<\/p:video>/.exec(slideXml)?.[0]}`
+	)
+	// Plain media shape: only the two flagged shapes get media nodes.
+	const audioNodes = (slideXml.match(/<p:audio>/g) || []).length
+	const videoNodes = (slideXml.match(/<p:video[\s>]/g) || []).length
+	assert.equal(audioNodes, 1, `expected 1 audio node, got ${audioNodes}`)
+	assert.equal(videoNodes, 1, `expected 1 video node, got ${videoNodes}`)
+})
+
+test('#gap7b: no playback opts → no timing tree for media-only slide', async () => {
+	const pptx = new pptxgen()
+	const tinyAudio = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADQgD///////////////////////////////////////////8AAAA8TEFNRTMuMTAwAQAAAAAAAAAAABSAJAJAQgAAgAAAA0LS3ZssAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//sQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAE'
+	pptx.addSlide().addMedia({ type: 'audio', data: tinyAudio, x: 1, y: 1, w: 1, h: 1 })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(!slideXml.includes('<p:timing>'), 'timing tree should be absent without playback opts')
+	assert.ok(!slideXml.includes('<p:audio><p:cMediaNode'), 'no cMediaNode expected')
 })
 
 test('#gap2: slide zoom emits mc:AlternateContent sldZm + pic fallback', async () => {

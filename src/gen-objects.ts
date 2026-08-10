@@ -643,6 +643,11 @@ export function addMediaDefinition(target: PresSlide, opt: MediaProps): void {
 	slideData.options.fade = opt.fade
 	slideData.options.bookmarks = opt.bookmarks
 	slideData.options.isNarration = opt.isNarration
+	// Playback behaviour (drives the slide timing tree — ECMA-376 §19.5 CT_TLMediaNode)
+	slideData.options.autoplay = opt.autoplay
+	slideData.options.loop = opt.loop
+	slideData.options.fullScreen = opt.fullScreen
+	slideData.options.mute = opt.mute
 
 	// STEP 4: Add this media to this Slide Rels (rId/rels count spans all slides! Count all media to get next rId)
 	/**
