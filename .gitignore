@@ -17,3 +17,7 @@ demos/browser/js/pptxgen.bundle.js*
 ### VitePress docs (source lives in ./docs and IS committed; only build artifacts are ignored)
 docs/.vitepress/dist/
 docs/.vitepress/cache/
+/out
+
+### Auto-generated public types (rollup-plugin-dts bundle of out/defs; built by `npm run build`)
+/types/index.d.ts
