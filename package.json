@@ -1,6 +1,6 @@
 {
 	"name": "@lofcz/pptxgenjs",
-	"version": "4.1.6",
+	"version": "4.1.8",
 	"author": {
 		"name": "Brent Ely",
 		"url": "https://github.com/gitbrent/"
@@ -48,7 +48,7 @@
 		"test": "node --import tsx --test test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/snapshot.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
 		"test:coverage": "node --import tsx --test --experimental-test-coverage test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/snapshot.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
 		"check": "npm run lint && npm run typecheck && npm test",
-		"prepublishOnly": "npm run check"
+		"prepublishOnly": "npm run check && npm run build"
 	},
 	"browser": {
 		"fs": false,
