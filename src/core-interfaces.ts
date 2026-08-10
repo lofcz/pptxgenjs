@@ -347,6 +347,50 @@ export interface HyperlinkProps {
 	 */
 	tooltip?: string
 }
+/**
+ * Soft-edge effect (`a:softEdge`) — blur the shape outline.
+ * - radius in points
+ */
+export interface SoftEdgeProps {
+	/**
+	 * Soft-edge radius (points)
+	 * @example 8
+	 */
+	radius: number
+}
+
+/**
+ * Reflection effect (`a:reflection`) — Mona/PPTist-compatible subset.
+ * Units: blur/distance in points; direction in degrees; opacity 0–1; scaleY as ratio (e.g. -1).
+ */
+export interface ReflectionProps {
+	/**
+	 * Blur radius (points)
+	 * @default 0
+	 */
+	blur?: number
+	/**
+	 * Offset distance (points)
+	 * @default 0
+	 */
+	distance?: number
+	/**
+	 * Direction (degrees)
+	 * @default 0
+	 */
+	direction?: number
+	/**
+	 * Start opacity (0.0–1.0)
+	 * @default 0.5
+	 */
+	opacity?: number
+	/**
+	 * Vertical scale ratio (`sy` / 100000). Negative flips the reflection.
+	 * @default -1
+	 */
+	scaleY?: number
+}
+
 // used by: chart, text, image
 export interface ShadowProps {
 	/**
@@ -955,6 +999,18 @@ export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 */
 	shadow?: ShadowProps
 	/**
+	 * Glow effect (`a:glow` in shape `effectLst`)
+	 */
+	glow?: TextGlowProps
+	/**
+	 * Soft-edge effect (`a:softEdge`)
+	 */
+	softEdge?: SoftEdgeProps
+	/**
+	 * Reflection effect (`a:reflection`)
+	 */
+	reflection?: ReflectionProps
+	/**
 	 * Image sizing options
 	 */
 	sizing?: {
@@ -1188,6 +1244,18 @@ export interface ShapeProps extends PositionProps, ObjectNameProps, AppearOnClic
 	 * TODO: need new demo.js entry for shape shadow
 	 */
 	shadow?: ShadowProps
+	/**
+	 * Glow effect (`a:glow` in shape `effectLst`)
+	 */
+	glow?: TextGlowProps
+	/**
+	 * Soft-edge effect (`a:softEdge`)
+	 */
+	softEdge?: SoftEdgeProps
+	/**
+	 * Reflection effect (`a:reflection`)
+	 */
+	reflection?: ReflectionProps
 
 	/**
 	 * @deprecated v3.3.0
@@ -1662,6 +1730,14 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 */
 	rtlMode?: boolean
 	shadow?: ShadowProps
+	/**
+	 * Soft-edge effect (`a:softEdge` on the text shape)
+	 */
+	softEdge?: SoftEdgeProps
+	/**
+	 * Reflection effect (`a:reflection` on the text shape)
+	 */
+	reflection?: ReflectionProps
 	shape?: SHAPE_NAME
 	/**
 	 * Strikethrough style

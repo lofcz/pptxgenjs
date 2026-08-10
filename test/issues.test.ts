@@ -60,6 +60,28 @@ test('#20: shadow options are not mutated, so a second export matches the first'
 	assert.ok(first.includes('dir="2700000"'), 'shadow angle not converted for XML')
 })
 
+test('shape effectLst merges glow, softEdge, and reflection without mutating options', async () => {
+	const glow = { size: 8, color: '00AAFF', opacity: 0.6 }
+	const softEdge = { radius: 4 }
+	const reflection = { blur: 2, distance: 3, direction: 90, opacity: 0.4, scaleY: -1 }
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.rect, {
+		x: 1, y: 1, w: 2, h: 1,
+		fill: { color: 'FF0000' },
+		glow, softEdge, reflection,
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<a:effectLst>'), 'missing effectLst')
+	assert.ok(xml.includes('<a:glow rad="'), 'missing glow')
+	assert.ok(xml.includes('<a:softEdge rad="'), 'missing softEdge')
+	assert.ok(xml.includes('<a:reflection '), 'missing reflection')
+	assert.ok(xml.includes('stA="40000"'), 'reflection opacity not converted')
+	assert.equal(glow.size, 8, 'caller glow options were mutated')
+	assert.equal(softEdge.radius, 4, 'caller softEdge options were mutated')
+	assert.equal(reflection.direction, 90, 'caller reflection options were mutated')
+})
+
 test('#18: slide master name is XML-escaped', async () => {
 	const pptx = new pptxgen()
 	pptx.defineSlideMaster({ title: 'R&D "Q3" Master', objects: [] })
