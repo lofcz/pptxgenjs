@@ -474,7 +474,7 @@ export default class PptxGenJS implements IPresentationProps {
 		// Find the section that actually contains the parent slide - NOT only the last section - so that
 		// autopaged slides follow their parent even when a later section exists (issue #1405).
 		const parentSlideNum = this.slides.length > 0 ? this.slides[this.slides.length - 1]._slideNum : undefined
-		const parentSect = this.sections.filter(sect => sect._slides.some(slide => slide._slideNum === parentSlideNum))[0]
+		const parentSect = this.sections.filter(sect => (sect._slides ?? []).some(slide => slide._slideNum === parentSlideNum))[0]
 
 		const opts: AddSlideProps = options ?? {}
 		opts.sectionTitle = parentSect ? parentSect.title : undefined
@@ -832,12 +832,12 @@ export default class PptxGenJS implements IPresentationProps {
 		if (options?.sectionTitle) {
 			const sect = this.sections.filter(section => section.title === options.sectionTitle)[0]
 			if (!sect) console.warn(`addSlide: unable to find section with title: "${options.sectionTitle}"`)
-			else sect._slides.push(newSlide)
+			else (sect._slides ??= []).push(newSlide)
 		} else if (this.sections && this.sections.length > 0 && (!options?.sectionTitle)) {
 			const lastSect = this._sections[this.sections.length - 1]
 
 			// CASE 1: The latest section is a default type - just add this one
-			if (lastSect._type === 'default') lastSect._slides.push(newSlide)
+			if (lastSect._type === 'default') (lastSect._slides ??= []).push(newSlide)
 			// CASE 2: There latest section is NOT a default type - create the defualt, add this slide
 			else {
 				this._sections.push({

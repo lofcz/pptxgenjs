@@ -2322,7 +2322,7 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
 				// Stable GUID so section/summary zoom objects can anchor to it (MS-PPTX §2.9/§2.11).
 				if (!sect._id) sect._id = getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
 				strXml += `<p14:section name="${encodeXmlEntities(sect.title)}" id="{${sect._id}}"><p14:sldIdLst>`
-				sect._slides.forEach(slide => (strXml += `<p14:sldId id="${slide._slideId}"/>`))
+				;(sect._slides ?? []).forEach(slide => (strXml += `<p14:sldId id="${slide._slideId}"/>`))
 				strXml += '</p14:sldIdLst></p14:section>'
 			})
 			strXml += '</p14:sectionLst></p:ext>'

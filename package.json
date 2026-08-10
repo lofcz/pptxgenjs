@@ -33,8 +33,9 @@
 		"node": ">=24"
 	},
 	"scripts": {
-		"build": "npm run build:defs && rollup -c --bundleConfigAsCjs",
+		"build": "npm run build:defs && rollup -c --bundleConfigAsCjs && npm run build:types",
 		"build:defs": "tsc --emitDeclarationOnly",
+		"build:types": "node scripts/gen-types-namespace.mjs",
 		"dist": "gulp dist",
 		"prepare": "gulp dist",
 		"start": "gulp",

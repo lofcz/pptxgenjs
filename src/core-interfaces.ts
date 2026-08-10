@@ -1470,7 +1470,8 @@ export interface TableProps extends PositionProps, TextBaseProps, ObjectNameProp
 	newSlideStartY?: number
 }
 export interface TableCell {
-	_type: SLIDE_OBJECT_TYPES.tablecell
+	/** @internal assigned by the table builder; consumers pass plain `{ text, options }` objects */
+	_type?: SLIDE_OBJECT_TYPES.tablecell
 	/** lines in this cell (autoPage) */
 	_lines?: TableCell[][]
 	/** `text` prop but guaranteed to hold "TableCell[]" */
@@ -2394,8 +2395,10 @@ export interface WriteFileProps extends WriteBaseProps {
 	fileName?: string
 }
 export interface SectionProps {
-	_type: 'user' | 'default'
-	_slides: PresSlide[]
+	/** @internal managed by the library; consumers only pass `{ title, order? }` */
+	_type?: 'user' | 'default'
+	/** @internal slides in this section, populated at build time */
+	_slides?: PresSlide[]
 	/** Stable GUID for section-zoom anchors (MS-PPTX §2.9). Auto-assigned at build if unset. @internal */
 	_id?: string
 
