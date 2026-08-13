@@ -1,5 +1,11 @@
 # PptxGenJS agent guidance
 
+## Repository targeting
+
+This checkout is the NEOMA-maintained fork: open pull requests against `NeomaVerwaltung/PptxGenJS` (`origin`), not the original `gitbrent/PptxGenJS` (`upstream`). Verify the remotes before GitHub issue or PR work.
+
+After creating a pull request, run `gh pr view <number> --repo NeomaVerwaltung/PptxGenJS --json url,state,baseRefName,headRefName,title` and verify the target is `master` and the head is the intended branch before reporting it.
+
 ## OOXML specification
 
 For OOXML generation or package changes, work from the official [ECMA-376 Office Open XML specification](https://ecma-international.org/publications-and-standards/standards/ecma-376/). It provides the current downloadable parts:
