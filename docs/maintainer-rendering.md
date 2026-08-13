@@ -131,10 +131,10 @@ Its phases are:
 `createExcelWorksheet(chartObject, zip)` constructs the `.xlsx` chart data source in a separate `JSZip` before adding it to the presentation zip. Its helpers are deliberately organized by workbook part:
 
 - `addWorkbookFolders()` creates the required archive directories.
-- `addCoreWorkbookFiles()` writes fixed package metadata, styles, theme, workbook, and relationship parts.
+- `addCoreWorkbookFiles()` writes fixed package metadata, styles (including per-series `dataTableFormatCode` number formats), theme, workbook, and relationship parts.
 - `addSharedStringsFile()` creates the shared-string table, including series names and category labels.
 - `addTableFile()` defines the worksheet table metadata and range.
-- `addWorksheetFile()` writes chart values, including bubble, scatter, normal category, and multi-level category layouts.
+- `addWorksheetFile()` writes chart values, including bubble, scatter, normal category, and multi-level category layouts, plus packed errorrate columns.
 - `addWorkbookToPresentation()` generates the nested archive, adds it beneath `ppt/embeddings/`, creates the chart `.rels` part, and emits the chart XML.
 
 ### Chart and workbook invariants

@@ -183,6 +183,22 @@ test('#1466: flat categories use strRef while multi-level categories keep multiL
 	assert.match(multiLevelChart, /<c:cat>\s*<c:multiLvlStrRef>/, 'multi-level categories no longer use multiLvlStrRef')
 })
 
+test('#1430: embedded workbook preserves per-series data table formats and zeros', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart([
+		{ type: pptx.ChartType.bar, data: [{ name: 'ABC', labels: ['2012', '2013'], values: [100000, 0] }], options: { dataTableFormatCode: '₹#,##0' } },
+		{ type: pptx.ChartType.line, data: [{ name: 'Share', labels: ['2012', '2013'], values: [0.17, 0] }], options: { dataTableFormatCode: '0%' } },
+	], [], { x: 1, y: 1, w: 6, h: 4 })
+
+	const xlsx = await readEmbeddedXlsx(await writeZip(pptx))
+	const sheet = await readPart(xlsx, 'xl/worksheets/sheet1.xml')
+	const styles = await readPart(xlsx, 'xl/styles.xml')
+	assert.match(sheet, /<c r="B3" s="1"><v>0<\/v><\/c>/, 'currency zero has no worksheet style')
+	assert.match(sheet, /<c r="C3" s="2"><v>0<\/v><\/c>/, 'percentage zero has no worksheet style')
+	assert.match(styles, /numFmtId="164" formatCode="₹#,##0"/, 'currency number format is absent')
+	assert.match(styles, /numFmtId="165" formatCode="0%"/, 'percentage number format is absent')
+})
+
 test('#25: multi-type chart honors the options argument', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addChart(
