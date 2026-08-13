@@ -35,19 +35,19 @@ Presentation and slides
 
 The media pass must finish before slide XML is built: an image with `_sizeFromImage` needs encoded bytes to calculate its final dimensions. Chart workbooks must be added before the final package is emitted because chart XML refers to an embedded workbook relationship.
 
-The stable public XML/chart entry points are also re-exported by `src/xml/index.ts` and `src/charts/index.ts`. Keep those facades stable; private helpers belong beside the renderer they support.
+The stable public XML/chart entry points are re-exported by `src/xml/index.ts` and `src/charts/index.ts`. Keep those facades stable; private helpers belong beside the renderer they support.
 
 ## Source map
 
 | Area | Public entry point | Primary output | Supporting helpers |
 | --- | --- | --- | --- |
-| Slide XML | `slideObjectToXml()` in `src/gen-xml.ts` | `p:cSld` content for slides, layouts, and masters | background, shape tree, objects, slide number, closing tags |
-| Relationships | `makeXmlSlideRel()` and related functions in `src/gen-xml.ts` | `.rels` parts | dynamic slide/chart/media relations plus default relations |
-| Package XML | `makeXml*()` functions in `src/gen-xml.ts` | content types, presentation, layouts, master, notes, metadata | slide bodies via `slideObjectToXml()` |
+| Slide XML | `slideObjectToXml()` in `src/xml/slide.ts` | `p:cSld` content for slides, layouts, and masters | background, shape tree, objects, slide number, closing tags |
+| Relationships | `makeXmlSlideRel()` and related functions in `src/xml/relationships.ts` | `.rels` parts | dynamic slide/chart/media relations plus default relations |
+| Package XML | `makeXml*()` functions in `src/xml/package.ts` | content types, presentation, layouts, master, notes, metadata | delegates slide bodies to `slideObjectToXml()` |
 | Media | `encodeSlideMediaRels()` in `src/gen-media.ts` | base64 data on media relationships | candidate selection, duplicate propagation, Node file/HTTP and browser loaders, SVG preview generation |
 | Tables | `getSlidesForTableRows()` in `src/gen-tables.ts` | paginated internal table-row models | margin, width, column, height, and row-pagination calculations |
-| Chart XML | `makeXmlCharts()` in `src/gen-charts.ts` | `ppt/charts/chart*.xml` | chart-space start, chart types, axes, plot area/legend, chart-space end |
-| Chart workbook | `createExcelWorksheet()` in `src/gen-charts.ts` | embedded `.xlsx` and chart relationship parts | folders, fixed package files, shared strings, table XML, worksheet XML, final embedding |
+| Chart XML | `makeXmlCharts()` in `src/charts/xml.ts` | `ppt/charts/chart*.xml` | chart-space start, chart types, axes, plot area/legend, chart-space end |
+| Chart workbook | `createExcelWorksheet()` in `src/charts/workbook.ts` | embedded `.xlsx` and chart relationship parts | folders, fixed package files, shared strings, table XML, worksheet XML, final embedding |
 
 ## Slide XML
 
@@ -191,7 +191,7 @@ See the repository [Testing guide](https://github.com/NeomaVerwaltung/PptxGenJS/
 
 - Keep public user behavior, option definitions, and examples in API/usage documentation.
 - Keep internal renderer structure, OOXML ordering, and verification rules in this guide.
-- Keep reusable OOXML element builders next to the renderer they support in `src/gen-xml.ts` and `src/gen-charts.ts` (`src/xml/index.ts` and `src/charts/index.ts` re-export the public entry points).
-- Keep package-level assembly in `src/pptxgen.ts`.
+- Keep reusable OOXML element builders in their focused modules (`src/xml/text.ts`, `src/xml/slide.ts`, `src/charts/axes.ts`, `src/charts/title.ts`, and `src/charts/utils.ts`).
+- Keep package-level assembly in `src/pptxgen.ts`, `src/xml/package.ts`, and `src/xml/relationships.ts`.
 
 When a renderer grows again, split at these documented phase boundaries. Do not add a wrapper that merely forwards the whole method; the helper should own a coherent OOXML region or a complete data-preparation step.

@@ -1,1 +1,2 @@
-export { createExcelWorksheet, makeXmlCharts } from '../gen-charts'
+export { createExcelWorksheet } from './workbook'
+export { makeXmlCharts } from './xml'

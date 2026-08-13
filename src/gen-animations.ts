@@ -2373,7 +2373,7 @@ function getNodeType(trigger?: AnimationTrigger): string {
 
 /**
  * Generate complete timing XML for all animations on a slide
- * Called by makeXmlSlide() in gen-xml.ts
+ * Called by makeXmlSlide() in xml/package.ts
  * 
  * @param {SlideObjectAnimation[]} animations - array of shape animations
  * @returns complete timing XML block to insert into slide XML

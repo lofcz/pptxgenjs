@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Merged NEOMA `@neo-ma/pptxgenjs` 4.1.0: OOXML package-contract tests, LibreOffice consumer CI, combo-scatter value axes, italic chart titles, image contain sizing, fractional HTML table borders, and scatter category label positions.
+- Restored the NEOMA OOXML split (`src/xml/*`, `src/charts/*`) so future upstream merges land on the same files.
 
 ### Fixed
 
