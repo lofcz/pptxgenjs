@@ -50,7 +50,7 @@ test('e2e: Content_Types declares the slide part', async () => {
 	const types = await zip.file('[Content_Types].xml')!.async('string')
 	assert.ok(
 		types.includes('PartName="/ppt/slides/slide1.xml"'),
-		'[Content_Types].xml must Override /ppt/slides/slide1.xml or PowerPoint reports corruption'
+		'ECMA-376 §13.3.8: [Content_Types].xml must Override /ppt/slides/slide1.xml as presentationml.slide+xml'
 	)
 })
 

@@ -1078,7 +1078,7 @@ test('animations: slide timing XML is emitted for text/shape/image (BapunHansdah
 	assert.ok(xml.trimEnd().endsWith('</p:sld>'), 'timing must be inside p:sld')
 })
 
-test('Content_Types: every slide part has an Override (missing entries corrupt PowerPoint)', async () => {
+test('Content_Types: every slide part has an Override (ECMA-376 §13.3.8 slide+xml)', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addText('one', { x: 0.5, y: 0.5, w: 4, h: 1 })
 	pptx.addSlide().addText('two', { x: 0.5, y: 0.5, w: 4, h: 1 })

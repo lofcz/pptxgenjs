@@ -27,8 +27,12 @@ type XmlObject = Record<string, unknown>
 type Relationship = {
 	id: string
 	target: string
+	type?: string
 	targetMode?: string
 }
+
+const SLIDE_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
+const SLIDE_RELATIONSHIP_SUFFIX = '/relationships/slide'
 
 /** Read a generated OOXML part and fail with its package path when it is absent. */
 export async function readPart (zip: JSZip, name: string): Promise<string> {
@@ -113,11 +117,13 @@ function relationshipsFromXml (xml: string, name: string): Relationship[] {
 	return asXmlObjects(relationships.Relationship).map(entry => {
 		const id = entry['@_Id']
 		const target = entry['@_Target']
+		const type = entry['@_Type']
 		const targetMode = entry['@_TargetMode']
 		assert.equal(typeof id, 'string', `relationship without Id in ${name}`)
 		assert.equal(typeof target, 'string', `relationship without Target in ${name}`)
+		assert.ok(type === undefined || typeof type === 'string', `invalid Type in ${name}`)
 		assert.ok(targetMode === undefined || typeof targetMode === 'string', `invalid TargetMode in ${name}`)
-		return { id, target, targetMode }
+		return { id, target, type: typeof type === 'string' ? type : undefined, targetMode }
 	})
 }
 
@@ -176,8 +182,66 @@ async function assertOoxmlPackageContracts (zip: JSZip, requiredParts: string[])
 	}
 }
 
+async function assertPresentationSlideList (zip: JSZip): Promise<void> {
+	const contentTypes = parseXml(await readPart(zip, '[Content_Types].xml'), '[Content_Types].xml')
+	const types = contentTypes.Types
+	assert.ok(isXmlObject(types), 'missing Types root in [Content_Types].xml')
+
+	const slideOverrides = new Set<string>()
+	for (const entry of asXmlObjects(types.Override)) {
+		if (entry['@_ContentType'] !== SLIDE_CONTENT_TYPE) continue
+		const partName = entry['@_PartName']
+		assert.equal(typeof partName, 'string', 'slide Override without PartName')
+		slideOverrides.add(partName.replace(/^\//, ''))
+	}
+
+	const slideParts = Object.keys(zip.files)
+		.filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+		.sort((a, b) => {
+			const n1 = Number(/slide(\d+)\.xml/.exec(a)?.[1] || 0)
+			const n2 = Number(/slide(\d+)\.xml/.exec(b)?.[1] || 0)
+			return n1 - n2
+		})
+	for (const partName of slideParts) {
+		assert.ok(
+			slideOverrides.has(partName),
+			`ECMA-376 §13.3.8: ${partName} must Override as ${SLIDE_CONTENT_TYPE}`
+		)
+	}
+
+	const presentation = parseXml(await readPart(zip, 'ppt/presentation.xml'), 'ppt/presentation.xml')
+	const presentationRoot = presentation['p:presentation']
+	assert.ok(isXmlObject(presentationRoot), 'missing p:presentation')
+	const sldIdLst = presentationRoot['p:sldIdLst']
+	const sldIds = isXmlObject(sldIdLst) ? asXmlObjects(sldIdLst['p:sldId']) : []
+	assert.equal(sldIds.length, slideParts.length, 'p:sldIdLst count must match slide parts')
+
+	const rels = relationshipsFromXml(await readPart(zip, 'ppt/_rels/presentation.xml.rels'), 'ppt/_rels/presentation.xml.rels')
+	const relById = new Map(rels.map(rel => [rel.id, rel]))
+	const orderedTargets: string[] = []
+	for (const sldId of sldIds) {
+		const rid = sldId['@_r:id']
+		assert.equal(typeof rid, 'string', 'p:sldId missing r:id (ECMA-376 §4.3.1.29)')
+		if (typeof rid !== 'string') continue
+		const rel = relById.get(rid)
+		assert.ok(rel, `p:sldId r:id ${rid} has no presentation relationship`)
+		if (!rel) continue
+		assert.ok(
+			typeof rel.type === 'string' && rel.type.endsWith(SLIDE_RELATIONSHIP_SUFFIX),
+			`relationship ${rid} must be a slide relationship, got ${rel.type ?? '(none)'}`
+		)
+		assert.notEqual(rel.targetMode, 'External', `slide relationship ${rid} must be Internal (ECMA-376 §13.3.8)`)
+		const target = resolveTarget('ppt/presentation.xml', rel.target)
+		assert.ok(zip.file(target), `slide relationship ${rid} target missing: ${target}`)
+		orderedTargets.push(target)
+	}
+
+	assert.deepEqual(orderedTargets, slideParts, 'generated p:sldIdLst order must match slide1..N parts')
+}
+
 export async function assertPptxPackageContracts (zip: JSZip): Promise<void> {
 	await assertOoxmlPackageContracts(zip, REQUIRED_PPTX_PARTS)
+	await assertPresentationSlideList(zip)
 }
 
 export async function assertXlsxPackageContracts (zip: JSZip): Promise<void> {

@@ -59,8 +59,11 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 	// NOTE: Only one slideMaster (slideMaster1.xml) is ever written (see pptxgen.ts), so emit its Override once — NOT once per slide, which referenced phantom slideMaster parts and triggered the PowerPoint repair dialog (#1444)
 	strXml += '<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>'
 
-	// Each slide part needs its own Override. Omitting these makes PowerPoint treat the package as corrupt
-	// (repair dialog / dropped content). Keep this in sync with the single slideMaster Override above.
+	// ECMA-376 Part 2 §9.1.2.2 [M2.4]: every part needs Default and/or Override (Override wins).
+	// Default Extension="xml" is application/xml, which is not the Slide part content type
+	// (Part 1 §13.3.8: application/vnd.openxmlformats-officedocument.presentationml.slide+xml).
+	// Override is required because that Default is "not consistent with" the part (§9.1.2.2).
+	// Omitting it makes PowerPoint treat the package as corrupt (repair dialog / dropped content).
 	slides.forEach((slide, idx) => {
 		strXml += `<Override PartName="/ppt/slides/slide${idx + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`
 		// Add charts if any
@@ -473,16 +476,18 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
 	// STEP 1: Add slide master (SPEC: tag 1 under <presentation>)
 	strXml += '<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>'
 
-	// STEP 2: Add all Slides (SPEC: tag 3 under <presentation>)
+	// ECMA-376 §4.3.1.30: sldIdLst is the presentation's slide list; child order is viewing order.
+	// §4.3.1.29: @id is ST_SlideId (unique in the presentation); @r:id resolves the Slide part
+	// via the Presentation relationship of type .../relationships/slide (§13.3.8).
+	// MS-PPTX section lists (p14:sldIdLst) reference those ST_SlideId values, not r:id.
 	strXml += '<p:sldIdLst>'
 	pres.slides.forEach(slide => (strXml += `<p:sldId id="${slide._slideId}" r:id="rId${slide._rId}"/>`))
 	strXml += '</p:sldIdLst>'
 
-	// STEP 3: Add Notes Master (SPEC: tag 2 under <presentation>)
+	// CT_Presentation sequence is sldMasterIdLst, notesMasterIdLst, handoutMasterIdLst, sldIdLst.
+	// Office warns if notesMasterIdLst is placed in that schema position, so emit it after sldIdLst.
 	// (NOTE: length+2 is from `presentation.xml.rels` func (since we have to match this rId, we just use same logic))
-	// IMPORTANT: In this order (matches PPT2019) PPT will give corruption message on open!
-	// IMPORTANT: Placing this before `<p:sldIdLst>` causes warning in modern powerpoint!
-	// IMPORTANT: Presentations open without warning Without this line, however, the pres isnt preview in Finder anymore or viewable in iOS!
+	// Presentations open without warning without this line, but then they aren't previewed in Finder or viewable on iOS.
 	strXml += `<p:notesMasterIdLst><p:notesMasterId r:id="rId${pres.slides.length + 2}"/></p:notesMasterIdLst>`
 
 	// STEP 4: Add sizes
