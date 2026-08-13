@@ -5,12 +5,9 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
 	title: 'PptxGenJS · NEOMA',
 	description: 'Create PowerPoint presentations with JavaScript. NEOMA-maintained fork of PptxGenJS.',
-	base: '/PptxGenJS/',
+	base: '/',
 	head: [
-		['link', { rel: 'icon', type: 'image/svg+xml', href: '/PptxGenJS/neoma-icon.svg' }],
-		['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
-		['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
-		['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap' }],
+		['link', { rel: 'icon', type: 'image/svg+xml', href: '/neoma-icon.svg' }],
 	],
 	themeConfig: {
 		logo: { light: '/neoma-icon.svg', dark: '/neoma-icon-dark.svg' },
@@ -75,12 +72,18 @@ export default defineConfig({
 					{ text: 'Deprecated Features', link: '/deprecated' },
 				],
 			},
+			{
+				text: 'Maintainers',
+				collapsed: true,
+				items: [{ text: 'Rendering Architecture', link: '/maintainer-rendering' }],
+			},
 		],
 		socialLinks: [{ icon: 'github', link: 'https://github.com/NeomaVerwaltung/PptxGenJS' }],
 		search: { provider: 'local' },
 		outline: { level: [2, 3] },
 		footer: {
-			message: 'Released under the MIT License.',
+			message:
+				'Released under the MIT License. · <a href="https://www.neo-ma.de/impressum">Impressum</a> · <a href="https://www.neo-ma.de/datenschutz">Datenschutz</a>',
 			copyright: 'Copyright © 2015-present Brent Ely · © 2026-present NEOMA GmbH',
 		},
 		editLink: {

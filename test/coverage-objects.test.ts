@@ -1,22 +1,15 @@
 /**
- * PptxGenJS: Snapshot coverage for the object types the other suites never touch (issue #40)
+ * PptxGenJS: Semantic coverage for the object types the other suites never touch (issue #40)
  * Covers: the remaining chart types (scatter, bubble, radar, doughnut, 3D bar, multi-type),
  * gen-media (audio, video, online video), slide masters/layouts/placeholders, auto-paged
  * tables, sections, and shape outlines/shadows.
- * Update goldens after an intentional change: `UPDATE_SNAPSHOTS=1 npm test`
- *
  * Run with: `npm test` (node built-in test runner + tsx)
  */
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
 import { JSZip } from '@node-projects/jszip'
-import { XMLValidator } from 'fast-xml-parser'
 import pptxgen from '../src/pptxgen'
-
-const SNAP_DIR = join(dirname(fileURLToPath(import.meta.url)), '__snapshots__')
+import { assertEmbeddedXlsxContracts, assertPptxPackageContracts, readPart } from './pptx-contracts'
 
 /** 1x1 transparent PNG (deterministic image payload) */
 const PNG_1x1 =
@@ -24,24 +17,6 @@ const PNG_1x1 =
 /** not a playable file - the generators only ever copy the bytes through */
 const MP3 = 'audio/mp3;base64,QQ=='
 const MP4 = 'video/mp4;base64,QQ=='
-
-function normalize (xml: string): string {
-	return xml
-		.replace(/\r\n/g, '\n')
-		.replace(/\{[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\}/g, '{GUID}')
-		.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/g, 'DATE')
-}
-
-function matchSnapshot (name: string, actual: string): void {
-	const file = join(SNAP_DIR, name)
-	const norm = normalize(actual)
-	if (process.env.UPDATE_SNAPSHOTS || !existsSync(file)) {
-		mkdirSync(SNAP_DIR, { recursive: true })
-		writeFileSync(file, norm)
-		return
-	}
-	assert.equal(norm, normalize(readFileSync(file, 'utf8')), `snapshot mismatch for ${name} - run \`UPDATE_SNAPSHOTS=1 npm test\` if the change is intended`)
-}
 
 let zip: JSZip
 let slideCount = 0
@@ -125,72 +100,74 @@ before(async () => {
 	zip = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
 })
 
-async function part (name: string): Promise<string> {
-	const file = zip.file(name)
-	assert.ok(file, `missing part: ${name}`)
-	return await file.async('string')
-}
-
 for (const type of ['scatter', 'bubble', 'radar', 'doughnut', 'bar3d', 'multi']) {
 	test(`coverage: ${type} chart xml`, async () => {
-		matchSnapshot(`cov-chart-${type}.xml`, await part(chartParts[type]))
+		const xml = await readPart(zip, chartParts[type])
+		if (type === 'multi') {
+			assert.match(xml, /<c:barChart>/, 'multi chart is missing its bar series')
+			assert.match(xml, /<c:lineChart>/, 'multi chart is missing its line series')
+			return
+		}
+		const chartTag = type === 'bar3d' ? 'bar3DChart' : `${type}Chart`
+		assert.match(xml, new RegExp(`<c:${chartTag}>`), `${type} chart type missing`)
 	})
 }
 
 test('coverage: media slide xml (audio + video + online video)', async () => {
-	const xml = await part('ppt/slides/slide7.xml')
+	const xml = await readPart(zip, 'ppt/slides/slide7.xml')
 	// ECMA-376: audio → a:audioFile; video/online → a:videoFile. Embedded media also get p14:media.
 	assert.equal([...xml.matchAll(/<a:audioFile /g)].length, 1, 'expected one audioFile')
 	assert.equal([...xml.matchAll(/<a:videoFile /g)].length, 2, 'expected two videoFiles (video + online)')
 	assert.equal([...xml.matchAll(/<p14:media /g)].length, 2, 'expected two embedded media (online video is linked, not embedded)')
-	matchSnapshot('cov-media.xml', xml)
 })
 
 test('coverage: media parts and content types registered', async () => {
-	const types = await part('[Content_Types].xml')
+	const types = await readPart(zip, '[Content_Types].xml')
 	assert.match(types, /Extension="mp3"/, 'mp3 content type missing')
 	assert.match(types, /Extension="mp4"/, 'mp4 content type missing')
 	assert.ok(zip.file(/ppt\/media\/.*\.mp3$/).length > 0, 'mp3 media part missing')
 	assert.ok(zip.file(/ppt\/media\/.*\.mp4$/).length > 0, 'mp4 media part missing')
 
-	const rels = await part('ppt/slides/_rels/slide7.xml.rels')
+	const rels = await readPart(zip, 'ppt/slides/_rels/slide7.xml.rels')
 	assert.match(rels, /youtube\.com/, 'online video link missing from rels')
 })
 
 test('coverage: slide master xml (shapes + placeholder + slide number)', async () => {
-	matchSnapshot('cov-master.xml', await part('ppt/slideMasters/slideMaster1.xml'))
+	const xml = await readPart(zip, 'ppt/slideMasters/slideMaster1.xml')
+	assert.match(xml, /<p:sldMaster/, 'slide master missing')
+	assert.match(xml, /type="sldNum"/, 'slide number placeholder missing')
 })
 
 test('coverage: slide layout xml', async () => {
 	const layouts = zip.file(/ppt\/slideLayouts\/slideLayout\d+\.xml$/)
 	assert.ok(layouts.length > 0, 'no slide layouts emitted')
-	matchSnapshot('cov-layout.xml', await layouts[layouts.length - 1].async('string'))
+	const xml = await layouts[layouts.length - 1].async('string')
+	assert.match(xml, /<p:sldLayout/, 'slide layout root missing')
+	assert.match(xml, /<p:ph[^>]*type="body"/, 'body placeholder missing')
 })
 
 test('coverage: shape outline + shadow xml', async () => {
-	const xml = await part('ppt/slides/slide8.xml')
+	const xml = await readPart(zip, 'ppt/slides/slide8.xml')
 	assert.ok(xml.includes('<a:prstDash val="dash"/>'), 'shape outline dash missing')
 	assert.ok(xml.includes('<a:outerShdw'), 'shape shadow missing')
-	matchSnapshot('cov-shape-line-shadow.xml', xml)
 })
 
 test('coverage: sections are emitted', async () => {
-	const pres = await part('ppt/presentation.xml')
+	const pres = await readPart(zip, 'ppt/presentation.xml')
 	assert.match(pres, /<p14:section name="Charts"/, 'section not emitted')
 })
 
 test('coverage: auto-paged table spans multiple slides with a repeated header', async () => {
 	// slides 1-8 are fixed above, so anything beyond that came from auto-paging
 	assert.ok(slideCount > 9, `auto-paging produced no extra slides (total ${slideCount})`)
-	const pages = await Promise.all(Array.from({ length: slideCount - 8 }, async (_x, idx) => await part(`ppt/slides/slide${idx + 9}.xml`)))
+	const pages = await Promise.all(Array.from({ length: slideCount - 8 }, async (_x, idx) => await readPart(zip, `ppt/slides/slide${idx + 9}.xml`)))
 	assert.ok(pages.length > 1, 'table did not auto-page')
 	assert.ok(pages.filter(xml => xml.includes('Row 0')).length > 1, '`autoPageRepeatHeader` did not repeat the header row onto later pages')
 	// cell text is emitted one word per run, so the row index lands in its own `a:t`
 	assert.ok(pages[pages.length - 1].includes('<a:t>59</a:t>'), 'last table row missing from the last page')
 })
 
-test('coverage: all XML parts well-formed', async () => {
-	for (const name of Object.keys(zip.files).filter(name => name.endsWith('.xml') || name.endsWith('.rels'))) {
-		assert.equal(XMLValidator.validate(await part(name)), true, `malformed XML in ${name}`)
-	}
+test('coverage: package contracts hold', async () => {
+	await assertPptxPackageContracts(zip)
+	await assertEmbeddedXlsxContracts(zip)
 })

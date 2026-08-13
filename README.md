@@ -6,15 +6,16 @@ Fork of [PptxGenJS](https://github.com/gitbrent/PptxGenJS) published as [`@lofcz
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/lofcz/PptxGenJS?style=flat-square)
 ![GitHub License](https://img.shields.io/github/license/lofcz/PptxGenJS?style=flat-square)
+[![npm version](https://img.shields.io/npm/v/%40lofcz/pptxgenjs?style=flat-square)](https://www.npmjs.com/package/@lofcz/pptxgenjs)
 
-PptxGenJS is a JavaScript library for generating PowerPoint presentations programmatically. It runs in Node.js, browsers, and bundler-based environments (React, Angular, Vite, Webpack, Electron), and requires no PowerPoint installation or license. Output is standards-compliant Open Office XML (OOXML), compatible with Microsoft PowerPoint, Apple Keynote, LibreOffice Impress, and Google Slides (via import).
+PptxGenJS is a JavaScript library for generating PowerPoint presentations programmatically. It runs in Node.js, browsers, and bundler-based environments (React, Angular, Vite, Webpack, Electron), and requires no PowerPoint installation or license. Output is standards-compliant [Open Office XML (OOXML)](https://ecma-international.org/publications-and-standards/standards/ecma-376/), compatible with Microsoft PowerPoint, Apple Keynote, LibreOffice Impress, and Google Slides (via import). For PowerPoint-specific behavior, see Microsoft's [Office implementation notes](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oi29500/1fd4a662-8623-49c0-82f0-18fa91b413b8).
 
 ## About this fork
 
 This repository is a fork of [gitbrent/PptxGenJS](https://github.com/gitbrent/PptxGenJS), maintained for the PPTist / ScioBot stack and published as `@lofcz/pptxgenjs`. It tracks hardening work from [NEOMA GmbH](https://neo-ma.de)'s distribution (`@neo-ma/pptxgenjs`):
 
 - **Strict null-safety** — the entire source compiles under TypeScript `strictNullChecks` with zero non-null assertions (`!`) and zero unchecked `as` casts; null-safety is enforced through explicit types, guard clauses, and validated defaults
-- **Continuous integration** — unit, end-to-end, and golden-file OOXML snapshot tests run on Node.js 20 and 22
+- **Continuous integration** — unit, end-to-end, OOXML package-contract tests, and an optional LibreOffice consumer check run on Node.js 20 and 22
 - **Security** — no known vulnerabilities in the published package, and a published [security policy](SECURITY.md)
 
 The public API remains compatible with upstream PptxGenJS; existing code and documentation continue to apply.

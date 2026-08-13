@@ -88,7 +88,7 @@ The fork keeps the same version line and API surface, and adds:
   - matching close tag for the inner-shadow effect,
   - XML-encoded company name in `app.xml`,
   - dropped phantom `slideMaster` overrides and corrected JPEG MIME type.
-- A **modern build and test suite** (Rollup ESM/CJS builds, typechecks, unit/e2e/snapshot tests run in CI).
+- A **modern build and test suite** (Rollup ESM/CJS builds, typechecks, unit/e2e/package-contract tests run in CI).
 - This **documentation site**, maintained in-repo so it tracks the code.
 
 There are no known breaking API changes relative to `pptxgenjs` 4.x. If you encounter a difference in

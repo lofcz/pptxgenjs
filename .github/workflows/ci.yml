@@ -17,3 +17,17 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run build
+
+  office-consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - name: Install LibreOffice Impress
+        run: sudo apt-get update && sudo apt-get install --yes libreoffice-impress
+      - name: Open generated presentation in LibreOffice
+        run: PPTXGENJS_OFFICE_BIN=libreoffice npm run test:office

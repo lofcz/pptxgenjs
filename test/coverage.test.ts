@@ -1,44 +1,19 @@
 /**
- * PptxGenJS: Extended snapshot + e2e coverage for the XML generators.
- * Exercises code paths the base snapshot does not: table cell colspan/rowspan and
+ * PptxGenJS: Extended semantic + e2e coverage for the XML generators.
+ * Exercises code paths the core contracts do not: table cell colspan/rowspan and
  * per-cell options (gen-tables), hyperlinks (gen-objects createHyperlinkRels),
  * images, speaker notes, and pie/line charts (gen-charts).
- * Update goldens after an intentional change: `UPDATE_SNAPSHOTS=1 npm test`
- *
  * Run with: `npm test` (node built-in test runner + tsx)
  */
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { dirname, join } from 'node:path'
 import { JSZip } from '@node-projects/jszip'
-import { XMLValidator } from 'fast-xml-parser'
 import pptxgen from '../src/pptxgen'
-
-const SNAP_DIR = join(dirname(fileURLToPath(import.meta.url)), '__snapshots__')
+import { assertEmbeddedXlsxContracts, assertPptxPackageContracts, readPart } from './pptx-contracts'
 
 // 1x1 transparent PNG (deterministic image payload)
 const PNG_1x1 =
 	'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-
-function normalize (xml: string): string {
-	return xml
-		.replace(/\r\n/g, '\n')
-		.replace(/\{[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\}/g, '{GUID}')
-		.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/g, 'DATE')
-}
-
-function matchSnapshot (name: string, actual: string): void {
-	const file = join(SNAP_DIR, name)
-	const norm = normalize(actual)
-	if (process.env.UPDATE_SNAPSHOTS || !existsSync(file)) {
-		mkdirSync(SNAP_DIR, { recursive: true })
-		writeFileSync(file, norm)
-		return
-	}
-	assert.equal(norm, normalize(readFileSync(file, 'utf8')), `snapshot mismatch for ${name} - run \`UPDATE_SNAPSHOTS=1 npm test\` if the change is intended`)
-}
 
 let zip: JSZip
 
@@ -81,11 +56,16 @@ before(async () => {
 })
 
 test('coverage: table slide with colspan/rowspan + cell options', async () => {
-	matchSnapshot('cov-table.xml', await zip.file('ppt/slides/slide1.xml')!.async('string'))
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.match(xml, /gridSpan="2"/, 'colspan was not emitted')
+	assert.match(xml, /rowSpan="2"/, 'rowspan was not emitted')
+	assert.match(xml, /<a:tcPr[^>]*anchor="ctr"/, 'vertical alignment was not emitted')
 })
 
 test('coverage: hyperlink + image slide', async () => {
-	matchSnapshot('cov-link-image.xml', await zip.file('ppt/slides/slide2.xml')!.async('string'))
+	const xml = await readPart(zip, 'ppt/slides/slide2.xml')
+	assert.match(xml, /<a:hlinkClick r:id="rId\d+"/, 'hyperlink click action missing')
+	assert.match(xml, /<p:pic>/, 'image missing')
 })
 
 test('coverage: hyperlink relationship emitted', async () => {
@@ -100,17 +80,14 @@ test('coverage: speaker notes part emitted', async () => {
 })
 
 test('coverage: pie chart xml', async () => {
-	matchSnapshot('cov-pie.xml', await zip.file('ppt/charts/chart1.xml')!.async('string'))
+	assert.match(await readPart(zip, 'ppt/charts/chart1.xml'), /<c:pieChart>/, 'pie chart missing')
 })
 
 test('coverage: line chart xml', async () => {
-	matchSnapshot('cov-line.xml', await zip.file('ppt/charts/chart2.xml')!.async('string'))
+	assert.match(await readPart(zip, 'ppt/charts/chart2.xml'), /<c:lineChart>/, 'line chart missing')
 })
 
-test('coverage: all XML parts well-formed', async () => {
-	const xmlParts = Object.keys(zip.files).filter(name => name.endsWith('.xml') || name.endsWith('.rels'))
-	for (const name of xmlParts) {
-		const content = await zip.file(name)!.async('string')
-		assert.equal(XMLValidator.validate(content), true, `malformed XML in ${name}`)
-	}
+test('coverage: package contracts hold', async () => {
+	await assertPptxPackageContracts(zip)
+	await assertEmbeddedXlsxContracts(zip)
 })

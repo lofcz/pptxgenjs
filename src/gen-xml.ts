@@ -885,8 +885,11 @@ function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					const boxH = sizing.h ? getSmartParseNumber(sizing.h, 'Y', slide._presLayout) : cy
 					const boxX = getSmartParseNumber(sizing.x || 0, 'X', slide._presLayout)
 					const boxY = getSmartParseNumber(sizing.y || 0, 'Y', slide._presLayout)
+					const sourceSize = sizing.type !== 'crop' && typeof slideItemObj.options.w === 'number' && typeof slideItemObj.options.h === 'number'
+						? { w: slideItemObj.options.w, h: slideItemObj.options.h }
+						: { w: imgWidth, h: imgHeight }
 
-					strSlideXml += ImageSizingXml[sizing.type]({ w: imgWidth, h: imgHeight }, { w: boxW, h: boxH, x: boxX, y: boxY })
+					strSlideXml += ImageSizingXml[sizing.type](sourceSize, { w: boxW, h: boxH, x: boxX, y: boxY })
 					// ECMA-376 §5.1.10.55: `srcRect` crops the source blip; the `<a:ext>` frame is the independent
 					// on-slide bounding box. Only `cover`/`contain` resize the frame to the fitted box. For `crop`
 					// the frame must keep the user's w/h container - collapsing it to the crop box (or 0) breaks

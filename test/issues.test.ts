@@ -10,6 +10,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
+import { genTableToSlides } from '../src/gen-tables'
 
 /** 4x2 px PNG - non-square on purpose, so a 1x1 inch default is obvious */
 const PNG_4x2 = 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAADklEQVR4nGP4jwQYkDkANvEX6SAXxcIAAAAASUVORK5CYII='
@@ -82,6 +83,20 @@ test('shape effectLst merges glow, softEdge, and reflection without mutating opt
 	assert.equal(reflection.direction, 90, 'caller reflection options were mutated')
 })
 
+test('#1083: rich text writes one paragraph-properties element per paragraph', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText([
+		{ text: 'Normal ' },
+		{ text: 'bold', options: { bold: true } },
+		{ text: ' normal' },
+	], { x: 1, y: 1, w: 4, h: 1, bullet: { type: 'bullet' } })
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const paragraph = xml.match(/<a:p>[\s\S]*?<\/a:p>/)?.[0] ?? ''
+	assert.equal((paragraph.match(/<a:pPr/g) ?? []).length, 1, 'rich text emitted multiple paragraph-properties elements')
+	assert.ok(paragraph.includes('<a:t>bold</a:t>'), 'rich-text runs were not preserved')
+})
+
 test('#18: slide master name is XML-escaped', async () => {
 	const pptx = new pptxgen()
 	pptx.defineSlideMaster({ title: 'R&D "Q3" Master', objects: [] })
@@ -89,6 +104,18 @@ test('#18: slide master name is XML-escaped', async () => {
 
 	const xml = await readPart(await writeZip(pptx), 'ppt/slideMasters/slideMaster1.xml')
 	assert.ok(!/name="[^"]*&(?!amp;|quot;|lt;|gt;|apos;)/.test(xml), 'unescaped entity in cSld name')
+})
+
+test('#1443: notes master has no placeholder shapes PowerPoint repairs away', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addNotes('Speaker notes')
+
+	const zip = await writeZip(pptx)
+	const notesMaster = await readPart(zip, 'ppt/notesMasters/notesMaster1.xml')
+	const notesSlide = await readPart(zip, 'ppt/notesSlides/notesSlide1.xml')
+	assert.doesNotMatch(notesMaster, /<p:sp>/, 'notes master contains invalid placeholder shapes')
+	assert.match(notesMaster, /<p:spTree>[\s\S]*<\/p:spTree>/, 'notes master is missing its shape tree')
+	assert.match(notesSlide, /Speaker notes/, 'speaker notes were not preserved')
 })
 
 test('#21/#23: bubble chart workbook keeps zeros and has a valid table ref', async () => {
@@ -143,6 +170,19 @@ test('#38: multi-level category chart writes a coherent worksheet', async () => 
 	assert.ok(sheet.includes('<mergeCell ref="A2:A4"/>') && sheet.includes('<mergeCell ref="A5:A7"/>'), 'outer label rows were not merged')
 })
 
+test('#1466: flat categories use strRef while multi-level categories keep multiLvlStrRef', async () => {
+	const flat = new pptxgen()
+	flat.addSlide().addChart(flat.ChartType.bar, [{ name: 'Sales', labels: ['Q1', 'Q2'], values: [10, 20] }], { x: 1, y: 1, w: 6, h: 4 })
+	const flatChart = await readChart(await writeZip(flat))
+	assert.match(flatChart, /<c:cat>\s*<c:strRef>/, 'flat categories were not written as strRef')
+	assert.doesNotMatch(flatChart, /<c:multiLvlStrRef>/, 'flat categories used a multi-level reference')
+
+	const multiLevel = new pptxgen()
+	multiLevel.addSlide().addChart(multiLevel.ChartType.bar, [{ name: 'Sales', labels: [['Q1', 'Q2'], ['2026', '']], values: [10, 20] }], { x: 1, y: 1, w: 6, h: 4 })
+	const multiLevelChart = await readChart(await writeZip(multiLevel))
+	assert.match(multiLevelChart, /<c:cat>\s*<c:multiLvlStrRef>/, 'multi-level categories no longer use multiLvlStrRef')
+})
+
 test('#25: multi-type chart honors the options argument', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addChart(
@@ -155,6 +195,28 @@ test('#25: multi-type chart honors the options argument', async () => {
 	assert.ok(chart.includes('<c:legend>'), 'options argument was discarded')
 })
 
+test('#1188: pie chart titles support italic text', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.pie, [{ name: 'Sales', labels: ['Q1'], values: [1] }], {
+		x: 1, y: 1, w: 4, h: 3, showTitle: true, title: 'Sales', titleItalic: true,
+	})
+
+	const title = (await readChart(await writeZip(pptx))).match(/<c:title>[\s\S]*?<\/c:title>/)?.[0] ?? ''
+	assert.match(title, /<a:rPr[^>]* i="1"/, 'pie title italic was not emitted')
+})
+
+test('#1355: a scatter chart keeps a value x-axis in a combo chart', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart([
+		{ type: pptx.ChartType.bar, data: [{ name: 'Bars', labels: ['Mon', 'Tue'], values: [17, 26] }], options: { barDir: 'bar' } },
+		{ type: pptx.ChartType.scatter, data: [{ name: 'X', labels: ['Mon', 'Tue'], values: [1, 2] }, { name: 'Y', labels: ['Mon', 'Tue'], values: [25, 35] }], options: { secondaryValAxis: true, secondaryCatAxis: true } },
+	], { x: 1, y: 1, w: 6, h: 3, valAxes: [{}, {}], catAxes: [{}, {}] })
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.equal((chart.match(/<c:catAx>/g) ?? []).length, 1, 'scatter x-axis was emitted as a category axis')
+	assert.equal((chart.match(/<c:valAx>/g) ?? []).length, 3, 'scatter combo chart is missing a value axis')
+})
+
 test('#26: serAxisLabelPos is honored', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addChart(pptx.ChartType.bar3d, [{ name: 'Sales', labels: ['Q1', 'Q2'], values: [1, 2] }], {
@@ -163,6 +225,16 @@ test('#26: serAxisLabelPos is honored', async () => {
 
 	const chart = await readChart(await writeZip(pptx))
 	assert.ok(chart.includes('val="high"'), 'serAxisLabelPos was ignored')
+})
+
+test('#976: scatter charts honor catAxisLabelPos', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.scatter, [
+		{ name: 'X', values: [1, 2] },
+		{ name: 'Y', values: [3, 4] },
+	], { x: 1, y: 1, w: 4, h: 3, catAxisLabelPos: 'low' })
+
+	assert.ok((await readChart(await writeZip(pptx))).includes('<c:tickLblPos val="low"/>'), 'scatter category-axis label position was ignored')
 })
 
 test('#34: image without w/h is sized from the image itself', async () => {
@@ -176,6 +248,18 @@ test('#34: image without w/h is sized from the image itself', async () => {
 	// 4x2 px at 96 DPI = 0.0417 x 0.0208 inch; 1 inch = 914400 EMU
 	assert.equal(Number(ext[1]), Math.round((4 / 96) * 914400))
 	assert.equal(Number(ext[2]), Math.round((2 / 96) * 914400))
+})
+
+test('#1286: contain sizing preserves the ratio of mixed pixel dimensions', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addImage({
+		data: PNG_4x2,
+		x: '19%', y: '54%', w: 2899, h: 97,
+		sizing: { type: 'contain', w: '36%', h: '3%' },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<a:srcRect l="0" r="0" t="-20047" b="-20047"/>'), 'contain sizing mixed image units and produced invalid crop XML')
 })
 
 test('#39: auto-paged tables account for cell margins', async () => {
@@ -226,6 +310,23 @@ test('#1231: rowspan + autoPage keeps column alignment on overflow slides', asyn
 	}
 })
 
+test('#1472: auto-paging one table does not move a sibling table', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	const options = { x: 0.5, y: 3.5, w: 4, autoPage: true }
+
+	slide.addTable(Array.from({ length: 20 }, (_, idx) => [`Long table row ${idx}`]), options)
+	options.x = 5
+	slide.addTable([['Short table row 1'], ['Short table row 2']], options)
+
+	assert.equal(pptx.slides.length, 2, 'the long table did not create a second slide')
+	assert.equal(options.y, 3.5, 'auto-paging mutated the shared table position')
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const secondTable = /<p:graphicFrame>[\s\S]*?<p:cNvPr[^>]*name="Table 1"[\s\S]*?<\/p:graphicFrame>/.exec(xml)?.[0] ?? ''
+	assert.ok(secondTable.includes(`<a:off x="${5 * 914400}" y="${3.5 * 914400}"/>`), 'the second table was not kept at its requested position')
+})
+
 test('#29: BorderProps accepts `width` (points) alongside the deprecated `pt`', async () => {
 	const cellXml = async (border: Record<string, unknown>): Promise<string> => {
 		const pptx = new pptxgen()
@@ -235,6 +336,45 @@ test('#29: BorderProps accepts `width` (points) alongside the deprecated `pt`', 
 
 	assert.equal(await cellXml({ color: 'FF0000', width: 3 }), await cellXml({ color: 'FF0000', pt: 3 }), '`width` and `pt` produced different borders')
 	assert.ok((await cellXml({ color: 'FF0000', width: 3 })).includes('w="38100"'), '3pt border not emitted')
+})
+
+test('#1235: HTML table conversion preserves fractional border widths', async () => {
+	class Cell {
+		innerText = 'A'
+		offsetWidth = 100
+		getAttribute (): null { return null }
+	}
+	class Row {
+		cells = [new Cell()]
+	}
+	const cell = new Cell()
+	const row = new Row()
+	const globals = globalThis as unknown as Record<string, unknown>
+	const original = Object.fromEntries(['document', 'window', 'HTMLTableCellElement', 'HTMLTableRowElement'].map(key => [key, globals[key]]))
+	const styles: Record<string, string> = {
+		'background-color': 'rgba(0, 0, 0, 0)', 'border-bottom-color': 'rgb(0, 0, 0)', 'border-bottom-width': '0px',
+		'border-left-color': 'rgb(0, 0, 0)', 'border-left-width': '0.25px', 'border-right-color': 'rgb(0, 0, 0)', 'border-right-width': '0px',
+		'border-top-color': 'rgb(0, 0, 0)', 'border-top-width': '0px', color: 'rgb(0, 0, 0)', 'font-family': 'Arial', 'font-size': '12px',
+		'font-weight': 'normal', 'padding-bottom': '0px', 'padding-left': '0px', 'padding-right': '0px', 'padding-top': '0px', 'text-align': 'left', 'vertical-align': 'top',
+	}
+	Object.assign(globals, {
+		document: {
+			getElementById: () => ({}),
+			querySelector: () => null,
+			querySelectorAll: (selector: string) => selector === '#table tr:first-child td' ? [cell] : selector === '#table tbody tr' ? [row] : [],
+		},
+		window: { getComputedStyle: () => ({ getPropertyValue: (name: string) => styles[name] ?? '' }) },
+		HTMLTableCellElement: Cell,
+		HTMLTableRowElement: Row,
+	})
+
+	try {
+		const pptx = new pptxgen()
+		genTableToSlides(pptx, 'table', { w: 4 })
+		assert.ok((await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')).includes('<a:lnL w="3175"'), 'fractional CSS border was rounded')
+	} finally {
+		Object.assign(globals, original)
+	}
 })
 
 test('#29: defineLayout accepts `w`/`h` as aliases of `width`/`height`', () => {
@@ -1014,6 +1154,25 @@ test('mikemeerschaert/fix-inconsistent-margins: text margin array is TRBL', asyn
 	assert.ok(bodyPr.includes('lIns="254000"'), `expected left inset for 20pt, got ${bodyPr}`)
 	// Must NOT swap top/left the old LRBT way (which would put 10 on left and 20 on top)
 	assert.ok(!bodyPr.includes('tIns="254000"'), 'top must not receive the left value (old LRBT bug)')
+})
+
+test('guiwoda/fix-text-margin-trbl: bodyPr insets follow ECMA-376 CT_TextBodyProperties', async () => {
+	// ECMA-376 Part 1 §5.1.5.1.1: lIns=left, tIns=top, rIns=right, bIns=bottom (ST_Coordinate32 EMUs).
+	// Spec example uses 91440 EMU = 0.1"; 1pt = 12700 EMU (ONEPT). API margin is TRBL.
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('margin:[5,5,5,40]', {
+		x: 0.5, y: 0.5, w: 3, h: 1,
+		margin: [5, 5, 5, 40],
+		fill: { color: 'F1F1F1' },
+	})
+
+	const slide = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const bodyPr = /<a:bodyPr[^>]*>/.exec(slide)?.[0] ?? ''
+	assert.ok(bodyPr.includes('tIns="63500"'), `tIns must be top=5pt, got ${bodyPr}`)
+	assert.ok(bodyPr.includes('rIns="63500"'), `rIns must be right=5pt, got ${bodyPr}`)
+	assert.ok(bodyPr.includes('bIns="63500"'), `bIns must be bottom=5pt, got ${bodyPr}`)
+	assert.ok(bodyPr.includes('lIns="508000"'), `lIns must be left=40pt, got ${bodyPr}`)
+	assert.ok(!bodyPr.includes('tIns="508000"'), 'tIns must not receive left (old LRBT mapping)')
 })
 
 test('mikemeerschaert/fix-inconsistent-margins: text margin accepts inches (<1)', async () => {

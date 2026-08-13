@@ -1697,7 +1697,10 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 */
 	lineSpacingMultiple?: number
 	/**
-	 * Text box margin — array is **TRBL** (top, right, bottom, left), same as table margins
+	 * Text box margin — array is **TRBL** (top, right, bottom, left), same as table margins.
+	 * Maps to DrawingML `a:bodyPr` insets `tIns`/`rIns`/`bIns`/`lIns`
+	 * (ECMA-376 Part 1 §5.1.5.1.1 `CT_TextBodyProperties`, `ST_Coordinate32` EMUs).
+	 * Schema attribute order is lIns,tIns,rIns,bIns — that is XML order, not the API array.
 	 * - values `>= 1` are points; values `< 1` are inches (same dual-unit rule as table cells)
 	 * - PowerPoint: Format Shape > Shape Options > Size & Properties > Text Box > margins
 	 * @example 0 // no margin
@@ -2337,6 +2340,7 @@ export interface IChartPropsTitle extends TextBaseProps {
 	titleColor?: string
 	titleFontFace?: string
 	titleFontSize?: number
+	titleItalic?: boolean
 	titlePos?: { x: number, y: number }
 	titleRotate?: number
 }

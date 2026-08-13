@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+
+- Merged NEOMA `@neo-ma/pptxgenjs` 4.1.0: OOXML package-contract tests, LibreOffice consumer CI, combo-scatter value axes, italic chart titles, image contain sizing, fractional HTML table borders, and scatter category label positions.
+
+### Fixed
+
+- Text `margin` arrays map as documented TRBL `[top, right, bottom, left]` onto ECMA-376 §5.1.5.1.1 `CT_TextBodyProperties` `tIns`/`rIns`/`bIns`/`lIns` (guiwoda/fix/text-margin-trbl; `lIns`/`tIns` were swapped under the old LRBT mapping)
+
+## [4.1.0](https://github.com/NeomaVerwaltung/PptxGenJS/releases/tag/v4.1.0) - 2026-08-13
+
+### Added
+
+- Added presentation compression, table styles, master slide objects, image outlines, per-series chart colors, italic chart titles, and typed chart options.
+- Added width support for borders and explicit width and height values for custom layouts.
+
+### Fixed
+
+- Fixed PowerPoint repair and corruption cases across charts, placeholders, notes, rich text, tables, images, and generated package relationships.
+- Preserved image aspect ratios and fractional HTML table borders.
+
+### Changed
+
+- Reorganized OOXML rendering into focused chart and XML modules while preserving the public API.
+- Publish under `@neo-ma/pptxgenjs`; Node.js 20 or later is required.
+
 ## [4.0.1](https://github.com/gitbrent/PptxGenJS/releases/tag/v4.0.1) - 2025-06-25
 
 ### Fixed

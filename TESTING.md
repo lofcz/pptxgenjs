@@ -2,7 +2,19 @@
 
 This document describes how to manually verify PptxGenJS across supported platforms and environments prior to a release.
 
-The automated suite (`npm run check`) covers linting, type checks, and unit/e2e/snapshot tests. The manual steps below validate real runtimes and bundlers.
+The automated suite (`npm run check`) covers linting, type checks, and unit/e2e/package-contract tests. The manual steps below validate real runtimes and bundlers.
+
+## LibreOffice consumer test
+
+On a release machine with LibreOffice installed, run:
+
+```bash
+PPTXGENJS_OFFICE_BIN="$(command -v libreoffice || command -v soffice)" npm run test:office
+```
+
+It opens a generated presentation and converts it to PDF, failing if the OOXML
+cannot be consumed. CI runs this on every pull request; it stays separate from
+`npm run check` so normal contributors do not need an office suite installed.
 
 > **Note:** the checked-in `demos/` workspace was removed (issue #8). The manual tests below scaffold a throwaway
 > project per platform instead, so nothing has to be kept current in this repository. Demos may return later in a

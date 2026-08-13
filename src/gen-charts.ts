@@ -626,6 +626,7 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 					fontSize: rel.opts.titleFontSize || DEF_FONT_TITLE_SIZE,
 					titleAlign: rel.opts.titleAlign,
 					titleBold: rel.opts.titleBold,
+					titleItalic: rel.opts.titleItalic,
 					titlePos: rel.opts.titlePos,
 					titleRotate: rel.opts.titleRotate,
 				},
@@ -679,6 +680,12 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 	}
 
 	// B: Axes -----------------------------------------------------------
+	const axisOptions = (axis: 'secondaryCatAxis' | 'secondaryValAxis', secondary: boolean): IChartOptsLib => {
+		if (!Array.isArray(rel.opts._type)) return rel.opts
+		const chart = rel.opts._type.find(type => Boolean(type.options?.[axis]) === secondary)
+		return chart ? { ...rel.opts, ...chart.options, _type: chart.type } : rel.opts
+	}
+
 	if (rel.opts._type !== CHART_TYPE.PIE && rel.opts._type !== CHART_TYPE.DOUGHNUT) {
 		// Param check
 		if (rel.opts.valAxes && rel.opts.valAxes.length > 1 && !usesSecondaryValAxis) {
@@ -689,18 +696,18 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 			if (!rel.opts.valAxes || rel.opts.valAxes.length !== rel.opts.catAxes.length) {
 				throw new Error('There must be the same number of value and category axes.')
 			}
-			strXml += makeCatAxis({ ...rel.opts, ...rel.opts.catAxes[0] }, AXIS_ID_CATEGORY_PRIMARY, AXIS_ID_VALUE_PRIMARY)
+			strXml += makeCatAxis({ ...axisOptions('secondaryCatAxis', false), ...rel.opts.catAxes[0] }, AXIS_ID_CATEGORY_PRIMARY, AXIS_ID_VALUE_PRIMARY)
 		} else {
-			strXml += makeCatAxis(rel.opts, AXIS_ID_CATEGORY_PRIMARY, AXIS_ID_VALUE_PRIMARY)
+			strXml += makeCatAxis(axisOptions('secondaryCatAxis', false), AXIS_ID_CATEGORY_PRIMARY, AXIS_ID_VALUE_PRIMARY)
 		}
 
 		if (rel.opts.valAxes) {
-			strXml += makeValAxis({ ...rel.opts, ...rel.opts.valAxes[0] }, AXIS_ID_VALUE_PRIMARY)
+			strXml += makeValAxis({ ...axisOptions('secondaryValAxis', false), ...rel.opts.valAxes[0] }, AXIS_ID_VALUE_PRIMARY)
 			if (rel.opts.valAxes[1]) {
-				strXml += makeValAxis({ ...rel.opts, ...rel.opts.valAxes[1] }, AXIS_ID_VALUE_SECONDARY)
+				strXml += makeValAxis({ ...axisOptions('secondaryValAxis', true), ...rel.opts.valAxes[1] }, AXIS_ID_VALUE_SECONDARY)
 			}
 		} else {
-			strXml += makeValAxis(rel.opts, AXIS_ID_VALUE_PRIMARY)
+			strXml += makeValAxis(axisOptions('secondaryValAxis', false), AXIS_ID_VALUE_PRIMARY)
 
 			// Add series axis for 3D bar
 			if (rel.opts._type === CHART_TYPE.BAR3D) {
@@ -710,7 +717,7 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 
 		// Combo Charts: Add secondary axes after all vals
 		if (rel.opts?.catAxes && rel.opts?.catAxes[1]) {
-			strXml += makeCatAxis({ ...rel.opts, ...rel.opts.catAxes[1] }, AXIS_ID_CATEGORY_SECONDARY, AXIS_ID_VALUE_SECONDARY)
+			strXml += makeCatAxis({ ...axisOptions('secondaryCatAxis', true), ...rel.opts.catAxes[1] }, AXIS_ID_CATEGORY_SECONDARY, AXIS_ID_VALUE_SECONDARY)
 		}
 	}
 
@@ -1890,7 +1897,7 @@ function makeCatAxis (opts: IChartOptsLib, axisId: string, valAxisId: string): s
 	if (opts._type === CHART_TYPE.SCATTER) {
 		strXml += '  <c:majorTickMark val="none"/>'
 		strXml += '  <c:minorTickMark val="none"/>'
-		strXml += '  <c:tickLblPos val="nextTo"/>'
+		strXml += '  <c:tickLblPos val="' + (opts.catAxisLabelPos || 'nextTo') + '"/>'
 	} else {
 		strXml += '  <c:majorTickMark val="' + (opts.catAxisMajorTickMark || 'out') + '"/>'
 		strXml += '  <c:minorTickMark val="' + (opts.catAxisMinorTickMark || 'none') + '"/>'
@@ -2138,6 +2145,7 @@ function genXmlTitle (opts: IChartPropsTitle, chartX?: number, chartY?: number):
 	const rotate = opts.titleRotate ? `<a:bodyPr rot="${convertRotationDegrees(opts.titleRotate)}"/>` : '<a:bodyPr/>' // don't specify rotation to get default (ex. vertical for cat axis)
 	const sizeAttr = opts.fontSize ? `sz="${Math.round(opts.fontSize * 100)}"` : '' // only set the font size if specified.  Powerpoint will handle the default size
 	const titleBold = opts.titleBold ? 1 : 0
+	const titleItalic = opts.titleItalic ? 1 : 0
 
 	let layout = '<c:layout/>'
 	if (opts.titlePos && typeof opts.titlePos.x === 'number' && typeof opts.titlePos.y === 'number') {
@@ -2160,13 +2168,13 @@ function genXmlTitle (opts: IChartPropsTitle, chartX?: number, chartY?: number):
           <a:lstStyle/>
           <a:p>
             ${align}
-            <a:defRPr ${sizeAttr} b="${titleBold}" i="0" u="none" strike="noStrike">
+            <a:defRPr ${sizeAttr} b="${titleBold}" i="${titleItalic}" u="none" strike="noStrike">
               <a:solidFill>${createColorElement(opts.color || DEF_FONT_COLOR)}</a:solidFill>
               <a:latin typeface="${opts.fontFace || 'Arial'}"/>
             </a:defRPr>
           </a:pPr>
           <a:r>
-            <a:rPr ${sizeAttr} b="${titleBold}" i="0" u="none" strike="noStrike">
+            <a:rPr ${sizeAttr} b="${titleBold}" i="${titleItalic}" u="none" strike="noStrike">
               <a:solidFill>${createColorElement(opts.color || DEF_FONT_COLOR)}</a:solidFill>
               <a:latin typeface="${opts.fontFace || 'Arial'}"/>
             </a:rPr>

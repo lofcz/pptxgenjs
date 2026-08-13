@@ -17,16 +17,20 @@ npm run check # lint + typecheck + strict typecheck + tests — run before every
 
 - `npm run lint` — ESLint
 - `npm run typecheck` — full-project TypeScript (`strictNullChecks` is enabled)
-- `npm test` — unit, e2e, and XML snapshot tests
+- `npm test` — unit, e2e, and OOXML package-contract tests
 
 Build the distributables locally with `npm run build` (or `npm run dist` for
 the full minified/bundled `dist/` artifacts).
 
+For a release candidate, also run `npm run test:office` on a machine with
+LibreOffice installed and `PPTXGENJS_OFFICE_BIN` set to its executable.
+The CI workflow performs this check on every pull request.
+
 ## Tests
 
-Tests live in `test/`. When you change XML generation, update or add a
-golden-file snapshot (`test/__snapshots__/`) and include the regenerated
-snapshot in your PR. Coverage can be inspected with `npm run test:coverage`.
+Tests live in `test/`. When you change XML generation, add or update the
+semantic contract that describes the intended OOXML behavior; no generated XML
+fixtures need to be regenerated. Coverage can be inspected with `npm run test:coverage`.
 
 ## Type safety
 

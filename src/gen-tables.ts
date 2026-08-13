@@ -759,14 +759,7 @@ export function genTableToSlides(pptx: PptxGenJS, tabEleId: string, options: Tab
 					cellOpts.border = border
 					const sidesBor = ['top', 'right', 'bottom', 'left']
 					sidesBor.forEach((val, idxb) => {
-						const intBorderW = Math.round(
-							Number(
-								window
-									.getComputedStyle(cell)
-									.getPropertyValue('border-' + val + '-width')
-									.replace('px', '')
-							)
-						)
+						const borderWidth = Number(window.getComputedStyle(cell).getPropertyValue('border-' + val + '-width').replace('px', ''))
 						let arrRGB: string[] = []
 						arrRGB = window
 							.getComputedStyle(cell)
@@ -777,7 +770,7 @@ export function genTableToSlides(pptx: PptxGenJS, tabEleId: string, options: Tab
 							.replace(')', '')
 							.split(',')
 						const strBorderC = rgbToHex(Number(arrRGB[0]), Number(arrRGB[1]), Number(arrRGB[2]))
-						border[idxb] = { pt: intBorderW, color: strBorderC }
+						border[idxb] = { pt: borderWidth, color: strBorderC }
 					})
 				}
 

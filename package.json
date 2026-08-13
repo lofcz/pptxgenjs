@@ -46,8 +46,9 @@
 		"docs:preview": "vitepress preview docs",
 		"lint": "eslint src test",
 		"typecheck": "tsc --noEmit",
-		"test": "node --import tsx --test test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/snapshot.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
-		"test:coverage": "node --import tsx --test --experimental-test-coverage test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/snapshot.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
+		"test": "node --import tsx --test test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
+		"test:coverage": "node --import tsx --test --experimental-test-coverage test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
+		"test:office": "node --import tsx --test test/office-open.test.ts",
 		"check": "npm run lint && npm run typecheck && npm test",
 		"prepublishOnly": "npm run check && npm run build"
 	},

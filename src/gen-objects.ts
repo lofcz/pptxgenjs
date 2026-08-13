@@ -1269,9 +1269,11 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 				itemOpts._bodyProp.bIns = inch2Emu(itemOpts.inset)
 			}
 
-			// F: Margin — TRBL order (matches tables + docs). Previously applied as LRBT in gen-xml.
+			// F: Margin → ECMA-376 Part 1 §5.1.5.1.1 `CT_TextBodyProperties` insets
+			// (`lIns`/`tIns`/`rIns`/`bIns`, `ST_Coordinate32` EMUs). Public API is TRBL
+			// [top, right, bottom, left], matching table `marT`/`marR`/`marB`/`marL`.
 			// Dual-unit: >=1 points, <1 inches (same rule as table cell margins).
-			// mikemeerschaert/fix-inconsistent-margins (selective: TRBL + definition-time; keep dual-unit)
+			// mikemeerschaert/fix-inconsistent-margins + guiwoda/fix/text-margin-trbl
 			if (itemOpts.margin && Array.isArray(itemOpts.margin)) {
 				itemOpts._bodyProp.tIns = marginToEmu(itemOpts.margin[0] || 0)
 				itemOpts._bodyProp.rIns = marginToEmu(itemOpts.margin[1] || 0)
