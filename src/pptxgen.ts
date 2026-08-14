@@ -108,7 +108,7 @@ import * as genXml from './xml'
 import * as genComments from './gen-comments'
 import { importNodeBuiltin, isNodeRuntime, warnDeprecatedOnce } from './gen-utils'
 
-const VERSION = '4.1.15'
+const VERSION = '4.1.16'
 
 export default class PptxGenJS implements IPresentationProps {
 	// Property getters/setters
