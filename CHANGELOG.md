@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Hide Node `fs`/`http`/`https` imports from browser bundlers the same way `Buffer` is hidden, so Vite/Rsbuild do not try to resolve `node:https`
 - Chart embedded workbooks keep per-series `dataTableFormatCode` styles on value cells, including zeros [\#1430](https://github.com/gitbrent/PptxGenJS/issues/1430)
 - Text `margin` arrays map as documented TRBL `[top, right, bottom, left]` onto ECMA-376 §5.1.5.1.1 `CT_TextBodyProperties` `tIns`/`rIns`/`bIns`/`lIns` (guiwoda/fix/text-margin-trbl; `lIns`/`tIns` were swapped under the old LRBT mapping)
 

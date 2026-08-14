@@ -106,7 +106,7 @@ import * as genMedia from './gen-media'
 import * as genTable from './gen-tables'
 import * as genXml from './xml'
 import * as genComments from './gen-comments'
-import { warnDeprecatedOnce } from './gen-utils'
+import { importNodeBuiltin, isNodeRuntime, warnDeprecatedOnce } from './gen-utils'
 
 const VERSION = '4.1.15'
 
@@ -719,7 +719,7 @@ export default class PptxGenJS implements IPresentationProps {
 	 */
 	async writeFile(props?: WriteFileProps | string): Promise<string> {
 		// STEP 1: Figure out where we are running
-		const isNode = typeof process !== 'undefined' && !!process.versions?.node && process.release?.name === 'node'
+		const isNode = isNodeRuntime()
 
 		// STEP 2: Normalise the user arguments
 		if (typeof props === 'string') {
@@ -737,7 +737,7 @@ export default class PptxGenJS implements IPresentationProps {
 		// STEP 4: Write the file out
 		if (isNode) {
 			// Dynamically import to avoid bundling fs in the browser build
-			const { promises: fs } = await import('node:fs')
+			const { promises: fs } = await importNodeBuiltin<typeof import('node:fs')>('fs')
 			const { writeFile } = fs
 			// Uint8Array covers Node Buffer without referencing the `Buffer` identifier
 			// (Vite injects a broken buffer polyfill when it sees `Buffer.*` in the graph).

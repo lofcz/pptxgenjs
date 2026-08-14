@@ -4,7 +4,7 @@
 
 import { IMG_BROKEN, SLIDE_OBJECT_TYPES } from './core-enums'
 import { PresSlide, SlideLayout, ISlideRelMedia } from './core-interfaces'
-import { applySvgFillColor, applySvgFillToDataUrl, base64ToBytes, binaryStringToBase64, bytesToBase64, utf8ToBase64 } from './gen-utils'
+import { applySvgFillColor, applySvgFillToDataUrl, base64ToBytes, binaryStringToBase64, bytesToBase64, importNodeBuiltin, isNodeRuntime, utf8ToBase64 } from './gen-utils'
 
 /** Images are measured in pixels; PowerPoint slide dimensions are inches at 96 DPI */
 const IMAGE_DPI = 96
@@ -267,14 +267,18 @@ function addSvgPreviewPromises(layout: PresSlide | SlideLayout, isNode: boolean,
  * @return {Promise} promise
  */
 export function encodeSlideMediaRels(layout: PresSlide | SlideLayout): Array<Promise<string>> {
-	// STEP 1: Detect real Node runtime once
-	const isNode = typeof process !== 'undefined' && !!process.versions?.node && process.release?.name === 'node'
+	// STEP 1: Detect a real Node process. Browser bundles often polyfill `process`
+	// (and even `process.versions.node`), so also require a document-less runtime.
+	const isNode = isNodeRuntime()
 	const modules: NodeMediaModules = {}
 
-	// STEP 2: Lazy-load Node built-ins if needed
+	// STEP 2: Lazy-load Node built-ins if needed. The specifier is built at runtime
+	// so browser bundlers cannot statically resolve `node:https` / `https`.
 	const loadNodeDeps = isNode
 		? async () => {
-			; ({ default: modules.fs } = await import('node:fs')); ({ default: modules.https } = await import('node:https')); ({ default: modules.http } = await import('node:http'))
+			; ({ default: modules.fs } = await importNodeBuiltin<typeof import('node:fs')>('fs'))
+			; ({ default: modules.https } = await importNodeBuiltin<typeof import('node:https')>('https'))
+			; ({ default: modules.http } = await importNodeBuiltin<typeof import('node:http')>('http'))
 		}
 		: async () => { }
 	// Immediately start it when we know we’re in Node

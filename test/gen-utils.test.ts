@@ -4,9 +4,14 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
 	debugLog,
+	importNodeBuiltin,
 	isDebugEnabled,
+	isNodeRuntime,
 	getSmartParseNumber,
 	getUuid,
 	encodeXmlEntities,
@@ -307,5 +312,29 @@ test('debugLog: silent unless PPTXGENJS_DEBUG or NODE_DEBUG is set', () => {
 		console.debug = orig
 		if (PPTXGENJS_DEBUG === undefined) delete process.env.PPTXGENJS_DEBUG; else process.env.PPTXGENJS_DEBUG = PPTXGENJS_DEBUG
 		if (NODE_DEBUG === undefined) delete process.env.NODE_DEBUG; else process.env.NODE_DEBUG = NODE_DEBUG
+	}
+})
+
+test('isNodeRuntime: true in this Node test process', () => {
+	assert.equal(isNodeRuntime(), true)
+})
+
+test('importNodeBuiltin: loads fs without a static node: specifier', async () => {
+	const fs = await importNodeBuiltin<typeof import('node:fs')>('fs')
+	assert.equal(typeof fs.readFileSync, 'function')
+})
+
+test('runtime sources do not statically import Node builtins', () => {
+	const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+	for (const rel of ['src/gen-utils.ts', 'src/gen-media.ts', 'src/pptxgen.ts']) {
+		const runtime = readFileSync(join(root, rel), 'utf8')
+			.replace(/\/\*[\s\S]*?\*\//g, '')
+			.replace(/\/\/.*$/gm, '')
+			.replace(/typeof\s+import\s*\(\s*['"]node:[^'"]+['"]\s*\)/g, '')
+		assert.doesNotMatch(
+			runtime,
+			/import\s*\(\s*(?:\/\*[\s\S]*?\*\/\s*)*['"]node:/,
+			`${rel} still has a statically analyzable node: import`
+		)
 	}
 })

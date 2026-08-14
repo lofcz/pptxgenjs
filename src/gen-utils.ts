@@ -9,6 +9,30 @@ import { PresLayout, TextGlowProps, PresSlide, SlideLayout, ShapeFillProps, Colo
 const DEBUG_NS = 'pptxgenjs'
 
 /**
+ * True Node process, not a browser bundle with a `process` polyfill.
+ * Bundlers often inject `process.versions.node`, so also require no `document`.
+ */
+export function isNodeRuntime (): boolean {
+	return typeof document === 'undefined'
+		&& typeof process !== 'undefined'
+		&& !!process.versions?.node
+		&& process.release?.name === 'node'
+}
+
+/**
+ * Dynamic Node builtin import that browser bundlers cannot statically resolve.
+ *
+ * Same idea as avoiding `Buffer.from`: a literal `import('node:https')` (or even
+ * `import('node:' + name)` that Rollup later constant-folds) puts Node builtins
+ * in the browser graph. Build the specifier at runtime and load it through
+ * `Function` so Vite/Rsbuild/Rspack never see an import they can resolve.
+ */
+export function importNodeBuiltin<T> (name: 'fs' | 'http' | 'https'): Promise<T & { default: T }> {
+	const specifier = ['node', name].join(':')
+	return (Function('s', 'return import(s)') as (s: string) => Promise<T & { default: T }>)(specifier)
+}
+
+/**
  * Whether verbose diagnostics are enabled
  * - set `PPTXGENJS_DEBUG=1`, or include `pptxgenjs` in Node's `NODE_DEBUG`
  * @returns {boolean} debug enabled
