@@ -1889,12 +1889,13 @@ export interface OptsChartData {
 	color?: string
 	/**
 	 * Per-point custom data label text (replaces the numeric value label for that index)
-	 * - sparse arrays are allowed: only defined string entries emit a custom label
-	 * - emits rich-text `<c:dLbl>` overrides
+	 * - sparse arrays are allowed: only defined string entries emit a custom `<c:dLbl>`
+	 * - other points keep series-level `<c:dLbls>` defaults
 	 * @example ['Q1', 'Q2', 'Q3', 'Q4']
+	 * @example [undefined, 'Peak'] // only the second point is overridden
 	 * @since v4.1.2
 	 */
-	dataLabels?: string[]
+	dataLabels?: Array<string | undefined>
 	/**
 	 * "Value From Cells" data labels (DrawingML `c15:datalabelsRange`)
 	 * - PowerPoint: Chart Design > Add Chart Element > Data Labels > More Options > Value From Cells

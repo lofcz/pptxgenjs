@@ -574,6 +574,106 @@ test('custom dataLabels: pie slice uses series dataLabels text', async () => {
 	assert.ok(chart.includes('<a:t>Beta</a:t>'), 'pie custom label missing')
 })
 
+test('pie: dataLabelPosition inEnd and bestFit emit ST_DLblPos codes', async () => {
+	for (const [input, code] of [['insideEnd', 'inEnd'], ['bestFit', 'bestFit']] as const) {
+		const pptx = new pptxgen()
+		pptx.addSlide().addChart(
+			pptx.ChartType.pie,
+			[{ name: 'Share', labels: ['A', 'B'], values: [40, 60] }],
+			{ x: 0.5, y: 0.5, w: 4, h: 3, showPercent: true, dataLabelPosition: input },
+		)
+		const chart = await readChart(await writeZip(pptx))
+		assert.ok(chart.includes(`<c:dLblPos val="${code}"/>`), `pie ${input} was not emitted as ${code}`)
+		assert.ok(!chart.includes('<c:dLblPos val="ctr"/>'), `pie ${input} still forced center labels`)
+	}
+})
+
+test('pie: series-level dLbls default to ctr and honor show* opts (no per-point dLbl)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.pie,
+		[{ name: 'Share', labels: ['A', 'B', 'C'], values: [30, 50, 20] }],
+		{ x: 0.5, y: 0.5, w: 4, h: 3, showPercent: true, showValue: true },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	const dLbls = /<c:dLbls>[\s\S]*?<\/c:dLbls>/.exec(chart)?.[0] ?? ''
+	assert.ok(!dLbls.includes('<c:dLbl>'), 'pie without dataLabels must not emit per-point dLbl')
+	assert.ok(dLbls.includes('<c:dLblPos val="ctr"/>'), 'pie series default position is ctr')
+	assert.ok(dLbls.includes('<c:showPercent val="1"/>'), 'series showPercent was dropped')
+	assert.ok(dLbls.includes('<c:showVal val="1"/>'), 'series showValue was dropped')
+	assert.ok(dLbls.includes('<c:showCatName val="0"/>'), 'series showCatName must follow showLabel')
+})
+
+test('custom dataLabels: pie sparse overrides keep series-level dLbls', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.pie,
+		[{
+			name: 'Share',
+			labels: ['A', 'B', 'C'],
+			values: [30, 50, 20],
+			dataLabels: [undefined, 'Only B'],
+		}],
+		{ x: 0.5, y: 0.5, w: 4, h: 3, showPercent: true, dataLabelPosition: 'outEnd' },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	const dLbls = /<c:dLbls>[\s\S]*?<\/c:dLbls>/.exec(chart)?.[0] ?? ''
+	const pointLabels = [...dLbls.matchAll(/<c:dLbl>[\s\S]*?<\/c:dLbl>/g)].map(match => match[0])
+	assert.equal(pointLabels.length, 1, 'sparse dataLabels must emit one per-point dLbl')
+	assert.ok(pointLabels[0].includes('<c:idx val="1"/>'), 'custom dLbl idx')
+	assert.ok(pointLabels[0].includes('<a:t>Only B</a:t>'), 'custom dLbl text')
+	assert.ok(pointLabels[0].includes('<c:showPercent val="0"/>'), 'custom dLbl must not concatenate percent')
+	assert.ok(pointLabels[0].includes('<c:dLblPos val="outEnd"/>'), 'custom dLbl inherits outEnd')
+	// CT_DLbls: dLbl* then series Group_DLbls (dLblPos / show*)
+	assert.ok(dLbls.indexOf('</c:dLbl>') < dLbls.lastIndexOf('<c:dLblPos val="outEnd"/>'), 'series dLblPos must follow per-point dLbl')
+	assert.ok(dLbls.includes('<c:showPercent val="1"/>'), 'series-level showPercent must remain for other slices')
+	assert.ok(!dLbls.includes('<c:dLblPos val="ctr"/>'), 'pie outEnd must not also emit ctr')
+})
+
+test('custom dataLabels: bar sparse overrides keep series-level showVal', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.bar,
+		[{
+			name: 'Sales',
+			labels: ['A', 'B', 'C'],
+			values: [10, 20, 30],
+			dataLabels: [undefined, 'Mid'],
+		}],
+		{ x: 0.5, y: 0.5, w: 6, h: 4, showValue: true, dataLabelPosition: 'outEnd' },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	const dLbls = /<c:dLbls>[\s\S]*?<\/c:dLbls>/.exec(chart)?.[0] ?? ''
+	const pointLabels = [...dLbls.matchAll(/<c:dLbl>[\s\S]*?<\/c:dLbl>/g)].map(match => match[0])
+	assert.equal(pointLabels.length, 1, 'sparse dataLabels must emit one per-point dLbl')
+	assert.ok(pointLabels[0].includes('<a:t>Mid</a:t>'), 'custom dLbl text')
+	assert.ok(pointLabels[0].includes('<c:showVal val="0"/>'), 'custom dLbl must keep showVal off')
+	assert.ok(dLbls.includes('<c:showVal val="1"/>'), 'series-level showVal must remain for other points')
+	assert.ok(dLbls.includes('<c:dLblPos val="outEnd"/>'), 'series-level dLblPos must remain')
+})
+
+test('custom dataLabels: line series emits per-point dLbl inside series dLbls', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.line,
+		[{
+			name: 'Trend',
+			labels: ['A', 'B'],
+			values: [1, 2],
+			dataLabels: ['First', 'Second'],
+		}],
+		{ x: 0.5, y: 0.5, w: 6, h: 4, showValue: true },
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	const ser = /<c:ser>[\s\S]*?<\/c:ser>/.exec(chart)?.[0] ?? ''
+	assert.ok(ser.includes('<a:t>First</a:t>'), 'line custom label missing')
+	assert.ok(ser.includes('<c:showVal val="1"/>'), 'line series-level showVal must remain')
+})
+
 test('#31: `compression` is honoured for every outputType, not just STREAM', async () => {
 	const build = async (compression: boolean): Promise<number> => {
 		const pptx = new pptxgen()

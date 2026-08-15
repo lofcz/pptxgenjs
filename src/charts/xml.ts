@@ -299,6 +299,18 @@ function genXmlCustomDataLabel (text: string, idx: number, opts: IChartOptsLib):
 }
 
 /**
+ * Sparse per-point `c:dLbl` overrides. Undefined holes keep series-level `c:dLbls` defaults.
+ */
+function genXmlCustomDataLabels (dataLabels: Array<string | undefined> | undefined, opts: IChartOptsLib): string {
+	if (!dataLabels) return ''
+	let xml = ''
+	dataLabels.forEach((value, i) => {
+		if (typeof value === 'string') xml += genXmlCustomDataLabel(value, i, opts)
+	})
+	return xml
+}
+
+/**
  * `c15:showDataLabelsRange` inside series `<c:dLbls>` (Toukyh/fix-custom-label).
  * Only emit when Value-From-Cells labels are in play.
  */
@@ -471,11 +483,7 @@ function makeChartType (
 				if (chartType !== CHART_TYPE.RADAR) {
 					strXml += '<c:dLbls>'
 					// Per-point custom labels (series.dataLabels) — sparse arrays OK; other points keep series defaults
-					if (obj.dataLabels) {
-						obj.dataLabels.forEach((value, i) => {
-							if (typeof value === 'string') strXml += genXmlCustomDataLabel(value, i, opts)
-						})
-					}
+					strXml += genXmlCustomDataLabels(obj.dataLabels, opts)
 					strXml += `<c:numFmt formatCode="${encodeXmlEntities(opts.dataLabelFormatCode) || 'General'}" sourceLinked="0"/>`
 					if (opts.dataLabelBkgrdColors) strXml += `<c:spPr><a:solidFill>${createColorElement(seriesColor)}</a:solidFill></c:spPr>`
 					strXml += '<c:txPr><a:bodyPr/><a:lstStyle/><a:p><a:pPr>'
@@ -1185,35 +1193,9 @@ function makeChartType (
 				strXml += '</c:dPt>'
 			})
 
-			// 3: "Data Label" block for every data Label
+			// 3: Series-level data labels. Per-point `c:dLbl` is additive (sparse dataLabels only).
 			strXml += '<c:dLbls>'
-			chartDataLabels[0].forEach((_label, idx) => {
-				const customLabel = optsChartData.dataLabels?.[idx]
-				const isCustom = typeof customLabel === 'string'
-				strXml += '<c:dLbl>'
-				strXml += ` <c:idx val="${idx}"/>`
-				if (isCustom) strXml += genXmlDataLabelRichText(customLabel, opts)
-				else strXml += `  <c:numFmt formatCode="${encodeXmlEntities(opts.dataLabelFormatCode) || 'General'}" sourceLinked="0"/>`
-				strXml += '  <c:spPr/><c:txPr>'
-				strXml += '   <a:bodyPr/><a:lstStyle/>'
-				strXml += '   <a:p><a:pPr>'
-				strXml += `   <a:defRPr sz="${Math.round((opts.dataLabelFontSize || DEF_FONT_SIZE) * 100)}" b="${opts.dataLabelFontBold ? 1 : 0}" i="${opts.dataLabelFontItalic ? 1 : 0
-				}" u="none" strike="noStrike">`
-				strXml += '    <a:solidFill>' + createColorElement(opts.dataLabelColor || DEF_FONT_COLOR) + '</a:solidFill>'
-				strXml += `    <a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>`
-				strXml += '   </a:defRPr>'
-				strXml += '      </a:pPr></a:p>'
-				strXml += '    </c:txPr>'
-				if (opts.dataLabelPosition) strXml += `<c:dLblPos val="${opts.dataLabelPosition}"/>`
-				strXml += '    <c:showLegendKey val="0"/>'
-				// Custom text replaces the value — keep show* flags off so they are not concatenated
-				strXml += '    <c:showVal val="' + (isCustom ? '0' : (opts.showValue ? '1' : '0')) + '"/>'
-				strXml += '    <c:showCatName val="' + (isCustom ? '0' : (opts.showLabel ? '1' : '0')) + '"/>'
-				strXml += '    <c:showSerName val="' + (isCustom ? '0' : (opts.showSerName ? '1' : '0')) + '"/>'
-				strXml += '    <c:showPercent val="' + (isCustom ? '0' : (opts.showPercent ? '1' : '0')) + '"/>'
-				strXml += '    <c:showBubbleSize val="0"/>'
-				strXml += '  </c:dLbl>'
-			})
+			strXml += genXmlCustomDataLabels(optsChartData.dataLabels, opts)
 			strXml += ` <c:numFmt formatCode="${encodeXmlEntities(opts.dataLabelFormatCode) || 'General'}" sourceLinked="0"/>`
 			strXml += '    <c:txPr>'
 			strXml += '      <a:bodyPr/>'
@@ -1229,10 +1211,10 @@ function makeChartType (
 			// Default pie labels to center; honor opts.dataLabelPosition when set (outEnd/inEnd/bestFit/ctr)
 			strXml += chartType === CHART_TYPE.PIE ? `<c:dLblPos val="${opts.dataLabelPosition ?? 'ctr'}"/>` : ''
 			strXml += '    <c:showLegendKey val="0"/>'
-			strXml += '    <c:showVal val="0"/>'
-			strXml += '    <c:showCatName val="1"/>'
-			strXml += '    <c:showSerName val="0"/>'
-			strXml += '    <c:showPercent val="1"/>'
+			strXml += '    <c:showVal val="' + (opts.showValue ? '1' : '0') + '"/>'
+			strXml += '    <c:showCatName val="' + (opts.showLabel ? '1' : '0') + '"/>'
+			strXml += '    <c:showSerName val="' + (opts.showSerName ? '1' : '0') + '"/>'
+			strXml += '    <c:showPercent val="' + (opts.showPercent ? '1' : '0') + '"/>'
 			strXml += '    <c:showBubbleSize val="0"/>'
 			strXml += ` <c:showLeaderLines val="${opts.showLeaderLines ? '1' : '0'}"/>`
 			strXml += '</c:dLbls>'
