@@ -31,8 +31,6 @@ slide.addText('Hello', { x: 0.5, y: 0.5, fontSize: 24 })
 await pres.writeFile({ fileName: 'hello.pptx' })
 ```
 
-`x` / `y` / `w` / `h` are inches. In a `<script>` tag the constructor is `PptxGenJS`.
-
 ## Contributors
 
 Thanks to everyone who contributed to the original project and this distribution.
