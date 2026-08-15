@@ -11,6 +11,7 @@ import { join } from 'node:path'
 import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
 import { genTableToSlides } from '../src/gen-tables'
+import { assertEmbeddedFontContracts } from './pptx-contracts'
 
 /** 4x2 px PNG - non-square on purpose, so a 1x1 inch default is obvious */
 const PNG_4x2 = 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAADklEQVR4nGP4jwQYkDkANvEX6SAXxcIAAAAASUVORK5CYII='
@@ -825,19 +826,12 @@ test('addFont: embeds fntdata + presentation embeddedFontLst', async () => {
 
 	const zip = await writeZip(pptx)
 	const presentation = await readPart(zip, 'ppt/presentation.xml')
-	const contentTypes = await readPart(zip, '[Content_Types].xml')
-	const rels = await readPart(zip, 'ppt/_rels/presentation.xml.rels')
 
-	assert.ok(presentation.includes('embedTrueTypeFonts="true"'), 'missing embedTrueTypeFonts')
+	await assertEmbeddedFontContracts(zip, 'IBM Plex Sans')
 	assert.ok(presentation.includes('saveSubsetFonts="true"'), 'missing saveSubsetFonts')
-	assert.ok(presentation.includes('<p:embeddedFontLst>'), 'missing embeddedFontLst')
-	assert.ok(presentation.includes('typeface="IBM Plex Sans"'), 'font typeface missing from presentation.xml')
 	// Regression: ensureEmbeddedFontLst must not corrupt the following defaultTextStyle tag
 	assert.ok(presentation.includes('<p:defaultTextStyle>'), 'defaultTextStyle opening tag corrupted (missing >)')
 	assert.ok(!presentation.includes('<p:defaultTextStyle<'), 'defaultTextStyle merged with embeddedFontLst')
-	assert.ok(contentTypes.includes('Extension="fntdata"'), 'Content_Types missing fntdata Default')
-	assert.ok(rels.includes('/relationships/font"'), 'presentation rels missing font relationship')
-	assert.ok(Object.keys(zip.files).some(name => name.startsWith('ppt/fonts/') && name.endsWith('.fntdata')), 'missing ppt/fonts/*.fntdata')
 
 	// Regression: fsType restricted/preview flags must be cleared so PowerPoint
 	// never shows the "restricted fonts / read-only" dialog for addFont fonts.

@@ -2477,12 +2477,14 @@ export type CompressionLevel = 'none' | 'fast' | 'best'
 export type EmbedFontType = 'ttf' | 'otf' | 'woff' | 'eot'
 
 /**
- * Options for `pptx.addFont()` — embeds a custom font into the exported PPTX
+ * Options for `pptx.addFont()` — opt-in embed of a caller-supplied font.
+ * The library ships no fonts. Callers must have a license that permits
+ * embedding the supplied `fontFile` into a PPTX.
  */
 export interface AddFontOptions {
 	/** Font family name referenced by `fontFace` on text/shapes */
 	fontFace: string
-	/** Raw font file bytes */
+	/** Raw font file bytes (caller-supplied; not bundled with this library) */
 	fontFile: ArrayBuffer
 	/** Source font format */
 	fontType: EmbedFontType
