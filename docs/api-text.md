@@ -70,6 +70,8 @@ slide.addText([{ text: "TEXT", options: { OPTIONS } }]);
 | `valign`              | string             |         |         | vertical alignment        | `top` or `middle` or `bottom`                                                                                                  |
 | `vert`                | string             |         | `horz`  | text direction            | `eaVert` or `horz` or `mongolianVert` or `vert` or `vert270` or `wordArtVert` or `wordArtVertRtl`                              |
 | `wrap`                | boolean            |         | `true`  | text wrapping             | `true` or `false`                                                                                                              |
+| `vertOverflow`        | string             |         |         | vertical overflow         | `overflow`, `ellipsis`, or `clip`. Ex: `{ vertOverflow:'clip' }`                                                               |
+| `horzOverflow`        | string             |         |         | horizontal overflow       | `overflow` or `clip`. Ex: `{ horzOverflow:'clip' }`                                                                            |
 
 ### Shadow Properties (`ShadowProps`)
 

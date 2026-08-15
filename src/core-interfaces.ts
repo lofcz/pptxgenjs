@@ -1615,6 +1615,8 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 		spcCol?: number
 		vert?: 'eaVert' | 'horz' | 'mongolianVert' | 'vert' | 'vert270' | 'wordArtVert' | 'wordArtVertRtl'
 		wrap?: boolean
+		vertOverflow?: 'overflow' | 'ellipsis' | 'clip'
+		horzOverflow?: 'overflow' | 'clip'
 	}
 	_lineIdx?: number
 
@@ -1761,6 +1763,20 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 * @default true
 	 */
 	wrap?: boolean
+	/**
+	 * Vertical overflow of text that does not fit the shape.
+	 * ECMA-376 §5.1.5.1.1 `CT_TextBodyProperties@vertOverflow`.
+	 * @default overflow
+	 * @since v4.1.17
+	 */
+	vertOverflow?: 'overflow' | 'ellipsis' | 'clip'
+	/**
+	 * Horizontal overflow of text that does not fit the shape.
+	 * ECMA-376 §5.1.5.1.1 `CT_TextBodyProperties@horzOverflow`.
+	 * @default overflow
+	 * @since v4.1.17
+	 */
+	horzOverflow?: 'overflow' | 'clip'
 	/**
 	 * Prebuilt Office Math (OMML) fragment for this text run.
 	 * Emitted as PowerPoint math: `<a14:m><m:oMath>…</m:oMath></a14:m>` interleaved

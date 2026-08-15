@@ -1567,6 +1567,25 @@ test('#996: image bound to a placeholder inherits the placeholder geometry (not 
 	assert.equal(m![4], String(2 * 914400), `cy should be placeholder 2in, got ${Number(m![4]) / 914400}in`)
 })
 
+test('text wrap:false + overflow clip emit bodyPr attrs', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('unwrapped clipped code', {
+		x: 1,
+		y: 1,
+		w: 2,
+		h: 1,
+		wrap: false,
+		vertOverflow: 'clip',
+		horzOverflow: 'clip',
+	})
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const bodyPr = /<a:bodyPr[^>]*>/.exec(slideXml)?.[0] || ''
+	assert.ok(bodyPr.includes('wrap="none"'), `wrap=none missing: ${bodyPr}`)
+	assert.ok(bodyPr.includes('vertOverflow="clip"'), `vertOverflow missing: ${bodyPr}`)
+	assert.ok(bodyPr.includes('horzOverflow="clip"'), `horzOverflow missing: ${bodyPr}`)
+})
+
 test('#1320: text columns emit numCol/spcCol on bodyPr', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addText('col text '.repeat(50), { x: 1, y: 1, w: 6, h: 3, columns: 3, columnGap: 0.5 })

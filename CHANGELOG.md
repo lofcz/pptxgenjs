@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Text `vertOverflow` / `horzOverflow` emit ECMA-376 `a:bodyPr` overflow attrs so overflowing runs can clip instead of spilling out of the shape
+
 ### Changed
 
 - Merged NEOMA `@neo-ma/pptxgenjs` 4.1.0: OOXML package-contract tests, LibreOffice consumer CI, combo-scatter value axes, italic chart titles, image contain sizing, fractional HTML table borders, and scatter category label positions.

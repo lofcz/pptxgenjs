@@ -1252,6 +1252,12 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 			itemOpts._bodyProp.anchor = !itemOpts.placeholder ? TEXT_VALIGN.ctr : undefined // VALS: [t,ctr,b]
 			itemOpts._bodyProp.vert = itemOpts.vert || undefined // VALS: [eaVert,horz,mongolianVert,vert,vert270,wordArtVert,wordArtVertRtl]
 			itemOpts._bodyProp.wrap = typeof itemOpts.wrap === 'boolean' ? itemOpts.wrap : true
+			if (itemOpts.vertOverflow === 'overflow' || itemOpts.vertOverflow === 'ellipsis' || itemOpts.vertOverflow === 'clip') {
+				itemOpts._bodyProp.vertOverflow = itemOpts.vertOverflow
+			}
+			if (itemOpts.horzOverflow === 'overflow' || itemOpts.horzOverflow === 'clip') {
+				itemOpts._bodyProp.horzOverflow = itemOpts.horzOverflow
+			}
 
 			// Text columns: `columns` (count) + optional `columnGap` (inches) -> numCol/spcCol on <a:bodyPr>
 			// ECMA-376 §5.1.5.1.4 CT_TextBodyProperties@numCol/@spcCol (issue #1320)
