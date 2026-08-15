@@ -1138,6 +1138,14 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 * Start playing the media automatically when the slide is shown (no click needed).
 	 * Implemented via the slide timing tree (`p:timing`) as a `p:video`/`p:audio` media node
 	 * whose start condition has `delay="0"` (ECMA-376 §19.5 `CT_TLMediaNode` / MS-PPTX §2.3.3).
+	 *
+	 * Playback options (`autoplay`, `loop`, `fullScreen`, `mute`) are additive. Omitted/`false`
+	 * is the default: click-to-play (`delay="indefinite"`), play once, windowed, unmuted.
+	 * A timing-tree media node is emitted only when at least one option is `true`.
+	 *
+	 * Invalid (thrown by `addMedia`): `fullScreen` on `type: 'audio'` (`fullScrn` exists only on
+	 * `CT_TLMediaNodeVideo`); any of these four on `type: 'online'` (linked videos have no
+	 * embedded timing-tree media node).
 	 * @default false (plays on click)
 	 */
 	autoplay?: boolean
@@ -1149,11 +1157,13 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	loop?: boolean
 	/**
 	 * Play the video full-screen (`p:video@fullScrn`, ECMA-376 §19.5.92 `CT_TLMediaNodeVideo`).
+	 * Invalid on `type: 'audio'` and `type: 'online'`.
 	 * @default false
 	 */
 	fullScreen?: boolean
 	/**
 	 * Mute the media's audio (`p:cMediaNode@mute`, ECMA-376 §19.5.30 `CT_TLCommonMediaNodeData`).
+	 * Invalid on `type: 'online'`.
 	 * @default false
 	 */
 	mute?: boolean

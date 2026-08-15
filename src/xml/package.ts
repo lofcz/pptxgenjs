@@ -239,6 +239,7 @@ function collectMediaPlayback (slide: PresSlide): MediaPlaybackEntry[] {
 	;(slide._slideObjects ?? []).forEach(obj => {
 		if (obj._type !== SLIDE_OBJECT_TYPES.media || obj.mtype === 'online') return
 		const o = obj.options
+		// Defaults are all false: no timing node unless at least one playback flag is set.
 		if (!o || !(o.autoplay || o.loop || o.fullScreen || o.mute)) return
 		entries.push({
 			spid: (obj.mediaRid ?? 0) + 2,
