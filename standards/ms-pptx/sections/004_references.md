@@ -1,0 +1,7 @@
+<!-- sourced from [MS-PPTX] v25.0 / 2024-08-20 -->
+<!-- heading: References -->
+
+## References
+
+
+Links to a document in the Microsoft Open Specifications library point to the correct section in the most recently published version of the referenced document. However, because individual documents in the library are not updated at the same time, the section numbers in the documents may not match. You can confirm the correct section numbering by checking the [Errata](https://go.microsoft.com/fwlink/?linkid=850906).

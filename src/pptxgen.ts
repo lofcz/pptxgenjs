@@ -504,9 +504,6 @@ export default class PptxGenJS implements IPresentationProps {
 			addContentPart: notOnMaster,
 			addInk: notOnMaster,
 			addOfficeApp: notOnMaster,
-			addContentPart: notOnMaster,
-			addInk: notOnMaster,
-			addOfficeApp: notOnMaster,
 			//
 			_name: '',
 			_presLayout: this._presLayout,

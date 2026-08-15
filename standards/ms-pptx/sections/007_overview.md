@@ -1,0 +1,11 @@
+<!-- sourced from [MS-PPTX] v25.0 / 2024-08-20 -->
+<!-- heading: Overview -->
+
+## Overview
+
+
+This structure provides an extended [__XML__](#gt_982b7f8e-d516-4fd5-8d5e-1a836081ed85) vocabulary for a PresentationML document. The extended elements and attributes allow the format to indicate further information about a document, or content and formatting of parts of the document beyond the elements and attributes described in [[ISO/IEC29500-1:2016]](https://go.microsoft.com/fwlink/?linkid=861065). Because these elements and attributes are meant as extensions, their intent and usage varies.
+
+The extensions support new functionality involving slide transitions (section [2.2.1](#Section_22ebe6b52ade43d9977a98fa194725c2)), slide animations (section [2.2.2](#Section_3dae7e98e8ea426598e041146b9eb838)), content parts (section [2.2.3](#Section_a05ae034990f44748c975c70bb0a9862)), media (section [2.2.4](#Section_a504076c0bb24aebb268f380b71a74d0)), sections (section [2.2.5](#Section_1f21a089944d410bbd474f5e692c2532)), [__slide show__](#gt_340561a9-dc0c-42ad-ab6f-7b6d854d3c1b) (section [2.2.6](#Section_fc79996c7c154f4b80654f672dd70414)), images (section [2.2.7](#Section_3c206095ec1d44a8a21d77796c03d59e)), math (section [2.2.8](#Section_9a9c5ee578714b73a9b209f59aa4ff97)), change tracking (section [2.2.9](#Section_6c8bd1b8ffc14198ba1dd52828544d6a)), comments (section [2.2.10](#Section_f1ad49e19f7d404ba2956b02bedb7c36)), guides (section [2.2.11](#Section_8337099d6e28412ea45d4c9710931d70)), and charts (section [2.2.12](#Section_e32a99bd3b804be697dfad50ef6d2224)).
+
+The extensions in this format are integrated into [ISO/IEC29500-1:2016] by means of the Markup Compatibility and Extensibility features as described in [[ISO/IEC29500-3:2015]](https://go.microsoft.com/fwlink/?linkid=861154). Specifically, the __Ignorable__ attribute ([ISO/IEC29500-3:2015] section 7.2), the __AlternateContent__ element ([ISO/IEC29500-3:2015] section 7.5), and application-defined extension elements are used to maintain compatibility with [ISO/IEC29500-1:2016] implementations when integrating the extensions from this format. Using these extensions as described in this document will result in a PresentationML document that is conformant to [ISO/IEC29500-1:2016].

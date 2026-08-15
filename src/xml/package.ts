@@ -17,7 +17,7 @@ import {
 } from '../core-interfaces'
 import { createTimingXml, MediaPlaybackEntry } from '../gen-animations'
 import { genXmlTransition } from '../gen-transition'
-import { AUTHOR_REL_TYPE, COMMENT_REL_URI, P188_NS } from '../gen-comments'
+import { AUTHOR_PART_CONTENT_TYPE, AUTHOR_REL_TYPE, COMMENT_PART_CONTENT_TYPE, COMMENT_REL_URI, P188_NS } from '../gen-comments'
 import { createColorElement, encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
 import { extPartPackagePath } from './content-parts'
 import { slideCommentsRelId } from './relationships'
