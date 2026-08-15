@@ -11,13 +11,66 @@ import {
 	SectionProps,
 	SlideLayout,
 	SlideObjectAnimation,
+	SlideShowEvent,
 	TextProps,
 } from '../core-interfaces'
 import { createTimingXml, MediaPlaybackEntry } from '../gen-animations'
 import { genXmlTransition } from '../gen-transition'
-import { encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
+import { createColorElement, encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
 import { resolveZoomSections, slideObjectToXml } from './slide'
-import { A14_NS, MATH_NS, MC_NS, P14_NS } from './text'
+import { A14_NS, MATH_NS, MC_NS, P14_NS, P1710_NS } from './text'
+
+/** MS-PPTX §2.2.6 showPr browseMode */
+const URI_BROWSE_MODE = '{F99C55AA-B7CB-42B0-86F8-08522FDF87E8}'
+/** MS-PPTX §2.2.6 showPr laserClr */
+const URI_LASER_CLR = '{EC167BDD-8182-4AB7-AECC-EB403E3ABB37}'
+/** MS-PPTX §2.2.6 sld laserTraceLst */
+const URI_LASER_TRACE_LST = '{3A86A75C-4F4B-4683-9AE1-C65F6400EC91}'
+/** MS-PPTX §2.2.6 sld showEvtLst */
+const URI_SHOW_EVT_LST = '{E180D4A7-C9FB-4DFB-919C-405C955672EB}'
+/** MS-PPTX §2.2.7 presentationPr defaultImageDpi */
+const URI_DEFAULT_IMAGE_DPI = '{D31A062A-798A-4329-ABDD-BBA856620510}'
+/** MS-PPTX §2.2.7 presentationPr discardImageEditData */
+const URI_DISCARD_IMAGE_EDIT_DATA = '{E76CE94A-603C-4142-B9EB-6D1370010A27}'
+/** MS-PPTX §2.2.16 presentationPr readonlyRecommended */
+const URI_READONLY_RECOMMENDED = '{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}'
+
+function showEventXml (evt: SlideShowEvent): string {
+	const time = Math.round(evt.time)
+	const objId = Math.round(evt.objId)
+	switch (evt.type) {
+		case 'trigger':
+			return `<p14:triggerEvt type="${evt.trigger ?? 'onClick'}" time="${time}" objId="${objId}"/>`
+		case 'play':
+			return `<p14:playEvt time="${time}" objId="${objId}"/>`
+		case 'stop':
+			return `<p14:stopEvt time="${time}" objId="${objId}"/>`
+		case 'pause':
+			return `<p14:pauseEvt time="${time}" objId="${objId}"/>`
+		case 'resume':
+			return `<p14:resumeEvt time="${time}" objId="${objId}"/>`
+		case 'seek':
+			return `<p14:seekEvt time="${time}" objId="${objId}" seek="${Math.round(evt.seek ?? 0)}"/>`
+		case 'null':
+			return `<p14:nullEvt time="${time}" objId="${objId}"/>`
+	}
+}
+
+function slideShowExtLst (slide: PresSlide): string {
+	const exts: string[] = []
+	const traces = slide.laserTraces
+	if (traces && traces.length > 0) {
+		const body = traces
+			.map(pts => `<p14:tracePtLst>${pts.map(p => `<p14:tracePt t="${Math.round(p.t)}" x="${Math.round(p.x)}" y="${Math.round(p.y)}"/>`).join('')}</p14:tracePtLst>`)
+			.join('')
+		exts.push(`<p:ext uri="${URI_LASER_TRACE_LST}"><p14:laserTraceLst>${body}</p14:laserTraceLst></p:ext>`)
+	}
+	const evts = slide.showEvents
+	if (evts && evts.length > 0) {
+		exts.push(`<p:ext uri="${URI_SHOW_EVT_LST}"><p14:showEvtLst>${evts.map(showEventXml).join('')}</p14:showEvtLst></p:ext>`)
+	}
+	return exts.length > 0 ? `<p:extLst>${exts.join('')}</p:extLst>` : ''
+}
 
 // XML-GEN: First 6 functions create the base /ppt files
 
@@ -322,7 +375,9 @@ export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): stri
 	const mediaPlayback = collectMediaPlayback(slide)
 	const timingXml = animations.length > 0 || mediaPlayback.length > 0 ? createTimingXml(animations, mediaPlayback) : ''
 	const transitionXml = genXmlTransition(slide)
+	const showExtXml = slideShowExtLst(slide)
 	const hasTrans = transitionXml.length > 0
+	const hasP14 = hasTrans || showExtXml.length > 0
 
 	return (
 		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
@@ -330,13 +385,14 @@ export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): stri
 		'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" ' +
 		`xmlns:m="${MATH_NS}" ` +
 		`xmlns:a14="${A14_NS}" ` +
-		(hasTrans ? `xmlns:p14="${P14_NS}" ` : '') +
-		`xmlns:mc="${MC_NS}" mc:Ignorable="a14${hasTrans ? ' p14' : ''}"` +
+		(hasP14 ? `xmlns:p14="${P14_NS}" ` : '') +
+		`xmlns:mc="${MC_NS}" mc:Ignorable="a14${hasP14 ? ' p14' : ''}"` +
 		`${slide?.hidden ? ' show="0"' : ''}>` +
 		`${slideObjectToXml(slide)}` +
 		'<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>' +
 		`${transitionXml}` +
 		`${timingXml}` +
+		`${showExtXml}` +
 		'</p:sld>'
 	)
 }
@@ -546,21 +602,29 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
  * @return {string} XML
  */
 export function makeXmlPresProps (pres?: IPresentationProps): string {
-	// MS-PPTX presentationPr extensions (issue-gap #4): defaultImageDpi / discardImageEditData (p14),
-	// readonlyRecommended (p1710). Each lives in a namespaced ext under extLst.
+	// MS-PPTX §2.2.6 showPr extensions (browseMode / laserClr) and §2.2.7/§2.2.16
+	// presentationPr extLst (defaultImageDpi / discardImageEditData / readonlyRecommended).
+	// Opt-in: emit an ext only when the corresponding property is set.
+	const showExts: string[] = []
+	if (typeof pres?.browseMode === 'boolean')
+		showExts.push(`<p:ext uri="${URI_BROWSE_MODE}"><p14:browseMode xmlns:p14="${P14_NS}" showStatus="${pres.browseMode ? '1' : '0'}"/></p:ext>`)
+	if (pres?.laserColor)
+		showExts.push(`<p:ext uri="${URI_LASER_CLR}"><p14:laserClr xmlns:p14="${P14_NS}">${createColorElement(pres.laserColor)}</p14:laserClr></p:ext>`)
+	const showPr = showExts.length > 0 ? `<p:showPr><p:extLst>${showExts.join('')}</p:extLst></p:showPr>` : ''
+
 	const exts: string[] = []
 	if (pres?.defaultImageDpi && pres.defaultImageDpi > 0)
-		exts.push(`<p:ext uri="{D31A062A-798A-4329-ABDD-BBA856620510}"><p14:defaultImageDpi xmlns:p14="${P14_NS}" val="${Math.round(pres.defaultImageDpi)}"/></p:ext>`)
+		exts.push(`<p:ext uri="${URI_DEFAULT_IMAGE_DPI}"><p14:defaultImageDpi xmlns:p14="${P14_NS}" val="${Math.round(pres.defaultImageDpi)}"/></p:ext>`)
 	if (pres?.discardImageEditData)
-		exts.push(`<p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}"><p14:discardImageEditData xmlns:p14="${P14_NS}" val="1"/></p:ext>`)
+		exts.push(`<p:ext uri="${URI_DISCARD_IMAGE_EDIT_DATA}"><p14:discardImageEditData xmlns:p14="${P14_NS}" val="1"/></p:ext>`)
 	if (pres?.readonlyRecommended)
-		exts.push('<p:ext uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"><p1710:readonlyRecommended xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main" val="1"/></p:ext>')
+		exts.push(`<p:ext uri="${URI_READONLY_RECOMMENDED}"><p1710:readonlyRecommended xmlns:p1710="${P1710_NS}" val="1"/></p:ext>`)
 
 	const extLst = exts.length > 0 ? `<p:extLst>${exts.join('')}</p:extLst>` : ''
 	return (
 		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
 		'<p:presentationPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' +
-		`${extLst}</p:presentationPr>`
+		`${showPr}${extLst}</p:presentationPr>`
 	)
 }
 
