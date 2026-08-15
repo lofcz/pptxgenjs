@@ -24,6 +24,13 @@ test('office: LibreOffice opens and converts a generated presentation', async ()
 		const pptx = new pptxgen()
 		const slide = pptx.addSlide()
 		slide.addText('OOXML consumer smoke test', { x: 0.5, y: 0.5, w: 5, h: 0.5 })
+		slide.addText(
+			[
+				{ text: 'Math: ' },
+				{ text: '', options: { omml: '<m:oMath><m:r><m:t>E=mc^2</m:t></m:r></m:oMath>' } },
+			],
+			{ x: 0.5, y: 1.0, w: 5, h: 0.4 },
+		)
 		slide.addTable([['Region', 'Sales'], ['West', '20']], { x: 0.5, y: 1.5, w: 5 })
 		slide.addChart(pptx.ChartType.bar, [{ name: 'Sales', labels: ['Q1', 'Q2'], values: [10, 20] }], { x: 0.5, y: 3, w: 6, h: 3 })
 		await writeFile(presentationPath, (await pptx.write({ outputType: 'nodebuffer' })) as Buffer)

@@ -11,6 +11,8 @@ import { join } from 'node:path'
 import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
 import { genTableToSlides } from '../src/gen-tables'
+import type { TextPropsOptions } from '../src/core-interfaces'
+import { assertPptxPackageContracts } from './pptx-contracts'
 
 /** 4x2 px PNG - non-square on purpose, so a 1x1 inch default is obvious */
 const PNG_4x2 = 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAADklEQVR4nGP4jwQYkDkANvEX6SAXxcIAAAAASUVORK5CYII='
@@ -786,6 +788,56 @@ test('Schema: a paragraph contains at most one a:pPr (ECMA-376 CT_TextParagraph)
 		}
 	}
 	assert.ok(/<a14:m[\s>][\s\S]*?<m:oMath[\s>]/.test(xml), 'm:oMath must be wrapped in a14:m')
+})
+
+test('OMML: package contracts hold and fragments normalize to a single a14:m', async () => {
+	const fragment = '<m:f><m:num><m:r><m:t>1</m:t></m:r></m:num><m:den><m:r><m:t>2</m:t></m:r></m:den></m:f>'
+	const oMathPara = '<m:oMathPara><m:oMath><m:r><m:t>x+y</m:t></m:r></m:oMath></m:oMathPara>'
+	const alreadyWrapped = '<a14:m><m:oMath><m:r><m:t>z</m:t></m:r></m:oMath></a14:m>'
+
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText(
+		[
+			{ text: 'plain ' },
+			{ text: '', options: { omml: fragment } },
+			{ text: ' mid ' },
+			{ text: '', options: { omml: oMathPara } },
+			{ text: ' end ' },
+			{ text: '', options: { omml: alreadyWrapped } },
+		],
+		{ x: 0.5, y: 0.5, w: 8, h: 1.2 },
+	)
+	// Shape-level omml must not replace sibling plain-text runs
+	slide.addText(
+		[
+			{ text: 'keep ' },
+			{ text: '', options: { omml: '<m:r><m:t>q</m:t></m:r>' } },
+		],
+		{ x: 0.5, y: 2, w: 6, h: 0.8, omml: '<m:oMath><m:r><m:t>LEAK</m:t></m:r></m:oMath>' },
+	)
+
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+
+	const wraps = xml.match(/<a14:m[\s\S]*?<\/a14:m>/g) || []
+	assert.equal(wraps.length, 4, 'expected four a14:m wrappers')
+	for (const wrap of wraps) {
+		assert.equal((wrap.match(/<a14:m[\s/>]/g) || []).length, 1, `nested a14:m: ${wrap}`)
+	}
+	assert.ok(xml.includes('<m:oMath') && xml.includes('<m:oMathPara'), 'inner fragment and oMathPara must both emit')
+	assert.ok(xml.includes('<a:t>plain </a:t>'), 'plain text before fragment missing')
+	assert.ok(xml.includes('<a:t>keep </a:t>'), 'shape-level omml leaked onto a sibling run')
+	assert.ok(!xml.includes('LEAK'), 'shape-level omml must not inherit onto plain runs')
+	assert.ok(xml.includes('<m:t>1</m:t>') && xml.includes('<m:t>2</m:t>'), 'wrapped fragment lost fraction parts')
+	assert.ok(xml.includes('<m:t>x+y</m:t>'), 'oMathPara payload missing')
+	assert.ok(xml.includes('<m:t>z</m:t>'), 'pre-wrapped a14:m payload missing')
+})
+
+test('OMML: TextPropsOptions exposes omml on the public typed API', () => {
+	const opts: TextPropsOptions = { omml: '<m:oMath><m:r><m:t>x</m:t></m:r></m:oMath>' }
+	assert.equal(typeof opts.omml, 'string')
 })
 
 test('mikemeerschaert/fix-autopage-last-line-text-array-bug: text array without breakLine is not duplicated (#1139)', async () => {
