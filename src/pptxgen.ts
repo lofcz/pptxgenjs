@@ -562,9 +562,9 @@ export default class PptxGenJS implements IPresentationProps {
 	/**
 	 * Create and export the .pptx file
 	 * @param {WRITE_OUTPUT_TYPE} outputType - output file type
-	 * @return {Promise<string | ArrayBuffer | Blob | Buffer | Uint8Array>} Promise with data or stream (node) or filename (browser)
+	 * @return {Promise<string | ArrayBuffer | Blob | Uint8Array>} Promise with data or stream (node) or filename (browser)
 	 */
-	private readonly exportPresentation = async (props: WriteProps): Promise<string | ArrayBuffer | Blob | Buffer | Uint8Array> => {
+	private readonly exportPresentation = async (props: WriteProps): Promise<string | ArrayBuffer | Blob | Uint8Array> => {
 		const arrChartPromises: Promise<string>[] = []
 		let arrMediaPromises: Promise<string>[] = []
 		const zip = new JSZip()
@@ -683,9 +683,9 @@ export default class PptxGenJS implements IPresentationProps {
 	/**
 	 * Export the current Presentation to stream
 	 * @param {WriteBaseProps} props - output properties
-	 * @returns {Promise<string | ArrayBuffer | Blob | Buffer | Uint8Array>} file stream
+	 * @returns {Promise<string | ArrayBuffer | Blob | Uint8Array>} file stream
 	 */
-	async stream(props?: WriteBaseProps): Promise<string | ArrayBuffer | Blob | Buffer | Uint8Array> {
+	async stream(props?: WriteBaseProps): Promise<string | ArrayBuffer | Blob | Uint8Array> {
 		return await this.exportPresentation({
 			compression: props?.compression,
 			outputType: 'STREAM',
@@ -695,9 +695,9 @@ export default class PptxGenJS implements IPresentationProps {
 	/**
 	 * Export the current Presentation as JSZip content with the selected type
 	 * @param {WriteProps} props output properties
-	 * @returns {Promise<string | ArrayBuffer | Blob | Buffer | Uint8Array>} file content in selected type
+	 * @returns {Promise<string | ArrayBuffer | Blob | Uint8Array>} file content in selected type
 	 */
-	async write(props?: WriteProps | WRITE_OUTPUT_TYPE): Promise<string | ArrayBuffer | Blob | Buffer | Uint8Array> {
+	async write(props?: WriteProps | WRITE_OUTPUT_TYPE): Promise<string | ArrayBuffer | Blob | Uint8Array> {
 		// DEPRECATED: @deprecated v3.5.0 - outputType - [[remove in v4.0.0]]
 		if (typeof props === 'string') warnDeprecatedOnce('write-string', 'write(outputType) as a string is deprecated - pass { outputType } instead')
 		const propsOutpType: WRITE_OUTPUT_TYPE | undefined = typeof props === 'object' ? props?.outputType : props
