@@ -8,7 +8,7 @@ The library ships every built-in PowerPoint shape — over 180 of them (rectangl
 stars, connectors, and more), originally provided by the [officegen project](https://github.com/Ziv-Barber/officegen).
 Shapes are enumerated on the instance as `pptx.ShapeType`; editor autocompletion on this enum is the fastest
 way to discover the available shapes. The complete enum is also defined in
-[`index.d.ts`](https://github.com/lofcz/pptxgenjs-plus/blob/master/types/index.d.ts).
+[`index.d.ts`](https://github.com/lofcz/pptxgenjs-plus/blob/next/types/index.d.ts).
 
 Add a shape with `slide.addShape(type, options)`. The options control fill, line, and position:
 
@@ -35,7 +35,7 @@ Prefer scheme colors over hardcoded hex when you want a deck to adapt to corpora
 
 The ten slots map to PowerPoint's theme: two text colors, two background colors, and six accents. Reference
 them through `pptx.SchemeColor`; the complete enum is in
-[`index.d.ts`](https://github.com/lofcz/pptxgenjs-plus/blob/master/types/index.d.ts).
+[`index.d.ts`](https://github.com/lofcz/pptxgenjs-plus/blob/next/types/index.d.ts).
 
 ```typescript
 slide.addText("Themed heading", { color: pptx.SchemeColor.accent1 })

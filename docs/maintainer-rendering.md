@@ -185,7 +185,7 @@ For release-level confidence on a machine with LibreOffice installed:
 PPTXGENJS_OFFICE_BIN="$(command -v libreoffice || command -v soffice)" bun run test:office
 ```
 
-See the repository [Testing guide](https://github.com/lofcz/pptxgenjs-plus/blob/master/TESTING.md) for the manual Node, Rsbuild, and Office verification procedures. If PowerPoint displays a repair prompt, start with the [Needs Repair Errors](./needs-repair-errors) guide and then inspect the package relationships and content types before changing rendering code.
+See the repository [Testing guide](https://github.com/lofcz/pptxgenjs-plus/blob/next/TESTING.md) for the manual Node, Rsbuild, and Office verification procedures. If PowerPoint displays a repair prompt, start with the [Needs Repair Errors](./needs-repair-errors) guide and then inspect the package relationships and content types before changing rendering code.
 
 ## Ownership boundaries
 

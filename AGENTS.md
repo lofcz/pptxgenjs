@@ -4,7 +4,7 @@
 
 This checkout is the `pptxgenjs-plus` fork maintained by Matěj Lofcz Štágl: open pull requests against `lofcz/pptxgenjs-plus` (`origin`), not the original `gitbrent/PptxGenJS` (`upstream`). Verify the remotes before GitHub issue or PR work.
 
-After creating a pull request, run `gh pr view <number> --repo lofcz/pptxgenjs-plus --json url,state,baseRefName,headRefName,title` and verify the target is `master` and the head is the intended branch before reporting it.
+After creating a pull request, run `gh pr view <number> --repo lofcz/pptxgenjs-plus --json url,state,baseRefName,headRefName,title` and verify the target is `next` and the head is the intended branch before reporting it.
 
 ## OOXML specification
 

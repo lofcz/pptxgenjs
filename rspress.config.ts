@@ -99,7 +99,7 @@ export default defineConfig({
 				'Released under the MIT License.<br/>Copyright © 2015-present Brent Ely · © 2026-present Matěj Lofcz Štágl',
 		},
 		editLink: {
-			docRepoBaseUrl: 'https://github.com/lofcz/pptxgenjs-plus/tree/master/docs',
+			docRepoBaseUrl: 'https://github.com/lofcz/pptxgenjs-plus/tree/next/docs',
 			text: 'Edit this page on GitHub',
 		},
 	},

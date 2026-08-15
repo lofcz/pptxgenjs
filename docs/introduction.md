@@ -73,7 +73,7 @@ LibreOffice Impress, and Google Slides (via import).
 File issues or ideas on the [issues page](https://github.com/lofcz/pptxgenjs-plus/issues/new), or
 [open a pull request](https://github.com/lofcz/pptxgenjs-plus/pulls). When reporting a problem, include
 a short code snippet that reproduces it. Documentation lives in-repo under
-[`docs/`](https://github.com/lofcz/pptxgenjs-plus/tree/master/docs) — the "Edit this page" link on any
+[`docs/`](https://github.com/lofcz/pptxgenjs-plus/tree/next/docs) — the "Edit this page" link on any
 page leads directly to its source file.
 
 ## Contributors
@@ -94,4 +94,4 @@ PowerPoint shape definitions and some XML via the [Officegen Project](https://gi
 
 Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [Matěj Lofcz Štágl](https://github.com/lofcz)
 
-[MIT](https://github.com/lofcz/pptxgenjs-plus/blob/master/LICENSE)
+[MIT](https://github.com/lofcz/pptxgenjs-plus/blob/next/LICENSE)

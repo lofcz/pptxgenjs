@@ -2,8 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, next]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   check:
@@ -35,3 +36,46 @@ jobs:
         run: sudo apt-get update && sudo apt-get install --yes libreoffice-impress
       - name: Open generated presentation in LibreOffice
         run: PPTXGENJS_OFFICE_BIN=libreoffice bun run test:office
+
+  pages-build:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: canary
+      - run: bun ci
+      - uses: actions/configure-pages@v6
+        id: pages
+      - run: bun run docs:build
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: doc_dist
+
+  pages-deploy:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/master')
+    needs: pages-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
