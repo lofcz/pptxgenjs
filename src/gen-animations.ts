@@ -2540,6 +2540,10 @@ export interface MediaPlaybackEntry {
  * </p:video>
  * ```
  *
+ * Defaults (omitted/`false`): delay="indefinite", no repeatCount, no fullScrn, no mute.
+ * Invalid (rejected in addMedia, not silently dropped): fullScreen on audio; any of the
+ * four options on type "online".
+ *
  * - autoplay → start condition `delay="0"` (else `delay="indefinite"`, i.e. on click)
  * - loop     → `repeatCount="indefinite"` on the media node's `cTn`
  * - fullScreen → `fullScrn="1"` on `<p:video>` (video only)

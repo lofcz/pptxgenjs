@@ -2006,6 +2006,68 @@ test('#gap7b: no playback opts → no timing tree for media-only slide', async (
 	assert.ok(!slideXml.includes('<p:audio><p:cMediaNode'), 'no cMediaNode expected')
 })
 
+const TINY_AUDIO = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADQgD///////////////////////////////////////////8AAAA8TEFNRTMuMTAwAQAAAAAAAAAAABSAJAJAQgAAgAAAA0LS3ZssAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//sQZAAP8AAAaQAAAAgAAA0gAAABAAABpAAAACAAADSAAAAE'
+
+test('#gap7c: invalid media playback combinations throw', () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	assert.throws(
+		() => slide.addMedia({ type: 'audio', data: TINY_AUDIO, x: 1, y: 1, w: 1, h: 1, fullScreen: true }),
+		/fullScreen.*video/,
+		'fullScreen on audio must throw'
+	)
+	assert.throws(
+		() => slide.addMedia({ type: 'online', link: 'https://www.youtube.com/embed/Dph6ynRVyUc', x: 1, y: 1, w: 2, h: 1, autoplay: true }),
+		/online/,
+		'autoplay on online must throw'
+	)
+	assert.throws(
+		() => slide.addMedia({ type: 'online', link: 'https://www.youtube.com/embed/Dph6ynRVyUc', x: 1, y: 1, w: 2, h: 1, mute: true }),
+		/online/,
+		'mute on online must throw'
+	)
+})
+
+test('#gap7d: loop/mute without autoplay emit click-to-play delay', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addMedia({ type: 'video', data: TINY_AUDIO, x: 1, y: 1, w: 2, h: 1.5, loop: true, mute: true })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(
+		/<p:video><p:cMediaNode vol="80000" mute="1"><p:cTn id="\d+" fill="hold" display="0" repeatCount="indefinite"><p:stCondLst><p:cond delay="indefinite"\/>/.test(slideXml),
+		`click-to-play loop+mute shape wrong: ${/<p:video[\s\S]*?<\/p:video>/.exec(slideXml)?.[0]}`
+	)
+	assert.ok(!slideXml.includes('fullScrn='), 'fullScreen default must omit fullScrn')
+})
+
+test('#gap7e: timing-tree spid matches cNvPr and media relationships', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addMedia({ type: 'video', data: TINY_AUDIO, x: 1, y: 1, w: 2, h: 1.5, autoplay: true })
+
+	const zip = await writeZip(pptx)
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	const rels = await readPart(zip, 'ppt/slides/_rels/slide1.xml.rels')
+
+	const cNvPr = /<p:cNvPr id="(\d+)"[^>]*><a:hlinkClick r:id="" action="ppaction:\/\/media"/.exec(slideXml)
+	const spTgt = /<p:spTgt spid="(\d+)"\/>/.exec(slideXml)
+	assert.ok(cNvPr && spTgt, 'missing media cNvPr or spTgt')
+	assert.equal(spTgt?.[1], cNvPr?.[1], `spid ${spTgt?.[1]} must match media cNvPr id ${cNvPr?.[1]}`)
+
+	const videoLink = /<a:videoFile r:link="(rId\d+)"\/>/.exec(slideXml)
+	const mediaEmbed = /<p14:media[^>]* r:embed="(rId\d+)"/.exec(slideXml)
+	assert.ok(videoLink, 'missing a:videoFile r:link')
+	assert.ok(mediaEmbed, 'missing p14:media r:embed')
+	assert.ok(
+		rels.includes(`Id="${videoLink?.[1]}"`) && rels.includes('/relationships/video'),
+		`video rel ${videoLink?.[1]} missing: ${rels}`
+	)
+	assert.ok(
+		rels.includes(`Id="${mediaEmbed?.[1]}"`) && rels.includes('/relationships/media'),
+		`media rel ${mediaEmbed?.[1]} missing: ${rels}`
+	)
+	assert.notEqual(videoLink?.[1], mediaEmbed?.[1], 'video r:link and media r:embed must be distinct rIds')
+})
+
 test('#gap2: slide zoom emits mc:AlternateContent sldZm + pic fallback', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addText('zoom source', { x: 1, y: 1, w: 2, h: 1 })

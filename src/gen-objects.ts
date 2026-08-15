@@ -620,6 +620,14 @@ export function addMediaDefinition(target: PresSlide, opt: MediaProps): void {
 	if (strType === 'online' && !strLink) {
 		throw new Error('addMedia() error: online videos require `link` value')
 	}
+	// Timing-tree playback (ECMA-376 §19.5 CT_TLMediaNode): no silent fallbacks.
+	// `fullScrn` exists only on CT_TLMediaNodeVideo; linked `online` media has no embedded media node.
+	if (strType === 'audio' && opt.fullScreen) {
+		throw new Error('addMedia() error: `fullScreen` is only valid on type "video"')
+	}
+	if (strType === 'online' && (opt.autoplay || opt.loop || opt.fullScreen || opt.mute)) {
+		throw new Error('addMedia() error: autoplay/loop/fullScreen/mute are not valid on type "online"')
+	}
 
 	// FIXME: 20190707
 	// strType = strData ? strData.split(';')[0].split('/')[0] : strType
