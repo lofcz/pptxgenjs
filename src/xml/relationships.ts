@@ -3,6 +3,7 @@
  */
 
 import { CRLF } from '../core-enums'
+import { COMMENT_REL_TYPE } from '../gen-comments'
 import { ISlideRel, ISlideRelChart, ISlideRelMedia, PresSlide, SlideLayout } from '../core-interfaces'
 
 /**
@@ -72,6 +73,23 @@ function slideObjectRelationsToXml (slide: PresSlide | SlideLayout, defaultRels:
 	return strXml
 }
 
+/** Highest rId already claimed by dynamic slide rels (hyperlinks, charts, media). */
+export function lastSlideDynamicRelId (slide: PresSlide): number {
+	let lastRid = 0
+	slide._rels.forEach(rel => { lastRid = Math.max(lastRid, rel.rId) })
+	;(slide._relsChart || []).forEach(rel => { lastRid = Math.max(lastRid, rel.rId) })
+	;(slide._relsMedia || []).forEach(rel => { lastRid = Math.max(lastRid, rel.rId) })
+	return lastRid
+}
+
+/**
+ * rId of the §2.1.5 comments relationship.
+ * Default slide rels are layout (+1), notes (+2), then comments (+3).
+ */
+export function slideCommentsRelId (slide: PresSlide): number {
+	return lastSlideDynamicRelId(slide) + 3
+}
+
 /**
  * Generates XML string for a slide layout relation file
  * @param {number} layoutNumber - 1-indexed number of a layout that relations are generated for
@@ -108,7 +126,7 @@ export function makeXmlSlideRel (slides: PresSlide[], slideLayouts: SlideLayout[
 	]
 	// MS-PPTX §2.1.5: explicit comment rel from a slide that has threaded comments.
 	if ((slide.comments ?? []).length > 0)
-		rels.push({ target: `../comments/commentSlide${slideNumber}.xml`, type: 'http://schemas.microsoft.com/office/2018/10/relationships/comments' })
+		rels.push({ target: `../comments/commentSlide${slideNumber}.xml`, type: COMMENT_REL_TYPE })
 	return slideObjectRelationsToXml(slide, rels)
 }
 

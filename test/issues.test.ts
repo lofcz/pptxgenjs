@@ -1696,6 +1696,7 @@ test('#gap5: threaded comments emit authors.xml + comments part + rels', async (
 	assert.ok(cmXml.includes('<p188:cmLst'), 'no cmLst root')
 	assert.ok(cmXml.includes('<pc:sldMkLst>'), 'no slide moniker anchor')
 	assert.ok(cmXml.includes('<p188:replyLst>'), 'no replyLst')
+	assert.ok(cmXml.includes(' created="'), 'CT_Comment.created is required')
 	assert.ok(cmXml.includes('Fix the title') && cmXml.includes('On it'), 'comment/reply text missing')
 	// content types + rels.
 	assert.ok(ctXml.includes('application/vnd.ms-powerpoint.comments+xml'), 'comments content-type missing')
@@ -1703,8 +1704,68 @@ test('#gap5: threaded comments emit authors.xml + comments part + rels', async (
 	assert.ok(presRels.includes('/relationships/authors'), 'presentation authors rel missing')
 	assert.ok(slide1Rels.includes('/relationships/comments'), 'slide1 comments rel missing')
 	assert.ok(!slide2Rels.includes('/relationships/comments'), 'slide2 should NOT have comments rel')
+	// §2.2.10 commentRel on the slide points at the comments relationship.
+	const slide1Xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(slide1Xml.includes('uri="{6950BFC3-D8DA-4A85-94F7-54DA5524770B}"'), 'commentRel ext uri missing')
+	assert.ok(slide1Xml.includes('<p188:commentRel'), 'commentRel missing on slide')
+	assert.match(slide1Xml, /p188:commentRel[^>]*r:id="rId\d+"/, 'commentRel missing r:id')
 	// slide2 has no comments part.
 	assert.ok(!zip.file('ppt/comments/commentSlide2.xml'), 'slide2 comments part should not exist')
+})
+
+test('#91: typed replies, tasks, reactions, and cmChg emit on modern comments', async () => {
+	const pptx = new pptxgen()
+	pptx.commentAuthors = [
+		{ name: 'Ada Lovelace', initials: 'AL', id: '{11111111-1111-4111-8111-111111111111}' },
+		{ name: 'Grace Hopper', initials: 'GH', id: '{22222222-2222-4222-8222-222222222222}' },
+	]
+	const s1 = pptx.addSlide()
+	s1.addComment({
+		id: '{aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa}',
+		text: 'Turn this into a task',
+		author: 0,
+		x: 1,
+		y: 1,
+		status: 'resolved',
+		created: '2026-08-15T03:00:00Z',
+		dueDate: '2026-08-20T00:00:00Z',
+		assignedTo: 1,
+		complete: 50,
+		title: 'Title fix',
+		replies: [{
+			id: '{bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb}',
+			text: 'On it',
+			author: 1,
+			created: '2026-08-15T04:00:00Z',
+			reactions: [{ type: '👍', authors: [0] }],
+		}],
+		reactions: [{ type: '🎉', authors: [1], time: '2026-08-15T05:00:00Z' }],
+		task: {
+			history: [
+				{ kind: 'add', author: 0, time: '2026-08-15T03:00:00Z', id: '{cccccccc-cccc-4ccc-8ccc-cccccccccccc}' },
+				{ kind: 'asgn', author: 0, assignTo: 1, time: '2026-08-15T03:01:00Z', id: '{dddddddd-dddd-4ddd-8ddd-dddddddddddd}' },
+				{ kind: 'pcntCmplt', author: 1, complete: 50, time: '2026-08-15T04:00:00Z', id: '{eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee}' },
+			],
+		},
+		changes: [{ chg: ['add', 'modTsk'], replies: [{ chg: 'add', replyId: '{bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb}' }] }],
+	})
+
+	const zip = await writeZip(pptx)
+	const cmXml = await readPart(zip, 'ppt/comments/commentSlide1.xml')
+	assert.ok(cmXml.includes('status="resolved"'), 'comment status missing')
+	assert.ok(cmXml.includes('dueDate="2026-08-20T00:00:00Z"'), 'dueDate missing')
+	assert.ok(cmXml.includes('assignedTo="{22222222-2222-4222-8222-222222222222}"'), 'assignedTo missing')
+	assert.ok(cmXml.includes('complete="50%"'), 'complete missing')
+	assert.ok(cmXml.includes('title="Title fix"'), 'title missing')
+	assert.ok(cmXml.includes('<p223:reactions'), 'reactions missing')
+	assert.ok(cmXml.includes('type="🎉"') && cmXml.includes('type="👍"'), 'reaction types missing')
+	assert.ok(cmXml.includes('<p228:taskDetails'), 'taskDetails missing')
+	assert.ok(cmXml.includes('<p228:add/>') && cmXml.includes('<p228:asgn '), 'task history events missing')
+	assert.ok(cmXml.includes('<p228:pcntCmplt val="50%"/>'), 'task progress missing')
+	assert.ok(cmXml.includes('<pc226:cmChg'), 'cmChg missing')
+	assert.ok(cmXml.includes('chg="add modTsk"'), 'cmChg bits missing')
+	assert.ok(cmXml.includes('<pc226:cmRplyChg chg="add"'), 'cmRplyChg missing')
+	assert.ok(cmXml.includes('<pc2:cmMkLst'), 'cmMkLst missing')
 })
 
 test('#gap6: media trim/fade/bookmarks/isNarration emit on p14:media', async () => {

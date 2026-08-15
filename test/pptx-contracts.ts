@@ -8,6 +8,13 @@ import assert from 'node:assert/strict'
 import { posix } from 'node:path'
 import { JSZip } from '@node-projects/jszip'
 import { XMLParser, XMLValidator } from 'fast-xml-parser'
+import {
+	AUTHOR_PART_CONTENT_TYPE,
+	AUTHOR_REL_TYPE,
+	COMMENT_PART_CONTENT_TYPE,
+	COMMENT_REL_TYPE,
+	P188_NS,
+} from '../src/gen-comments'
 
 const REQUIRED_PPTX_PARTS = [
 	'[Content_Types].xml',
@@ -239,9 +246,104 @@ async function assertPresentationSlideList (zip: JSZip): Promise<void> {
 	assert.deepEqual(orderedTargets, slideParts, 'generated p:sldIdLst order must match slide1..N parts')
 }
 
+function rootElement (parsed: XmlObject): { name: string, node: XmlObject } | undefined {
+	for (const [key, value] of Object.entries(parsed)) {
+		if (key.startsWith('?xml') || key.startsWith('?')) continue
+		if (isXmlObject(value)) return { name: key, node: value }
+	}
+	return undefined
+}
+
+function contentTypeOverrides (types: XmlObject): Array<{ partName: string, contentType: string }> {
+	return asXmlObjects(types.Override).flatMap(entry => {
+		const partName = entry['@_PartName']
+		const contentType = entry['@_ContentType']
+		if (typeof partName !== 'string' || typeof contentType !== 'string') return []
+		return [{ partName: partName.replace(/^\//, ''), contentType }]
+	})
+}
+
+function isInternalTarget (targetMode: string | undefined): boolean {
+	return targetMode === undefined || targetMode === 'Internal'
+}
+
+/**
+ * MS-PPTX §2.1.5–2.1.6: modern comment / author part content types and relationship constraints.
+ * No-op when the package has neither authors nor comment parts.
+ */
+export async function assertModernCommentPartContracts (zip: JSZip): Promise<void> {
+	const packageParts = new Set(Object.keys(zip.files).filter(name => !name.endsWith('/')))
+	const authorParts = [...packageParts].filter(name => name === 'ppt/authors.xml')
+	const commentParts = [...packageParts].filter(name => /^ppt\/comments\/commentSlide\d+\.xml$/.test(name))
+	if (authorParts.length === 0 && commentParts.length === 0) return
+
+	assert.ok(authorParts.length <= 1, 'MS-PPTX §2.1.6: package MUST contain zero or one Author part')
+	assert.ok(!packageParts.has('ppt/authors.xml.rels'), 'MS-PPTX §2.1.6: Author part MUST NOT have relationships to other parts')
+
+	const contentTypes = parseXml(await readPart(zip, '[Content_Types].xml'), '[Content_Types].xml')
+	const types = contentTypes.Types
+	assert.ok(isXmlObject(types), 'missing Types root in [Content_Types].xml')
+	const overrides = contentTypeOverrides(types)
+	const overrideByPart = new Map(overrides.map(entry => [entry.partName, entry.contentType]))
+
+	if (authorParts.length === 1) {
+		assert.equal(overrideByPart.get('ppt/authors.xml'), AUTHOR_PART_CONTENT_TYPE, 'MS-PPTX §2.1.6: Author part content type')
+		const authorsXml = await readPart(zip, 'ppt/authors.xml')
+		const authorsRoot = rootElement(parseXml(authorsXml, 'ppt/authors.xml'))
+		assert.ok(authorsRoot, 'authors.xml missing root')
+		assert.match(authorsRoot!.name, /(?:^|:)authorLst$/, 'MS-PPTX §2.1.6: Author part root MUST be authorLst')
+		const ns = authorsRoot!.node['@_xmlns:p188'] ?? authorsRoot!.node['@_xmlns']
+		assert.equal(ns, P188_NS, 'MS-PPTX §2.1.6: Author part root namespace')
+	}
+
+	for (const commentPart of commentParts) {
+		assert.equal(overrideByPart.get(commentPart), COMMENT_PART_CONTENT_TYPE, `MS-PPTX §2.1.5: Comment part content type for ${commentPart}`)
+		const commentXml = await readPart(zip, commentPart)
+		const commentRoot = rootElement(parseXml(commentXml, commentPart))
+		assert.ok(commentRoot, `${commentPart} missing root`)
+		assert.match(commentRoot!.name, /(?:^|:)cmLst$/, `MS-PPTX §2.1.5: Comment part root MUST be cmLst (${commentPart})`)
+		const ns = commentRoot!.node['@_xmlns:p188'] ?? commentRoot!.node['@_xmlns']
+		assert.equal(ns, P188_NS, `MS-PPTX §2.1.5: Comment part root namespace (${commentPart})`)
+	}
+
+	const presentationRels = relationshipsFromXml(await readPart(zip, 'ppt/_rels/presentation.xml.rels'), 'ppt/_rels/presentation.xml.rels')
+	const authorRels = presentationRels.filter(rel => rel.type === AUTHOR_REL_TYPE)
+	const commentRelsFromPres = presentationRels.filter(rel => rel.type === COMMENT_REL_TYPE)
+	assert.equal(commentRelsFromPres.length, 0, 'MS-PPTX §2.1.5: Comment part MUST be related from the Slide part, not Presentation')
+
+	if (authorParts.length === 1) {
+		assert.equal(authorRels.length, 1, 'MS-PPTX §2.1.6: Author part MUST be the target of an implicit relationship from the Presentation part')
+		assert.ok(isInternalTarget(authorRels[0].targetMode), 'MS-PPTX §2.1.6: Author relationship TargetMode MUST be Internal')
+		assert.equal(resolveTarget('ppt/presentation.xml', authorRels[0].target), 'ppt/authors.xml', 'MS-PPTX §2.1.6: authors relationship target')
+	} else {
+		assert.equal(authorRels.length, 0, 'authors relationship without an Author part')
+	}
+
+	const commentTargetsFromSlides = new Set<string>()
+	for (const name of packageParts) {
+		if (!/^ppt\/slides\/_rels\/slide\d+\.xml\.rels$/.test(name)) continue
+		const sourcePart = sourcePartForRelationships(name)
+		assert.ok(sourcePart, `could not resolve source for ${name}`)
+		const rels = relationshipsFromXml(await readPart(zip, name), name)
+		const authorFromSlide = rels.filter(rel => rel.type === AUTHOR_REL_TYPE)
+		assert.equal(authorFromSlide.length, 0, `MS-PPTX §2.1.6: Author part is related from Presentation, not ${name}`)
+		for (const rel of rels.filter(rel => rel.type === COMMENT_REL_TYPE)) {
+			assert.ok(isInternalTarget(rel.targetMode), `MS-PPTX §2.1.5: Comment relationship TargetMode MUST be Internal (${name})`)
+			const target = resolveTarget(sourcePart, rel.target)
+			assert.ok(commentParts.includes(target), `MS-PPTX §2.1.5: comments relationship target missing: ${name} -> ${target}`)
+			commentTargetsFromSlides.add(target)
+		}
+	}
+
+	for (const commentPart of commentParts) {
+		assert.ok(commentTargetsFromSlides.has(commentPart), `MS-PPTX §2.1.5: ${commentPart} MUST be the target of an explicit relationship from a Slide part`)
+	}
+}
+
 export async function assertPptxPackageContracts (zip: JSZip): Promise<void> {
 	await assertOoxmlPackageContracts(zip, REQUIRED_PPTX_PARTS)
 	await assertPresentationSlideList(zip)
+	await assertModernCommentPartContracts(zip)
 }
 
 export async function assertXlsxPackageContracts (zip: JSZip): Promise<void> {

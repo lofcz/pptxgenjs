@@ -15,9 +15,11 @@ import {
 } from '../core-interfaces'
 import { createTimingXml, MediaPlaybackEntry } from '../gen-animations'
 import { genXmlTransition } from '../gen-transition'
+import { AUTHOR_PART_CONTENT_TYPE, AUTHOR_REL_TYPE, COMMENT_PART_CONTENT_TYPE, COMMENT_REL_URI, P188_NS } from '../gen-comments'
 import { encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
 import { resolveZoomSections, slideObjectToXml } from './slide'
 import { A14_NS, MATH_NS, MC_NS, P14_NS } from './text'
+import { slideCommentsRelId } from './relationships'
 
 // XML-GEN: First 6 functions create the base /ppt files
 
@@ -93,10 +95,10 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 
 	// STEP 5b: Modern threaded comments (MS-PPTX §2.16) — only when a slide has comments.
 	if (slides.some(s => (s.comments ?? []).length > 0)) {
-		strXml += '<Override PartName="/ppt/authors.xml" ContentType="application/vnd.ms-powerpoint.authors+xml"/>'
+		strXml += `<Override PartName="/ppt/authors.xml" ContentType="${AUTHOR_PART_CONTENT_TYPE}"/>`
 		slides.forEach((slide, idx) => {
 			if ((slide.comments ?? []).length > 0)
-				strXml += `<Override PartName="/ppt/comments/commentSlide${idx + 1}.xml" ContentType="application/vnd.ms-powerpoint.comments+xml"/>`
+				strXml += `<Override PartName="/ppt/comments/commentSlide${idx + 1}.xml" ContentType="${COMMENT_PART_CONTENT_TYPE}"/>`
 		})
 	}
 
@@ -215,7 +217,7 @@ export function makeXmlPresentationRels (slides: PresSlide[]): string {
 		`<Relationship Id="rId${intRelNum + 4}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>`
 	// MS-PPTX §2.1.6: implicit authors rel from presentation (only when comments exist).
 	if (slides.some(s => (s.comments ?? []).length > 0))
-		strXml += `<Relationship Id="rId${intRelNum + 5}" Type="http://schemas.microsoft.com/office/2018/10/relationships/authors" Target="authors.xml"/>`
+		strXml += `<Relationship Id="rId${intRelNum + 5}" Type="${AUTHOR_REL_TYPE}" Target="authors.xml"/>`
 	strXml += '</Relationships>'
 
 	return strXml
@@ -323,6 +325,11 @@ export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): stri
 	const timingXml = animations.length > 0 || mediaPlayback.length > 0 ? createTimingXml(animations, mediaPlayback) : ''
 	const transitionXml = genXmlTransition(slide)
 	const hasTrans = transitionXml.length > 0
+	const hasComments = (slide.comments ?? []).length > 0
+	// MS-PPTX §2.2.10: sld extLst commentRel points at the §2.1.5 comments relationship.
+	const commentRelXml = hasComments
+		? `<p:extLst><p:ext uri="${COMMENT_REL_URI}"><p188:commentRel xmlns:p188="${P188_NS}" r:id="rId${slideCommentsRelId(slide)}"/></p:ext></p:extLst>`
+		: ''
 
 	return (
 		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
@@ -337,6 +344,7 @@ export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): stri
 		'<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>' +
 		`${transitionXml}` +
 		`${timingXml}` +
+		`${commentRelXml}` +
 		'</p:sld>'
 	)
 }
