@@ -41,6 +41,17 @@ function cloneOpts<T extends object> (options?: T): T {
 	return { ...(options ?? {}) } as T
 }
 
+/** Run options for `addText(string)` — shape effects stay on the shape `effectLst` (issue #84). */
+function cloneTextRunOpts (options?: TextPropsOptions): TextPropsOptions | undefined {
+	if (!options) return undefined
+	const runOpts = { ...options }
+	delete runOpts.glow
+	delete runOpts.softEdge
+	delete runOpts.reflection
+	delete runOpts.shadow
+	return runOpts
+}
+
 export default class Slide {
 	private readonly _setSlideNum: (value: SlideNumberProps) => void
 
@@ -306,7 +317,9 @@ export default class Slide {
 	 * @return {Slide} this Slide
 	 */
 	addText(text: string | TextProps[], options?: TextPropsOptions): Slide {
-		const textParam = typeof text === 'string' || typeof text === 'number' ? [{ text, options }] : text
+		// String/number text is one run. Keep text styling on that run, but leave
+		// glow/softEdge/reflection/shadow on the shape `effectLst` (issue #84).
+		const textParam = typeof text === 'string' || typeof text === 'number' ? [{ text, options: cloneTextRunOpts(options) }] : text
 		genObj.addTextDefinition(this, textParam, cloneOpts(options), false)
 		return this
 	}

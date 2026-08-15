@@ -475,8 +475,16 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 	tmpTextObjects.forEach((itext, idx) => {
 		if (!itext.text) itext.text = ''
 
-		// A: Set options
-		itext.options = itext.options || opts || {}
+		// A: Set options. `addText(string, opts)` and unstyled runs share the shape `opts`
+		// object; glow/softEdge/reflection/shadow belong on the shape `effectLst` (issue #84).
+		if (!itext.options || itext.options === opts) {
+			const runOpts = { ...opts }
+			delete runOpts.glow
+			delete runOpts.softEdge
+			delete runOpts.reflection
+			delete runOpts.shadow
+			itext.options = runOpts
+		}
 		if (idx === 0 && itext.options && !itext.options.bullet && opts.bullet) itext.options.bullet = opts.bullet
 
 		// B: Cast to text-object and fix line-breaks (if needed)
