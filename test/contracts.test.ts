@@ -28,6 +28,15 @@ test('contract: package parts and relationships are coherent', async () => {
 	await assertEmbeddedXlsxContracts(zip)
 })
 
+test('contract: every slide part is a PresentationML slide Override', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('one', { x: 0.5, y: 0.5, w: 4, h: 1 })
+	pptx.addSlide().addText('two', { x: 0.5, y: 0.5, w: 4, h: 1 })
+	pptx.addSlide().addText('three', { x: 0.5, y: 0.5, w: 4, h: 1 })
+	const multi = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+	await assertPptxPackageContracts(multi)
+})
+
 test('contract: rejects a part without a declared content type', async () => {
 	const invalidZip = await JSZip.loadAsync(await zip.generateAsync({ type: 'nodebuffer' }))
 	invalidZip.file('ppt/undeclared.bin', 'invalid')
