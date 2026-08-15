@@ -647,6 +647,51 @@ test('#1299: autoPageRepeatHeader marks firstRow for accessibility', async () =>
 	assert.ok(/<a:tblPr[^>]*\bfirstRow="0"/.test(overrideXml), 'explicit firstRow:false was ignored')
 })
 
+test('#1231+#1299: repeated headers keep firstRow and rowspan columns on overflow slides', async () => {
+	// Combined path: autoPageRepeatHeader sets tableHeaderRowsCount > 0 in flushCurrentRowToSlide,
+	// so the first data row after the repeated header must keep rowspan placeholder columns.
+	const long = Array.from({ length: 40 }, (_, idx) => `line ${idx}`).join('\n')
+	const rows = [
+		[{ text: 'H1' }, { text: 'H2' }, { text: 'H3' }],
+		[
+			{ text: 'span', options: { rowspan: 3 } },
+			{ text: long },
+			{ text: 'c' },
+		],
+		[{ text: 'r2b' }, { text: 'r2c' }],
+		[{ text: 'r3b' }, { text: 'r3c' }],
+		...Array.from({ length: 8 }, (_, idx) => [`r${idx + 4}a`, `r${idx + 4}b`, `r${idx + 4}c`]),
+	]
+
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable(rows, {
+		x: 0.5,
+		y: 0.5,
+		w: 9,
+		colW: [1, 4, 4],
+		autoPage: true,
+		autoPageRepeatHeader: true,
+		fontSize: 18,
+	})
+
+	assert.ok(pptx.slides.length > 1, 'expected autoPage to create overflow slides')
+
+	const zip = await writeZip(pptx)
+	const slideNames = Object.keys(zip.files).filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name)).sort()
+	assert.equal(slideNames.length, pptx.slides.length)
+
+	for (const name of slideNames) {
+		const xml = await readPart(zip, name)
+		assert.ok(/<a:tblPr[^>]*\bfirstRow="1"/.test(xml), `${name} missing firstRow="1" for repeated header`)
+		const gridCols = (xml.match(/<a:gridCol /g) || []).length
+		assert.equal(gridCols, 3, `${name} lost columns (got ${gridCols})`)
+		assert.ok(xml.includes('>H1<') && xml.includes('>H2<') && xml.includes('>H3<'), `${name} missing repeated header cells`)
+	}
+
+	const firstXml = await readPart(zip, slideNames[0])
+	assert.ok(/rowSpan="\d+"/.test(firstXml), 'opening slide missing rowSpan on the spanning cell')
+})
+
 test('#35: images accept a line/outline and emit it in the picture spPr', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addImage({ data: PNG_4x2, x: 1, y: 1, w: 2, h: 1, line: { color: 'FF0000', width: 2, dashType: 'dash' } })
