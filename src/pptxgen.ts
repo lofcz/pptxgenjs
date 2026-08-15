@@ -306,6 +306,12 @@ export default class PptxGenJS implements IPresentationProps {
 	public chartTrackingRefBased?: boolean
 
 	/**
+	 * Notes-page alignment guides (MS-PPTX §2.4.1.3). Emitted as `p15:notesGuideLst`.
+	 * @example pptx.notesGuides = [{ orient: 'horz', pos: 2 }]
+	 */
+	public notesGuides: GuideProps[] = []
+
+	/**
 	 * Modern comment authors (MS-PPTX §2.16). Emitted to `ppt/authors.xml`.
 	 * Auto-populated from slide `addComment` author names if left empty.
 	 * @example pptx.commentAuthors = [{ name: 'Ada Lovelace', initials: 'AL' }]
@@ -807,6 +813,7 @@ export default class PptxGenJS implements IPresentationProps {
 			_type: 'user',
 			_slides: [],
 			title: section.title,
+			_id: section.id ? section.id.replace(/^\{|\}$/g, '') : section._id,
 		}
 
 		if (section.order) this.sections.splice(section.order, 0, newSection)

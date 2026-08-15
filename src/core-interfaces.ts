@@ -2543,6 +2543,11 @@ export interface SectionProps {
 	 * - values: 1-n
 	 */
 	order?: number
+	/**
+	 * Optional stable GUID written to `p14:section/@id` (MS-PPTX §2.3.3.21).
+	 * Accepts with or without braces. Auto-generated at build if omitted.
+	 */
+	id?: string
 }
 export interface PresLayout {
 	_sizeW?: number
@@ -2874,6 +2879,12 @@ export interface PresentationProps {
 	 */
 	guides?: GuideProps[]
 	/**
+	 * Alignment guides for notes page view. MS-PPTX §2.4.1.3 `notesGuideLst`.
+	 * Emitted as `p15:notesGuideLst` under `<p:presentation>` extLst.
+	 * @example [{ orient: 'vert', pos: 3.5 }]
+	 */
+	notesGuides?: GuideProps[]
+	/**
 	 * Default DPI used when compressing/saving images. MS-PPTX §2.3.1.5 `defaultImageDpi`.
 	 * Only applies when image compression is on. @example 220
 	 */
@@ -2937,6 +2948,8 @@ export interface CommentProps {
  * An editor alignment guide. MS-PPTX §2.4.3.3 `CT_ExtendedGuide` / §2.4.3.4 `CT_ExtendedGuideList`.
  */
 export interface GuideProps {
+	/** Unique id within the parent guide list (MS-PPTX §2.4.3.3). Auto-assigned 1-based if omitted. */
+	id?: number
 	/** Guide orientation. @default 'vert' */
 	orient?: 'horz' | 'vert'
 	/** Position from the left (vert) or top (horz) edge of the slide, in inches. @default 0 */
