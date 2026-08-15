@@ -297,6 +297,16 @@ export default class PptxGenJS implements IPresentationProps {
 	 * @example pptx.guides = [{ orient: 'vert', pos: 3.5 }, { orient: 'horz', pos: 2 }]
 	 */
 	public guides: GuideProps[] = []
+	/** Default image DPI. MS-PPTX §2.3.1.5 `p14:defaultImageDpi` on `presentationPr`. */
+	public defaultImageDpi?: number
+	/** Discard image edit data on save. MS-PPTX §2.3.1.6 `p14:discardImageEditData`. */
+	public discardImageEditData?: boolean
+	/** Recommend opening read-only. MS-PPTX §2.14.1.1 `p1710:readonlyRecommended`. */
+	public readonlyRecommended?: boolean
+	/** Browse-mode status bar. MS-PPTX §2.3.1.2 `p14:browseMode` on `showPr`. */
+	public browseMode?: boolean
+	/** Laser-pointer color. MS-PPTX §2.3.1.16 `p14:laserClr` on `showPr`. */
+	public laserColor?: string
 
 	/**
 	 * Chart data-point properties and datalabels follow their cell references.

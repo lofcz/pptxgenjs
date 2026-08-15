@@ -1913,6 +1913,10 @@ test('#gap4: presentationPr emits defaultImageDpi + readonlyRecommended', async 
 	// MS-PPTX §2.3.1.5 (p14) + §2.14.1.1 (p1710).
 	assert.ok(presPrXml.includes('<p14:defaultImageDpi') && presPrXml.includes('val="220"'), `defaultImageDpi missing: ${presPrXml}`)
 	assert.ok(presPrXml.includes('<p1710:readonlyRecommended') && presPrXml.includes('val="1"'), 'readonlyRecommended missing')
+	assert.ok(presPrXml.includes('uri="{D31A062A-798A-4329-ABDD-BBA856620510}"'), 'defaultImageDpi URI missing')
+	assert.ok(presPrXml.includes('uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"'), 'readonlyRecommended URI missing')
+	assert.ok(presPrXml.includes('xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'), 'p14 namespace missing')
+	assert.ok(presPrXml.includes('xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main"'), 'p1710 namespace missing')
 })
 
 test('#gap5: threaded comments emit authors.xml + comments part + rels', async () => {
@@ -2187,4 +2191,83 @@ test('#88: typed zoom APIs keep AlternateContent fallbacks', async () => {
 	assert.equal((slideXml.match(/<mc:AlternateContent/g) || []).length, 3, 'expected 3 AlternateContent wrappers')
 	assert.equal((slideXml.match(/<mc:Fallback><p:pic>/g) || []).length, 2, 'slide/section zoom must fall back to pic')
 	assert.ok(slideXml.includes('<mc:Fallback><p:grpSp>'), 'summary zoom must fall back to grpSp')
+})
+
+test('#89: unset slide-show/image/view options emit no extLst', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('x', { x: 1, y: 1, w: 1, h: 1 })
+
+	const zip = await writeZip(pptx)
+	const presPrXml = await readPart(zip, 'ppt/presProps.xml')
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(!presPrXml.includes('<p:extLst'), `default presProps should omit extLst: ${presPrXml}`)
+	assert.ok(!presPrXml.includes('<p:showPr'), `default presProps should omit showPr: ${presPrXml}`)
+	assert.ok(!slideXml.includes('<p14:laserTraceLst'), 'default slide should omit laserTraceLst')
+	assert.ok(!slideXml.includes('<p14:showEvtLst'), 'default slide should omit showEvtLst')
+})
+
+test('#89: presentationPr image/view + showPr browse/laser emit URI + namespace', async () => {
+	const pptx = new pptxgen()
+	pptx.defaultImageDpi = 220
+	pptx.discardImageEditData = true
+	pptx.readonlyRecommended = true
+	pptx.browseMode = false
+	pptx.laserColor = 'FF0000'
+	pptx.addSlide().addText('x', { x: 1, y: 1, w: 1, h: 1 })
+
+	const presPrXml = await readPart(await writeZip(pptx), 'ppt/presProps.xml')
+	// MS-PPTX §2.2.7 image extensions on presentationPr/extLst
+	assert.ok(presPrXml.includes('uri="{D31A062A-798A-4329-ABDD-BBA856620510}"'), 'defaultImageDpi URI')
+	assert.ok(presPrXml.includes('<p14:defaultImageDpi xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="220"/>'), `defaultImageDpi xml: ${presPrXml}`)
+	assert.ok(presPrXml.includes('uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}"'), 'discardImageEditData URI')
+	assert.ok(presPrXml.includes('<p14:discardImageEditData xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1"/>'), 'discardImageEditData xml')
+	// MS-PPTX §2.2.16 view-mode on presentationPr/extLst (p1710)
+	assert.ok(presPrXml.includes('uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"'), 'readonlyRecommended URI')
+	assert.ok(presPrXml.includes('<p1710:readonlyRecommended xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main" val="1"/>'), 'readonlyRecommended xml')
+	// MS-PPTX §2.2.6 slide-show extensions on presentationPr/showPr/extLst
+	assert.ok(presPrXml.includes('<p:showPr><p:extLst>'), 'showPr wrapper missing')
+	assert.ok(presPrXml.includes('uri="{F99C55AA-B7CB-42B0-86F8-08522FDF87E8}"'), 'browseMode URI')
+	assert.ok(presPrXml.includes('<p14:browseMode xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" showStatus="0"/>'), 'browseMode xml')
+	assert.ok(presPrXml.includes('uri="{EC167BDD-8182-4AB7-AECC-EB403E3ABB37}"'), 'laserClr URI')
+	assert.ok(presPrXml.includes('<p14:laserClr xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main">'), 'laserClr namespace')
+	assert.ok(presPrXml.includes('<a:srgbClr val="FF0000"/>'), 'laserClr color')
+})
+
+test('#89: slide laserTraceLst + showEvtLst emit URI + namespace', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText('x', { x: 1, y: 1, w: 1, h: 1 })
+	slide.laserTraces = [
+		[
+			{ t: 48796, x: 6062662, y: 3259137 },
+			{ t: 49796, x: 6438900, y: 3179762 },
+			{ t: 50296, x: 0, y: 0 },
+		],
+		[
+			{ t: 52000, x: 1196975, y: 2982912 },
+			{ t: 55000, x: 0, y: 0 },
+		],
+	]
+	slide.showEvents = [
+		{ type: 'trigger', trigger: 'onClick', time: 6950, objId: 6 },
+		{ type: 'play', time: 12722, objId: 4 },
+		{ type: 'pause', time: 38839, objId: 4 },
+		{ type: 'seek', time: 38839, objId: 4, seek: 10379 },
+		{ type: 'resume', time: 38859, objId: 4 },
+		{ type: 'stop', time: 49628, objId: 4 },
+	]
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	// MS-PPTX §2.2.6 / §3.4: p14 on sld extLst with documented URIs.
+	assert.ok(slideXml.includes('xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main"'), 'slide p14 namespace')
+	assert.ok(slideXml.includes('uri="{3A86A75C-4F4B-4683-9AE1-C65F6400EC91}"'), 'laserTraceLst URI')
+	assert.ok(slideXml.includes('<p14:laserTraceLst>'), 'laserTraceLst element')
+	assert.ok(slideXml.includes('<p14:tracePt t="48796" x="6062662" y="3259137"/>'), 'first trace point')
+	assert.ok(slideXml.includes('<p14:tracePt t="55000" x="0" y="0"/>'), 'last trace point')
+	assert.ok(slideXml.includes('uri="{E180D4A7-C9FB-4DFB-919C-405C955672EB}"'), 'showEvtLst URI')
+	assert.ok(slideXml.includes('<p14:showEvtLst>'), 'showEvtLst element')
+	assert.ok(slideXml.includes('<p14:triggerEvt type="onClick" time="6950" objId="6"/>'), 'triggerEvt')
+	assert.ok(slideXml.includes('<p14:playEvt time="12722" objId="4"/>'), 'playEvt')
+	assert.ok(slideXml.includes('<p14:seekEvt time="38839" objId="4" seek="10379"/>'), 'seekEvt')
+	assert.ok(slideXml.includes('<p14:stopEvt time="49628" objId="4"/>'), 'stopEvt')
 })

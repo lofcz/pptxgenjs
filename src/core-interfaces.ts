@@ -2760,6 +2760,15 @@ export interface PresSlide extends SlideBaseProps {
 	 * @example slide.addSummaryZoom({ sectionTitle: 'Intro', x: 1, y: 4, w: 2, h: 1.13 })
 	 */
 	addSummaryZoom: (options: SummaryZoomProps) => PresSlide
+	/**
+	 * Recorded laser traces. MS-PPTX §2.3.1.17 `p14:laserTraceLst` on `sld`.
+	 * Each inner array is one `tracePtLst`. `t` is milliseconds; `x`/`y` are EMU.
+	 */
+	laserTraces?: LaserTracePoint[][]
+	/**
+	 * Recorded slide-show events. MS-PPTX §2.3.1.26 `p14:showEvtLst` on `sld`.
+	 */
+	showEvents?: SlideShowEvent[]
 }
 /** Base Zoom navigation options. MS-PPTX §2.8 `CT_ZoomObjectProperties`. */
 interface ZoomBaseProps extends PositionProps, ObjectNameProps {
@@ -2907,6 +2916,16 @@ export interface PresentationProps {
 	 */
 	chartTrackingRefBased?: boolean
 	/**
+	 * Status-bar visibility when the slide show is in browse mode.
+	 * MS-PPTX §2.3.1.2 `p14:browseMode` on `presentationPr/showPr`.
+	 */
+	browseMode?: boolean
+	/**
+	 * Laser-pointer color. MS-PPTX §2.3.1.16 `p14:laserClr` on `presentationPr/showPr`.
+	 * @example 'FF0000'
+	 */
+	laserColor?: HexColor
+	/**
 	 * Modern comment authors (MS-PPTX §2.16 `authorLst`). Emitted to `ppt/authors.xml`.
 	 * Comments reference authors by index. Auto-populated from slide comments if left empty.
 	 * @example [{ name: 'Ada Lovelace', initials: 'AL' }]
@@ -2943,6 +2962,41 @@ export interface CommentProps {
 	replies?: { text: string; author?: number | string }[]
 	/** ISO date; defaults to now. */
 	startDate?: string
+}
+/** A laser-pointer sample. MS-PPTX §2.3.3.9 `CT_LaserTracePoint`. `t` is ms; `x`/`y` are EMU. */
+export interface LaserTracePoint {
+	/** Time from the start of the slide timeline, in milliseconds. */
+	t: number
+	/** Horizontal location in EMU from the top-left of the slide. */
+	x: number
+	/** Vertical location in EMU from the top-left of the slide. */
+	y: number
+}
+/** ECMA-376 `ST_TLTriggerEvent` values used by `p14:triggerEvt`. */
+export type SlideShowTriggerType =
+	| 'onBegin'
+	| 'onEnd'
+	| 'begin'
+	| 'end'
+	| 'onClick'
+	| 'onDblClick'
+	| 'onMouseOver'
+	| 'onMouseOut'
+	| 'onNext'
+	| 'onPrev'
+	| 'onStopAudio'
+/**
+ * A recorded slide-show event. MS-PPTX §2.3.3.28 `CT_ShowEventRecordList`.
+ * `time` is milliseconds from the slide timeline; `objId` is the drawing element id.
+ */
+export interface SlideShowEvent {
+	type: 'trigger' | 'play' | 'stop' | 'pause' | 'resume' | 'seek' | 'null'
+	time: number
+	objId: number
+	/** `triggerEvt` only. @default 'onClick' */
+	trigger?: SlideShowTriggerType
+	/** `seekEvt` only. Seek offset in milliseconds. */
+	seek?: number
 }
 /**
  * An editor alignment guide. MS-PPTX §2.4.3.3 `CT_ExtendedGuide` / §2.4.3.4 `CT_ExtendedGuideList`.

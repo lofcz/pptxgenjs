@@ -251,6 +251,7 @@ export const MATH_NS = 'http://schemas.openxmlformats.org/officeDocument/2006/ma
 const W_NS = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
 export const MC_NS = 'http://schemas.openxmlformats.org/markup-compatibility/2006'
 export const P14_NS = 'http://schemas.microsoft.com/office/powerpoint/2010/main'
+export const P1710_NS = 'http://schemas.microsoft.com/office/powerpoint/2017/10/main'
 
 /**
  * Normalize caller-supplied OMML for PowerPoint.

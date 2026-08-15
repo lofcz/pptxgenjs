@@ -9,6 +9,8 @@ import {
 	BackgroundProps,
 	CommentProps,
 	HexColor,
+	LaserTracePoint,
+	SlideShowEvent,
 	IChartMulti,
 	IChartOpts,
 	IOptsChartData,
@@ -72,6 +74,8 @@ export default class Slide {
 	public _newAutoPagedSlides?: PresSlide[]
 	public transition?: SlideTransitionProps
 	public comments?: CommentProps[]
+	public laserTraces?: LaserTracePoint[][]
+	public showEvents?: SlideShowEvent[]
 
 	constructor(params: {
 		addSlide: (options?: AddSlideProps) => PresSlide
