@@ -74,3 +74,63 @@ test('contract: bar chart keeps its data and chart type', async () => {
 	assert.match(xml, /<c:v>Q1<\/c:v>/, 'category label missing')
 	assert.match(xml, /<c:v>20<\/c:v>/, 'series value missing')
 })
+
+test('contract: gradient stops and color transforms keep DrawingML fill semantics', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 0.5, y: 0.5, w: 2, h: 1,
+		fill: {
+			type: 'gradient',
+			gradient: {
+				type: 'linear',
+				angle: 90,
+				stops: [
+					{ color: { baseColor: 'accent1', tint: 40 }, pos: 0 },
+					{ color: { baseColor: 'accent2', shade: 25, lumMod: 80 }, pos: 100 },
+				],
+			},
+		},
+	})
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 3, y: 0.5, w: 2, h: 1,
+		fill: { type: 'solid', color: '00FF00' },
+	})
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 5.5, y: 0.5, w: 2, h: 1,
+		fill: { type: 'pattern', pattern: { prst: 'ltHorz', color: '000000', bgColor: 'FFFFFF' } },
+	})
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 0.5, y: 2, w: 2, h: 1,
+		fill: { type: 'solid', color: { baseColor: 'bg1', shade: 10 } },
+	})
+
+	const fillsZip = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+	await assertPptxPackageContracts(fillsZip)
+	const xml = await readPart(fillsZip, 'ppt/slides/slide1.xml')
+
+	assert.match(xml, /<a:gradFill[^>]*>/, 'gradFill missing')
+	const gsLst = xml.match(/<a:gsLst>([\s\S]*?)<\/a:gsLst>/)
+	assert.ok(gsLst, 'gsLst missing')
+	const stops = [...gsLst[1].matchAll(/<a:gs pos="(\d+)">/g)]
+	assert.ok(stops.length >= 2, 'CT_GradientStopList requires at least 2 gs')
+	for (const [, pos] of stops) {
+		const n = Number(pos)
+		assert.ok(n >= 0 && n <= 100000, `gs@pos ${pos} outside ST_PositiveFixedPercentage`)
+	}
+	assert.match(
+		xml,
+		/<a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="40000"\/>/,
+		'tint transform must be a child of schemeClr, not of gs'
+	)
+	assert.match(
+		xml,
+		/<a:schemeClr val="accent2"><a:lumMod val="80000"\/><a:shade val="25000"\/>/,
+		'shade/lumMod transforms missing on gradient stop'
+	)
+	assert.match(xml, /<a:lin ang="5400000"/, 'linear shade angle missing')
+
+	assert.match(xml, /<a:solidFill><a:srgbClr val="00FF00"\/>/, 'solid fill regressing')
+	assert.match(xml, /<a:pattFill prst="ltHorz">/, 'pattern fill regressing')
+	assert.match(xml, /<a:solidFill><a:schemeClr val="bg1"><a:shade val="10000"\/>/, 'modified-theme fill regressing')
+})

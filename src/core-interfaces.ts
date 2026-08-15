@@ -547,7 +547,7 @@ export interface ShapeGradientTileRect {
 export interface ShapeGradientStopProps {
 	/**
 	 * Stop color
-	 * - `HexColor` or `ThemeColor`
+	 * - `HexColor`, `ThemeColor`, or `ModifiedThemeColor` (DrawingML color transforms on `EG_ColorChoice`)
 	 */
 	color: Color
 	/**

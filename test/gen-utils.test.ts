@@ -286,6 +286,34 @@ test('genXmlColorSelection', () => {
 		genXmlColorSelection({ type: 'pattern', color: '112233' }),
 		'<a:pattFill prst="cross"><a:bgClr><a:srgbClr val="FFFFFF"/></a:bgClr><a:fgClr><a:srgbClr val="112233"/></a:fgClr></a:pattFill>'
 	)
+	// Gradient stops accept ModifiedThemeColor; transforms are children of EG_ColorChoice, not of a:gs
+	assert.equal(
+		genXmlColorSelection({
+			type: 'gradient',
+			gradient: {
+				type: 'linear',
+				angle: 0,
+				stops: [
+					{ color: { baseColor: 'accent1', tint: 40 }, pos: 0 },
+					{ color: { baseColor: 'FF0000', shade: 50, lumMod: 110 }, pos: 100 },
+				],
+			},
+		}),
+		'<a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="40000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:srgbClr val="FF0000"><a:lumMod val="110000"/><a:shade val="50000"/></a:srgbClr></a:gs></a:gsLst><a:lin ang="0" scaled="0"/></a:gradFill>'
+	)
+	// gs@pos is ST_PositiveFixedPercentage (0–100000); API percents outside 0–100 are clamped
+	const clampedStops = genXmlColorSelection({
+		type: 'gradient',
+		gradient: {
+			stops: [
+				{ color: 'FF0000', pos: -10 },
+				{ color: '0000FF', pos: 150 },
+			],
+		},
+	})
+	assert.match(clampedStops, /<a:gs pos="0">/)
+	assert.match(clampedStops, /<a:gs pos="100000">/)
+	assert.match(clampedStops, /<a:gsLst>.*<a:gs .*<a:gs /)
 })
 
 test('getNewRelId', () => {
