@@ -2870,6 +2870,13 @@ export interface PresentationProps {
 	 */
 	readonlyRecommended?: boolean
 	/**
+	 * Chart data-point properties and datalabels follow their cell references.
+	 * MS-PPTX §2.4.1.1 `chartTrackingRefBased` on `presentationPr` extLst
+	 * (`uri="{FD5EFAAD-0ECE-453E-9831-46B23BE46B34}"`). Opt-in; unset is not emitted.
+	 * @default unset
+	 */
+	chartTrackingRefBased?: boolean
+	/**
 	 * Modern comment authors (MS-PPTX §2.16 `authorLst`). Emitted to `ppt/authors.xml`.
 	 * Comments reference authors by index. Auto-populated from slide comments if left empty.
 	 * @example [{ name: 'Ada Lovelace', initials: 'AL' }]

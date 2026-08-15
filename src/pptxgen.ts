@@ -297,6 +297,13 @@ export default class PptxGenJS implements IPresentationProps {
 	public guides: GuideProps[] = []
 
 	/**
+	 * Chart data-point properties and datalabels follow their cell references.
+	 * MS-PPTX §2.4.1.1 `chartTrackingRefBased` on `presentationPr` extLst.
+	 * @example pptx.chartTrackingRefBased = true
+	 */
+	public chartTrackingRefBased?: boolean
+
+	/**
 	 * Modern comment authors (MS-PPTX §2.16). Emitted to `ppt/authors.xml`.
 	 * Auto-populated from slide `addComment` author names if left empty.
 	 * @example pptx.commentAuthors = [{ name: 'Ada Lovelace', initials: 'AL' }]
