@@ -7,7 +7,7 @@
 ```bash
                     _/|                                   \|\||
                    / | `_         generate pptx          -- |||/
-                  /     =\   using javascript on node   /=   |||/
+                  /     =\   using typescript on node   /=   |||/
                _-'        \      or in the browser     /    |||||/
 _____________-'        _`-/                            \-' |||||||/`-_____________
   \                   / --                              -|||||||||             /
