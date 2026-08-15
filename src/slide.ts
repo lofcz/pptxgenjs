@@ -5,6 +5,7 @@
 import { CHART_NAME, SHAPE_NAME } from './core-enums'
 import {
 	AddSlideProps,
+	AnimationConfig,
 	BackgroundProps,
 	CommentProps,
 	HexColor,
@@ -234,6 +235,24 @@ export default class Slide {
 	 */
 	addTransition(options: SlideTransitionProps): Slide {
 		this.transition = options
+		return this
+	}
+
+	/**
+	 * Attach an object animation to the most recently added shape/text/image.
+	 * Equivalent to passing `animation` on that object's options. Emitted as `<p:timing>`.
+	 * @param {string | AnimationConfig} animation - preset name or config
+	 * @example slide.addText('Hello', { x: 0.5, y: 0.5, w: 3, h: 0.5 }).addAnimation('fadein')
+	 * @example slide.addAnimation({ type: 'flyin', direction: 'left', duration: 500 })
+	 * @return {Slide} this Slide
+	 */
+	addAnimation(animation: string | AnimationConfig): Slide {
+		const last = this._slideObjects[this._slideObjects.length - 1]
+		if (!last) {
+			throw new Error('addAnimation() requires a slide object; add text, a shape, or an image first')
+		}
+		last.options = last.options ?? {}
+		last.options.animation = typeof animation === 'string' ? animation : { ...animation }
 		return this
 	}
 

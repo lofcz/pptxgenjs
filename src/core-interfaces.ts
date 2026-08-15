@@ -2723,6 +2723,12 @@ export interface PresSlide extends SlideBaseProps {
 	 */
 	addTransition: (options: SlideTransitionProps) => PresSlide
 	/**
+	 * Attach an object animation to the most recently added shape/text/image.
+	 * Equivalent to passing `animation` on that object's options.
+	 * @example slide.addText('Hello', { x: 0.5, y: 0.5, w: 3, h: 0.5 }).addAnimation('fadein')
+	 */
+	addAnimation: (animation: string | AnimationConfig) => PresSlide
+	/**
 	 * Threaded comments on this slide (MS-PPTX §2.16). Emitted to `ppt/comments/commentSlide<N>.xml`.
 	 */
 	comments?: CommentProps[]

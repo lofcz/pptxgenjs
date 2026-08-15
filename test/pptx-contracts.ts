@@ -338,3 +338,109 @@ export async function assertEmbeddedFontContracts (zip: JSZip, typeface?: string
 		assert.ok(fontRelIds.has(id), `p:regular r:id ${id} has no Presentation font relationship`)
 	}
 }
+
+function findXmlElements (value: unknown, localName: string): XmlObject[] {
+	const results: XmlObject[] = []
+	const visit = (node: unknown): void => {
+		if (Array.isArray(node)) {
+			node.forEach(visit)
+			return
+		}
+		if (!isXmlObject(node)) return
+		for (const [key, child] of Object.entries(node)) {
+			if (key === localName) results.push(...asXmlObjects(child))
+			if (!key.startsWith('@_')) visit(child)
+		}
+	}
+	visit(value)
+	return results
+}
+
+/**
+ * Structural checks for `<p:timing>` (ECMA-376 §19.3.1.48 `CT_SlideTiming`).
+ * Requires `tnLst`, a `tmRoot` node, a `mainSeq` for object animations, unique `cTn` ids,
+ * `bldLst`/`bldP` entries, and at least one `spTgt`.
+ */
+export function assertSlideTimingStructure (slideXml: string): { shapeIds: string[], presetClasses: string[] } {
+	assert.equal(XMLValidator.validate(slideXml), true, 'slide XML is malformed')
+	const parsed = parseXml(slideXml, 'slide')
+	const sld = parsed['p:sld']
+	assert.ok(isXmlObject(sld), 'missing p:sld')
+
+	const timing = sld['p:timing']
+	assert.ok(isXmlObject(timing), 'missing p:timing (ECMA-376 §19.3.1.48 CT_SlideTiming)')
+	assert.ok(isXmlObject(timing['p:tnLst']), 'CT_SlideTiming.tnLst is required')
+
+	const cTns = findXmlElements(timing, 'p:cTn')
+	assert.ok(cTns.some(node => node['@_nodeType'] === 'tmRoot'), 'missing tmRoot time node')
+	assert.ok(cTns.some(node => node['@_nodeType'] === 'mainSeq'), 'missing mainSeq time node')
+
+	const ids = cTns.map(node => node['@_id']).filter((id): id is string => typeof id === 'string')
+	assert.equal(new Set(ids).size, ids.length, `duplicate p:cTn id values: ${ids.join(', ')}`)
+
+	const bldLst = timing['p:bldLst']
+	assert.ok(isXmlObject(bldLst), 'missing p:bldLst for object animations')
+	const bldPs = asXmlObjects(bldLst['p:bldP'])
+	assert.ok(bldPs.length > 0, 'p:bldLst has no p:bldP entries')
+
+	const shapeIds = findXmlElements(timing, 'p:spTgt')
+		.map(node => node['@_spid'])
+		.filter((id): id is string => typeof id === 'string')
+	assert.ok(shapeIds.length > 0, 'timing tree has no p:spTgt targets')
+
+	const presetClasses = cTns
+		.map(node => node['@_presetClass'])
+		.filter((value): value is string => typeof value === 'string')
+	assert.ok(presetClasses.length > 0, 'timing tree has no presetClass attributes')
+
+	return { shapeIds, presetClasses }
+}
+
+/**
+ * Structural checks for `<p:transition>` (ECMA-376 §19.3.1.50) and MS-PPTX §2.2.1
+ * `mc:AlternateContent` wrappers for modern transitions.
+ */
+export function assertSlideTransitionStructure (slideXml: string, expected: {
+	type: string
+	modern?: boolean
+	fallbackType?: string
+}): void {
+	assert.equal(XMLValidator.validate(slideXml), true, 'slide XML is malformed')
+	const parsed = parseXml(slideXml, 'slide')
+	const sld = parsed['p:sld']
+	assert.ok(isXmlObject(sld), 'missing p:sld')
+
+	const clrIdx = slideXml.indexOf('<p:clrMapOvr')
+	const transIdx = slideXml.indexOf('<p:transition')
+	const altIdx = slideXml.indexOf('<mc:AlternateContent')
+	const timingIdx = slideXml.indexOf('<p:timing')
+	assert.ok(clrIdx >= 0, 'missing p:clrMapOvr')
+
+	if (expected.modern) {
+		assert.ok(altIdx > clrIdx, 'mc:AlternateContent must follow clrMapOvr (MS-PPTX §2.2.1)')
+		const alt = asXmlObjects(sld['mc:AlternateContent'])[0]
+		assert.ok(alt, 'missing mc:AlternateContent')
+		const choice = asXmlObjects(alt['mc:Choice'])[0]
+		const fallback = asXmlObjects(alt['mc:Fallback'])[0]
+		assert.ok(choice, 'missing mc:Choice')
+		assert.ok(fallback, 'missing mc:Fallback')
+		assert.equal(typeof choice['@_Requires'], 'string', 'mc:Choice missing Requires')
+		const choiceTrans = asXmlObjects(choice['p:transition'])[0]
+		const fallbackTrans = asXmlObjects(fallback['p:transition'])[0]
+		assert.ok(choiceTrans, 'Choice missing p:transition')
+		assert.ok(fallbackTrans, 'Fallback missing p:transition')
+		const modernKey = Object.keys(choiceTrans).find(key => key.endsWith(`:${expected.type}`))
+		assert.ok(modernKey, `Choice missing modern transition ${expected.type}`)
+		if (expected.fallbackType) {
+			assert.ok(`p:${expected.fallbackType}` in fallbackTrans, `Fallback missing p:${expected.fallbackType}`)
+		}
+		if (timingIdx >= 0) assert.ok(altIdx < timingIdx, 'transition AlternateContent must precede p:timing')
+		return
+	}
+
+	assert.ok(transIdx > clrIdx, 'p:transition must follow clrMapOvr (ECMA-376 §19.3.1.38)')
+	const trans = asXmlObjects(sld['p:transition'])[0]
+	assert.ok(trans, 'missing p:transition (ECMA-376 §19.3.1.50)')
+	assert.ok(`p:${expected.type}` in trans, `missing p:${expected.type} child`)
+	if (timingIdx >= 0) assert.ok(transIdx < timingIdx, 'p:transition must precede p:timing')
+}

@@ -65,6 +65,7 @@ import Slide from './slide'
 import {
 	AlignH,
 	AlignV,
+	AnimationPreset,
 	CHART_TYPE,
 	ChartType,
 	DEF_PRES_LAYOUT,
@@ -77,6 +78,7 @@ import {
 	SHAPE_TYPE,
 	SchemeColor,
 	ShapeType,
+	TransitionType,
 	WRITE_OUTPUT_TYPE,
 } from './core-enums'
 import {
@@ -350,6 +352,16 @@ export default class PptxGenJS implements IPresentationProps {
 		return this._shapeType
 	}
 
+	private readonly _transitionType = TransitionType
+	public get TransitionType(): typeof TransitionType {
+		return this._transitionType
+	}
+
+	private readonly _animationPreset = AnimationPreset
+	public get AnimationPreset(): typeof AnimationPreset {
+		return this._animationPreset
+	}
+
 	/**
 	 * @depricated use `ChartType`
 	 */
@@ -445,6 +457,7 @@ export default class PptxGenJS implements IPresentationProps {
 			addTable: notOnMaster,
 			addText: notOnMaster,
 			addTransition: notOnMaster,
+			addAnimation: notOnMaster,
 			addComment: notOnMaster,
 			addZoom: notOnMaster,
 			addSectionZoom: notOnMaster,

@@ -12,7 +12,7 @@ import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
 import { genTableToSlides } from '../src/gen-tables'
 import type { TextPropsOptions } from '../src/core-interfaces'
-import { assertEmbeddedFontContracts, assertPptxPackageContracts } from './pptx-contracts'
+import { assertEmbeddedFontContracts, assertPptxPackageContracts, assertSlideTimingStructure, assertSlideTransitionStructure } from './pptx-contracts'
 
 /** 4x2 px PNG - non-square on purpose, so a 1x1 inch default is obvious */
 const PNG_4x2 = 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAADklEQVR4nGP4jwQYkDkANvEX6SAXxcIAAAAASUVORK5CYII='
@@ -1271,7 +1271,7 @@ test('MelleB/feat/appear-on-click: appearOnClick emits appear clickEffect timing
 	})
 
 	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
-	assert.ok(xml.includes('<p:timing>'), 'missing p:timing')
+	assertSlideTimingStructure(xml)
 	assert.ok(xml.includes('presetID="1"'), 'appear presetID=1 missing')
 	assert.ok(xml.includes('presetClass="entr"'), 'entrance class missing')
 	assert.ok(xml.includes('nodeType="clickEffect"'), 'clickEffect trigger missing')
@@ -1298,10 +1298,9 @@ test('animations: slide timing XML is emitted for text/shape/image (BapunHansdah
 	})
 
 	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
-	assert.ok(xml.includes('<p:timing>'), 'missing p:timing')
-	assert.ok(xml.includes('<p:tnLst>'), 'missing p:tnLst')
+	const timing = assertSlideTimingStructure(xml)
+	assert.ok(timing.presetClasses.includes('entr'), 'entrance class missing')
 	assert.ok(xml.includes('presetID="10"'), 'fadein presetID missing')
-	assert.ok(xml.includes('presetClass="entr"'), 'entrance class missing')
 	assert.ok(xml.includes('xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"'), 'math xmlns must stay')
 	assert.ok(xml.trimEnd().endsWith('</p:sld>'), 'timing must be inside p:sld')
 })
@@ -1849,9 +1848,9 @@ test('#transition: base ECMA transition (fade, speed, advTm)', async () => {
 
 	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
 	// ECMA-376 §19.3.1.50 CT_SlideTransition: spd + advTm attrs; placed after clrMapOvr, before </p:sld>.
+	assertSlideTransitionStructure(slideXml, { type: 'fade' })
 	assert.ok(/<p:transition spd="slow" advTm="2500"><p:fade\/><\/p:transition>/.test(slideXml),
 		`transition missing: ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
-	assert.ok(slideXml.indexOf('</p:clrMapOvr>') < slideXml.indexOf('<p:transition'), 'transition must follow clrMapOvr')
 })
 
 test('#transition: directional base transition (push dir=r)', async () => {
@@ -1859,6 +1858,7 @@ test('#transition: directional base transition (push dir=r)', async () => {
 	pptx.addSlide().addTransition({ type: 'push', direction: 'r' })
 
 	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assertSlideTransitionStructure(slideXml, { type: 'push' })
 	assert.ok(slideXml.includes('<p:push dir="r"/>'), `push dir not emitted: ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
 })
 
@@ -1868,12 +1868,26 @@ test('#transition: modern morph wraps in mc:AlternateContent with fallback', asy
 
 	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
 	// MS-PPTX §2.6.1.1 p16:morph inside mc:Choice; base fade as mc:Fallback; p14:dur carries ms duration.
-	assert.ok(slideXml.includes('<mc:AlternateContent'), 'no AlternateContent wrapper')
+	assertSlideTransitionStructure(slideXml, { type: 'morph', modern: true, fallbackType: 'fade' })
 	assert.ok(slideXml.includes('<mc:Choice Requires="p16">'), 'no p16 Choice')
 	assert.ok(slideXml.includes('<p16:morph/>'), 'no p16:morph element')
-	assert.ok(slideXml.includes('<mc:Fallback><p:transition'), 'no fallback transition')
 	assert.ok(slideXml.includes('p14:dur="800"'), 'no p14:dur duration attr')
 	assert.ok(slideXml.includes('mc:Ignorable="a14 p14"'), `slide root missing p14 ignorable: ${/<p:sld [^>]*>/.exec(slideXml)?.[0]}`)
+})
+
+test('#82: addAnimation + TransitionType emit structurally valid timing and transition', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText('Hello', { x: 0.5, y: 0.5, w: 3, h: 0.5 })
+	slide.addAnimation({ type: pptx.AnimationPreset.fadein, duration: 400, trigger: 'onClick' })
+	slide.addTransition({ type: pptx.TransitionType.push, direction: 'l', speed: 'med' })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const timing = assertSlideTimingStructure(slideXml)
+	assert.ok(timing.presetClasses.includes('entr'), 'fadein must be an entrance preset')
+	assert.ok(slideXml.includes('presetID="10"'), 'fadein presetID missing')
+	assertSlideTransitionStructure(slideXml, { type: 'push' })
+	assert.ok(slideXml.includes('<p:push dir="l"/>'), `push dir not emitted: ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
 })
 
 test('#gap3: guides emit p15:sldGuideLst in presentation.xml', async () => {
