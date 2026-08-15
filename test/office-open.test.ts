@@ -35,3 +35,24 @@ test('office: LibreOffice opens and converts a generated presentation', async ()
 	}
 })
 
+test('office: LibreOffice opens a presentation with animation and transition', async () => {
+	const directory = await mkdtemp(join(tmpdir(), 'pptxgenjs-office-anim-'))
+	const presentationPath = join(directory, 'anim-trans.pptx')
+
+	try {
+		const pptx = new pptxgen()
+		const slide = pptx.addSlide()
+		slide.addText('Office animation/transition round-trip', {
+			x: 0.5, y: 0.5, w: 8, h: 1,
+			animation: { type: pptx.AnimationPreset.fadein, duration: 500 },
+		})
+		slide.addTransition({ type: pptx.TransitionType.fade, speed: 'med' })
+		await writeFile(presentationPath, (await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+
+		await execFile(officeBinary, ['--headless', '--convert-to', 'pdf', '--outdir', directory, presentationPath], { timeout: 60_000 })
+		assert.ok((await stat(join(directory, 'anim-trans.pdf'))).size > 0, 'LibreOffice did not produce a PDF')
+	} finally {
+		await rm(directory, { recursive: true, force: true })
+	}
+})
+

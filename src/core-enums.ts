@@ -46,14 +46,67 @@ export type SCHEME_COLORS = 'tx1' | 'tx2' | 'bg1' | 'bg2' | 'accent1' | 'accent2
  * Slide transition type.
  * Base set is ECMA-376 §19.3.1.50; the rest are MS-PPTX §2.2.1 modern transitions (emitted via mc:AlternateContent).
  */
-export type TRANSITION_TYPE =
+export enum TransitionType {
 	// ECMA-376 base
-	| 'blinds' | 'checker' | 'circle' | 'comb' | 'cover' | 'cut' | 'diamond' | 'dissolve' | 'fade'
-	| 'newsflash' | 'none' | 'plus' | 'pull' | 'push' | 'random' | 'randomBar' | 'split' | 'strips'
-	| 'wedge' | 'wheel' | 'wipe' | 'zoom'
+	blinds = 'blinds',
+	checker = 'checker',
+	circle = 'circle',
+	comb = 'comb',
+	cover = 'cover',
+	cut = 'cut',
+	diamond = 'diamond',
+	dissolve = 'dissolve',
+	fade = 'fade',
+	newsflash = 'newsflash',
+	none = 'none',
+	plus = 'plus',
+	pull = 'pull',
+	push = 'push',
+	random = 'random',
+	randomBar = 'randomBar',
+	split = 'split',
+	strips = 'strips',
+	wedge = 'wedge',
+	wheel = 'wheel',
+	wipe = 'wipe',
+	zoom = 'zoom',
 	// MS-PPTX 2010+ modern (mc:AlternateContent + base fallback)
-	| 'conveyor' | 'doors' | 'ferris' | 'flash' | 'flip' | 'flythrough' | 'gallery' | 'glitter' | 'honeycomb'
-	| 'morph' | 'pan' | 'prism' | 'reveal' | 'ripple' | 'shred' | 'switch' | 'vortex' | 'warp' | 'wheelReverse' | 'window'
+	conveyor = 'conveyor',
+	doors = 'doors',
+	ferris = 'ferris',
+	flash = 'flash',
+	flip = 'flip',
+	flythrough = 'flythrough',
+	gallery = 'gallery',
+	glitter = 'glitter',
+	honeycomb = 'honeycomb',
+	morph = 'morph',
+	pan = 'pan',
+	prism = 'prism',
+	reveal = 'reveal',
+	ripple = 'ripple',
+	shred = 'shred',
+	switch = 'switch',
+	vortex = 'vortex',
+	warp = 'warp',
+	wheelReverse = 'wheelReverse',
+	window = 'window',
+}
+export type TRANSITION_TYPE = `${TransitionType}`
+
+/**
+ * Curated object-animation presets emitted as `<p:timing>` (ECMA-376 §19.3.1.48).
+ * Additional names from `AnimationType` are accepted on `options.animation`.
+ */
+export enum AnimationPreset {
+	appear = 'appear',
+	fadein = 'fadein',
+	fadeout = 'fadeout',
+	flyin = 'flyin',
+	flyout = 'flyout',
+	zoom = 'zoom',
+	disappear = 'disappear',
+}
 
 export const LETTERS: string[] = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 export const BARCHART_COLORS: string[] = [
