@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
-import { assertEmbeddedFontContracts, assertEmbeddedXlsxContracts, assertNoEmbeddedFonts, assertPptxPackageContracts, readPart } from './pptx-contracts'
+import { assertEmbeddedFontContracts, assertEmbeddedXlsxContracts, assertModernCommentPartContracts, assertNoEmbeddedFonts, assertPptxPackageContracts, readPart } from './pptx-contracts'
 
 let zip: JSZip
 
@@ -189,4 +189,49 @@ test('contract: chartTrackingRefBased emits the MS-PPTX presentationPr URI', asy
 
 	const [unsetChart, optInChart] = await Promise.all([readChartXml(unsetZip), readChartXml(optInZip)])
 	assert.equal(optInChart, unsetChart, 'chart XML must not change when chartTrackingRefBased is set')
+})
+
+test('contract: modern comment parts satisfy MS-PPTX §2.1.5–2.1.6', async () => {
+	const pptx = new pptxgen()
+	pptx.commentAuthors = [{ name: 'Ada Lovelace', initials: 'AL' }]
+	pptx.addSlide().addComment({ text: 'Review this', author: 0, x: 1, y: 1, replies: [{ text: 'Done', author: 'Grace' }] })
+	const commentsZip = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+	await assertPptxPackageContracts(commentsZip)
+	await assertModernCommentPartContracts(commentsZip)
+})
+
+test('contract: rejects a comments part without the §2.1.5 content type', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addComment({ text: 'x', author: 'Ada' })
+	const invalidZip = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+	const ctXml = await readPart(invalidZip, '[Content_Types].xml')
+	invalidZip.file('[Content_Types].xml', ctXml.replace('application/vnd.ms-powerpoint.comments+xml', 'application/xml'))
+	await assert.rejects(assertModernCommentPartContracts(invalidZip), /Comment part content type/)
+})
+
+test('contract: rejects an authors relationship that is not Internal', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addComment({ text: 'x', author: 'Ada' })
+	const invalidZip = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+	const relsXml = await readPart(invalidZip, 'ppt/_rels/presentation.xml.rels')
+	invalidZip.file(
+		'ppt/_rels/presentation.xml.rels',
+		relsXml.replace(
+			'Type="http://schemas.microsoft.com/office/2018/10/relationships/authors"',
+			'Type="http://schemas.microsoft.com/office/2018/10/relationships/authors" TargetMode="External"'
+		)
+	)
+	await assert.rejects(assertModernCommentPartContracts(invalidZip), /Author relationship TargetMode MUST be Internal/)
+})
+
+test('contract: rejects a comments part without a slide relationship', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addComment({ text: 'x', author: 'Ada' })
+	const invalidZip = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+	const slideRels = await readPart(invalidZip, 'ppt/slides/_rels/slide1.xml.rels')
+	invalidZip.file(
+		'ppt/slides/_rels/slide1.xml.rels',
+		slideRels.replace(/<Relationship[^>]*relationships\/comments[^>]*\/>/, '')
+	)
+	await assert.rejects(assertModernCommentPartContracts(invalidZip), /MUST be the target of an explicit relationship/)
 })

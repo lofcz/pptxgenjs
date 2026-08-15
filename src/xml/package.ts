@@ -17,8 +17,10 @@ import {
 } from '../core-interfaces'
 import { createTimingXml, MediaPlaybackEntry } from '../gen-animations'
 import { genXmlTransition } from '../gen-transition'
+import { AUTHOR_REL_TYPE, COMMENT_REL_URI, P188_NS } from '../gen-comments'
 import { createColorElement, encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
 import { extPartPackagePath } from './content-parts'
+import { slideCommentsRelId } from './relationships'
 import { resolveZoomSections, slideObjectToXml } from './slide'
 import { A14_NS, MATH_NS, MC_NS, P14_NS, P1710_NS } from './text'
 import {
@@ -168,10 +170,10 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 
 	// STEP 5c: Modern threaded comments (MS-PPTX §2.16) — only when a slide has comments.
 	if (slides.some(s => (s.comments ?? []).length > 0)) {
-		strXml += '<Override PartName="/ppt/authors.xml" ContentType="application/vnd.ms-powerpoint.authors+xml"/>'
+		strXml += `<Override PartName="/ppt/authors.xml" ContentType="${AUTHOR_PART_CONTENT_TYPE}"/>`
 		slides.forEach((slide, idx) => {
 			if ((slide.comments ?? []).length > 0)
-				strXml += `<Override PartName="/ppt/comments/commentSlide${idx + 1}.xml" ContentType="application/vnd.ms-powerpoint.comments+xml"/>`
+				strXml += `<Override PartName="/ppt/comments/commentSlide${idx + 1}.xml" ContentType="${COMMENT_PART_CONTENT_TYPE}"/>`
 		})
 	}
 
@@ -297,7 +299,7 @@ export function makeXmlPresentationRels (slides: PresSlide[], tracking?: Present
 	// MS-PPTX §2.1.6: implicit authors rel from presentation (only when comments exist).
 	let extraRel = intRelNum + 5
 	if (slides.some(s => (s.comments ?? []).length > 0))
-		strXml += `<Relationship Id="rId${extraRel++}" Type="http://schemas.microsoft.com/office/2018/10/relationships/authors" Target="authors.xml"/>`
+		strXml += `<Relationship Id="rId${extraRel++}" Type="${AUTHOR_REL_TYPE}" Target="authors.xml"/>`
 	// MS-PPTX §2.1.2 / §2.1.4: implicit Internal rels from Presentation; parts MUST NOT have outbound rels.
 	if (tracking?.revisionInfo)
 		strXml += `<Relationship Id="rId${extraRel++}" Type="${REVISION_INFO_REL_TYPE}" Target="revisionInfo.xml" TargetMode="Internal"/>`
@@ -413,6 +415,12 @@ export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): stri
 	const showExtXml = slideShowExtLst(slide)
 	const hasTrans = transitionXml.length > 0
 	const hasP14 = hasTrans || showExtXml.length > 0
+	const hasComments = (slide.comments ?? []).length > 0
+	const commentRelExt = hasComments
+		? `<p:ext uri="${COMMENT_REL_URI}"><p188:commentRel xmlns:p188="${P188_NS}" r:id="rId${slideCommentsRelId(slide)}"/></p:ext>`
+		: ''
+	const sldExtLst = [showExtXml.replace(/^<p:extLst>|<\/p:extLst>$/g, ''), commentRelExt].filter(Boolean)
+	const sldExtXml = sldExtLst.length > 0 ? `<p:extLst>${sldExtLst.join('')}</p:extLst>` : ''
 
 	return (
 		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
@@ -427,7 +435,7 @@ export function makeXmlSlide (slide: PresSlide, sections?: SectionProps[]): stri
 		'<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>' +
 		`${transitionXml}` +
 		`${timingXml}` +
-		`${showExtXml}` +
+		`${sldExtXml}` +
 		'</p:sld>'
 	)
 }

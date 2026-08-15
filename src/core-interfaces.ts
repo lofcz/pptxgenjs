@@ -3071,20 +3071,120 @@ export interface CommentAuthorProps {
 	/** Identity provider that produced userId. @default 'None' */
 	providerId?: string
 }
+/** Author index into `pptx.commentAuthors` (0-based), display name, or author GUID. */
+export type CommentAuthorRef = number | string
+/** Modern comment status. MS-PPTX §2.16 `ST_CommentStatus`. @default 'active' */
+export type CommentStatus = 'active' | 'resolved' | 'closed'
+/** Comment-level change bits. MS-PPTX §2.19 `ST_CommentV2ChangeBit`. */
+export type CommentChangeBit = 'add' | 'del' | 'mod' | 'modTsk' | 'modRxn'
+/** Reply-level change bits. MS-PPTX §2.19 `ST_CommentReplyV2ChangeBit`. */
+export type CommentReplyChangeBit = 'add' | 'del' | 'mod' | 'modRxn'
+/** Task history event kinds. MS-PPTX §2.20 `CT_TaskHistoryEvent`. */
+export type CommentTaskEventKind = 'add' | 'asgn' | 'title' | 'date' | 'pcntCmplt' | 'unasgnAll' | 'undo' | 'unknown'
+/** One user's instance of a reaction. MS-PPTX §2.21 `CT_ReactionInstance`. */
+export interface CommentReactionInstanceProps {
+	/** Author index, name, or GUID. */
+	author?: CommentAuthorRef
+	/** ISO date; defaults to now. */
+	time?: string
+}
+/** A reaction on a comment or reply. MS-PPTX §2.21 `CT_Reaction`. */
+export interface CommentReactionProps {
+	/** Reaction type. SHOULD be a Unicode emoji. */
+	type: string
+	/** Authors who reacted (shorthand for one instance each). */
+	authors?: CommentAuthorRef[]
+	/** ISO date applied to shorthand `authors` instances. */
+	time?: string
+	/** Explicit per-author instances (wins over `authors` when both are set). */
+	instances?: CommentReactionInstanceProps[]
+}
+/** One task-history event. MS-PPTX §2.20 `CT_TaskHistoryEvent`. */
+export interface CommentTaskEventProps {
+	kind: CommentTaskEventKind
+	/** Author who initiated the change (`atrbtn`). */
+	author?: CommentAuthorRef
+	/** ISO date; defaults to now. */
+	time?: string
+	/** Event GUID. Auto-generated if omitted. */
+	id?: string
+	/** Assignee for `asgn`. */
+	assignTo?: CommentAuthorRef
+	/** Title for `title`. */
+	title?: string
+	/** Schedule start for `date`. */
+	startDate?: string
+	/** Schedule due for `date`. */
+	endDate?: string
+	/** Percent complete 0–100 (or `"50%"`) for `pcntCmplt`. */
+	complete?: number | string
+	/** History-event GUID undone by `undo`. */
+	undoId?: string
+}
+/** Extra task history (`taskDetails`). MS-PPTX §2.20. */
+export interface CommentTaskProps {
+	history: CommentTaskEventProps[]
+}
+/** Edits to a reply. MS-PPTX §2.19 `CT_CommentReplyV2Changes`. */
+export interface CommentReplyChangeProps {
+	chg: CommentReplyChangeBit | CommentReplyChangeBit[]
+	/** Reply GUID. Defaults to the matching reply's `id`. */
+	replyId?: string
+}
+/** Edits to a comment. MS-PPTX §2.19 `CT_CommentV2Changes` / `cmChg`. */
+export interface CommentChangeProps {
+	chg: CommentChangeBit | CommentChangeBit[]
+	replies?: CommentReplyChangeProps[]
+}
+/** A reply on a threaded comment. MS-PPTX §2.16.3.4 `CT_CommentReply`. */
+export interface CommentReplyProps {
+	/** Reply body text. */
+	text: string
+	/** Author index, name, or GUID. @default 0 */
+	author?: CommentAuthorRef
+	/** Stable GUID. Auto-generated if omitted. */
+	id?: string
+	/** ISO created date; defaults to the parent comment date. */
+	created?: string
+	/** Reply status. @default 'active' */
+	status?: CommentStatus
+	/** Reactions on this reply. MS-PPTX §2.21. */
+	reactions?: CommentReactionProps[]
+}
 /** A threaded comment on a slide. MS-PPTX §2.16.3.3 `CT_Comment`. */
 export interface CommentProps {
 	/** Comment body text. */
 	text: string
-	/** Author index into `pptx.commentAuthors` (0-based) or author name. @default 0 */
-	author?: number | string
+	/** Author index into `pptx.commentAuthors` (0-based), name, or GUID. @default 0 */
+	author?: CommentAuthorRef
+	/** Stable GUID. Auto-generated if omitted. */
+	id?: string
 	/** X position (inches) of the comment badge. */
 	x?: number
 	/** Y position (inches) of the comment badge. */
 	y?: number
 	/** Replies to this comment. */
-	replies?: { text: string; author?: number | string }[]
-	/** ISO date; defaults to now. */
+	replies?: CommentReplyProps[]
+	/** Required `created` timestamp. Defaults to `startDate` or now. */
+	created?: string
+	/** Optional thread start date. */
 	startDate?: string
+	/** Comment status. @default 'active' */
+	status?: CommentStatus
+	/** Task due date. */
+	dueDate?: string
+	/** Authors assigned to this comment-as-task. */
+	assignedTo?: CommentAuthorRef | CommentAuthorRef[]
+	/** Percent complete 0–100 (or `"50%"`). */
+	complete?: number | string
+	/** Task title. */
+	title?: string
+	/** Reactions on this comment. MS-PPTX §2.21. */
+	reactions?: CommentReactionProps[]
+	/** Task history (`taskDetails`). MS-PPTX §2.20. */
+	task?: CommentTaskProps
+	/** Comment-change records (`cmChg`). MS-PPTX §2.19. */
+	changes?: CommentChangeProps[]
 }
 /** A laser-pointer sample. MS-PPTX §2.3.3.9 `CT_LaserTracePoint`. `t` is ms; `x`/`y` are EMU. */
 export interface LaserTracePoint {
