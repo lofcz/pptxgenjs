@@ -1,13 +1,19 @@
-```
-              ┌─────────────────────────────────────┐
-            ┌─┘                                     │
-          ┌─┘                                       │
-          │                                         │
-          │                                         │
-          │              pptxgenjs-plus             │
-          │                                         │
-          │                                         │
-          └─────────────────────────────────────────┘
+# pptxgenjs-plus
+
+[![npm](https://img.shields.io/npm/v/pptxgenjs-plus?style=flat-square&labelColor=3f3f46&color=71717a)](https://www.npmjs.com/package/pptxgenjs-plus)
+[![license](https://img.shields.io/github/license/lofcz/pptxgenjs-plus?style=flat-square&labelColor=3f3f46&color=71717a)](https://github.com/lofcz/pptxgenjs-plus/blob/next/LICENSE)
+[![node](https://img.shields.io/node/v/pptxgenjs-plus?style=flat-square&labelColor=3f3f46&color=71717a)](https://www.npmjs.com/package/pptxgenjs-plus)
+
+```bash
+                    _/|                                   \|\||
+                   / | `_         generate pptx          -- |||/
+                  /     =\   using javascript on node   /=   |||/
+               _-'        \      or in the browser     /    |||||/
+_____________-'        _`-/                            \-' |||||||/`-_____________
+  \                   / --                              -|||||||||             /
+   \                  \                                  |/||||              /
+    |_____       _\    \_______                   _______/    /_       _____|
+_________.\___,-'  \__________/                  \___________/  `-.___/,_________
 ```
 
 ## Contributors

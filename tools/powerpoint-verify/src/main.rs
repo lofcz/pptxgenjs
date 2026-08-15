@@ -1,6 +1,7 @@
 mod diff;
 mod dispatch;
 mod isolate;
+mod mute;
 mod watch;
 
 use std::path::PathBuf;
@@ -18,6 +19,7 @@ use windows::Win32::System::Com::{
 use crate::diff::{compact_dialog, diff_pptx, PackageDiff};
 use crate::dispatch::{as_dispatch, as_i32, as_string, method, prop_get, prop_put, vt_bool, vt_bstr, vt_i4};
 use crate::isolate::Isolation;
+use crate::mute::AudioMute;
 use crate::watch::{watch_dialogs, DialogHit};
 
 /// PowerPoint.Application
@@ -98,6 +100,7 @@ fn sta_session(files: Vec<PathBuf>, timeout: Duration) -> Result<Vec<FileResult>
 	// SetThreadDesktop must happen before CoInitialize — STA init creates a hidden window
 	// that then makes the desktop switch return ERROR_BUSY.
 	Isolation::bind_current_thread().map_err(|err| format!("bind hidden desktop: {err}"))?;
+	let mute = AudioMute::start();
 	unsafe { CoInitializeEx(None, COINIT_APARTMENTTHREADED).ok()? };
 
 	let app: IDispatch = match unsafe { CoCreateInstance::<_, IDispatch>(&PPT_CLSID, None, CLSCTX_LOCAL_SERVER) } {
@@ -109,6 +112,7 @@ fn sta_session(files: Vec<PathBuf>, timeout: Duration) -> Result<Vec<FileResult>
 	};
 	let _ = prop_put(&app, "Visible", vt_bool(true));
 	let _ = prop_put(&app, "DisplayAlerts", vt_i4(2));
+	let _ = prop_put(&app, "EnableSound", vt_bool(false));
 	let mut hwnd = 0i32;
 	for _ in 0..25 {
 		hwnd = prop_get(&app, "HWND").ok().and_then(|v| as_i32(&v)).unwrap_or(0);
@@ -135,6 +139,7 @@ fn sta_session(files: Vec<PathBuf>, timeout: Duration) -> Result<Vec<FileResult>
 		}
 	}
 	eprintln!("powerpoint-verify: hidden desktop hwnd={hwnd} pid={} spawned={spawned:?}", isolation.pid);
+	mute.track_pids(spawned.iter().copied().chain(std::iter::once(isolation.pid)));
 
 	let mut results = Vec::new();
 	let uia_pid = if hwnd == 0 { 0 } else { isolation.pid };
