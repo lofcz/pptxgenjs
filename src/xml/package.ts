@@ -549,6 +549,7 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
 export function makeXmlPresProps (pres?: IPresentationProps): string {
 	// MS-PPTX presentationPr extensions (issue-gap #4): defaultImageDpi / discardImageEditData (p14),
 	// readonlyRecommended (p1710). Each lives in a namespaced ext under extLst.
+	// MS-PPTX §2.2.12 / §2.4.1.1: chartTrackingRefBased (p15) is opt-in.
 	const exts: string[] = []
 	if (pres?.defaultImageDpi && pres.defaultImageDpi > 0)
 		exts.push(`<p:ext uri="{D31A062A-798A-4329-ABDD-BBA856620510}"><p14:defaultImageDpi xmlns:p14="${P14_NS}" val="${Math.round(pres.defaultImageDpi)}"/></p:ext>`)
@@ -556,6 +557,8 @@ export function makeXmlPresProps (pres?: IPresentationProps): string {
 		exts.push(`<p:ext uri="{E76CE94A-603C-4142-B9EB-6D1370010A27}"><p14:discardImageEditData xmlns:p14="${P14_NS}" val="1"/></p:ext>`)
 	if (pres?.readonlyRecommended)
 		exts.push('<p:ext uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"><p1710:readonlyRecommended xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main" val="1"/></p:ext>')
+	if (pres?.chartTrackingRefBased)
+		exts.push('<p:ext uri="{FD5EFAAD-0ECE-453E-9831-46B23BE46B34}"><p15:chartTrackingRefBased xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main" val="1"/></p:ext>')
 
 	const extLst = exts.length > 0 ? `<p:extLst>${exts.join('')}</p:extLst>` : ''
 	return (

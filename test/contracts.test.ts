@@ -148,3 +148,45 @@ test('contract: gradient stops and color transforms keep DrawingML fill semantic
 	assert.match(xml, /<a:pattFill prst="ltHorz">/, 'pattern fill regressing')
 	assert.match(xml, /<a:solidFill><a:schemeClr val="bg1"><a:shade val="10000"\/>/, 'modified-theme fill regressing')
 })
+
+const CHART_TRACKING_REF_URI = '{FD5EFAAD-0ECE-453E-9831-46B23BE46B34}'
+
+function addSampleChart (pptx: pptxgen) {
+	pptx.addSlide().addChart(pptx.ChartType.bar, [{ name: 'Sales', labels: ['Q1', 'Q2'], values: [10, 20] }], { x: 0.5, y: 4, w: 6, h: 3 })
+}
+
+async function writePptx (pptx: pptxgen): Promise<JSZip> {
+	return await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+}
+
+async function readChartXml (pkg: JSZip): Promise<string> {
+	const file = pkg.file(/ppt\/charts\/chart\d+\.xml$/)[0]
+	assert.ok(file, 'missing chart part')
+	return await file.async('string')
+}
+
+test('contract: unset chartTrackingRefBased does not emit the MS-PPTX tracking URI', async () => {
+	const presPrXml = await readPart(zip, 'ppt/presProps.xml')
+	assert.doesNotMatch(presPrXml, /FD5EFAAD-0ECE-453E-9831-46B23BE46B34/, 'chartTrackingRefBased URI must be absent when unset')
+	assert.doesNotMatch(presPrXml, /chartTrackingRefBased/, 'chartTrackingRefBased element must be absent when unset')
+})
+
+test('contract: chartTrackingRefBased emits the MS-PPTX presentationPr URI', async () => {
+	const unset = new pptxgen()
+	addSampleChart(unset)
+	const optIn = new pptxgen()
+	optIn.chartTrackingRefBased = true
+	addSampleChart(optIn)
+
+	const [unsetZip, optInZip] = await Promise.all([writePptx(unset), writePptx(optIn)])
+	const unsetPresPr = await readPart(unsetZip, 'ppt/presProps.xml')
+	const optInPresPr = await readPart(optInZip, 'ppt/presProps.xml')
+
+	assert.doesNotMatch(unsetPresPr, /FD5EFAAD-0ECE-453E-9831-46B23BE46B34/, 'unset deck must not emit the tracking URI')
+	assert.match(optInPresPr, new RegExp(`uri="${CHART_TRACKING_REF_URI.replace(/[{}]/g, '\\$&')}"`), `missing MS-PPTX §2.2.12 URI ${CHART_TRACKING_REF_URI}: ${optInPresPr}`)
+	assert.match(optInPresPr, /<p15:chartTrackingRefBased\b[^>]*\bval="1"/, `chartTrackingRefBased val missing: ${optInPresPr}`)
+	assert.match(optInPresPr, /xmlns:p15="http:\/\/schemas\.microsoft\.com\/office\/powerpoint\/2012\/main"/, 'p15 2012/main namespace missing')
+
+	const [unsetChart, optInChart] = await Promise.all([readChartXml(unsetZip), readChartXml(optInZip)])
+	assert.equal(optInChart, unsetChart, 'chart XML must not change when chartTrackingRefBased is set')
+})
