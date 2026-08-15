@@ -172,17 +172,17 @@ chart XML --externalData rId1--> chart .rels --Target--> embedded XLSX
 Run the standard pre-merge check for every renderer change:
 
 ```bash
-npm run check
-npm run build
+bun run check
+bun run build
 git diff --check
 ```
 
-`npm run check` runs ESLint, TypeScript type checking, and the unit/end-to-end/package-contract suite. `npm run build` verifies that the browser, CommonJS, and ESM bundles can be produced. These checks do not replace real Office-consumer validation.
+`bun run check` runs ESLint, TypeScript type checking, and the unit/end-to-end/package-contract suite. `bun run build` verifies that the browser, CommonJS, and ESM bundles can be produced. These checks do not replace real Office-consumer validation.
 
 For release-level confidence on a machine with LibreOffice installed:
 
 ```bash
-PPTXGENJS_OFFICE_BIN="$(command -v libreoffice || command -v soffice)" npm run test:office
+PPTXGENJS_OFFICE_BIN="$(command -v libreoffice || command -v soffice)" bun run test:office
 ```
 
 See the repository [Testing guide](https://github.com/lofcz/PptxGenJS/blob/master/TESTING.md) for the manual Node, Rsbuild, and Office verification procedures. If PowerPoint displays a repair prompt, start with the [Needs Repair Errors](./needs-repair-errors) guide and then inspect the package relationships and content types before changing rendering code.

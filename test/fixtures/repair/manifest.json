@@ -1,0 +1,95 @@
+{
+  "directory": "C:\\Users\\mstagl-dev\\Documents\\factory-cursor-bridge\\PptxGenJS\\test\\fixtures\\repair",
+  "fixtures": [
+    {
+      "id": "ok-baseline",
+      "file": "ok-baseline.pptx",
+      "title": "Unmutated control deck",
+      "expect": "ok"
+    },
+    {
+      "id": "invalid-cnvid",
+      "file": "invalid-cnvid.pptx",
+      "title": "Non-numeric p:cNvPr@id (MS-PPT repair)",
+      "expect": "repair"
+    },
+    {
+      "id": "duplicate-cnvid",
+      "file": "duplicate-cnvid.pptx",
+      "title": "Two drawing objects share the same cNvPr id",
+      "expect": "repair"
+    },
+    {
+      "id": "missing-txbody",
+      "file": "missing-txbody.pptx",
+      "title": "Shape with no p:txBody (OOXML requires it)",
+      "expect": "repair"
+    },
+    {
+      "id": "empty-txbody",
+      "file": "empty-txbody.pptx",
+      "title": "Empty p:txBody with no paragraph",
+      "expect": "repair"
+    },
+    {
+      "id": "empty-table-cell",
+      "file": "empty-table-cell.pptx",
+      "title": "Table cell with a txBody but no paragraphs",
+      "expect": "repair"
+    },
+    {
+      "id": "missing-effectlst",
+      "file": "missing-effectlst.pptx",
+      "title": "Solid slide background without a:effectLst",
+      "expect": "repair"
+    },
+    {
+      "id": "nan-cell-margin",
+      "file": "nan-cell-margin.pptx",
+      "title": "Table cell marL=\"NaN\"",
+      "expect": "repair"
+    },
+    {
+      "id": "invalid-sldid",
+      "file": "invalid-sldid.pptx",
+      "title": "p:sldId@id is not an unsigned int",
+      "expect": "repair"
+    },
+    {
+      "id": "missing-slide-override",
+      "file": "missing-slide-override.pptx",
+      "title": "Slide part has no [Content_Types] Override",
+      "expect": "repair"
+    },
+    {
+      "id": "phantom-slidemaster",
+      "file": "phantom-slidemaster.pptx",
+      "title": "Content type Override for a slideMaster that does not exist",
+      "expect": "repair"
+    },
+    {
+      "id": "dangling-media-rel",
+      "file": "dangling-media-rel.pptx",
+      "title": "Slide relationship points at a missing media part",
+      "expect": "repair"
+    },
+    {
+      "id": "missing-notesmaster-override",
+      "file": "missing-notesmaster-override.pptx",
+      "title": "notesMaster part without a content-type Override",
+      "expect": "repair"
+    },
+    {
+      "id": "empty-ppr",
+      "file": "empty-ppr.pptx",
+      "title": "Empty a:pPr element (known repair / dropped runs)",
+      "expect": "repair"
+    },
+    {
+      "id": "chart-bestfit-on-bar",
+      "file": "chart-bestfit-on-bar.pptx",
+      "title": "Pie-only dLbls bestFit on a bar chart",
+      "expect": "repair"
+    }
+  ]
+}

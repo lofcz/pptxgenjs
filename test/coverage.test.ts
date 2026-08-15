@@ -3,7 +3,7 @@
  * Exercises code paths the core contracts do not: table cell colspan/rowspan and
  * per-cell options (gen-tables), hyperlinks (gen-objects createHyperlinkRels),
  * images, speaker notes, and pie/line charts (gen-charts).
- * Run with: `npm test` (node built-in test runner + tsx)
+ * Run with: `bun run test`
  */
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'

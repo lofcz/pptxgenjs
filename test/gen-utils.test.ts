@@ -1,6 +1,6 @@
 /**
  * PptxGenJS: Unit tests for utility methods
- * Run with: `npm test` (node built-in test runner + tsx)
+ * Run with: `bun run test`
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'

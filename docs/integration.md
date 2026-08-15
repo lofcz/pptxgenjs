@@ -14,11 +14,11 @@ PptxGenJS can be used in various JavaScript environments. Select the integration
 
 | Environment(s)                                                                                                | Import / Usage                                                                                                         | Notes / Details                                                                                                                                                                                                          |
 | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Node.js (Version 18 and higher)**| `import pptxgen from "@lofcz/pptxgenjs"`| Automatically uses the appropriate Node.js build based on your project's module type (`package.json#type`). Both ESM and CommonJS formats are fully supported.|
-| **Browser Bundlers** (Rsbuild, Rspack, Webpack, Rollup, Parcel, Next.js, Angular, Vue CLI) | `import pptxgen from '@lofcz/pptxgenjs'`| Your bundler will automatically select the optimized ES Module build (`dist/pptxgen.es.js`). This enables effective tree-shaking to minimize your final bundle size. No extra bundler configuration is typically needed. |
+| **Node.js (Version 18 and higher)**| `import pptxgen from "pptxgenjs-plus"`| Automatically uses the appropriate Node.js build based on your project's module type (`package.json#type`). Both ESM and CommonJS formats are fully supported.|
+| **Browser Bundlers** (Rsbuild, Rspack, Webpack, Rollup, Parcel, Next.js, Angular, Vue CLI) | `import pptxgen from 'pptxgenjs-plus'`| Your bundler will automatically select the optimized ES Module build (`dist/pptxgen.es.js`). This enables effective tree-shaking to minimize your final bundle size. No extra bundler configuration is typically needed. |
 | **Plain Browser (`<script>` tag, no bundler)**| Include the bundled script directly in your HTML: `<script src=".../pptxgen.bundle.js"></script>`| This provides a self-contained build (`dist/pptxgen.bundle.js`) that adds the `PptxGenJS` object to the global `window` scope. Useful for simple scripts or environments without a module bundler.|
-| **Web Worker / Service Worker**| `import pptxgen from '@lofcz/pptxgenjs'` (Requires a module worker (`type: "module"`) or the use of import maps)| Utilize the ES Module build (`dist/pptxgen.es.js`). Remember that data (like the final presentation `ArrayBuffer`) will need to be transferred back to the main thread using `postMessage`.|
-| **Serverless Functions** (AWS Lambda, Cloudflare Workers, etc.)| `import pptxgen from '@lofcz/pptxgenjs'` (for ESM runtimes) OR `const pptxgen = require('@lofcz/pptxgenjs')` (for CommonJS runtimes) | Bundle your function code with Rsbuild or Rslib; be mindful of function size limits and potential cold start impacts from larger dependencies.|
+| **Web Worker / Service Worker**| `import pptxgen from 'pptxgenjs-plus'` (Requires a module worker (`type: "module"`) or the use of import maps)| Utilize the ES Module build (`dist/pptxgen.es.js`). Remember that data (like the final presentation `ArrayBuffer`) will need to be transferred back to the main thread using `postMessage`.|
+| **Serverless Functions** (AWS Lambda, Cloudflare Workers, etc.)| `import pptxgen from 'pptxgenjs-plus'` (for ESM runtimes) OR `const pptxgen = require('pptxgenjs-plus')` (for CommonJS runtimes) | Bundle your function code with Rsbuild or Rslib; be mindful of function size limits and potential cold start impacts from larger dependencies.|
 | **Electron (Main Process)**| Same as **Node.js**| In the main Electron process, you have full access to Node.js APIs, including the filesystem, which is useful for directly saving presentation files using the `writeFile()` method.|
 | **Electron (Renderer Process)**| Same as **Browser Bundlers**| The renderer process is similar to a browser environment. If `nodeIntegration` is enabled and securely configured, you may also be able to use Node.js filesystem access from the renderer.|
 
@@ -30,7 +30,7 @@ Reference page includes runnable snippets.
 ### Webpack
 
 The library has been tested with several framework and bundler combinations, including Rsbuild, Rspack, and Webpack.
-Most projects can install @lofcz/pptxgenjs without additional configuration; however, build errors can
+Most projects can install pptxgenjs-plus without additional configuration; however, build errors can
 occur in some setups.
 
 The following example is from Docusaurus v3.7, where Webpack v5 fails during the build process:
@@ -45,9 +45,9 @@ You may need an additional plugin to handle "node:" URIs.
 The error is being caused by the use of the "node:" prefix within "browser" field in pptxgenjs' `package.json` file.
 
 ```json
-// @lofcz/pptxgenjs package.json
+// pptxgenjs-plus package.json
 {
-  "name": "@lofcz/pptxgenjs",
+  "name": "pptxgenjs-plus",
   "browser": {
     "fs": false,
     "image-size": false,

@@ -9,25 +9,29 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 24.x
-          cache: npm
-      - run: npm ci
-      - run: npm run check
-      - run: npm run build
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: canary
+      - run: bun ci
+      - run: bun run check
+      - run: bun run build
 
   office-consumer:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22.x
-          cache: npm
-      - run: npm ci
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: canary
+      - run: bun ci
       - name: Install LibreOffice Impress
         run: sudo apt-get update && sudo apt-get install --yes libreoffice-impress
       - name: Open generated presentation in LibreOffice
-        run: PPTXGENJS_OFFICE_BIN=libreoffice npm run test:office
+        run: PPTXGENJS_OFFICE_BIN=libreoffice bun run test:office

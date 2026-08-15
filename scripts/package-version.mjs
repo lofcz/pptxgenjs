@@ -2,11 +2,11 @@
  * Generate `src/version.generated.ts` from package.json.
  *
  * The library version is not hand-maintained. The Rsbuild plugin rewrites the
- * generated module before the compiler starts so tsc, tsx tests, and the
+ * generated module before the compiler starts so tsc, bun tests, and the
  * bundle all read the same value.
  *
  *   import { pluginPackageVersion, writePackageVersion } from './package-version.mjs'
- *   node scripts/package-version.mjs
+ *   bun scripts/package-version.mjs
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'

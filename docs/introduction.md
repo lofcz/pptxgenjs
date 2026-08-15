@@ -8,7 +8,7 @@ title: Introduction
 ![GitHub License](https://img.shields.io/github/license/lofcz/PptxGenJS?style=flat-square)
 
 **PptxGenJS generates PowerPoint (`.pptx`) files from JavaScript** — in Node, the browser, and every
-common framework. This is `@lofcz/pptxgenjs`, maintained by Matěj Lofcz Štágl, with a modern build and typed API.
+common framework. This is `pptxgenjs-plus`, maintained by Matěj Lofcz Štágl, with a modern build and typed API.
 
 If you are migrating from the original `pptxgenjs` package, see the [Migration guide](./migration) — it is
 a drop-in replacement.
@@ -40,7 +40,7 @@ This is the complete API surface. The remaining documentation describes the opti
 ### Hello World
 
 ```typescript
-import pptxgen from "@lofcz/pptxgenjs"
+import pptxgen from "pptxgenjs-plus"
 
 const pres = new pptxgen()
 const slide = pres.addSlide()

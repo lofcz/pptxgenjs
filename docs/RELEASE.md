@@ -1,30 +1,48 @@
-# Releasing `@lofcz/pptxgenjs`
+# Releasing `pptxgenjs-plus`
 
-PptxGenJS publishes through npm trusted publishing, matching the release model used by `@lofcz/pptist`.
+PptxGenJS Plus publishes through npm trusted publishing.
+
+Requires **npm 11.15.0 or later** (`npm install -g npm@^11.15.0`).
 
 ## One-Time npm Setup
 
-In npm, configure trusted publishing for `@lofcz/pptxgenjs`:
+### Revoke trust on the old package
 
-- Package: `@lofcz/pptxgenjs`
+```bash
+npm trust list @lofcz/pptxgenjs
+npm trust revoke @lofcz/pptxgenjs --id=<trust-id>
+```
+
+Repeat `revoke` for every ID from `list`.
+
+### First publish of the new name
+
+Trusted publishing can only be attached after the package exists. Publish once from your machine:
+
+```bash
+bun run check
+bun run dist
+bun publish --access public
+```
+
+### Add trust for `pptxgenjs-plus`
+
+```bash
+npm trust github pptxgenjs-plus --file=release.yml --repository=lofcz/PptxGenJS --allow-publish -y
+```
+
+Confirm:
+
+```bash
+npm trust list pptxgenjs-plus
+```
+
+No `NPM_TOKEN` secret is needed after that. The GitHub Actions workflow uses OIDC with `id-token: write` and publishes with provenance.
+
+- Package: `pptxgenjs-plus`
 - Repository owner/name: `lofcz/PptxGenJS`
 - Workflow filename: `release.yml`
 - Environment: leave empty unless the repository later adds a protected environment
-
-No `NPM_TOKEN` secret is needed. The GitHub Actions workflow uses OIDC with `id-token: write` and publishes with provenance.
-
-### First release (manual)
-
-Before trusted publishing is configured, publish once from your machine:
-
-```bash
-npm login
-npm run check
-npm run dist
-npm publish
-```
-
-Then configure trusted publishing in npm for future releases.
 
 ## Release Flow
 
@@ -35,24 +53,24 @@ Then configure trusted publishing in npm for future releases.
 
 The workflow:
 
-1. Installs with `npm ci`.
-2. Bumps `package.json` and `package-lock.json`.
-3. Runs `npm run lint`.
-4. Runs `npm run typecheck`.
-5. Runs `npm test`.
-6. Runs `npm run dist` (Rslib).
-7. Verifies package contents with `npm pack --dry-run`.
-8. Publishes with `npm publish --provenance`.
+1. Installs with `bun ci` (Bun canary).
+2. Bumps `package.json` via `bun pm version`.
+3. Runs `bun run lint`.
+4. Runs `bun run typecheck`.
+5. Runs `bun run test`.
+6. Runs `bun run dist` (Rslib).
+7. Verifies package contents with `bun pm pack --dry-run`.
+8. Publishes with `bun publish --access public`.
 9. Pushes the release commit/tag and creates a GitHub release.
 
 ## Consumer Install
 
 ```bash
-npm install @lofcz/pptxgenjs
+npm install pptxgenjs-plus
 ```
 
 Use:
 
 ```ts
-import pptxgen from "@lofcz/pptxgenjs";
+import pptxgen from "pptxgenjs-plus";
 ```

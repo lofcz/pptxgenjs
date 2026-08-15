@@ -12,11 +12,10 @@ import { test } from 'node:test'
 import pptxgen from '../src/pptxgen'
 
 const officeBinary = process.env.PPTXGENJS_OFFICE_BIN
-if (!officeBinary) throw new Error('Set PPTXGENJS_OFFICE_BIN to the LibreOffice executable before running npm run test:office')
-
 const execFile = promisify(execFileCallback)
+const run = officeBinary ? test : test.skip
 
-test('office: LibreOffice opens and converts a generated presentation', async () => {
+run('office: LibreOffice opens and converts a generated presentation', async () => {
 	const directory = await mkdtemp(join(tmpdir(), 'pptxgenjs-office-'))
 	const presentationPath = join(directory, 'smoke.pptx')
 

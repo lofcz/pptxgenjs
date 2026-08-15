@@ -15,7 +15,7 @@ slide.addNotes("Text shown only to the presenter")
 ## Example
 
 ```typescript
-import pptxgen from "@lofcz/pptxgenjs"
+import pptxgen from "pptxgenjs-plus"
 
 const pres = new pptxgen()
 const slide = pres.addSlide()

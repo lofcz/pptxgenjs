@@ -1,10 +1,13 @@
 import { defineConfig } from '@rspress/core'
 
+const pagesBase = process.env.PAGES_BASE_PATH?.trim()
+const base = !pagesBase || pagesBase === '/' ? '/' : pagesBase.endsWith('/') ? pagesBase : `${pagesBase}/`
+
 export default defineConfig({
 	root: 'docs',
 	title: 'PptxGenJS',
 	description: 'Create PowerPoint presentations with JavaScript. Maintained by Matěj Lofcz Štágl.',
-	base: '/',
+	base,
 	logoText: 'PptxGenJS',
 	outDir: 'doc_dist',
 	markdown: {
@@ -30,7 +33,7 @@ export default defineConfig({
 					items: [
 						{ text: 'Quick Start', link: '/quick-start' },
 						{ text: 'Installation', link: '/installation' },
-						{ text: 'Migrating from pptxgenjs', link: '/migration' },
+						{ text: 'Migrating to pptxgenjs-plus', link: '/migration' },
 						{ text: 'Compatibility', link: '/compatibility' },
 						{ text: 'Integration', link: '/integration' },
 					],

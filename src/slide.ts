@@ -64,6 +64,7 @@ export default class Slide {
 
 	public addSlide: (options?: AddSlideProps) => PresSlide
 	public getSlide: (slideNum: number) => PresSlide
+	public _allocChartId: () => number
 	public _name: string
 	public _presLayout: PresLayout
 	public _rels: ISlideRel[]
@@ -86,6 +87,7 @@ export default class Slide {
 
 	constructor(params: {
 		addSlide: (options?: AddSlideProps) => PresSlide
+		allocChartId: () => number
 		getSlide: (slideNum: number) => PresSlide
 		presLayout: PresLayout
 		setSlideNum: (value: SlideNumberProps) => void
@@ -96,6 +98,7 @@ export default class Slide {
 	}) {
 		this.addSlide = params.addSlide
 		this.getSlide = params.getSlide
+		this._allocChartId = params.allocChartId
 		this._name = `Slide ${params.slideNumber}`
 		this._presLayout = params.presLayout
 		this._rId = params.slideRId

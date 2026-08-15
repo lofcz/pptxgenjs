@@ -2,7 +2,7 @@
  * PptxGenJS: Regression tests for fixed issues
  * One check per bug fixed - each fails if the bug comes back.
  *
- * Run with: `npm test` (node built-in test runner + tsx)
+ * Run with: `bun run test`
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'

@@ -9,7 +9,7 @@ Create a PowerPoint presentation in four steps: create the presentation, add a s
 ## Node, React, Angular, Rsbuild (ES modules)
 
 ```typescript
-import pptxgen from "@lofcz/pptxgenjs"
+import pptxgen from "pptxgenjs-plus"
 
 // 1. Create a presentation
 const pres = new pptxgen()
@@ -48,7 +48,7 @@ Every `addX` method is fully typed. Option objects are checked as you write them
 autocompletes property names, enum values, and expected types.
 
 ```typescript
-import pptxgen from "@lofcz/pptxgenjs"
+import pptxgen from "pptxgenjs-plus"
 
 const pres = new pptxgen()
 const slide = pres.addSlide()

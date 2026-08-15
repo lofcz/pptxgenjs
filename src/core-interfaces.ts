@@ -2729,6 +2729,7 @@ export interface ObjectOptions extends ImageProps, PositionProps, ShapeProps, Ta
 	phTypeExt?: PlaceholderTypeExt
 }
 export interface SlideBaseProps {
+	_allocChartId: () => number
 	_bkgdImgRid?: number
 	_margin?: Margin
 	_name?: string

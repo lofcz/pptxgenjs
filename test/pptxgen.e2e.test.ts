@@ -5,7 +5,7 @@
  * This exercises the full pipeline (gen-xml / gen-objects / gen-tables / gen-charts) that the
  * unit tests do not cover.
  *
- * Run with: `npm test` (node built-in test runner + tsx)
+ * Run with: `bun run test`
  */
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'

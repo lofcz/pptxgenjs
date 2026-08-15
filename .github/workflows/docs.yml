@@ -3,7 +3,7 @@ name: Deploy docs to GitHub Pages
 on:
   push:
     branches: [master]
-    paths: ['docs/**', 'package.json', '.github/workflows/docs.yml']
+    paths: ['docs/**', 'package.json', 'rspress.config.ts', '.github/workflows/docs.yml']
   workflow_dispatch:
 
 permissions:
@@ -19,15 +19,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run docs:build
-      - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v3
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: canary
+      - run: bun ci
+      - uses: actions/configure-pages@v6
+        id: pages
+      - run: bun run docs:build
+        env:
+          PAGES_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: doc_dist
 
@@ -39,4 +44,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

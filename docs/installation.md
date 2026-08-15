@@ -7,19 +7,19 @@ Install **PptxGenJS** using one of the following methods.
 ### Quick Install (Node-based)
 
 ```bash
-npm install @lofcz/pptxgenjs
+npm install pptxgenjs-plus
 ```
 
 ```bash
-yarn add @lofcz/pptxgenjs
+yarn add pptxgenjs-plus
 ```
 
 ### CDN (Browser Usage)
 
-Use the bundled or minified version via [jsDelivr](https://www.jsdelivr.com/package/npm/@lofcz/pptxgenjs):
+Use the bundled or minified version via [jsDelivr](https://www.jsdelivr.com/package/npm/pptxgenjs-plus):
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@lofcz/pptxgenjs@4/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs-plus@4/dist/pptxgen.bundle.js"></script>
 ```
 
 > Includes the sole dependency (JSZip) in one file.
@@ -46,7 +46,7 @@ Every release attaches the built bundles as release assets, so no build toolchai
 curl -LO https://github.com/lofcz/PptxGenJS/releases/latest/download/pptxgen.bundle.js
 ```
 
-Building from a git checkout also works: `npm ci` runs the build via the `prepare` script.
+Building from a git checkout also works: `bun ci` runs the build via the `prepare` script.
 
 ## Source Code and Examples
 

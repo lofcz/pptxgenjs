@@ -1,6 +1,6 @@
 # MS-PPTX 25.0 extension conformance profile
 
-Tracker for [NEOMA #86](https://github.com/NeomaVerwaltung/PptxGenJS/issues/86) on this fork (`@lofcz/pptxgenjs`). This document defines the **supported profile** and the **schema / package matrix**. Child issues **#87–#93** implement features. This file does not add emitters.
+Tracker for [NEOMA #86](https://github.com/NeomaVerwaltung/PptxGenJS/issues/86) on this fork (`pptxgenjs-plus`). This document defines the **supported profile** and the **schema / package matrix**. Child issues **#87–#93** implement features. This file does not add emitters.
 
 Typed registry (same catalog): [`src/ms-pptx-profile.ts`](../../src/ms-pptx-profile.ts).
 
@@ -183,7 +183,7 @@ A row is **Office-proven** only when all of the following pass:
 
 1. **Semantic package contract** — `[Content_Types].xml` Override (if a new part), relationship Type + TargetMode, root element / namespace, and the required MC wrapper (URI or Choice/Fallback) match this matrix.
 2. **Schema** — emitted elements/attributes exist in the Appendix A file listed for that namespace.
-3. **Office open/save** — PowerPoint (or `npm run test:office` / COM) opens the deck, the feature is visible, and a save does not drop the extension or the Fallback.
+3. **Office open/save** — PowerPoint (or `bun run test:office` / COM) opens the deck, the feature is visible, and a save does not drop the extension or the Fallback.
 
 Existing semantic fixtures live in `test/issues.test.ts` (`#transition:*`, `#gap3`–`#gap6`, zoom). The shared LibreOffice smoke test (`test/office-open.test.ts`) is **not** a per-extension proof.
 

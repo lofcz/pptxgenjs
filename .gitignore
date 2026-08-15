@@ -25,3 +25,6 @@ docs/.rspress/
 
 ### Library version emitted from package.json by plugin-package-version
 src/version.generated.ts
+
+### PowerPoint verify sidecar
+tools/powerpoint-verify/target/

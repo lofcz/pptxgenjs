@@ -66,9 +66,6 @@ function isFlatStringArray(arr: unknown): arr is string[] {
 	return Array.isArray(arr) && (arr.length === 0 || !Array.isArray(arr[0]))
 }
 
-/** counter for included charts (used for index in their filenames) */
-let _chartCounter = 0
-
 /**
  * Transforms a slide definition to a slide object that is then passed to the XML transformation process.
  * @param {SlideMasterProps} props - slide definition
@@ -171,7 +168,7 @@ export function addChartDefinition(target: PresSlide | SlideLayout, type: CHART_
 		}
 	}
 
-	const chartId = ++_chartCounter
+	const chartId = target._allocChartId()
 	const resultObject: ISlideObject = {
 		_type: SLIDE_OBJECT_TYPES.chart,
 		text: undefined,

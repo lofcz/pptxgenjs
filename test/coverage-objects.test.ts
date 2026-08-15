@@ -3,7 +3,7 @@
  * Covers: the remaining chart types (scatter, bubble, radar, doughnut, 3D bar, multi-type),
  * gen-media (audio, video, online video), slide masters/layouts/placeholders, auto-paged
  * tables, sections, and shape outlines/shadows.
- * Run with: `npm test` (node built-in test runner + tsx)
+ * Run with: `bun run test`
  */
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'

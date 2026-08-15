@@ -8,7 +8,7 @@
  * This script scans the public source modules for the type surface and
  * re-exports each member from an `export as namespace` block.
  *
- * Runs as the final step of `npm run build` (after Rslib writes the bundle).
+ * Runs as the final step of `bun run build` (after Rslib writes the bundle).
  */
 import { existsSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'

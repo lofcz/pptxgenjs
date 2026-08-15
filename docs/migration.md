@@ -2,34 +2,34 @@
 title: Migrating from pptxgenjs
 ---
 
-# Migrating from `pptxgenjs` to `@lofcz/pptxgenjs`
+# Migrating to `pptxgenjs-plus`
 
-`@lofcz/pptxgenjs` is a **drop-in replacement** for the original `pptxgenjs` package. The public API,
-the default export, and the `PptxGenJS` class are unchanged — the only required change is the package
-name in your install command and imports.
+`pptxgenjs-plus` is a **drop-in replacement** for the original `pptxgenjs` package and for the
+previous `@lofcz/pptxgenjs` publish name. The public API, the default export, and the `PptxGenJS`
+class are unchanged — the only required change is the package name in your install command and imports.
 
 ## 1. Swap the dependency
 
+From the original package:
+
 ```bash
 npm uninstall pptxgenjs
-npm install @lofcz/pptxgenjs
+npm install pptxgenjs-plus
+```
+
+From the previous scoped name:
+
+```bash
+npm uninstall @lofcz/pptxgenjs
+npm install pptxgenjs-plus
 ```
 
 Or with yarn:
 
 ```bash
 yarn remove pptxgenjs
-yarn add @lofcz/pptxgenjs
+yarn add pptxgenjs-plus
 ```
-
-::: tip Private registry
-If your organization hosts `@lofcz/pptxgenjs` on a private/internal npm registry, point the `@lofcz`
-scope at it once in an `.npmrc` file:
-
-```ini
-@lofcz:registry=https://your-registry.example.com/
-```
-:::
 
 ## 2. Update imports
 
@@ -37,14 +37,21 @@ The import specifier is the only code change. The imported value is identical.
 
 ```diff
 - import pptxgen from "pptxgenjs"
-+ import pptxgen from "@lofcz/pptxgenjs"
++ import pptxgen from "pptxgenjs-plus"
+```
+
+From `@lofcz/pptxgenjs`:
+
+```diff
+- import pptxgen from "@lofcz/pptxgenjs"
++ import pptxgen from "pptxgenjs-plus"
 ```
 
 CommonJS:
 
 ```diff
 - const pptxgen = require("pptxgenjs")
-+ const pptxgen = require("@lofcz/pptxgenjs")
++ const pptxgen = require("pptxgenjs-plus")
 ```
 
 Everything after the import stays the same:
@@ -56,15 +63,15 @@ slide.addText("Unchanged API", { x: 1, y: 1, fontSize: 24 })
 await pres.writeFile({ fileName: "Sample.pptx" })
 ```
 
-A project-wide find-and-replace of `"pptxgenjs"` → `"@lofcz/pptxgenjs"` is usually the entire migration.
+A project-wide find-and-replace of `"pptxgenjs"` or `"@lofcz/pptxgenjs"` → `"pptxgenjs-plus"` is usually the entire migration.
 
 ## 3. Update the browser `<script>` tag
 
-If you load the bundle from a CDN, point it at the fork's repository:
+If you load the bundle from a CDN, point it at the npm package:
 
 ```diff
-- <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs/dist/pptxgen.bundle.js"></script>
-+ <script src="https://cdn.jsdelivr.net/gh/lofcz/PptxGenJS/dist/pptxgen.bundle.js"></script>
+- <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@4/dist/pptxgen.bundle.js"></script>
++ <script src="https://cdn.jsdelivr.net/npm/pptxgenjs-plus@4/dist/pptxgen.bundle.js"></script>
 ```
 
 The global remains `PptxGenJS` (`new PptxGenJS()`), so no script code changes.

@@ -435,6 +435,12 @@ export default class PptxGenJS implements IPresentationProps {
 		return this._anchor
 	}
 
+	private _chartCounter = 0
+	private readonly allocChartId = (): number => {
+		this._chartCounter += 1
+		return this._chartCounter
+	}
+
 	constructor() {
 		const layout4x3: PresLayout = { name: 'screen4x3', width: 9144000, height: 6858000 }
 		const layout16x9: PresLayout = { name: 'screen16x9', width: 9144000, height: 5143500 }
@@ -468,6 +474,7 @@ export default class PptxGenJS implements IPresentationProps {
 		//
 		this._slideLayouts = [
 			{
+				_allocChartId: this.allocChartId,
 				_margin: DEF_SLIDE_MARGIN_IN,
 				_name: DEF_PRES_LAYOUT_NAME,
 				_presLayout: this._presLayout,
@@ -488,6 +495,7 @@ export default class PptxGenJS implements IPresentationProps {
 			throw new Error('add* methods are not available on the master slide')
 		}
 		this._masterSlide = {
+			_allocChartId: this.allocChartId,
 			addChart: notOnMaster,
 			addImage: notOnMaster,
 			addMedia: notOnMaster,
@@ -512,7 +520,7 @@ export default class PptxGenJS implements IPresentationProps {
 			_relsChart: [],
 			_relsMedia: [],
 			_slideId: 0,
-			_slideLayout: { _name: '', _presLayout: this._presLayout, _rels: [], _relsChart: [], _relsMedia: [], _slideNum: null, _slideObjects: [] },
+			_slideLayout: { _allocChartId: this.allocChartId, _name: '', _presLayout: this._presLayout, _rels: [], _relsChart: [], _relsMedia: [], _slideNum: null, _slideObjects: [] },
 			_slideNum: null,
 			_slideObjects: [],
 		}
@@ -872,6 +880,7 @@ export default class PptxGenJS implements IPresentationProps {
 		// TODO: DEPRECATED: arg0 string "masterSlideName" dep as of 3.2.0
 		const masterSlideName = typeof options === 'string' ? options : options?.masterName ? options.masterName : ''
 		let slideLayout: SlideLayout = {
+			_allocChartId: this.allocChartId,
 			_name: this.LAYOUTS[DEF_PRES_LAYOUT].name,
 			_presLayout: this.presLayout,
 			_rels: [],
@@ -888,6 +897,7 @@ export default class PptxGenJS implements IPresentationProps {
 
 		const newSlide = new Slide({
 			addSlide: this.addNewSlide,
+			allocChartId: this.allocChartId,
 			getSlide: this.getSlide,
 			presLayout: this.presLayout,
 			setSlideNum: this.setSlideNumber,
@@ -962,6 +972,7 @@ export default class PptxGenJS implements IPresentationProps {
 		if (!propsClone.title) throw new Error('defineSlideMaster() object argument requires a `title` value. (https://gitbrent.github.io/PptxGenJS/docs/masters.html)')
 
 		const newLayout: SlideLayout = {
+			_allocChartId: this.allocChartId,
 			_margin: propsClone.margin || DEF_SLIDE_MARGIN_IN,
 			_name: propsClone.title,
 			_presLayout: this.presLayout,

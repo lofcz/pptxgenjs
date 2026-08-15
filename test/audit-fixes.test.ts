@@ -1,7 +1,7 @@
 /**
  * Regression tests for audit fixes not already covered by test/issues.test.ts.
  *
- * Run with: `npm test` (node built-in test runner + tsx)
+ * Run with: `bun run test`
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'

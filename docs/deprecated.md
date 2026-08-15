@@ -48,6 +48,6 @@ Options deprecated in early 1.0 versions:
 
 ### Node Users
 
-- `require('@lofcz/pptxgenjs')` no longer returns a singleton instance
+- `require('pptxgenjs-plus')` no longer returns a singleton instance
 - `pptx = new PptxGenJS()` will create a single, unique instance
 - Advantage: This simplifies creating [multiple presentations](#saving-multiple-presentations) - see [Issue #83](https://github.com/gitbrent/PptxGenJS/issues/83) for details.

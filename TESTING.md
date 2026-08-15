@@ -2,19 +2,44 @@
 
 This document describes how to manually verify PptxGenJS across supported platforms and environments prior to a release.
 
-The automated suite (`npm run check`) covers linting, type checks, and unit/e2e/package-contract tests. The manual steps below validate real runtimes and bundlers.
+The automated suite (`bun run check`) covers linting, type checks, and unit/e2e/package-contract tests. The manual steps below validate real runtimes and bundlers.
 
 ## LibreOffice consumer test
 
 On a release machine with LibreOffice installed, run:
 
 ```bash
-PPTXGENJS_OFFICE_BIN="$(command -v libreoffice || command -v soffice)" npm run test:office
+PPTXGENJS_OFFICE_BIN="$(command -v libreoffice || command -v soffice)" bun run test:office
 ```
 
 It opens a generated presentation and converts it to PDF, failing if the OOXML
 cannot be consumed. CI runs this on every pull request; it stays separate from
-`npm run check` so normal contributors do not need an office suite installed.
+`bun run check` so normal contributors do not need an office suite installed.
+
+## PowerPoint repair verifier (Windows)
+
+On a machine with Microsoft PowerPoint installed, close any interactive
+`POWERPNT.EXE` window and run:
+
+```bash
+bun run test:powerpoint
+```
+
+The hidden-desktop sidecar opens each file and classifies it as `ok`,
+`repair`, or `reject`. PowerPoint has no structured "why" COM API. The
+useful extra signal is `repairSummary`: the dialog sentence Office
+actually showed (for example, “found a problem with content in … click
+Repair”), with ribbon chrome stripped. If Repair leaves a living
+presentation, `packageDiff` lists added, removed, and changed OOXML
+parts with a first-differing-line hint. On the hidden desktop, clicking
+Repair often tears down the COM server (`0x800706BE`) before SaveAs, so
+treat `packageDiff` as best-effort and use `repairSummary` for bisecting.
+
+Ad-hoc:
+
+```bash
+bun run powerpoint:verify path/to/deck.pptx
+```
 
 > **Note:** the checked-in `demos/` workspace was removed (issue #8). The manual tests below scaffold a throwaway
 > project per platform instead, so nothing has to be kept current in this repository. Demos may return later in a
@@ -22,7 +47,7 @@ cannot be consumed. CI runs this on every pull request; it stays separate from
 
 Procedure:
 
-1. Run `npm run ship`.
+1. Run `bun run ship`.
 2. Execute the tests in each section below.
 
 ## Test suite overview
@@ -40,13 +65,13 @@ Purpose: validate the CommonJS build in a pure Node environment.
 ```bash
 mkdir /tmp/pptxgenjs-node-test && cd /tmp/pptxgenjs-node-test
 npm init -y
-npm install /path/to/this/repo   # installs @lofcz/pptxgenjs from the local checkout
+npm install /path/to/this/repo   # installs pptxgenjs-plus from the local checkout
 ```
 
 Create `demo.cjs`:
 
 ```js
-const pptxgen = require('@lofcz/pptxgenjs')
+const pptxgen = require('pptxgenjs-plus')
 const pptx = new pptxgen()
 const slide = pptx.addSlide()
 slide.addText('Node CJS smoke test', { x: 1, y: 1, w: 6, h: 1, fontSize: 24, color: '0088CC' })
@@ -75,11 +100,11 @@ No sample application is checked in, as a pinned SPA becomes outdated between re
 npm create rsbuild@latest pptxgenjs-rsbuild-test -- --template react-ts
 cd pptxgenjs-rsbuild-test
 npm install
-npm install /path/to/this/repo   # installs @lofcz/pptxgenjs from the local checkout
+npm install /path/to/this/repo   # installs pptxgenjs-plus from the local checkout
 npm run dev
 ```
 
-1. In a component, `import pptxgen from "@lofcz/pptxgenjs"` and export a test slide.
+1. In a component, `import pptxgen from "pptxgenjs-plus"` and export a test slide.
 2. Verify that IntelliSense autocompletes, for example, `pptxgen.ChartType.` (types resolve correctly).
 3. Export a PowerPoint file and confirm it renders correctly.
 4. Delete the scaffold when finished; nothing is retained.

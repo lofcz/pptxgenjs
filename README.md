@@ -1,18 +1,18 @@
 # PptxGenJS
 
-Fork of [PptxGenJS](https://github.com/gitbrent/PptxGenJS) published as [`@lofcz/pptxgenjs`](https://www.npmjs.com/package/@lofcz/pptxgenjs) on npm.
+Fork of [PptxGenJS](https://github.com/gitbrent/PptxGenJS) published as [`pptxgenjs-plus`](https://www.npmjs.com/package/pptxgenjs-plus) on npm.
 
 ![PptxGenJS Sample Slides](https://raw.githubusercontent.com/gitbrent/PptxGenJS/gh-pages/img/readme_banner.png)
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/lofcz/PptxGenJS?style=flat-square)
 ![GitHub License](https://img.shields.io/github/license/lofcz/PptxGenJS?style=flat-square)
-[![npm version](https://img.shields.io/npm/v/%40lofcz/pptxgenjs?style=flat-square)](https://www.npmjs.com/package/@lofcz/pptxgenjs)
+[![npm version](https://img.shields.io/npm/v/pptxgenjs-plus?style=flat-square)](https://www.npmjs.com/package/pptxgenjs-plus)
 
 PptxGenJS is a JavaScript library for generating PowerPoint presentations programmatically. It runs in Node.js, browsers, and bundler-based environments (React, Angular, Vite, Webpack, Electron), and requires no PowerPoint installation or license. Output is standards-compliant [Open Office XML (OOXML)](https://ecma-international.org/publications-and-standards/standards/ecma-376/), compatible with Microsoft PowerPoint, Apple Keynote, LibreOffice Impress, and Google Slides (via import). For PowerPoint-specific behavior, see Microsoft's [Office implementation notes](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oi29500/1fd4a662-8623-49c0-82f0-18fa91b413b8).
 
 ## About this fork
 
-This repository is a fork of [gitbrent/PptxGenJS](https://github.com/gitbrent/PptxGenJS), maintained by [Matěj Lofcz Štágl](https://github.com/lofcz) and published as [`@lofcz/pptxgenjs`](https://www.npmjs.com/package/@lofcz/pptxgenjs).
+This repository is a fork of [gitbrent/PptxGenJS](https://github.com/gitbrent/PptxGenJS), maintained by [Matěj Lofcz Štágl](https://github.com/lofcz) and published as [`pptxgenjs-plus`](https://www.npmjs.com/package/pptxgenjs-plus).
 
 - **Strict null-safety** — the entire source compiles under TypeScript `strictNullChecks` with zero non-null assertions (`!`) and zero unchecked `as` casts; null-safety is enforced through explicit types, guard clauses, and validated defaults
 - **Continuous integration** — unit, end-to-end, OOXML package-contract tests, and an optional LibreOffice consumer check
@@ -27,11 +27,11 @@ The public API remains compatible with upstream PptxGenJS; existing code and doc
 ## Installation
 
 ```bash
-npm install @lofcz/pptxgenjs
+npm install pptxgenjs-plus
 ```
 
 ```bash
-yarn add @lofcz/pptxgenjs
+yarn add pptxgenjs-plus
 ```
 
 The package ships dual ES Module and CommonJS builds. Bundlers select the correct build automatically via the `exports` field in `package.json`. The `.pptx` output can be delivered as a browser download, base64 string, Blob, Buffer, or Node stream.
@@ -41,7 +41,7 @@ The package ships dual ES Module and CommonJS builds. Bundlers select the correc
 A presentation is created in four steps: instantiate, add a slide, add content, save.
 
 ```typescript
-import pptxgen from "@lofcz/pptxgenjs";
+import pptxgen from "pptxgenjs-plus";
 
 // 1. Create a presentation
 const pres = new pptxgen();
@@ -63,7 +63,7 @@ When loading the library via a `<script>` tag rather than a module import, the c
 
 Complete API reference, tutorials, and integration guides are available on the official docs site: [https://gitbrent.github.io/PptxGenJS](https://gitbrent.github.io/PptxGenJS).
 
-Local Rspress docs under [`docs/`](docs) can be previewed with `npm run docs:dev`.
+Local Rspress docs under [`docs/`](docs) can be previewed with `bun run docs:dev`.
 
 ## Issues and support
 

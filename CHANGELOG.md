@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Published npm package renamed from `@lofcz/pptxgenjs` to `pptxgenjs-plus`
 - Docs site builds with Rspress (Rsbuild / Rspack) instead of VitePress
 - Bumped toolchain to ESLint 10 and current Rslib/eslint/tsx/TypeScript 6 minors; dropped unused `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, and a direct `@rsbuild/core` pin. TypeScript 7 is blocked until typescript-eslint supports it.
 - Build with Rslib / Rsbuild instead of Rollup and gulp

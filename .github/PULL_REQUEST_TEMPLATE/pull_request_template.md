@@ -30,7 +30,7 @@
 - [ ] I have performed a self-review of my code
 - [ ] I have commented my code, particularly in hard-to-understand areas
 - [ ] I have included code/tests that prove my fix is effective or that my feature works
-- [ ] `npm run check` passes (lint, typecheck, tests)
+- [ ] `bun run check` passes (lint, typecheck, tests)
 
 ## Screenshots / Sample Code (if appropriate)
 

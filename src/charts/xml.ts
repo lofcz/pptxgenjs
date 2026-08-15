@@ -369,7 +369,6 @@ function makeChartType (
 	// ....: Ensure each X/Y Axis/Col has same row height (esp. applicable to XY Scatter where X can often be larger than Y's)
 	let colorIndex = -1 // Maintain the color index by region
 	let idxColLtr = 1
-	let optsChartData: IOptsChartData = data[0]
 	let strXml = ''
 	// NOTE: chart data arrays and colors are always populated at render time; guarded locals keep this null-safe without changing output
 	const firstValues = data[0]?.values ?? []
@@ -1132,8 +1131,7 @@ function makeChartType (
 
 		case CHART_TYPE.DOUGHNUT:
 		case CHART_TYPE.PIE: {
-			// Use the same let name so code blocks from barChart are interchangeable
-			optsChartData = data[0]
+			const optsChartData: IOptsChartData = data[0]
 			// NOTE: chart data arrays are always populated at render time; guarded locals keep this null-safe without changing output
 			const chartDataLabels = optsChartData.labels ?? []
 			const chartDataValues = optsChartData.values ?? []

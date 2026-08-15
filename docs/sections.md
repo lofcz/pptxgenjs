@@ -25,7 +25,7 @@ pptx.addSection({ title: "Charts", order: 3 })
 ## Section Example
 
 ```typescript
-import pptxgen from "@lofcz/pptxgenjs";
+import pptxgen from "pptxgenjs-plus";
 let pptx = new pptxgen();
 
 // STEP 1: Create a section

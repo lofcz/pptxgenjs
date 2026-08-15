@@ -15,7 +15,7 @@ Import the default export. This is the recommended path for application code —
 your bundler picks the correct build automatically.
 
 ```typescript
-import pptxgen from "@lofcz/pptxgenjs"
+import pptxgen from "pptxgenjs-plus"
 
 const pres = new pptxgen()
 ```

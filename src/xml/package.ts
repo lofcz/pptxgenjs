@@ -304,7 +304,7 @@ export function makeXmlPresentationRels (slides: PresSlide[], tracking?: Present
 	if (tracking?.revisionInfo)
 		strXml += `<Relationship Id="rId${extraRel++}" Type="${REVISION_INFO_REL_TYPE}" Target="revisionInfo.xml" TargetMode="Internal"/>`
 	if (tracking?.changesInfo)
-		strXml += `<Relationship Id="rId${extraRel++}" Type="${CHANGES_INFO_REL_TYPE}" Target="changesInfo.xml" TargetMode="Internal"/>`
+		strXml += `<Relationship Id="rId${extraRel}" Type="${CHANGES_INFO_REL_TYPE}" Target="changesInfo.xml" TargetMode="Internal"/>`
 	strXml += '</Relationships>'
 
 	return strXml
