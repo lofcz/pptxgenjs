@@ -1830,3 +1830,57 @@ test('#gap2c: summary zoom emits summaryZm + gridLayout + grpSp fallback', async
 	assert.ok(slideXml.includes('<p16:gridLayout/>'), 'no gridLayout choice')
 	assert.ok(slideXml.includes('<mc:Fallback><p:grpSp>'), 'summary zoom should use grpSp fallback')
 })
+
+const TINY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+test('#88: sections emit p14:sectionLst without empty guide stubs', async () => {
+	const pptx = new pptxgen()
+	pptx.addSection({ title: 'Intro' })
+	pptx.addSection({ title: 'Close', id: '{CA1E145A-94F4-4C2D-9BC0-76C4A01D48ED}' })
+	pptx.addSlide({ sectionTitle: 'Intro' }).addText('one', { x: 1, y: 1, w: 2, h: 1 })
+	pptx.addSlide({ sectionTitle: 'Close' }).addText('two', { x: 1, y: 1, w: 2, h: 1 })
+
+	const presXml = await readPart(await writeZip(pptx), 'ppt/presentation.xml')
+	assert.ok(presXml.includes('<p14:sectionLst'), 'no sectionLst')
+	assert.ok(presXml.includes('name="Intro"'), 'Intro section missing')
+	assert.ok(presXml.includes('name="Close" id="{CA1E145A-94F4-4C2D-9BC0-76C4A01D48ED}"'), `caller GUID not honored: ${/<p14:section[^>]*>/.exec(presXml)?.[0]}`)
+	assert.ok(presXml.includes('<p14:sldId id="256"/>'), 'Intro slide id missing')
+	assert.ok(presXml.includes('<p14:sldId id="257"/>'), 'Close slide id missing')
+	assert.ok(!presXml.includes('<p15:sldGuideLst'), 'empty sldGuideLst stub must not be emitted')
+	assert.ok(!presXml.includes('<p15:notesGuideLst'), 'empty notesGuideLst stub must not be emitted')
+})
+
+test('#88: notesGuides emit p15:notesGuideLst; slide guides stay on sldGuideLst', async () => {
+	const pptx = new pptxgen()
+	pptx.guides = [{ orient: 'vert', pos: 3.5, id: 9, name: 'mid' }]
+	pptx.notesGuides = [{ orient: 'horz', pos: 2, color: '00FF00' }]
+	pptx.addSlide().addText('x', { x: 1, y: 1, w: 1, h: 1 })
+
+	const presXml = await readPart(await writeZip(pptx), 'ppt/presentation.xml')
+	assert.ok(presXml.includes('uri="{EFAFB233-063F-42B5-8137-9DF3F51BA10A}"'), 'sldGuideLst uri missing')
+	assert.ok(presXml.includes('<p15:sldGuideLst'), 'no sldGuideLst')
+	assert.ok(presXml.includes('id="9" orient="vert" pos="3200400" name="mid"'), `slide guide wrong: ${/<p15:guide[^>]*>/.exec(presXml)?.[0]}`)
+	assert.ok(presXml.includes('uri="{2D200454-40CA-4A62-9FC3-DE9A4176ACB9}"'), 'notesGuideLst uri missing')
+	assert.ok(presXml.includes('<p15:notesGuideLst'), 'no notesGuideLst')
+	assert.ok(presXml.includes('orient="horz" pos="1828800"'), 'notes guide pos wrong')
+	assert.ok(presXml.includes('<a:srgbClr val="00FF00"/>'), 'notes guide color missing')
+})
+
+test('#88: typed zoom APIs keep AlternateContent fallbacks', async () => {
+	const pptx = new pptxgen()
+	pptx.addSection({ title: 'Intro' })
+	const source = pptx.addSlide({ sectionTitle: 'Intro' })
+	source.addText('source', { x: 1, y: 1, w: 2, h: 1 })
+	pptx.addSlide({ sectionTitle: 'Intro' }).addText('target', { x: 1, y: 1, w: 2, h: 1 })
+	source.addZoom({ slideNum: 2, x: 1, y: 4, w: 2, h: 1.13, cover: TINY_PNG })
+	source.addSectionZoom({ sectionTitle: 'Intro', x: 3.2, y: 4, w: 2, h: 1.13, cover: TINY_PNG })
+	source.addSummaryZoom({ sectionTitle: 'Intro', x: 5.4, y: 4, w: 2, h: 1.13, cover: TINY_PNG })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(slideXml.includes('<p16:sldZm>'), 'no sldZm')
+	assert.ok(slideXml.includes('<p16:sectionZm>'), 'no sectionZm')
+	assert.ok(slideXml.includes('<p16:summaryZm>'), 'no summaryZm')
+	assert.equal((slideXml.match(/<mc:AlternateContent/g) || []).length, 3, 'expected 3 AlternateContent wrappers')
+	assert.equal((slideXml.match(/<mc:Fallback><p:pic>/g) || []).length, 2, 'slide/section zoom must fall back to pic')
+	assert.ok(slideXml.includes('<mc:Fallback><p:grpSp>'), 'summary zoom must fall back to grpSp')
+})
