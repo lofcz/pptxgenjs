@@ -1,5 +1,5 @@
 {
-  "directory": "C:\\Users\\mstagl-dev\\Documents\\factory-cursor-bridge\\PptxGenJS\\test\\fixtures\\repair",
+  "directory": "test/fixtures/repair",
   "fixtures": [
     {
       "id": "ok-baseline",

@@ -125,7 +125,7 @@ export async function buildRepairFixtures (directory = REPAIR_FIXTURE_DIR): Prom
 		written.push(path)
 	}
 	const manifest = {
-		directory,
+		directory: 'test/fixtures/repair',
 		fixtures: REPAIR_FIXTURES.map(fixture => ({
 			id: fixture.id,
 			file: `${fixture.id}.pptx`,

@@ -94,6 +94,19 @@ test('verify: non-package bytes are reported as not-zip', async () => {
 	assert.ok(report.issues.some(item => item.code === 'not-zip'))
 })
 
+test('verify: repair fixtures carry the intended mutations', async () => {
+	const { buildRepairFixtures, fixturePath } = await import('./repair-fixtures')
+	await buildRepairFixtures()
+	const invalid = await verifyPptx(fixturePath('invalid-cnvid'))
+	assert.ok(invalid.slides[0].objects.some(object => object.id === 'abc'), JSON.stringify(invalid.slides[0].objects))
+	const emptyId = await verifyPptx(fixturePath('empty-cnvid'))
+	assert.ok(emptyId.slides[0].objects.some(object => object.id === ''), JSON.stringify(emptyId.slides[0].objects))
+	const preset = await verifyPptx(fixturePath('invalid-preset'))
+	assert.ok(preset.slides[0].objects.some(object => object.preset === 'notashape'), JSON.stringify(preset.slides[0].objects))
+	const baseline = await verifyPptx(fixturePath('ok-baseline'))
+	assertVerified(baseline)
+})
+
 test('verify: PowerPoint sidecar stays skipped unless opted in', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addText('sidecar off', { x: 0.5, y: 0.5, w: 4, h: 0.4 })

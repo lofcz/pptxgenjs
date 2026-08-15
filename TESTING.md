@@ -39,7 +39,15 @@ Ad-hoc:
 
 ```bash
 bun run powerpoint:verify path/to/deck.pptx
+bun run pptx:verify --powerpoint test/fixtures/repair/*.pptx
 ```
+
+`bun run fixtures:repair` writes known-bad decks under `test/fixtures/repair/`.
+Each mutated file has been observed to show PowerPoint's Repair dialog
+(`invalid-cnvid`, `empty-txbody`, `nan-cell-margin`, `nan-shape-cx`,
+`empty-cnvid`, `invalid-preset`, `empty-table-cell`). `ok-baseline.pptx`
+is the unmutated control. `bun run test:powerpoint` regenerates them and
+opens each in its own sidecar session.
 
 > **Note:** the checked-in `demos/` workspace was removed (issue #8). The manual tests below scaffold a throwaway
 > project per platform instead, so nothing has to be kept current in this repository. Demos may return later in a
