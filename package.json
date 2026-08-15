@@ -46,8 +46,8 @@
 		"docs:preview": "rspress preview",
 		"lint": "npm run generate:version && eslint src test",
 		"typecheck": "npm run generate:version && tsc --noEmit",
-		"test": "npm run generate:version && node --import tsx --test test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts test/package-version-plugin.test.ts",
-		"test:coverage": "npm run generate:version && node --import tsx --test --experimental-test-coverage test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts test/package-version-plugin.test.ts",
+		"test": "npm run generate:version && node --import tsx --test test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts test/package-version-plugin.test.ts test/ms-pptx-profile.test.ts",
+		"test:coverage": "npm run generate:version && node --import tsx --test --experimental-test-coverage test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts test/package-version-plugin.test.ts test/ms-pptx-profile.test.ts",
 		"test:office": "npm run generate:version && node --import tsx --test test/office-open.test.ts",
 		"check": "npm run lint && npm run typecheck && npm test",
 		"prepublishOnly": "npm run check && npm run build"
