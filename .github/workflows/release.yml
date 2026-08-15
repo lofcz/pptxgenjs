@@ -12,6 +12,7 @@ on:
           - patch
           - minor
           - major
+          - existing
 
 jobs:
   release:
@@ -36,13 +37,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Bump package version
+      - name: Resolve package version
         id: version
         run: |
-          npm version "${{ github.event.inputs.release_type }}" --no-git-tag-version
-          VERSION=$(node -p "require('./package.json').version")
-          sed -i "s/const VERSION = '.*'/const VERSION = '${VERSION}'/" src/pptxgen.ts
+          if [ "${{ github.event.inputs.release_type }}" != "existing" ]; then
+            npm version "${{ github.event.inputs.release_type }}" --no-git-tag-version
+            VERSION=$(node -p "require('./package.json').version")
+            sed -i "s/const VERSION = '.*'/const VERSION = '${VERSION}'/" src/pptxgen.ts
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          if [ "${{ github.event.inputs.release_type }}" != "existing" ]; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Lint
         run: npm run lint
@@ -65,6 +75,7 @@ jobs:
         run: npm publish --provenance --access public
 
       - name: Commit release version and create tag
+        if: steps.version.outputs.bumped == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -73,6 +84,7 @@ jobs:
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
 
       - name: Push release commit and tag
+        if: steps.version.outputs.bumped == 'true'
         run: git push --follow-tags
 
       - name: Create GitHub release
