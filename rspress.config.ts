@@ -1,3 +1,5 @@
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from '@rspress/core'
 
 const pagesBase = process.env.PAGES_BASE_PATH?.trim()
@@ -5,11 +7,13 @@ const base = !pagesBase || pagesBase === '/' ? '/' : pagesBase.endsWith('/') ? p
 
 export default defineConfig({
 	root: 'docs',
-	title: 'PptxGenJS',
-	description: 'Create PowerPoint presentations with JavaScript. Maintained by Matěj Lofcz Štágl.',
+	title: 'pptxgenjs/next',
+	description: 'Create PowerPoint presentations with JavaScript. Typed API, modern build, community contributions.',
 	base,
-	logoText: 'PptxGenJS',
+	logoText: 'pptxgenjs',
 	outDir: 'doc_dist',
+	globalStyles: join(dirname(fileURLToPath(import.meta.url)), 'docs/styles/global.css'),
+	llms: true,
 	markdown: {
 		shiki: {
 			langAlias: {
@@ -96,7 +100,11 @@ export default defineConfig({
 		],
 		footer: {
 			message:
-				'Released under the MIT License.<br/>Copyright © 2015-present Brent Ely · © 2026-present Matěj Lofcz Štágl',
+				'Released under the MIT License.<br/>© 2026-present Matěj "lofcz" Štágl',
+		},
+		llmsUI: {
+			viewOptions: false,
+			placement: 'outline',
 		},
 		editLink: {
 			docRepoBaseUrl: 'https://github.com/lofcz/pptxgenjs-plus/tree/next/docs',

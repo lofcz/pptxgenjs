@@ -1,0 +1,104 @@
+.rp-nav__title {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+}
+
+.rp-nav__title::after {
+	content: '/next/';
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.78rem;
+	font-weight: 500;
+	letter-spacing: 0.02em;
+	line-height: 1;
+	color: color-mix(in srgb, currentColor 55%, transparent);
+	padding: 0;
+	background: none;
+	border-radius: 0;
+}
+
+.rp-home-hero__title-brand {
+	letter-spacing: -0.03em;
+}
+
+.rp-home-hero__badge,
+.rp-home-hero__badge:is(a) {
+	padding: 0;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 0.95rem;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	color: color-mix(in srgb, var(--rp-c-text-2, #a1a1aa) 100%, transparent);
+	background: none;
+	text-decoration: none;
+}
+
+.rp-home-hero__badge::before {
+	display: none;
+}
+
+.rp-home-hero,
+.rp-home-hero__container,
+.rp-home-hero__actions,
+.rp-home-hero__action {
+	overflow: visible;
+}
+
+.rp-home-hero__actions {
+	align-items: center;
+	padding-bottom: 0.25rem;
+}
+
+.rp-home-hero__tagline a {
+	color: inherit;
+	text-decoration: underline;
+	text-underline-offset: 0.15em;
+}
+
+.rp-home-hero__actions .rp-button {
+	height: auto;
+	min-height: 48px;
+	line-height: 1.25;
+	padding: 0.75rem 1.25rem;
+	overflow: visible;
+	box-sizing: border-box;
+}
+
+.rp-home-feature {
+	padding: 1.5rem 1.25rem 3rem;
+}
+
+.rp-home-feature__card {
+	padding: 1.75rem 1.6rem;
+	border-radius: 1.25rem;
+	background: color-mix(in srgb, var(--rp-c-bg-mute, #16161a) 88%, transparent);
+	border-color: color-mix(in srgb, #fff 8%, transparent);
+	transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.rp-home-feature__card:hover {
+	transform: translateY(-2px);
+	border-color: color-mix(in srgb, #8b5cf6 45%, #3478f6);
+	color: inherit;
+}
+
+.rp-home-feature__title {
+	font-size: 1.05rem;
+	letter-spacing: -0.02em;
+}
+
+.rp-home-feature__detail {
+	padding-top: 0.65rem;
+	font-size: 0.9rem;
+	line-height: 1.55;
+	font-weight: 400;
+}
+
+.rp-home .rp-llms-container,
+.rp-home [class*='rp-llms'] {
+	display: none;
+}

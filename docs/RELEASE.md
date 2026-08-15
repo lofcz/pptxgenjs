@@ -1,6 +1,6 @@
 # Releasing `pptxgenjs-plus`
 
-PptxGenJS Plus publishes through npm trusted publishing.
+pptxgenjs-plus publishes through npm trusted publishing.
 
 Requires **npm 11.15.0 or later** (`npm install -g npm@^11.15.0`).
 

@@ -4,7 +4,7 @@ title: Charts
 
 Charts of most types can be added to Slides, including combo and 3D charts.
 
-![PptxGenJS Chart Samples](./assets/demo-all-charts.png)
+![pptxgenjs Chart Samples](./assets/demo-all-charts.png)
 
 ## Usage
 

@@ -1,6 +1,6 @@
 # Testing Guide
 
-This document describes how to manually verify PptxGenJS across supported platforms and environments prior to a release.
+This document describes how to manually verify pptxgenjs across supported platforms and environments prior to a release.
 
 The automated suite (`bun run check`) covers linting, type checks, and unit/e2e/package-contract tests. The manual steps below validate real runtimes and bundlers.
 

@@ -1,4 +1,4 @@
-# PptxGenJS agent guidance
+# pptxgenjs agent guidance
 
 ## Repository targeting
 

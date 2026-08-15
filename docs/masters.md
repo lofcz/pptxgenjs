@@ -4,7 +4,7 @@ title: Masters and Placeholders
 
 ## Slide Masters
 
-Most production presentations must follow a defined design or corporate branding. PptxGenJS supports this
+Most production presentations must follow a defined design or corporate branding. pptxgenjs supports this
 through Slide Master Layouts, which are defined as plain objects and applied to slides, allowing a Master
 Slide to be created entirely in code.
 
@@ -84,7 +84,7 @@ Using the 'MASTER_SLIDE' defined above to produce a Slide:
 
 ## Placeholders
 
-Placeholders are supported in PptxGenJS.
+Placeholders are supported in pptxgenjs.
 
 Add a `placeholder` object to a Master Slide using a unique name, then reference that placeholder
 name when adding text or other objects.
@@ -139,4 +139,4 @@ Using the 'PLACEHOLDER_SLIDE' defined above to produce a Slide:
 
 A presentation built from several defined Master Slides, including placeholder examples:
 
-![PptxGenJS Master Slide Demo](./assets/ex-master-slide-demo.png)
+![pptxgenjs Master Slide Demo](./assets/ex-master-slide-demo.png)

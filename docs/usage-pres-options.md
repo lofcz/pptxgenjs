@@ -18,7 +18,7 @@ These optional metadata properties correspond to built-in PowerPoint document pr
 
 ## Library Version
 
-> You can also check the current PptxGenJS library version using the read-only `version` property
+> You can also check the current pptxgenjs library version using the read-only `version` property
 
 ```typescript
 console.log(pptx.version); // e.g. "4.0.0"
@@ -26,7 +26,7 @@ console.log(pptx.version); // e.g. "4.0.0"
 
 ### Metadata Properties Examples
 
-PptxGenJS uses ES6-style getters/setters.
+pptxgenjs uses ES6-style getters/setters.
 
 ```typescript
 pptx.title = 'My Awesome Presentation';

@@ -18,7 +18,7 @@ const pres = new pptxgen()
 const slide = pres.addSlide()
 
 // 3. Add one or more objects (text, tables, shapes, images, charts, media)
-slide.addText("Hello World from PptxGenJS!", { x: 1, y: 1, w: "80%", h: 1, fontSize: 24, color: "363636" })
+slide.addText("Hello World from pptxgenjs!", { x: 1, y: 1, w: "80%", h: 1, fontSize: 24, color: "363636" })
 
 // 4. Save the presentation
 await pres.writeFile({ fileName: "HelloWorld.pptx" })
@@ -36,7 +36,7 @@ const pres = new PptxGenJS()
 const slide = pres.addSlide()
 
 // 3. Add content
-slide.addText("Hello World from PptxGenJS!", { x: 1, y: 1, w: "80%", h: 1, fontSize: 24, color: "363636" })
+slide.addText("Hello World from pptxgenjs!", { x: 1, y: 1, w: "80%", h: 1, fontSize: 24, color: "363636" })
 
 // 4. Save the presentation (triggers a download)
 await pres.writeFile({ fileName: "HelloWorld.pptx" })

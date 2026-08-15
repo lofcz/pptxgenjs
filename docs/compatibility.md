@@ -2,7 +2,7 @@
 title: Universal Compatibility
 ---
 
-PptxGenJS runs in **modern web and Node environments**. Dual ESM and CJS builds and zero runtime dependencies allow the library to be used in CLI tools, Electron applications, and web-based presentation builders without stack-specific configuration.
+pptxgenjs runs in **modern web and Node environments**. Dual ESM and CJS builds and zero runtime dependencies allow the library to be used in CLI tools, Electron applications, and web-based presentation builders without stack-specific configuration.
 
 ### Supported Platforms
 

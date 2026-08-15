@@ -2,13 +2,8 @@
 title: Introduction
 ---
 
-![PptxGenJS Sample Slides](./assets/readme_banner.png)
-
-![GitHub Repo stars](https://img.shields.io/github/stars/lofcz/pptxgenjs-plus?style=flat-square)
-![GitHub License](https://img.shields.io/github/license/lofcz/pptxgenjs-plus?style=flat-square)
-
-**PptxGenJS generates PowerPoint (`.pptx`) files from JavaScript** — in Node, the browser, and every
-common framework. This is `pptxgenjs-plus`, maintained by Matěj Lofcz Štágl, with a modern build and typed API.
+**pptxgenjs generates PowerPoint (`.pptx`) files from JavaScript** — in Node, the browser, and every
+common framework. This is `pptxgenjs-plus`: a modern, typed build shaped by community contributions.
 
 If you are migrating from the original `pptxgenjs` package, see the [Migration guide](./migration) — it is
 a drop-in replacement.
@@ -45,7 +40,7 @@ import pptxgen from "pptxgenjs-plus"
 const pres = new pptxgen()
 const slide = pres.addSlide()
 
-slide.addText("Hello World from PptxGenJS!", { x: 1, y: 1, w: "80%", h: 1, fontSize: 24, color: "363636" })
+slide.addText("Hello World from pptxgenjs!", { x: 1, y: 1, w: "80%", h: 1, fontSize: 24, color: "363636" })
 
 await pres.writeFile({ fileName: "HelloWorld.pptx" })
 ```
@@ -78,7 +73,7 @@ page leads directly to its source file.
 
 ## Contributors
 
-This fork builds on the work of [Brent Ely](https://github.com/gitbrent/) and the original PptxGenJS
+This fork builds on the work of [Brent Ely](https://github.com/gitbrent/) and the original pptxgenjs
 contributors:
 
 - [Dzmitry Dulko](https://github.com/DzmitryDulko) — getting the project published on NPM
@@ -92,6 +87,6 @@ PowerPoint shape definitions and some XML via the [Officegen Project](https://gi
 
 ## License
 
-Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [Matěj Lofcz Štágl](https://github.com/lofcz)
+&copy; 2026-present [Matěj "lofcz" Štágl](https://github.com/lofcz)
 
 [MIT](https://github.com/lofcz/pptxgenjs-plus/blob/next/LICENSE)

@@ -2,9 +2,12 @@
 pageType: home
 
 hero:
-  name: PptxGenJS
+  badge:
+    text: /next/
+    link: https://github.com/lofcz/pptxgenjs-plus/tree/next
+  name: pptxgenjs
   text: Create PowerPoint presentations with JavaScript.
-  tagline: Maintained by Matěj Lofcz Štágl — modern build, typed API, works in browser and Node.
+  tagline: 'Typed API, modern build, and <a href="https://github.com/lofcz/pptxgenjs-plus/graphs/contributors">community contributions</a> — works in the browser and on Node.'
   actions:
     - theme: brand
       text: Quick Start
@@ -18,11 +21,27 @@ hero:
 
 features:
     - title: One object model
-      details: A Presentation holds Slides; each Slide holds Text, Tables, Shapes, Images, Charts, and Media. Learn five add-methods and you know the API.
+      details: Presentation → Slide → objects. Text, tables, shapes, images, charts, media. Same options shape on every add-method.
+      span: 4
+      link: /introduction
     - title: Works everywhere
-      details: Browser, Node, React, Angular, Rsbuild, Rspack, and web workers. One API, every runtime.
+      details: Browser, Node, React, Angular, Rsbuild, Rspack, workers. One import, one API.
+      span: 4
+      link: /integration
     - title: TypeScript-first
-      details: Complete type definitions ship with the package, so your editor documents the API and options as you type.
+      details: Types ship in the package. The editor lists every method and option as you type.
+      span: 4
+      link: /quick-start
     - title: HTML to PowerPoint
-      details: Convert any HTML table to one or more slides with a single line of code.
+      details: Point at an HTML table. Get one or more slides back.
+      span: 4
+      link: /html-to-powerpoint
+    - title: Charts and media
+      details: Bar, line, pie, scatter, and the rest. Images, video, and audio on the same slide.
+      span: 4
+      link: /api-charts
+    - title: Real .pptx files
+      details: OOXML that opens in PowerPoint, Keynote, Impress, and Google Slides. Nothing to install to generate.
+      span: 4
+      link: /compatibility
 ---

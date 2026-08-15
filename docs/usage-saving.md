@@ -82,7 +82,7 @@ const app = express()
 
 app.get("/download", async (req, res) => {
     const pptx = new pptxgen()
-    pptx.addSlide().addText("Streamed with PptxGenJS", { x: 1, y: 1 })
+    pptx.addSlide().addText("Streamed with pptxgenjs", { x: 1, y: 1 })
 
     const data = await pptx.stream()
     res.writeHead(200, {

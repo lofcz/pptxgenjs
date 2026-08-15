@@ -109,4 +109,4 @@ Add a button to a webpage that creates a presentation from the table data curren
 ## SharePoint Integration
 
 Placing a button like this into a WebPart is a practical way to add "Export to PowerPoint" functionality
-to SharePoint. The PptxGenJS bundle `<script>` must also be added to that or another WebPart.
+to SharePoint. The pptxgenjs bundle `<script>` must also be added to that or another WebPart.

@@ -158,7 +158,7 @@ slide.addText("Paragraph spacing - before:12pt / after:24pt", {
 slide.addText(
     [
         {
-            text: "PptxGenJS Project",
+            text: "pptxgenjs Project",
             options: { hyperlink: { url: "https://github.com/lofcz/pptxgenjs-plus", tooltip: "Visit Homepage" } },
         },
     ],

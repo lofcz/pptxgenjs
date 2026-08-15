@@ -2,7 +2,7 @@
 title: Installation
 ---
 
-Install **PptxGenJS** using one of the following methods.
+Install **pptxgenjs** using one of the following methods.
 
 ### Quick Install (Node-based)
 

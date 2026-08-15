@@ -27,7 +27,7 @@ Please see the [Version 3.0 Migration Guide](https://github.com/gitbrent/PptxGen
 Version 2.0.0 included a cleanup of the API surface and may break existing code. In most cases a
 search-and-replace of the renamed option names resolves the breakage.
 
-Although the changes primarily affect cosmetic properties, test your solutions thoroughly before upgrading PptxGenJS to the 2.0 version.
+Although the changes primarily affect cosmetic properties, test your solutions thoroughly before upgrading pptxgenjs to the 2.0 version.
 
 ### All Users
 

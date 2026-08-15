@@ -2,7 +2,7 @@
 title: Integration by Environment
 ---
 
-PptxGenJS can be used in various JavaScript environments. Select the integration method below that matches your project setup.
+pptxgenjs can be used in various JavaScript environments. Select the integration method below that matches your project setup.
 
 ## Available Distributions
 
