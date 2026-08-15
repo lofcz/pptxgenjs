@@ -2503,3 +2503,78 @@ test('#87: addContentPart and addOfficeApp reject incomplete options', () => {
 	assert.throws(() => slide.addContentPart({ data: '', x: 1, y: 1 } as never), /data/)
 	assert.throws(() => slide.addOfficeApp({ reference: { id: '' }, x: 1, y: 1 }), /reference.id/)
 })
+
+test('#92: designElem / classification / designPr emit nvPr extLst URIs only when set', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText('plain', { x: 0.5, y: 0.3, w: 4, h: 0.4 })
+	slide.addText('design', { x: 0.5, y: 0.8, w: 4, h: 0.4, designElem: true })
+	slide.addText('classified', { x: 0.5, y: 1.3, w: 4, h: 0.4, classification: 'hdr' })
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 0.5, y: 1.8, w: 2, h: 1, fill: { color: 'FF0000' },
+		designPr: { edtDesignElem: true, tags: [{ name: 'src', val: 'designer' }] },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const texts = [...xml.matchAll(/<p:sp>[\s\S]*?<\/p:sp>/g)].map(m => m[0])
+	const plain = texts.find(t => t.includes('<a:t>plain</a:t>')) ?? ''
+	const design = texts.find(t => t.includes('<a:t>design</a:t>')) ?? ''
+	const classified = texts.find(t => t.includes('<a:t>classified</a:t>')) ?? ''
+	const shape = texts.find(t => t.includes('val="FF0000"')) ?? ''
+
+	assert.ok(plain, 'plain text shape missing')
+	assert.doesNotMatch(plain, /\{386F3935-93C4-4BCD-93E2-E3B085C9AB24\}/, 'plain text must not emit designElem')
+	assert.doesNotMatch(plain, /\{1162E1C5-73C7-4A58-AE30-91384D911F3F\}/, 'plain text must not emit classification')
+	assert.doesNotMatch(plain, /<p184:classification/, 'plain text must not emit classification element')
+
+	assert.match(design, /uri="\{386F3935-93C4-4BCD-93E2-E3B085C9AB24\}"/, 'designElem URI missing')
+	assert.match(design, /<p16:designElem xmlns:p16="http:\/\/schemas\.microsoft\.com\/office\/powerpoint\/2015\/main" val="1"\/>/, 'designElem element missing')
+
+	assert.match(classified, /uri="\{1162E1C5-73C7-4A58-AE30-91384D911F3F\}"/, 'classification URI missing')
+	assert.match(classified, /<p184:classification xmlns:p184="http:\/\/schemas\.microsoft\.com\/office\/powerpoint\/2018\/4\/main" val="hdr"\/>/, 'classification element missing')
+
+	assert.match(shape, /uri="\{E7BDC344-281C-4309-B0C6-D0EE65EED2A8\}"/, 'designPr URI missing')
+	assert.match(shape, /<p202:designPr xmlns:p202="http:\/\/schemas\.microsoft\.com\/office\/powerpoint\/2020\/02\/main" edtDesignElem="1">/, 'designPr element missing')
+	assert.match(shape, /<p202:designTag name="src" val="designer"\/>/, 'nested designTag missing')
+})
+
+test('#92: sldId designTagLst is opt-in and uses the Designer Tags URI', async () => {
+	const pptx = new pptxgen()
+	const tagged = pptx.addSlide()
+	tagged.addText('tagged', { x: 1, y: 1, w: 2, h: 1 })
+	tagged.designTags = [{ name: 'layout', val: 'hero' }]
+	pptx.addSlide().addText('plain', { x: 1, y: 1, w: 2, h: 1 })
+
+	const presXml = await readPart(await writeZip(pptx), 'ppt/presentation.xml')
+	assert.match(
+		presXml,
+		/<p:sldId id="256" r:id="rId2"><p:extLst><p:ext uri="\{E3EDB536-0D56-4F60-86BA-61A60CA02DAB\}"><p202:designTagLst xmlns:p202="http:\/\/schemas\.microsoft\.com\/office\/powerpoint\/2020\/02\/main"><p202:designTag name="layout" val="hero"\/><\/p202:designTagLst><\/p:ext><\/p:extLst><\/p:sldId>/,
+		'sldId designTagLst ext missing or wrong URI'
+	)
+	assert.match(presXml, /<p:sldId id="257" r:id="rId3"\/>/, 'untagged sldId must stay self-closing')
+})
+
+test('#92: phTypeExt cameo emits under p:ph extLst', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'CAMEO_MASTER',
+		objects: [{
+			placeholder: {
+				options: { name: 'cam1', type: 'media', phTypeExt: 'cameo', x: 1, y: 1, w: 3, h: 3 },
+				text: '',
+			},
+		}],
+	})
+	pptx.addSlide({ masterName: 'CAMEO_MASTER' })
+
+	const zip = await writeZip(pptx)
+	const layouts = await Promise.all([1, 2].map(async num => await readPart(zip, `ppt/slideLayouts/slideLayout${num}.xml`)))
+	const layout = layouts.find(xml => xml.includes('CAMEO_MASTER') || xml.includes('type="media"')) ?? layouts.join('')
+	assert.match(layout, /uri="\{56F484CC-4922-43CF-B6FB-B326C6A72FC8\}"/, 'phTypeExt URI missing')
+	assert.match(
+		layout,
+		/<p232:phTypeExt xmlns:p232="http:\/\/schemas\.microsoft\.com\/office\/powerpoint\/2023\/02\/main"><p232:type><p232:cameo\/><\/p232:type><\/p232:phTypeExt>/,
+		'phTypeExt cameo payload missing'
+	)
+	assert.match(layout, /<p:ph[^>]*type="media"[^>]*>[\s\S]*<p:extLst>/, 'phTypeExt must nest under p:ph')
+})

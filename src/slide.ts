@@ -9,6 +9,7 @@ import {
 	BackgroundProps,
 	CommentProps,
 	ContentPartProps,
+	DesignerTag,
 	HexColor,
 	InkProps,
 	LaserTracePoint,
@@ -80,6 +81,8 @@ export default class Slide {
 	public laserTraces?: LaserTracePoint[][]
 	public showEvents?: SlideShowEvent[]
 	public creationId?: number
+	/** Designer Service tags on this slide's `p:sldId` (MS-PPTX §2.2.20). Opt-in. */
+	public designTags?: DesignerTag[]
 
 	constructor(params: {
 		addSlide: (options?: AddSlideProps) => PresSlide

@@ -10,6 +10,8 @@ import {
 	SLIDE_OBJECT_TYPES,
 } from '../core-enums'
 import {
+	ClassificationOutcome,
+	DesignerTag,
 	ISlideObject,
 	ObjectOptions,
 	TableCell,
@@ -658,12 +660,75 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 	return strSlideXml
 }
 
+const CLASSIFICATION_OUTCOMES = new Set<ClassificationOutcome>(['none', 'hdr', 'ftr', 'watermark'])
+
+const URI_DESIGN_ELEM = '{386F3935-93C4-4BCD-93E2-E3B085C9AB24}'
+const URI_CLASSIFICATION = '{1162E1C5-73C7-4A58-AE30-91384D911F3F}'
+const URI_DESIGN_PR = '{E7BDC344-281C-4309-B0C6-D0EE65EED2A8}'
+export const URI_DESIGN_TAG_LST = '{E3EDB536-0D56-4F60-86BA-61A60CA02DAB}'
+const URI_PH_TYPE_EXT = '{56F484CC-4922-43CF-B6FB-B326C6A72FC8}'
+
+const NS_P16_2015 = 'http://schemas.microsoft.com/office/powerpoint/2015/main'
+const NS_P184 = 'http://schemas.microsoft.com/office/powerpoint/2018/4/main'
+const NS_P202 = 'http://schemas.microsoft.com/office/powerpoint/2020/02/main'
+const NS_P232 = 'http://schemas.microsoft.com/office/powerpoint/2023/02/main'
+
+/** Designer Service tag list (`CT_DesignerTagList`). Empty when no tags. */
+export function genXmlDesignTagLst (tags?: DesignerTag[], withNs = false): string {
+	if (!tags || tags.length === 0) return ''
+	const items = tags
+		.filter(t => t && typeof t.name === 'string' && typeof t.val === 'string')
+		.map(t => `<p202:designTag name="${encodeXmlEntities(t.name)}" val="${encodeXmlEntities(t.val)}"/>`)
+		.join('')
+	if (!items) return ''
+	const ns = withNs ? ` xmlns:p202="${NS_P202}"` : ''
+	return `<p202:designTagLst${ns}>${items}</p202:designTagLst>`
+}
+
+/**
+ * Opt-in MS-PPTX nvPr extensions: designElem, classification, designPr.
+ * Classification is emitted only when explicitly set to a valid outcome token.
+ */
+export function genXmlNvPrDesignExts (options?: ObjectOptions): string {
+	if (!options) return ''
+	const exts: string[] = []
+
+	if (options.designElem === true) {
+		exts.push(
+			`<p:ext uri="${URI_DESIGN_ELEM}"><p16:designElem xmlns:p16="${NS_P16_2015}" val="1"/></p:ext>`
+		)
+	}
+
+	if (typeof options.classification === 'string' && CLASSIFICATION_OUTCOMES.has(options.classification)) {
+		exts.push(
+			`<p:ext uri="${URI_CLASSIFICATION}"><p184:classification xmlns:p184="${NS_P184}" val="${options.classification}"/></p:ext>`
+		)
+	}
+
+	if (options.designPr) {
+		const edt = options.designPr.edtDesignElem === true ? ' edtDesignElem="1"' : ''
+		const tags = genXmlDesignTagLst(options.designPr.tags)
+		exts.push(
+			`<p:ext uri="${URI_DESIGN_PR}"><p202:designPr xmlns:p202="${NS_P202}"${edt}>${tags}</p202:designPr></p:ext>`
+		)
+	}
+
+	return exts.join('')
+}
+
+/** Wrap design + extra `p:ext` children in `p:extLst`, or return empty. */
+export function genXmlNvPrExtLst (options?: ObjectOptions, extraExts: string[] = []): string {
+	const body = extraExts.join('') + genXmlNvPrDesignExts(options)
+	return body ? `<p:extLst>${body}</p:extLst>` : ''
+}
+
 /**
  * Generate an XML Placeholder
  * @param {ISlideObject} placeholderObj
+ * @param {ObjectOptions} extraOpts slide-object options (phTypeExt override)
  * @returns XML
  */
-export function genXmlPlaceholder (placeholderObj: ISlideObject | undefined): string {
+export function genXmlPlaceholder (placeholderObj: ISlideObject | undefined, extraOpts?: ObjectOptions): string {
 	if (!placeholderObj) return ''
 
 	const placeholderIdx = placeholderObj.options?._placeholderIdx ? placeholderObj.options._placeholderIdx : ''
@@ -674,9 +739,20 @@ export function genXmlPlaceholder (placeholderObj: ISlideObject | undefined): st
 	const placeholderCodes: string[] = Object.values(PLACEHOLDER_TYPES)
 	const placeholderType: string = PLACEHOLDER_TYPES[placeholderTyp]?.toString() ?? (placeholderCodes.includes(placeholderTyp) ? placeholderTyp : '')
 
-	return `<p:ph
-		${placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : ''}
-		${placeholderType ? ` type="${placeholderType}"` : ''}
-		${placeholderObj.text && placeholderObj.text.length > 0 ? ' hasCustomPrompt="1"' : ''}
-		/>`
+	const attrs =
+		`${placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : ''}` +
+		`${placeholderType ? ` type="${placeholderType}"` : ''}` +
+		`${placeholderObj.text && placeholderObj.text.length > 0 ? ' hasCustomPrompt="1"' : ''}`
+
+	const phTypeExt = extraOpts?.phTypeExt ?? placeholderObj.options?.phTypeExt
+	if (phTypeExt === 'cameo' || phTypeExt === 'unknown') {
+		return (
+			`<p:ph${attrs}>` +
+			`<p:extLst><p:ext uri="${URI_PH_TYPE_EXT}">` +
+			`<p232:phTypeExt xmlns:p232="${NS_P232}"><p232:type><p232:${phTypeExt}/></p232:type></p232:phTypeExt>` +
+			'</p:ext></p:extLst></p:ph>'
+		)
+	}
+
+	return `<p:ph${attrs}/>`
 }

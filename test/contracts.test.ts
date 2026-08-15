@@ -81,6 +81,17 @@ test('contract: library version is generated from package.json', () => {
 	assert.doesNotMatch(readFileSync(new URL('../src/pptxgen.ts', import.meta.url), 'utf8'), /const VERSION = '/)
 })
 
+test('contract: default slides omit classification and design nvPr extLst URIs', async () => {
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	const presXml = await readPart(zip, 'ppt/presentation.xml')
+	assert.doesNotMatch(xml, /\{1162E1C5-73C7-4A58-AE30-91384D911F3F\}/, 'classification URI must stay opt-in')
+	assert.doesNotMatch(xml, /<p184:classification/, 'classification element must stay opt-in')
+	assert.doesNotMatch(xml, /\{386F3935-93C4-4BCD-93E2-E3B085C9AB24\}/, 'designElem URI must stay opt-in')
+	assert.doesNotMatch(xml, /\{E7BDC344-281C-4309-B0C6-D0EE65EED2A8\}/, 'designPr URI must stay opt-in')
+	assert.doesNotMatch(presXml, /\{E3EDB536-0D56-4F60-86BA-61A60CA02DAB\}/, 'sldId designTagLst URI must stay opt-in')
+	assert.match(presXml, /<p:sldId id="\d+" r:id="rId\d+"\/>/, 'default sldId must stay a self-closing element')
+})
+
 test('contract: bar chart keeps its data and chart type', async () => {
 	const xml = await readPart(zip, 'ppt/charts/chart1.xml')
 	assert.match(xml, /<c:barChart>/, 'bar chart missing')
