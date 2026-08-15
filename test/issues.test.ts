@@ -61,7 +61,7 @@ test('#20: shadow options are not mutated, so a second export matches the first'
 	assert.ok(first.includes('dir="2700000"'), 'shadow angle not converted for XML')
 })
 
-test('shape effectLst merges glow, softEdge, and reflection without mutating options', async () => {
+test('#84: combined glow, softEdge, and reflection emit one CT_EffectList', async () => {
 	const glow = { size: 8, color: '00AAFF', opacity: 0.6 }
 	const softEdge = { radius: 4 }
 	const reflection = { blur: 2, distance: 3, direction: 90, opacity: 0.4, scaleY: -1 }
@@ -73,14 +73,52 @@ test('shape effectLst merges glow, softEdge, and reflection without mutating opt
 	})
 
 	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
-	assert.ok(xml.includes('<a:effectLst>'), 'missing effectLst')
-	assert.ok(xml.includes('<a:glow rad="'), 'missing glow')
-	assert.ok(xml.includes('<a:softEdge rad="'), 'missing softEdge')
-	assert.ok(xml.includes('<a:reflection '), 'missing reflection')
-	assert.ok(xml.includes('stA="40000"'), 'reflection opacity not converted')
+	const spPr = /<p:spPr>[\s\S]*?<\/p:spPr>/.exec(xml)?.[0] ?? ''
+	const lists = spPr.match(/<a:effectLst>[\s\S]*?<\/a:effectLst>/g) ?? []
+	assert.equal(lists.length, 1, 'shape emitted multiple effectLst nodes')
+	const effectList = lists[0]
+	assert.ok(effectList.includes('<a:glow rad="'), 'missing glow')
+	assert.ok(effectList.includes('<a:softEdge rad="'), 'missing softEdge')
+	assert.ok(effectList.includes('<a:reflection '), 'missing reflection')
+	assert.ok(effectList.includes('stA="40000"'), 'reflection opacity not converted')
+	assert.ok(effectList.indexOf('<a:glow ') < effectList.indexOf('<a:reflection '), 'CT_EffectList: glow must precede reflection')
+	assert.ok(effectList.indexOf('<a:reflection ') < effectList.indexOf('<a:softEdge '), 'CT_EffectList: reflection must precede softEdge')
 	assert.equal(glow.size, 8, 'caller glow options were mutated')
 	assert.equal(softEdge.radius, 4, 'caller softEdge options were mutated')
 	assert.equal(reflection.direction, 90, 'caller reflection options were mutated')
+})
+
+test('#84: a single glow still emits one effectLst', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.rect, {
+		x: 1, y: 1, w: 2, h: 1,
+		fill: { color: 'FF0000' },
+		glow: { size: 8, color: '00AAFF', opacity: 0.6 },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const spPr = /<p:spPr>[\s\S]*?<\/p:spPr>/.exec(xml)?.[0] ?? ''
+	const lists = spPr.match(/<a:effectLst>[\s\S]*?<\/a:effectLst>/g) ?? []
+	assert.equal(lists.length, 1, 'single glow emitted multiple effectLst nodes')
+	assert.ok(lists[0].includes('<a:glow rad="'), 'missing glow')
+	assert.ok(!lists[0].includes('<a:softEdge'), 'unexpected softEdge')
+	assert.ok(!lists[0].includes('<a:reflection'), 'unexpected reflection')
+})
+
+test('#84: text color does not duplicate shape effects onto the run', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('Hello', {
+		x: 1, y: 1, w: 2, h: 1,
+		color: '000000',
+		glow: { size: 8, color: '00AAFF', opacity: 0.6 },
+		softEdge: { radius: 4 },
+		reflection: { blur: 2, distance: 3, direction: 90, opacity: 0.4, scaleY: -1 },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const spPr = /<p:spPr>[\s\S]*?<\/p:spPr>/.exec(xml)?.[0] ?? ''
+	assert.equal((spPr.match(/<a:effectLst>/g) ?? []).length, 1, 'text shape emitted multiple effectLst nodes')
+	assert.equal((xml.match(/<a:effectLst>/g) ?? []).length, 1, 'shape effects leaked onto the text run')
 })
 
 test('#1083: rich text writes one paragraph-properties element per paragraph', async () => {
