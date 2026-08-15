@@ -1,3 +1,4 @@
+export * from './content-parts'
 export * from './package'
 export * from './relationships'
 export * from './slide'

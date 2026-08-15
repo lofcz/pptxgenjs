@@ -18,6 +18,7 @@ import {
 import { createTimingXml, MediaPlaybackEntry } from '../gen-animations'
 import { genXmlTransition } from '../gen-transition'
 import { createColorElement, encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
+import { extPartPackagePath } from './content-parts'
 import { resolveZoomSections, slideObjectToXml } from './slide'
 import { A14_NS, MATH_NS, MC_NS, P14_NS, P1710_NS } from './text'
 import {
@@ -157,7 +158,15 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 		strXml += `<Override PartName="/ppt/notesSlides/notesSlide${idx + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>`
 	})
 
-	// STEP 5b: Modern threaded comments (MS-PPTX §2.16) — only when a slide has comments.
+	// STEP 5b: Content-part / ink / Office App parts (MS-PPTX §2.2.3 / §2.2.13) — only when requested.
+	slides.forEach(slide => {
+		(slide._rels || []).forEach(rel => {
+			if ((rel.type !== SLIDE_OBJECT_TYPES.contentPart && rel.type !== SLIDE_OBJECT_TYPES.officeApp) || !rel.contentType) return
+			strXml += `<Override PartName="/${extPartPackagePath(rel.Target)}" ContentType="${rel.contentType}"/>`
+		})
+	})
+
+	// STEP 5c: Modern threaded comments (MS-PPTX §2.16) — only when a slide has comments.
 	if (slides.some(s => (s.comments ?? []).length > 0)) {
 		strXml += '<Override PartName="/ppt/authors.xml" ContentType="application/vnd.ms-powerpoint.authors+xml"/>'
 		slides.forEach((slide, idx) => {

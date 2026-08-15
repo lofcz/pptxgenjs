@@ -2434,6 +2434,8 @@ export interface ISlideRel {
 	extn?: string
 	globalId?: number
 	rId: number
+	/** Override content type for extension parts (content-part / ink / Office App) */
+	contentType?: string
 }
 export interface ISlideRelMedia {
 	type: string
@@ -2479,6 +2481,14 @@ export interface ISlideObject {
 	zoomSectionId?: string
 	/** cover/thumbnail image rId @internal */
 	zoomRid?: number
+	/** content-part / ink / Office App relationship id @internal */
+	contentPartRid?: number
+	/** content-part kind: generic (`sp` fallback) or ink (`pic` fallback) @internal */
+	contentPartKind?: 'content' | 'ink'
+	/** cover/thumbnail image rId for ink / Office App pic fallback @internal */
+	coverRid?: number
+	/** MS-PPTX §2.3.2.2 bwMode on contentPart @internal */
+	contentPartBwMode?: string
 }
 // PRIVATE ^^^
 
@@ -2780,6 +2790,24 @@ export interface PresSlide extends SlideBaseProps {
 	 * Recorded slide-show events. MS-PPTX §2.3.1.26 `p14:showEvtLst` on `sld`.
 	 */
 	showEvents?: SlideShowEvent[]
+	/**
+	 * Embed a content part (MS-PPTX §2.2.3 `p:contentPart`).
+	 * Emitted inside `mc:AlternateContent` with an `sp` fallback. Opt-in — not written unless called.
+	 * @example slide.addContentPart({ data: '<payload/>', x: 1, y: 1, w: 2, h: 1 })
+	 */
+	addContentPart: (options: ContentPartProps) => PresSlide
+	/**
+	 * Embed ink as a content part (MS-PPTX §2.2.3.1).
+	 * Emitted inside `mc:AlternateContent` with a `pic` fallback. Opt-in — not written unless called.
+	 * @example slide.addInk({ data: inkMl, cover: 'data:image/png;base64,...', x: 1, y: 1, w: 2, h: 1 })
+	 */
+	addInk: (options: InkProps) => PresSlide
+	/**
+	 * Reference an Office App / web extension (MS-PPTX §2.2.13, MS-OWEXML `webextensionref`).
+	 * Emitted inside `mc:AlternateContent` with a `pic` fallback. Opt-in — not written unless called.
+	 * @example slide.addOfficeApp({ reference: { id: 'WA00000', version: '1.0.0.0', store: 'en-US', storeType: 'OMEX' }, x: 1, y: 1, w: 3, h: 2 })
+	 */
+	addOfficeApp: (options: OfficeAppProps) => PresSlide
 }
 /** Base Zoom navigation options. MS-PPTX §2.8 `CT_ZoomObjectProperties`. */
 interface ZoomBaseProps extends PositionProps, ObjectNameProps {
@@ -2821,6 +2849,61 @@ export interface SummaryZoomProps extends ZoomBaseProps {
 	/** Y scale from default layout (percent). @default 100000 */
 	scaleFactorY?: number
 }
+
+/** ST_BlackWhiteMode values accepted on `p:contentPart` (MS-PPTX §2.3.2.2). */
+export type ContentPartBwMode = 'clr' | 'auto' | 'gray' | 'ltGray' | 'invGray' | 'grayWhite' | 'blackGray' | 'blackWhite' | 'black' | 'white' | 'hidden'
+
+/** MS-OWEXML CT_OsfWebExtensionReference `storeType` values. */
+export type OfficeAppStoreType = 'OMEX' | 'SPCatalog' | 'SPApp' | 'Exchange' | 'FileSystem' | 'Registry' | 'ExCatalog' | 'WOPICatalog'
+
+/** Catalog reference for an Office Add-in (MS-OWEXML CT_OsfWebExtensionReference). */
+export interface OfficeAppReference {
+	/** Add-in id within the catalog provider. */
+	id: string
+	/** Add-in version. @default '1.0.0.0' */
+	version?: string
+	/** Marketplace / store instance. */
+	store?: string
+	/** Marketplace type. @default SPCatalog */
+	storeType?: OfficeAppStoreType | string
+}
+
+/** A content part (MS-PPTX §2.2.3). Opt-in; emits `mc:AlternateContent` with an `sp` fallback. */
+export interface ContentPartProps extends PositionProps, ObjectNameProps {
+	/** XML payload written as the related package part. */
+	data: string
+	/** Part content type. @default 'application/xml' */
+	contentType?: string
+	/** Optional file name (used as the part leaf). */
+	fileName?: string
+	/** Black/white render mode (MS-PPTX §2.3.2.2). */
+	bwMode?: ContentPartBwMode | string
+	/** Optional alt text. */
+	altText?: string
+}
+
+/** Ink content part (MS-PPTX §2.2.3.1). Opt-in; emits `mc:AlternateContent` with a `pic` fallback. */
+export interface InkProps extends ContentPartProps {
+	/** Cover/thumbnail image for the mandated `pic` fallback (base64 data URI). */
+	cover?: string
+}
+
+/** An Office App / content add-in (MS-PPTX §2.2.13, MS-OWEXML webextensionref). */
+export interface OfficeAppProps extends PositionProps, ObjectNameProps {
+	/** Instance id on `we:webextension`. Generated when omitted. */
+	id?: string
+	/** Primary catalog reference (required). */
+	reference: OfficeAppReference
+	/** Custom properties written to `we:properties`. */
+	properties?: Record<string, string> | Array<{ name: string, value: string }>
+	/** When true, the add-in is non-interactive (`frozen`). */
+	frozen?: boolean
+	/** Cover/thumbnail image for the mandated `pic` fallback (base64 data URI). */
+	cover?: string
+	/** Optional alt text. */
+	altText?: string
+}
+
 /**
  * Slide transition options. ECMA-376 §19.3.1.50 `CT_SlideTransition`.
  * Modern (MS-PPTX) transition types are emitted inside `<mc:AlternateContent>` with a base-type fallback.

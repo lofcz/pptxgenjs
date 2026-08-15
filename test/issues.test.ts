@@ -2326,3 +2326,119 @@ test('#90: opt-in revisionInfo + changesInfo emit one Internal presentation rel 
 	assert.ok(slideXml.includes('uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"'), 'modId ext uri missing')
 	assert.ok(slideXml.includes('val="987654321"') && slideXml.includes('val="111"'), 'shape modIds missing')
 })
+
+const INK_ML = '<?xml version="1.0" encoding="UTF-8"?><ink xmlns="http://www.w3.org/2003/InkML"><trace>1 1, 2 2</trace></ink>'
+
+test('#87: content-part / ink / office-app are opt-in', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('plain', { x: 1, y: 1, w: 2, h: 1 })
+	const zip = await writeZip(pptx)
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	const ctXml = await readPart(zip, '[Content_Types].xml')
+	assert.ok(!slideXml.includes('contentPart'), 'contentPart must not emit unless requested')
+	assert.ok(!slideXml.includes('webextensionref'), 'webextensionref must not emit unless requested')
+	assert.ok(!ctXml.includes('webextension+xml'), 'webextension content type must not emit unless requested')
+	assert.ok(!zip.file('ppt/contentParts/contentPart-1-1.xml'), 'content part must be absent')
+	assert.ok(!zip.file(/ppt\/webextensions\//)[0], 'webextension part must be absent')
+	await assertPptxPackageContracts(zip)
+})
+
+test('#87: addContentPart emits AlternateContent + sp fallback and a customXml rel', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addContentPart({
+		data: '<?xml version="1.0"?><payload xmlns="urn:example">hello</payload>',
+		x: 1, y: 1, w: 2, h: 1,
+		objectName: 'Embedded Payload',
+		bwMode: 'auto',
+	})
+
+	const zip = await writeZip(pptx)
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	const rels = await readPart(zip, 'ppt/slides/_rels/slide1.xml.rels')
+	const part = await readPart(zip, 'ppt/contentParts/contentPart-1-1.xml')
+	const ctXml = await readPart(zip, '[Content_Types].xml')
+
+	assert.ok(slideXml.includes('<mc:AlternateContent'), 'no AlternateContent')
+	assert.ok(slideXml.includes('Requires="p14"'), 'Choice must require p14')
+	assert.ok(slideXml.includes('<p:contentPart r:id="rId'), 'no p:contentPart')
+	assert.ok(slideXml.includes('<p14:nvContentPartPr>'), 'no nvContentPartPr')
+	assert.ok(slideXml.includes('<p14:xfrm'), 'no p14:xfrm')
+	assert.ok(slideXml.includes('p14:bwMode="auto"'), 'bwMode missing')
+	assert.ok(slideXml.includes('<mc:Fallback><p:sp>'), 'contentPart fallback must be sp')
+	assert.ok(!slideXml.includes('<mc:Fallback><p:pic>'), 'contentPart must not use pic fallback')
+	assert.ok(rels.includes('relationships/customXml'), 'customXml relationship missing')
+	assert.ok(rels.includes('Target="../contentParts/contentPart-1-1.xml"'), 'content part target missing')
+	assert.ok(part.includes('<payload'), 'content part payload missing')
+	assert.ok(ctXml.includes('/ppt/contentParts/contentPart-1-1.xml'), 'content part Override missing')
+	await assertPptxPackageContracts(zip)
+})
+
+test('#87: addInk emits ink Choice + pic fallback and an inkml part', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addInk({
+		data: INK_ML,
+		cover: TINY_PNG,
+		x: 0.5, y: 0.5, w: 3, h: 2,
+		objectName: 'Stroke 1',
+	})
+
+	const zip = await writeZip(pptx)
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	const rels = await readPart(zip, 'ppt/slides/_rels/slide1.xml.rels')
+	const inkXml = await readPart(zip, 'ppt/ink/ink-1-1.xml')
+	const ctXml = await readPart(zip, '[Content_Types].xml')
+
+	assert.ok(slideXml.includes('Requires="p14 pInk"'), 'ink Choice must require p14 and inkAction')
+	assert.ok(slideXml.includes('powerpoint/2014/inkAction'), 'inkAction namespace missing')
+	assert.ok(slideXml.includes('<p:contentPart r:id="rId'), 'ink must still be a contentPart')
+	assert.ok(slideXml.includes('<p14:cNvContentPartPr>'), 'ink nv ink props missing')
+	assert.ok(slideXml.includes('<mc:Fallback><p:pic>'), 'ink fallback must be pic')
+	assert.ok(!slideXml.includes('<mc:Fallback><p:sp>'), 'ink must not use sp fallback')
+	assert.ok(rels.includes('relationships/customXml'), 'ink customXml rel missing')
+	assert.ok(rels.includes('relationships/image'), 'ink cover image rel missing')
+	assert.ok(inkXml.includes('InkML'), 'ink part is not InkML')
+	assert.ok(ctXml.includes('application/inkml+xml'), 'inkml content type missing')
+	await assertPptxPackageContracts(zip)
+})
+
+test('#87: addOfficeApp emits webextensionref + pic fallback and a webextension part', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addOfficeApp({
+		id: '{B1C15FE4-84FA-4773-AD36-9EF5444C5A01}',
+		reference: { id: 'Example1', version: '15.0', store: 'en-US', storeType: 'OMEX' },
+		properties: { Key1: 'Value1' },
+		cover: TINY_PNG,
+		x: 1, y: 1, w: 4, h: 3,
+		objectName: 'Sample App',
+	})
+
+	const zip = await writeZip(pptx)
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	const rels = await readPart(zip, 'ppt/slides/_rels/slide1.xml.rels')
+	const weXml = await readPart(zip, 'ppt/webextensions/webextension-1-1.xml')
+	const ctXml = await readPart(zip, '[Content_Types].xml')
+
+	assert.ok(slideXml.includes('<mc:AlternateContent'), 'no AlternateContent')
+	assert.ok(slideXml.includes('Requires="we cap"'), 'Choice must require webextension + contentapp')
+	assert.ok(slideXml.includes('<we:webextensionref r:id="rId'), 'webextensionref missing')
+	assert.ok(slideXml.includes('office/webextensions/webextension/2010/11'), 'we namespace missing')
+	assert.ok(slideXml.includes('powerpoint/2013/contentapp'), 'contentapp namespace missing')
+	assert.ok(slideXml.includes('<mc:Fallback><p:pic>'), 'Office App fallback must be pic')
+	assert.ok(!slideXml.includes('<p:contentPart'), 'Office App must not emit contentPart')
+	assert.ok(rels.includes('office/2011/relationships/webextension'), 'webextension relationship missing')
+	assert.ok(rels.includes('Target="../webextensions/webextension-1-1.xml"'), 'webextension target missing')
+	assert.ok(weXml.includes('<we:webextension'), 'webextension part root missing')
+	assert.ok(weXml.includes('id="Example1"'), 'reference id missing')
+	assert.ok(weXml.includes('storeType="OMEX"'), 'storeType missing')
+	assert.ok(weXml.includes('name="Key1"') && weXml.includes('value="Value1"'), 'property missing')
+	assert.ok(weXml.includes('<we:bindings/>'), 'required bindings element missing')
+	assert.ok(ctXml.includes('application/vnd.ms-office.webextension+xml'), 'webextension content type missing')
+	await assertPptxPackageContracts(zip)
+})
+
+test('#87: addContentPart and addOfficeApp reject incomplete options', () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	assert.throws(() => slide.addContentPart({ data: '', x: 1, y: 1 } as never), /data/)
+	assert.throws(() => slide.addOfficeApp({ reference: { id: '' }, x: 1, y: 1 }), /reference.id/)
+})

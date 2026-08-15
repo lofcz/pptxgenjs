@@ -823,6 +823,8 @@ export enum SLIDE_OBJECT_TYPES {
 	'text' = 'text',
 	'notes' = 'notes',
 	'zoom' = 'zoom',
+	'contentPart' = 'contentPart',
+	'officeApp' = 'officeApp',
 }
 export enum PLACEHOLDER_TYPES {
 	'title' = 'title',

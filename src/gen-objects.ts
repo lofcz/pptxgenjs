@@ -35,6 +35,9 @@ import {
 	ImageProps,
 	MediaProps,
 	ObjectOptions,
+	ContentPartProps,
+	InkProps,
+	OfficeAppProps,
 	SectionZoomProps,
 	SummaryZoomProps,
 	ZoomProps,
@@ -53,6 +56,7 @@ import {
 } from './core-interfaces'
 import { getSlidesForTableRows } from './gen-tables'
 import { applySvgFillToDataUrl, encodeXmlEntities, getNewRelId, getSmartParseNumber, inch2Emu, marginToEmu, resolveDataLabelPosition, valToPts, correctShadowOptions, warnDeprecatedOnce } from './gen-utils'
+import { CT_INKML, CT_WEBEXTENSION, makeXmlWebExtension } from './xml/content-parts'
 
 /** Valid OOXML preset-geometry strings (the values of `SHAPE_TYPE`) - anything else corrupts the file. */
 const VALID_SHAPE_PRESETS = new Set<string>(Object.values(SHAPE_TYPE))
@@ -806,6 +810,114 @@ function pushZoomObject(target: PresSlide, kind: 'slide' | 'section' | 'summary'
 		rId: slideData.zoomRid,
 		Target: `../media/${imageTargetStem(target)}.png`,
 	})
+
+	target._slideObjects.push(slideData)
+}
+
+function pushCoverImage (target: PresSlide, cover: string | undefined, method: string): number {
+	const strCover = cover || IMG_PLAYBTN
+	if (!strCover.toLowerCase().includes('base64,')) {
+		throw new Error(`${method}() error: \`cover\` must be a base64 data URI (Ex: 'data:image/png;base64,iV[...]')`)
+	}
+	const rId = getNewRelId(target)
+	target._relsMedia.push({
+		path: 'preencoded.png',
+		data: strCover,
+		type: 'image/png',
+		extn: 'png',
+		rId,
+		Target: `../media/${imageTargetStem(target)}.png`,
+	})
+	return rId
+}
+
+function nextExtPartName (target: PresSlide, prefix: string, extn: string): string {
+	const n = target._rels.filter(rel => rel.type === SLIDE_OBJECT_TYPES.contentPart || rel.type === SLIDE_OBJECT_TYPES.officeApp).length + 1
+	return `${prefix}-${target._slideNum ?? 0}-${n}.${extn}`
+}
+
+/**
+ * Adds a content part (MS-PPTX §2.2.3). Choice is `p:contentPart`; Fallback is `sp`.
+ */
+export function addContentPartDefinition (target: PresSlide, opt: ContentPartProps, kind: 'content' | 'ink' = 'content'): void {
+	if (typeof opt.data !== 'string' || !opt.data) {
+		throw new Error(`${kind === 'ink' ? 'addInk' : 'addContentPart'}() error: \`data\` is required`)
+	}
+
+	const isInk = kind === 'ink'
+	const count = target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.contentPart && obj.contentPartKind === kind).length + 1
+	const objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : (isInk ? `Ink ${count}` : `Content Part ${count}`)
+	const fileName = opt.fileName || (isInk ? nextExtPartName(target, 'ink', 'xml') : nextExtPartName(target, 'contentPart', 'xml'))
+	const targetPath = isInk ? `../ink/${fileName}` : `../contentParts/${fileName}`
+
+	const slideData: ISlideObject = {
+		_type: SLIDE_OBJECT_TYPES.contentPart,
+		contentPartKind: kind,
+		contentPartBwMode: opt.bwMode,
+		options: {
+			x: opt.x || 0,
+			y: opt.y || 0,
+			w: opt.w || 2,
+			h: opt.h || 1,
+			altText: opt.altText || '',
+			objectName,
+		},
+	}
+
+	slideData.contentPartRid = getNewRelId(target)
+	target._rels.push({
+		type: SLIDE_OBJECT_TYPES.contentPart,
+		data: opt.data,
+		rId: slideData.contentPartRid,
+		Target: targetPath,
+		fileName,
+		contentType: opt.contentType || (isInk ? CT_INKML : 'application/xml'),
+	})
+
+	if (isInk) slideData.coverRid = pushCoverImage(target, (opt as InkProps).cover, 'addInk')
+
+	target._slideObjects.push(slideData)
+}
+
+/**
+ * Adds ink as a content part (MS-PPTX §2.2.3.1). Fallback is `pic`.
+ */
+export function addInkDefinition (target: PresSlide, opt: InkProps): void {
+	addContentPartDefinition(target, opt, 'ink')
+}
+
+/**
+ * Adds an Office App reference (MS-PPTX §2.2.13 / MS-OWEXML webextensionref). Fallback is `pic`.
+ */
+export function addOfficeAppDefinition (target: PresSlide, opt: OfficeAppProps): void {
+	if (!opt.reference?.id) throw new Error('addOfficeApp() error: `reference.id` is required')
+
+	const count = target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.officeApp).length + 1
+	const objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : `Office App ${count}`
+	const fileName = nextExtPartName(target, 'webextension', 'xml')
+
+	const slideData: ISlideObject = {
+		_type: SLIDE_OBJECT_TYPES.officeApp,
+		options: {
+			x: opt.x || 0,
+			y: opt.y || 0,
+			w: opt.w || 3,
+			h: opt.h || 2,
+			altText: opt.altText || '',
+			objectName,
+		},
+	}
+
+	slideData.contentPartRid = getNewRelId(target)
+	target._rels.push({
+		type: SLIDE_OBJECT_TYPES.officeApp,
+		data: makeXmlWebExtension(opt),
+		rId: slideData.contentPartRid,
+		Target: `../webextensions/${fileName}`,
+		fileName,
+		contentType: CT_WEBEXTENSION,
+	})
+	slideData.coverRid = pushCoverImage(target, opt.cover, 'addOfficeApp')
 
 	target._slideObjects.push(slideData)
 }
