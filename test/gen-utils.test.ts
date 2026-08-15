@@ -4,7 +4,7 @@
  */
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -29,6 +29,10 @@ import {
 	DEF_THEME_COLORS,
 	marginToEmu,
 	inch2Emu,
+	base64ToBytes,
+	binaryStringToBase64,
+	bytesToBase64,
+	utf8ToBase64,
 } from '../src/gen-utils'
 import { PresLayout, PresSlide, ShadowProps } from '../src/core-interfaces'
 
@@ -94,6 +98,18 @@ test('getUuid', () => {
 	assert.match(getUuid('xxxxxxxx'), /^[0-9a-f]{8}$/)
 	assert.match(getUuid('y'), /^[89ab]$/, 'the "y" nibble is constrained per RFC4122')
 	assert.notEqual(getUuid('xxxxxxxx-xxxx'), getUuid('xxxxxxxx-xxxx'), 'values are random')
+})
+
+test('base64 helpers are byte-equivalent to Node Buffer', () => {
+	const bytes = Uint8Array.from([0, 1, 255, 128, 10])
+	assert.equal(bytesToBase64(bytes), Buffer.from(bytes).toString('base64'))
+	assert.deepEqual(base64ToBytes(Buffer.from(bytes).toString('base64')), bytes)
+	assert.deepEqual(
+		base64ToBytes('data:application/octet-stream;base64,' + Buffer.from(bytes).toString('base64')),
+		bytes,
+	)
+	assert.equal(utf8ToBase64('Grüße'), Buffer.from('Grüße', 'utf8').toString('base64'))
+	assert.equal(binaryStringToBase64('\x00\xff'), Buffer.from('\x00\xff', 'binary').toString('base64'))
 })
 
 test('createColorElement: hex', () => {
@@ -335,6 +351,32 @@ test('runtime sources do not statically import Node builtins', () => {
 			runtime,
 			/import\s*\(\s*(?:\/\*[\s\S]*?\*\/\s*)*['"]node:/,
 			`${rel} still has a statically analyzable node: import`
+		)
+	}
+})
+
+function listBrowserSrcFiles (dir: string): string[] {
+	const out: string[] = []
+	for (const ent of readdirSync(dir, { withFileTypes: true })) {
+		if (ent.name === 'vendor') continue
+		const p = join(dir, ent.name)
+		if (ent.isDirectory()) out.push(...listBrowserSrcFiles(p))
+		else if (ent.name.endsWith('.ts') || ent.name.endsWith('.js')) out.push(p)
+	}
+	return out
+}
+
+test('browser-bundled helpers do not reference Buffer', () => {
+	const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+	const srcRoot = join(root, 'src')
+	for (const file of listBrowserSrcFiles(srcRoot)) {
+		const runtime = readFileSync(file, 'utf8')
+			.replace(/\/\*[\s\S]*?\*\//g, '')
+			.replace(/\/\/.*$/gm, '')
+		assert.doesNotMatch(
+			runtime,
+			/\bBuffer\b/,
+			`${file.slice(srcRoot.length + 1)} still references Buffer in browser-bundled code`
 		)
 	}
 })
