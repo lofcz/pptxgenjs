@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Text `vertOverflow` / `horzOverflow` emit ECMA-376 `a:bodyPr` overflow attrs so overflowing runs can clip instead of spilling out of the shape
+- Package-contract tests for opt-in `addFont` (Font parts, `application/x-fontdata`, Presentation font rels); default export embeds nothing
 
 ### Changed
 

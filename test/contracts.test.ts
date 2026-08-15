@@ -9,7 +9,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
-import { assertEmbeddedXlsxContracts, assertPptxPackageContracts, readPart } from './pptx-contracts'
+import { assertEmbeddedFontContracts, assertEmbeddedXlsxContracts, assertNoEmbeddedFonts, assertPptxPackageContracts, readPart } from './pptx-contracts'
 
 let zip: JSZip
 
@@ -35,6 +35,20 @@ test('contract: every slide part is a PresentationML slide Override', async () =
 	pptx.addSlide().addText('three', { x: 0.5, y: 0.5, w: 4, h: 1 })
 	const multi = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
 	await assertPptxPackageContracts(multi)
+})
+
+test('contract: default export embeds no fonts', async () => {
+	await assertNoEmbeddedFonts(zip)
+})
+
+test('contract: addFont embeds font parts, content types, and rels', async () => {
+	const buf = readFileSync(new URL('./fonts/IBMPlexSans-Regular.ttf', import.meta.url))
+	const fontFile = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
+	const pptx = new pptxgen()
+	await pptx.addFont({ fontFace: 'IBM Plex Sans', fontFile, fontType: 'ttf' })
+	pptx.addSlide().addText('Hello', { x: 0.5, y: 0.5, w: 3, h: 1, fontFace: 'IBM Plex Sans', fontSize: 24 })
+	const fontZip = await JSZip.loadAsync((await pptx.write({ outputType: 'nodebuffer' })) as Buffer)
+	await assertEmbeddedFontContracts(fontZip, 'IBM Plex Sans')
 })
 
 test('contract: rejects a part without a declared content type', async () => {

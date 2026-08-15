@@ -108,3 +108,18 @@ Use the `headFontFace` and `bodyFontFace` properties to set the default font use
 pptx.theme = { headFontFace: "Arial Light" };
 pptx.theme = { bodyFontFace: "Arial" };
 ```
+
+## Embedded Fonts
+
+Font embedding is **opt-in**. The default write path embeds nothing: no `ppt/fonts/*.fntdata` parts, no `fntdata` content type, and no Presentation font relationships.
+
+Call `addFont` with a font file you are licensed to embed. This library ships no fonts. Conversion uses a vendored MIT subset of [fonteditor-core](https://github.com/kekee000/fonteditor-core); orchestration follows MIT [pptx-embed-fonts](https://github.com/liyao1520/pptx-embed-fonts).
+
+```typescript
+await pptx.addFont({
+  fontFace: "IBM Plex Sans",
+  fontFile: ttfBuffer, // ArrayBuffer you supply
+  fontType: "ttf", // ttf | otf | woff | eot
+});
+pptx.addSlide().addText("Hello", { fontFace: "IBM Plex Sans", fontSize: 24 });
+```

@@ -752,9 +752,12 @@ export default class PptxGenJS implements IPresentationProps {
 	// PRESENTATION METHODS
 
 	/**
-	 * Register a custom font to embed in the exported PPTX
+	 * Opt-in: register a custom font to embed in the exported PPTX.
+	 * Nothing is embedded unless this is called — the default write path
+	 * writes no Font parts, no fntdata content type, and no font relationships.
 	 * - Call before `write` / `writeFile` / `stream`
 	 * - Use the same `fontFace` name on text/shape options
+	 * - Caller must have a third-party license that permits embedding `fontFile`
 	 * @param {AddFontOptions} options - font face, file bytes, and format
 	 * @example await pptx.addFont({ fontFace: 'MyFont', fontFile: ttfBuffer, fontType: 'ttf' })
 	 */

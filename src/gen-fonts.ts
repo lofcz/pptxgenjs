@@ -1,5 +1,10 @@
 /**
- * PptxGenJS: Embedded TrueType fonts (OOXML `ppt/fonts/*.fntdata`)
+ * PptxGenJS: Opt-in embedded TrueType fonts (OOXML `ppt/fonts/*.fntdata`)
+ *
+ * `embedFontsIntoZip` is a no-op when `fonts` is empty — default export never
+ * writes Font parts, fntdata content types, or Presentation font relationships.
+ * Callers supply their own font bytes via `addFont` and must have a license
+ * that permits embedding those files. This library ships no font files.
  *
  * Font-embed orchestration absorbed from MIT `pptx-embed-fonts`
  * (https://github.com/liyao1520/pptx-embed-fonts). TTF/OTF/WOFF→EOT conversion is a

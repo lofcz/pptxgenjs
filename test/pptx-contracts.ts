@@ -33,6 +33,9 @@ type Relationship = {
 
 const SLIDE_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml'
 const SLIDE_RELATIONSHIP_SUFFIX = '/relationships/slide'
+/** ECMA-376 §15.2.12 Font Part — Office stores EOT as `application/x-fontdata` */
+const FONT_CONTENT_TYPE = 'application/x-fontdata'
+const FONT_RELATIONSHIP_SUFFIX = '/relationships/font'
 
 /** Read a generated OOXML part and fail with its package path when it is absent. */
 export async function readPart (zip: JSZip, name: string): Promise<string> {
@@ -254,5 +257,84 @@ export async function assertEmbeddedXlsxContracts (pptxZip: JSZip): Promise<void
 		const part = pptxZip.file(name)
 		assert.ok(part, `missing embedded workbook part: ${name}`)
 		await assertXlsxPackageContracts(await JSZip.loadAsync(await part.async('nodebuffer')))
+	}
+}
+
+function fontPartsIn (zip: JSZip): string[] {
+	return Object.keys(zip.files).filter(name => /^ppt\/fonts\/.+\.fntdata$/.test(name))
+}
+
+/**
+ * Default export must not pay for font embedding: no Font parts, no fntdata
+ * content type, no Presentation font relationships, no embedTrueTypeFonts.
+ * ECMA-376 §15.2.12: a package shall contain zero or more Font parts.
+ */
+export async function assertNoEmbeddedFonts (zip: JSZip): Promise<void> {
+	const fontParts = fontPartsIn(zip)
+	assert.equal(fontParts.length, 0, `default export must not embed Font parts: ${fontParts.join(', ')}`)
+
+	const contentTypes = parseXml(await readPart(zip, '[Content_Types].xml'), '[Content_Types].xml')
+	const types = contentTypes.Types
+	assert.ok(isXmlObject(types), 'missing Types root in [Content_Types].xml')
+	for (const entry of asXmlObjects(types.Default)) {
+		const extension = entry['@_Extension']
+		assert.notEqual(
+			typeof extension === 'string' ? extension.toLowerCase() : extension,
+			'fntdata',
+			'default [Content_Types].xml must not declare a fntdata Default',
+		)
+	}
+
+	const rels = relationshipsFromXml(await readPart(zip, 'ppt/_rels/presentation.xml.rels'), 'ppt/_rels/presentation.xml.rels')
+	const fontRels = rels.filter(rel => typeof rel.type === 'string' && rel.type.endsWith(FONT_RELATIONSHIP_SUFFIX))
+	assert.equal(fontRels.length, 0, 'default presentation rels must not include Font relationships')
+
+	const presentation = await readPart(zip, 'ppt/presentation.xml')
+	assert.ok(!/embedTrueTypeFonts\s*=\s*"(?:true|1)"/i.test(presentation), 'default presentation must not set embedTrueTypeFonts')
+	assert.ok(!/<p:embeddedFontLst[\s>]/i.test(presentation), 'default presentation must not include embeddedFontLst')
+}
+
+/**
+ * Opt-in `addFont` package contract: Font parts, `application/x-fontdata`
+ * Default, Presentation `/relationships/font` rels, and `p:embeddedFontLst`.
+ */
+export async function assertEmbeddedFontContracts (zip: JSZip, typeface?: string): Promise<void> {
+	await assertPptxPackageContracts(zip)
+
+	const fontParts = fontPartsIn(zip)
+	assert.ok(fontParts.length > 0, 'missing ppt/fonts/*.fntdata Font parts (ECMA-376 §15.2.12)')
+
+	const contentTypes = parseXml(await readPart(zip, '[Content_Types].xml'), '[Content_Types].xml')
+	const types = contentTypes.Types
+	assert.ok(isXmlObject(types), 'missing Types root in [Content_Types].xml')
+	const fntdataDefaults = asXmlObjects(types.Default).filter(entry => {
+		const extension = entry['@_Extension']
+		return typeof extension === 'string' && extension.toLowerCase() === 'fntdata'
+	})
+	assert.equal(fntdataDefaults.length, 1, 'expected one fntdata Default in [Content_Types].xml')
+	assert.equal(fntdataDefaults[0]['@_ContentType'], FONT_CONTENT_TYPE, 'fntdata Default must be application/x-fontdata')
+
+	const rels = relationshipsFromXml(await readPart(zip, 'ppt/_rels/presentation.xml.rels'), 'ppt/_rels/presentation.xml.rels')
+	const fontRels = rels.filter(rel => typeof rel.type === 'string' && rel.type.endsWith(FONT_RELATIONSHIP_SUFFIX))
+	assert.equal(fontRels.length, fontParts.length, 'each Font part needs a Presentation font relationship')
+	const fontRelIds = new Set<string>()
+	for (const rel of fontRels) {
+		assert.notEqual(rel.targetMode, 'External', `Font relationship ${rel.id} must be Internal (ECMA-376 §15.2.12)`)
+		const target = resolveTarget('ppt/presentation.xml', rel.target)
+		assert.ok(zip.file(target), `Font relationship ${rel.id} target missing: ${target}`)
+		assert.ok(target.endsWith('.fntdata'), `Font relationship ${rel.id} must target a .fntdata part`)
+		fontRelIds.add(rel.id)
+	}
+
+	const presentation = await readPart(zip, 'ppt/presentation.xml')
+	assert.ok(/embedTrueTypeFonts\s*=\s*"(?:true|1)"/i.test(presentation), 'missing embedTrueTypeFonts after addFont')
+	assert.ok(/<p:embeddedFontLst[\s>]/i.test(presentation), 'missing p:embeddedFontLst after addFont')
+	if (typeface) {
+		assert.ok(presentation.includes(`typeface="${typeface}"`), `font typeface "${typeface}" missing from presentation.xml`)
+	}
+	const regularIds = [...presentation.matchAll(/<p:regular\b[^>]*\br:id="([^"]+)"/gi)].map(match => match[1])
+	assert.ok(regularIds.length > 0, 'embeddedFontLst has no p:regular r:id')
+	for (const id of regularIds) {
+		assert.ok(fontRelIds.has(id), `p:regular r:id ${id} has no Presentation font relationship`)
 	}
 }
