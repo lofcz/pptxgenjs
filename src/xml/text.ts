@@ -591,7 +591,8 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 				// if (textOpts.hyperlink && key === 'color') null
 				// NOTE: This loop will pick up unecessary keys (`x`, etc.), but it doesnt hurt anything
 				// `glow` / softEdge / reflection belong on the shape effectLst (not per-run), unless set on the run itself
-				if (key === 'glow' || key === 'softEdge' || key === 'reflection' || key === 'shadow') return
+				// `omml` is a run-level math payload — inheriting it would replace sibling plain-text runs
+				if (key === 'glow' || key === 'softEdge' || key === 'reflection' || key === 'shadow' || key === 'omml') return
 				if (key !== 'bullet' && !textOpts[key]) textOpts[key] = val
 			})
 
