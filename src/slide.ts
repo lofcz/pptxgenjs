@@ -7,6 +7,7 @@ import {
 	AddSlideProps,
 	BackgroundProps,
 	CommentProps,
+	DesignerTag,
 	HexColor,
 	IChartMulti,
 	IChartOpts,
@@ -60,6 +61,8 @@ export default class Slide {
 	public _newAutoPagedSlides?: PresSlide[]
 	public transition?: SlideTransitionProps
 	public comments?: CommentProps[]
+	/** Designer Service tags on this slide's `p:sldId` (MS-PPTX §2.2.20). Opt-in. */
+	public designTags?: DesignerTag[]
 
 	constructor(params: {
 		addSlide: (options?: AddSlideProps) => PresSlide

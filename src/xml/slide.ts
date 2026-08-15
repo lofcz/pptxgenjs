@@ -40,7 +40,11 @@ import {
 	resolveGlowOptions,
 	valToPts,
 } from '../gen-utils'
-import { genXmlPlaceholder, genXmlTextBody, textRunsHaveOmml } from './text'
+import { genXmlNvPrExtLst, genXmlPlaceholder, genXmlTextBody, textRunsHaveOmml } from './text'
+
+function genXmlNvPr (options?: ObjectOptions, phXml = '', extraExts: string[] = []): string {
+	return `<p:nvPr>${phXml}${genXmlNvPrExtLst(options, extraExts)}</p:nvPr>`
+}
 
 const ImageSizingXml = {
 	cover: function (imgSize: { w: number, h: number }, boxDim: { w: number, h: number, x: number, y: number }) {
@@ -458,10 +462,11 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				// NOTE: Non-numeric cNvPr id values will trigger "presentation needs repair" type warning in MS-PPT-2013
 				strXml = `<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="${intTableNum * (slide._slideNum ?? 0) + 1}" name="${slideItemObj.options.objectName}"/>`
 				// When the table binds to a master/layout placeholder, emit `<p:ph type="tbl"/>` (ECMA-376 §4.4.1.33, issue #856)
-				const tblPh = placeholderObj ? genXmlPlaceholder(placeholderObj) : ''
+				const tblPh = placeholderObj ? genXmlPlaceholder(placeholderObj, slideItemObj.options) : ''
+				const tblModId = '<p:ext uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"><p14:modId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1579011935"/></p:ext>'
 				strXml +=
 					'<p:cNvGraphicFramePr><a:graphicFrameLocks noGrp="1"/></p:cNvGraphicFramePr>' +
-					`  <p:nvPr>${tblPh}<p:extLst><p:ext uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"><p14:modId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1579011935"/></p:ext></p:extLst></p:nvPr>` +
+					`  <p:nvPr>${tblPh}${genXmlNvPrExtLst(slideItemObj.options, [tblModId])}</p:nvPr>` +
 					'</p:nvGraphicFramePr>'
 				strXml += `<p:xfrm><a:off x="${x || (x === 0 ? 0 : EMU)}" y="${y || (y === 0 ? 0 : EMU)}"/><a:ext cx="${cx || (cx === 0 ? 0 : EMU)}" cy="${cy || EMU
 				}"/></p:xfrm>`
@@ -687,7 +692,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += '<p:cxnSp>'
 					strSlideXml += `<p:nvCxnSpPr><p:cNvPr id="${shapeId}" name="${slideItemObj.options.objectName}"></p:cNvPr>`
 					strSlideXml += `<p:cNvCxnSpPr><a:stCxn id="${slideItemObj.options.line?.sourceId}" idx="${slideItemObj.options.line?.sourceAnchorPos ?? 0}"/><a:endCxn id="${slideItemObj.options.line?.targetId}" idx="${slideItemObj.options.line?.targetAnchorPos ?? 0}"/></p:cNvCxnSpPr>`
-					strSlideXml += '<p:nvPr/></p:nvCxnSpPr><p:spPr>'
+					strSlideXml += `${genXmlNvPr(slideItemObj.options)}</p:nvCxnSpPr><p:spPr>`
 				} else {
 					strSlideXml += '<p:sp>'
 					// B: The addition of the "txBox" attribute is the sole determiner of if an object is a shape or textbox
@@ -704,7 +709,10 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					// PowerPoint math zones are authored in text boxes; force txBox when OMML is present
 					const useTxBox = Boolean(slideItemObj.options?.isTextBox) || textRunsHaveOmml(slideItemObj.text)
 					strSlideXml += '<p:cNvSpPr' + (useTxBox ? ' txBox="1"/>' : '/>')
-					strSlideXml += `<p:nvPr>${slideItemObj._type === 'placeholder' ? genXmlPlaceholder(slideItemObj) : genXmlPlaceholder(placeholderObj)}</p:nvPr>`
+					strSlideXml += genXmlNvPr(
+						slideItemObj.options,
+						slideItemObj._type === 'placeholder' ? genXmlPlaceholder(slideItemObj, slideItemObj.options) : genXmlPlaceholder(placeholderObj, slideItemObj.options)
+					)
 					strSlideXml += '</p:nvSpPr><p:spPr>'
 				}
 				strSlideXml += `<a:xfrm${locationAttr}>`
@@ -837,7 +845,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				}
 				strSlideXml += '    </p:cNvPr>'
 				strSlideXml += '    <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>'
-				strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj) + '</p:nvPr>'
+				strSlideXml += genXmlNvPr(slideItemObj.options, genXmlPlaceholder(placeholderObj, slideItemObj.options))
 				strSlideXml += '  </p:nvPicPr>'
 				strSlideXml += '<p:blipFill>'
 				// NOTE: This works for both cases: either `path` or `data` contains the SVG
@@ -915,9 +923,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					// IMPORTANT: <p:cNvPr id="" value is critical - if its not the same number as preview image `rId`, PowerPoint throws error!
 					strSlideXml += `<p:cNvPr id="${(slideItemObj.mediaRid ?? 0) + 2}" name="${slideItemObj.options.objectName}"/>`
 					strSlideXml += ' <p:cNvPicPr/>'
-					strSlideXml += ' <p:nvPr>'
-					strSlideXml += `  <a:videoFile r:link="rId${slideItemObj.mediaRid}"/>`
-					strSlideXml += ' </p:nvPr>'
+					strSlideXml += genXmlNvPr(slideItemObj.options, `<a:videoFile r:link="rId${slideItemObj.mediaRid}"/>`)
 					strSlideXml += ' </p:nvPicPr>'
 					// NOTE: `blip` is diferent than videos; also there's no preview "p:extLst" above but exists in videos
 					strSlideXml += ` <p:blipFill><a:blip r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>` // NOTE: Preview image is required!
@@ -935,21 +941,21 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += `<p:cNvPr id="${(slideItemObj.mediaRid ?? 0) + 2}" name="${slideItemObj.options.objectName
 					}"><a:hlinkClick r:id="" action="ppaction://media"/></p:cNvPr>`
 					strSlideXml += ' <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>'
-					strSlideXml += ' <p:nvPr>'
-					strSlideXml += `  <${mediaFileTag} r:link="rId${slideItemObj.mediaRid}"/>`
-					strSlideXml += '  <p:extLst>'
-					strSlideXml += '   <p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">'
-					// MS-PPTX §2.3.3.14 CT_Media: trim/fade/bmkLst children (issue-gap #6). Self-close when none (preserves prior output).
 					const mediaExtras = genXmlMediaExtras(slideItemObj.options)
-					strSlideXml += mediaExtras
-						? `    <p14:media xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}">${mediaExtras}    </p14:media>`
-						: `    <p14:media xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}"/>`
-					strSlideXml += '   </p:ext>'
-					// MS-PPTX §2.2.14 Narration: isNarration flag on the media shape's nvPr.
-					if (slideItemObj.options.isNarration)
-						strSlideXml += '   <p:ext uri="{42D2F446-02D8-4167-A562-619A0277C38B}"><p15:isNarration xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main" val="1"/></p:ext>'
-					strSlideXml += '  </p:extLst>'
-					strSlideXml += ' </p:nvPr>'
+					const mediaExt =
+						'<p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}">' +
+						(mediaExtras
+							? `    <p14:media xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}">${mediaExtras}    </p14:media>`
+							: `    <p14:media xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" r:embed="rId${(slideItemObj.mediaRid ?? 0) + 1}"/>`) +
+						'</p:ext>'
+					const narrationExt = slideItemObj.options.isNarration
+						? '<p:ext uri="{42D2F446-02D8-4167-A562-619A0277C38B}"><p15:isNarration xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main" val="1"/></p:ext>'
+						: ''
+					strSlideXml += genXmlNvPr(
+						slideItemObj.options,
+						`<${mediaFileTag} r:link="rId${slideItemObj.mediaRid}"/>`,
+						narrationExt ? [mediaExt, narrationExt] : [mediaExt]
+					)
 					strSlideXml += ' </p:nvPicPr>'
 					strSlideXml += ` <p:blipFill><a:blip r:embed="rId${(slideItemObj.mediaRid ?? 0) + 2}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>` // NOTE: Preview image is required!
 					strSlideXml += ' <p:spPr>'
@@ -1014,7 +1020,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				strSlideXml += ' <p:nvGraphicFramePr>'
 				strSlideXml += `   <p:cNvPr id="${shapeId}" name="${slideItemObj.options.objectName}" descr="${encodeXmlEntities(slideItemObj.options.altText || '')}"/>`
 				strSlideXml += '   <p:cNvGraphicFramePr/>'
-				strSlideXml += `   <p:nvPr>${genXmlPlaceholder(placeholderObj)}</p:nvPr>`
+				strSlideXml += genXmlNvPr(slideItemObj.options, genXmlPlaceholder(placeholderObj, slideItemObj.options))
 				strSlideXml += ' </p:nvGraphicFramePr>'
 				strSlideXml += ` <p:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></p:xfrm>`
 				strSlideXml += ' <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'

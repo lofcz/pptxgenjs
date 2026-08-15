@@ -17,7 +17,7 @@ import { createTimingXml, MediaPlaybackEntry } from '../gen-animations'
 import { genXmlTransition } from '../gen-transition'
 import { encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
 import { resolveZoomSections, slideObjectToXml } from './slide'
-import { A14_NS, MATH_NS, MC_NS, P14_NS } from './text'
+import { A14_NS, genXmlDesignTagLst, MATH_NS, MC_NS, P14_NS, URI_DESIGN_TAG_LST } from './text'
 
 // XML-GEN: First 6 functions create the base /ppt files
 
@@ -481,7 +481,14 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
 	// via the Presentation relationship of type .../relationships/slide (§13.3.8).
 	// MS-PPTX section lists (p14:sldIdLst) reference those ST_SlideId values, not r:id.
 	strXml += '<p:sldIdLst>'
-	pres.slides.forEach(slide => (strXml += `<p:sldId id="${slide._slideId}" r:id="rId${slide._rId}"/>`))
+	pres.slides.forEach(slide => {
+		const tagLst = genXmlDesignTagLst(slide.designTags, true)
+		if (tagLst) {
+			strXml += `<p:sldId id="${slide._slideId}" r:id="rId${slide._rId}"><p:extLst><p:ext uri="${URI_DESIGN_TAG_LST}">${tagLst}</p:ext></p:extLst></p:sldId>`
+		} else {
+			strXml += `<p:sldId id="${slide._slideId}" r:id="rId${slide._rId}"/>`
+		}
+	})
 	strXml += '</p:sldIdLst>'
 
 	// CT_Presentation sequence is sldMasterIdLst, notesMasterIdLst, handoutMasterIdLst, sldIdLst.

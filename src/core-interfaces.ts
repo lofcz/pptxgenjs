@@ -891,7 +891,58 @@ export interface TextBaseProps {
 	 */
 	valign?: VAlign
 }
-export interface PlaceholderProps extends PositionProps, TextBaseProps {
+
+/**
+ * MS-PPTX classification outcome (`ST_ClassificationOutcomeType`, §2.15).
+ * Compliance metadata — emit only when explicitly set.
+ */
+export type ClassificationOutcome = 'none' | 'hdr' | 'ftr' | 'watermark'
+
+/** Modern placeholder type extension (`CT_PlaceholderTypeACB`, MS-PPTX §2.22). */
+export type PlaceholderTypeExt = 'cameo' | 'unknown'
+
+/** Designer Service name/value tag (`CT_DesignerTag`, MS-PPTX §2.17.3.2). */
+export interface DesignerTag {
+	name: string
+	val: string
+}
+
+/** Designer properties on a shape (`CT_DesignerDrawingProps`, MS-PPTX §2.17.1.1). */
+export interface DesignerProps {
+	/** Whether a design element is editable. @default false */
+	edtDesignElem?: boolean
+	/** Designer Service tags nested under `designPr`. */
+	tags?: DesignerTag[]
+}
+
+/**
+ * Opt-in MS-PPTX nvPr extensions: designElem (§2.2.17), classification (§2.2.18),
+ * designPr (§2.2.19), and phTypeExt (§2.22). Classification is never defaulted.
+ */
+export interface NvPrExtensionProps {
+	/**
+	 * Mark the object as a Designer design element. MS-PPTX §2.5.1.1 `designElem`.
+	 * Emitted on `p:nvPr` extLst URI `{386F3935-93C4-4BCD-93E2-E3B085C9AB24}`.
+	 */
+	designElem?: boolean
+	/**
+	 * Classification / compliance outcome. MS-PPTX §2.15.1.1 `classification`.
+	 * Emitted only when set. URI `{1162E1C5-73C7-4A58-AE30-91384D911F3F}`.
+	 */
+	classification?: ClassificationOutcome
+	/**
+	 * Designer drawing properties. MS-PPTX §2.17.1.1 `designPr`.
+	 * URI `{E7BDC344-281C-4309-B0C6-D0EE65EED2A8}`.
+	 */
+	designPr?: DesignerProps
+	/**
+	 * Modern placeholder type (`cameo` / `unknown`). MS-PPTX §2.22.1.1 `phTypeExt`.
+	 * Nested under `p:ph` extLst URI `{56F484CC-4922-43CF-B6FB-B326C6A72FC8}`.
+	 */
+	phTypeExt?: PlaceholderTypeExt
+}
+
+export interface PlaceholderProps extends PositionProps, TextBaseProps, NvPrExtensionProps {
 	name: string
 	type: PLACEHOLDER_TYPE
 	/**
@@ -942,7 +993,7 @@ export interface ThemeProps {
 // image / media ==================================================================================
 export type MediaType = 'audio' | 'online' | 'video'
 
-export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNameProps, AppearOnClickProps {
+export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNameProps, AppearOnClickProps, NvPrExtensionProps {
 	/**
 	 * Alt Text value ("How would you describe this object and its contents to someone who is blind?")
 	 * - PowerPoint: [right-click on an image] > "Edit Alt Text..."
@@ -1075,7 +1126,7 @@ export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNamePr
  * Add media (audio/video) to slide
  * @requires either `link` or `path`
  */
-export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNameProps, AppearOnClickProps {
+export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNameProps, AppearOnClickProps, NvPrExtensionProps {
 	/**
 	 * Media type
 	 * - Use 'online' to embed a YouTube video (only supported in recent versions of PowerPoint)
@@ -1161,7 +1212,7 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 
 // shapes =========================================================================================
 
-export interface ShapeProps extends PositionProps, ObjectNameProps, AppearOnClickProps {
+export interface ShapeProps extends PositionProps, ObjectNameProps, AppearOnClickProps, NvPrExtensionProps {
 	/**
 	 * Horizontal alignment
 	 * @default 'left'
@@ -1422,7 +1473,7 @@ export interface TableCellProps extends TextBaseProps {
 	 */
 	vert?: 'eaVert' | 'horz' | 'mongolianVert' | 'vert' | 'vert270' | 'wordArtVert' | 'wordArtVertRtl'
 }
-export interface TableProps extends PositionProps, TextBaseProps, ObjectNameProps, AppearOnClickProps {
+export interface TableProps extends PositionProps, TextBaseProps, ObjectNameProps, AppearOnClickProps, NvPrExtensionProps {
 	_arrObjTabHeadRows?: TableRow[]
 
 	/**
@@ -1601,7 +1652,7 @@ export interface TextGlowProps {
 	size: number
 }
 
-export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBaseProps, ObjectNameProps, AppearOnClickProps {
+export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBaseProps, ObjectNameProps, AppearOnClickProps, NvPrExtensionProps {
 	_bodyProp?: {
 		// Note: Many of these duplicated as user options are transformed to _bodyProp options for XML processing
 		autoFit?: boolean
@@ -2389,6 +2440,10 @@ export interface IChartOpts
 	 * @example { type: 'flyin', direction: 'left', duration: 1000 }
 	 */
 	animation?: string | AnimationConfig
+	/** Opt-in MS-PPTX nvPr design/classification extensions. */
+	designElem?: boolean
+	classification?: ClassificationOutcome
+	designPr?: DesignerProps
 }
 export interface IChartOptsLib extends IChartOpts {
 	_type?: CHART_NAME | IChartMulti[] // TODO: v3.4.0 - move to `IChartOpts`, remove `IChartOptsLib`
@@ -2633,6 +2688,11 @@ export interface ObjectOptions extends ImageProps, PositionProps, ShapeProps, Ta
 	offsetFactorY?: number
 	scaleFactorX?: number
 	scaleFactorY?: number
+	// MS-PPTX §2.2.17–§2.2.19 / §2.22 nvPr extensions (opt-in)
+	designElem?: boolean
+	classification?: ClassificationOutcome
+	designPr?: DesignerProps
+	phTypeExt?: PlaceholderTypeExt
 }
 export interface SlideBaseProps {
 	_bkgdImgRid?: number
@@ -2736,6 +2796,11 @@ export interface PresSlide extends SlideBaseProps {
 	 * @example slide.addSummaryZoom({ sectionTitle: 'Intro', x: 1, y: 4, w: 2, h: 1.13 })
 	 */
 	addSummaryZoom: (options: SummaryZoomProps) => PresSlide
+	/**
+	 * Designer Service tags on this slide's `p:sldId`. MS-PPTX §2.2.20 `designTagLst`.
+	 * Emitted only when set. URI `{E3EDB536-0D56-4F60-86BA-61A60CA02DAB}`.
+	 */
+	designTags?: DesignerTag[]
 }
 /** Base Zoom navigation options. MS-PPTX §2.8 `CT_ZoomObjectProperties`. */
 interface ZoomBaseProps extends PositionProps, ObjectNameProps {
