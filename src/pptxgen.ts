@@ -83,12 +83,14 @@ import {
 	AddFontOptions,
 	AddSlideProps,
 	CompressionLevel,
+	ChangesInfoProps,
 	CommentAuthorProps,
 	DefineLayoutProps,
 	GuideProps,
 	IPresentationProps,
 	PresLayout,
 	PresSlide,
+	RevisionInfoProps,
 	SectionProps,
 	SlideLayout,
 	SlideMasterProps,
@@ -106,6 +108,7 @@ import * as genMedia from './gen-media'
 import * as genTable from './gen-tables'
 import * as genXml from './xml'
 import * as genComments from './gen-comments'
+import * as genRevision from './gen-revision'
 import { importNodeBuiltin, isNodeRuntime, warnDeprecatedOnce } from './gen-utils'
 import { VERSION } from './version.generated'
 
@@ -302,6 +305,18 @@ export default class PptxGenJS implements IPresentationProps {
 	 * @example pptx.commentAuthors = [{ name: 'Ada Lovelace', initials: 'AL' }]
 	 */
 	public commentAuthors: CommentAuthorProps[] = []
+
+	/**
+	 * Revision Information part (MS-PPTX §2.1.2). Opt-in — not emitted unless set.
+	 * @example pptx.revisionInfo = { clients: [{ id: 'app-1', v: 1, dt: '2024-08-15T00:00:00Z' }] }
+	 */
+	public revisionInfo?: boolean | RevisionInfoProps
+
+	/**
+	 * Changes Information part (MS-PPTX §2.1.4). Opt-in — not emitted unless set.
+	 * @example pptx.changesInfo = true
+	 */
+	public changesInfo?: boolean | ChangesInfoProps
 
 	/** slide layout definition objects, used for generating slide layout files */
 	private readonly _slideLayouts: SlideLayout[]
@@ -603,11 +618,15 @@ export default class PptxGenJS implements IPresentationProps {
 			zip.folder('ppt/theme')
 			zip.folder('ppt/notesMasters')?.folder('_rels')
 			zip.folder('ppt/notesSlides')?.folder('_rels')
-			zip.file('[Content_Types].xml', genXml.makeXmlContTypes(this.slides, this.slideLayouts, this.masterSlide)) // TODO: pass only `this` like below! 20200206
+			const trackingParts = {
+				revisionInfo: genRevision.wantsRevisionInfo(this.revisionInfo),
+				changesInfo: genRevision.wantsChangesInfo(this.changesInfo),
+			}
+			zip.file('[Content_Types].xml', genXml.makeXmlContTypes(this.slides, this.slideLayouts, this.masterSlide, trackingParts)) // TODO: pass only `this` like below! 20200206
 			zip.file('_rels/.rels', genXml.makeXmlRootRels())
 			zip.file('docProps/app.xml', genXml.makeXmlApp(this.slides, this.company)) // TODO: pass only `this` like below! 20200206
 			zip.file('docProps/core.xml', genXml.makeXmlCore(this.title, this.subject, this.author, this.revision)) // TODO: pass only `this` like below! 20200206
-			zip.file('ppt/_rels/presentation.xml.rels', genXml.makeXmlPresentationRels(this.slides))
+			zip.file('ppt/_rels/presentation.xml.rels', genXml.makeXmlPresentationRels(this.slides, trackingParts))
 			zip.file('ppt/theme/theme1.xml', genXml.makeXmlTheme(this))
 			zip.file('ppt/presentation.xml', genXml.makeXmlPresentation(this))
 			zip.file('ppt/presProps.xml', genXml.makeXmlPresProps(this))
@@ -625,6 +644,12 @@ export default class PptxGenJS implements IPresentationProps {
 			if (hasComments) {
 				zip.folder('ppt/comments')
 				zip.file('ppt/authors.xml', genComments.makeXmlCommentAuthors(commentAuthors))
+			}
+			if (trackingParts.revisionInfo) {
+				zip.file(genRevision.REVISION_INFO_PART, genRevision.makeXmlRevisionInfo(this.revisionInfo as true | RevisionInfoProps))
+			}
+			if (trackingParts.changesInfo) {
+				zip.file(genRevision.CHANGES_INFO_PART, genRevision.makeXmlChangesInfo())
 			}
 			this.slides.forEach((slide, idx) => {
 				zip.file(`ppt/slides/slide${idx + 1}.xml`, genXml.makeXmlSlide(slide, this._sections))

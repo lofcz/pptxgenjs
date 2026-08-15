@@ -60,6 +60,7 @@ export default class Slide {
 	public _newAutoPagedSlides?: PresSlide[]
 	public transition?: SlideTransitionProps
 	public comments?: CommentProps[]
+	public creationId?: number
 
 	constructor(params: {
 		addSlide: (options?: AddSlideProps) => PresSlide

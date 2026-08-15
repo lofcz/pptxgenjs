@@ -40,6 +40,7 @@ import {
 	resolveGlowOptions,
 	valToPts,
 } from '../gen-utils'
+import { genXmlCreationIdExt, genXmlModIdExt } from '../gen-revision'
 import { genXmlPlaceholder, genXmlTextBody, textRunsHaveOmml } from './text'
 
 const ImageSizingXml = {
@@ -461,7 +462,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				const tblPh = placeholderObj ? genXmlPlaceholder(placeholderObj) : ''
 				strXml +=
 					'<p:cNvGraphicFramePr><a:graphicFrameLocks noGrp="1"/></p:cNvGraphicFramePr>' +
-					`  <p:nvPr>${tblPh}<p:extLst><p:ext uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"><p14:modId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1579011935"/></p:ext></p:extLst></p:nvPr>` +
+					`  <p:nvPr>${tblPh}${genXmlModIdExt(typeof slideItemObj.options.modId === 'number' ? slideItemObj.options.modId : 1579011935)}</p:nvPr>` +
 					'</p:nvGraphicFramePr>'
 				strXml += `<p:xfrm><a:off x="${x || (x === 0 ? 0 : EMU)}" y="${y || (y === 0 ? 0 : EMU)}"/><a:ext cx="${cx || (cx === 0 ? 0 : EMU)}" cy="${cy || EMU
 				}"/></p:xfrm>`
@@ -687,7 +688,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += '<p:cxnSp>'
 					strSlideXml += `<p:nvCxnSpPr><p:cNvPr id="${shapeId}" name="${slideItemObj.options.objectName}"></p:cNvPr>`
 					strSlideXml += `<p:cNvCxnSpPr><a:stCxn id="${slideItemObj.options.line?.sourceId}" idx="${slideItemObj.options.line?.sourceAnchorPos ?? 0}"/><a:endCxn id="${slideItemObj.options.line?.targetId}" idx="${slideItemObj.options.line?.targetAnchorPos ?? 0}"/></p:cNvCxnSpPr>`
-					strSlideXml += '<p:nvPr/></p:nvCxnSpPr><p:spPr>'
+					strSlideXml += `<p:nvPr>${genXmlModIdExt(slideItemObj.options.modId)}</p:nvPr></p:nvCxnSpPr><p:spPr>`
 				} else {
 					strSlideXml += '<p:sp>'
 					// B: The addition of the "txBox" attribute is the sole determiner of if an object is a shape or textbox
@@ -704,7 +705,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					// PowerPoint math zones are authored in text boxes; force txBox when OMML is present
 					const useTxBox = Boolean(slideItemObj.options?.isTextBox) || textRunsHaveOmml(slideItemObj.text)
 					strSlideXml += '<p:cNvSpPr' + (useTxBox ? ' txBox="1"/>' : '/>')
-					strSlideXml += `<p:nvPr>${slideItemObj._type === 'placeholder' ? genXmlPlaceholder(slideItemObj) : genXmlPlaceholder(placeholderObj)}</p:nvPr>`
+					strSlideXml += `<p:nvPr>${slideItemObj._type === 'placeholder' ? genXmlPlaceholder(slideItemObj) : genXmlPlaceholder(placeholderObj)}${genXmlModIdExt(slideItemObj.options.modId)}</p:nvPr>`
 					strSlideXml += '</p:nvSpPr><p:spPr>'
 				}
 				strSlideXml += `<a:xfrm${locationAttr}>`
@@ -837,7 +838,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				}
 				strSlideXml += '    </p:cNvPr>'
 				strSlideXml += '    <p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr>'
-				strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj) + '</p:nvPr>'
+				strSlideXml += '    <p:nvPr>' + genXmlPlaceholder(placeholderObj) + genXmlModIdExt(slideItemObj.options.modId) + '</p:nvPr>'
 				strSlideXml += '  </p:nvPicPr>'
 				strSlideXml += '<p:blipFill>'
 				// NOTE: This works for both cases: either `path` or `data` contains the SVG
@@ -1014,7 +1015,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				strSlideXml += ' <p:nvGraphicFramePr>'
 				strSlideXml += `   <p:cNvPr id="${shapeId}" name="${slideItemObj.options.objectName}" descr="${encodeXmlEntities(slideItemObj.options.altText || '')}"/>`
 				strSlideXml += '   <p:cNvGraphicFramePr/>'
-				strSlideXml += `   <p:nvPr>${genXmlPlaceholder(placeholderObj)}</p:nvPr>`
+				strSlideXml += `   <p:nvPr>${genXmlPlaceholder(placeholderObj)}${genXmlModIdExt(slideItemObj.options.modId)}</p:nvPr>`
 				strSlideXml += ' </p:nvGraphicFramePr>'
 				strSlideXml += ` <p:xfrm><a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/></p:xfrm>`
 				strSlideXml += ' <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">'
@@ -1086,6 +1087,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 
 	// STEP 5: Close spTree and finalize slide XML
 	strSlideXml += '</p:spTree>'
+	strSlideXml += genXmlCreationIdExt('creationId' in slide ? slide.creationId : undefined)
 	strSlideXml += '</p:cSld>'
 
 	// LAST: Return
