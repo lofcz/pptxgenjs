@@ -6,10 +6,10 @@ title: Quick Start
 
 Create a PowerPoint presentation in four steps: create the presentation, add a slide, add content, save.
 
-## Node, React, Angular, Vite (ES modules)
+## Node, React, Angular, Rsbuild (ES modules)
 
 ```typescript
-import pptxgen from "@neo-ma/pptxgenjs"
+import pptxgen from "@lofcz/pptxgenjs"
 
 // 1. Create a presentation
 const pres = new pptxgen()
@@ -48,7 +48,7 @@ Every `addX` method is fully typed. Option objects are checked as you write them
 autocompletes property names, enum values, and expected types.
 
 ```typescript
-import pptxgen from "@neo-ma/pptxgenjs"
+import pptxgen from "@lofcz/pptxgenjs"
 
 const pres = new pptxgen()
 const slide = pres.addSlide()

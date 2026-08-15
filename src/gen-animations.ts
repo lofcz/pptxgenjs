@@ -1371,10 +1371,8 @@ function genAnimationEffectXml(animation: AnimationConfig, shapeId: number, node
 		}
 
 
-		let opacityValue = '0.5'
 		const transparencyAnim  = animation as TransparencyAnimationConfig
-
-		opacityValue = transparencyAnim?.level ? TRANSPARENCY_LEVELS[transparencyAnim.level] : '0.5'
+		const opacityValue = transparencyAnim?.level ? TRANSPARENCY_LEVELS[transparencyAnim.level] : '0.5'
 		
 		// Set opacity
 		xml += '<p:set>'

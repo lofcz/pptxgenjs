@@ -177,7 +177,7 @@ export function addChartDefinition(target: PresSlide | SlideLayout, type: CHART_
 	// DESIGN: `type` can an object (ex: `pptx.charts.DOUGHNUT`) or an array of chart objects
 	// EX: addChartDefinition([ { type:pptx.charts.BAR, data:{name:'', labels:[], values[]} }, {<etc>} ])
 	// Multi-Type Charts
-	let tmpOpt: IChartOptsLib | IOptsChartData[] | null = null
+	let tmpOpt: IChartOptsLib | IOptsChartData[]
 	let tmpData: IOptsChartData[] = []
 	if (Array.isArray(type)) {
 		// For multi-type charts there needs to be data for each type,

@@ -36,11 +36,11 @@ Then configure trusted publishing in npm for future releases.
 The workflow:
 
 1. Installs with `npm ci`.
-2. Bumps `package.json`, `package-lock.json`, and `src/pptxgen.ts`.
+2. Bumps `package.json` and `package-lock.json`.
 3. Runs `npm run lint`.
-4. Runs `npm run typecheck` and `npm run typecheck:strict`.
+4. Runs `npm run typecheck`.
 5. Runs `npm test`.
-6. Runs `npm run dist`.
+6. Runs `npm run dist` (Rslib).
 7. Verifies package contents with `npm pack --dry-run`.
 8. Publishes with `npm publish --provenance`.
 9. Pushes the release commit/tag and creates a GitHub release.

@@ -107,8 +107,7 @@ import * as genTable from './gen-tables'
 import * as genXml from './xml'
 import * as genComments from './gen-comments'
 import { importNodeBuiltin, isNodeRuntime, warnDeprecatedOnce } from './gen-utils'
-
-const VERSION = '4.1.17'
+import { VERSION } from './version.generated'
 
 export default class PptxGenJS implements IPresentationProps {
 	// Property getters/setters

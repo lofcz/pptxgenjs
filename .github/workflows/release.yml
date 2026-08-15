@@ -42,11 +42,8 @@ jobs:
         run: |
           if [ "${{ github.event.inputs.release_type }}" != "existing" ]; then
             npm version "${{ github.event.inputs.release_type }}" --no-git-tag-version
-            VERSION=$(node -p "require('./package.json').version")
-            sed -i "s/const VERSION = '.*'/const VERSION = '${VERSION}'/" src/pptxgen.ts
-          else
-            VERSION=$(node -p "require('./package.json').version")
           fi
+          VERSION=$(node -p "require('./package.json').version")
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event.inputs.release_type }}" != "existing" ]; then
             echo "bumped=true" >> "$GITHUB_OUTPUT"
@@ -79,7 +76,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json package-lock.json src/pptxgen.ts
+          git add package.json package-lock.json
           git commit -m "chore: release v${{ steps.version.outputs.version }}"
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
 

@@ -4,11 +4,11 @@ title: Introduction
 
 ![PptxGenJS Sample Slides](./assets/readme_banner.png)
 
-![GitHub Repo stars](https://img.shields.io/github/stars/NeomaVerwaltung/PptxGenJS?style=flat-square)
-![GitHub License](https://img.shields.io/github/license/NeomaVerwaltung/PptxGenJS?style=flat-square)
+![GitHub Repo stars](https://img.shields.io/github/stars/lofcz/PptxGenJS?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/lofcz/PptxGenJS?style=flat-square)
 
 **PptxGenJS generates PowerPoint (`.pptx`) files from JavaScript** — in Node, the browser, and every
-common framework. This is `@neo-ma/pptxgenjs`, the NEOMA-maintained fork with a modern build and typed API.
+common framework. This is `@lofcz/pptxgenjs`, maintained by Matěj Lofcz Štágl, with a modern build and typed API.
 
 If you are migrating from the original `pptxgenjs` package, see the [Migration guide](./migration) — it is
 a drop-in replacement.
@@ -40,7 +40,7 @@ This is the complete API surface. The remaining documentation describes the opti
 ### Hello World
 
 ```typescript
-import pptxgen from "@neo-ma/pptxgenjs"
+import pptxgen from "@lofcz/pptxgenjs"
 
 const pres = new pptxgen()
 const slide = pres.addSlide()
@@ -70,10 +70,10 @@ LibreOffice Impress, and Google Slides (via import).
 
 ## Issues and contributing
 
-File issues or ideas on the [issues page](https://github.com/NeomaVerwaltung/PptxGenJS/issues/new), or
-[open a pull request](https://github.com/NeomaVerwaltung/PptxGenJS/pulls). When reporting a problem, include
+File issues or ideas on the [issues page](https://github.com/lofcz/PptxGenJS/issues/new), or
+[open a pull request](https://github.com/lofcz/PptxGenJS/pulls). When reporting a problem, include
 a short code snippet that reproduces it. Documentation lives in-repo under
-[`docs/`](https://github.com/NeomaVerwaltung/PptxGenJS/tree/master/docs) — the "Edit this page" link on any
+[`docs/`](https://github.com/lofcz/PptxGenJS/tree/master/docs) — the "Edit this page" link on any
 page leads directly to its source file.
 
 ## Contributors
@@ -92,6 +92,6 @@ PowerPoint shape definitions and some XML via the [Officegen Project](https://gi
 
 ## License
 
-Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present NEOMA GmbH
+Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [Matěj Lofcz Štágl](https://github.com/lofcz)
 
-[MIT](https://github.com/NeomaVerwaltung/PptxGenJS/blob/master/LICENSE)
+[MIT](https://github.com/lofcz/PptxGenJS/blob/master/LICENSE)

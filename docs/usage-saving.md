@@ -76,7 +76,7 @@ Stream the generated file in an HTTP response (shown here with Express):
 
 ```typescript
 import express from "express"
-import pptxgen from "@neo-ma/pptxgenjs"
+import pptxgen from "@lofcz/pptxgenjs"
 
 const app = express()
 
@@ -118,7 +118,7 @@ pptx.writeFile({ fileName: "PptxGenJS-Browser-2" });
 ### In Node.js
 
 ```typescript
-import pptxgen from "@neo-ma/pptxgenjs"
+import pptxgen from "@lofcz/pptxgenjs"
 
 // Presentation 1:
 let pptx = new pptxgen()
@@ -132,7 +132,7 @@ await pptx.writeFile({ fileName: "PptxGenJS-Node-2.pptx" })
 ```
 
 ```typescript
-import pptxgen from "@neo-ma/pptxgenjs";
+import pptxgen from "@lofcz/pptxgenjs";
 
 // Presentation 1:
 let pptx1 = new pptxgen();

@@ -371,7 +371,6 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 			},
 		})
 		let intColCnt = 0
-		let intColW = 0
 		let cellOpts: TableCellProps | undefined
 		let strXml = ''
 		const sizing: ObjectOptions['sizing'] = slideItemObj.options?.sizing
@@ -446,7 +445,6 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				arrTabRows = slideItemObj.arrTabRows ?? []
 				objTabOpts = slideItemObj.options
 				intColCnt = 0
-				intColW = 0
 
 				// Calc number of columns
 				// NOTE: Cells may have a colspan, so merely taking the length of the [0] (or any other) row is not
@@ -486,7 +484,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					}
 					strXml += '</a:tblGrid>'
 				} else {
-					intColW = objTabOpts.colW ? objTabOpts.colW : EMU
+					let intColW = objTabOpts.colW ? objTabOpts.colW : EMU
 					if (slideItemObj.options.w && !objTabOpts.colW) intColW = Math.round((typeof slideItemObj.options.w === 'number' ? slideItemObj.options.w : 1) / intColCnt)
 					strXml += '<a:tblGrid>'
 					for (let colw = 0; colw < intColCnt; colw++) {
@@ -615,16 +613,13 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 						 * - Backwards-Compat: Oops! Discovered we were still using points for cell margin before v3.8.0 (UGH!)
 						 * - We cant introduce a breaking change before v4.0, so...
 						 */
-						let cellMarginXml = ''
-						if (cellMargin[0] >= 1) {
-							cellMarginXml = ` marL="${valToPts(cellMargin[3])}" marR="${valToPts(cellMargin[1])}" marT="${valToPts(cellMargin[0])}" marB="${valToPts(
+						const cellMarginXml = cellMargin[0] >= 1
+							? ` marL="${valToPts(cellMargin[3])}" marR="${valToPts(cellMargin[1])}" marT="${valToPts(cellMargin[0])}" marB="${valToPts(
 								cellMargin[2]
 							)}"`
-						} else {
-							cellMarginXml = ` marL="${inch2Emu(cellMargin[3])}" marR="${inch2Emu(cellMargin[1])}" marT="${inch2Emu(cellMargin[0])}" marB="${inch2Emu(
+							: ` marL="${inch2Emu(cellMargin[3])}" marR="${inch2Emu(cellMargin[1])}" marT="${inch2Emu(cellMargin[0])}" marB="${inch2Emu(
 								cellMargin[2]
 							)}"`
-						}
 
 						// FUTURE: Cell NOWRAP property (textwrap: add to a:tcPr (horzOverflow="overflow" or whatever options exist)
 

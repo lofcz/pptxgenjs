@@ -50,7 +50,7 @@ Add a `data` attribute to the table's `<th>` tag to manually size columns (inche
 
 Example:
 
-```HTML
+```html
 <table id="tabAutoPaging" class="tabCool">
   <thead>
     <tr>

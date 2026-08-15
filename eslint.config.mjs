@@ -3,8 +3,8 @@ import tseslint from 'typescript-eslint';
 import stylistic from '@stylistic/eslint-plugin'
 
 export default tseslint.config({
-	// Build output (`src/bld`) and emitted decls (`out`) are generated — never lint them
-	ignores: ['src/bld/**', 'out/**', 'src/vendor/**'],
+	// Build output and emitted decls are generated — never lint them
+	ignores: ['dist/**', 'out/**', 'src/bld/**', 'src/vendor/**', 'src/**/*.generated.ts'],
 }, {
 	plugins: {
 		'@stylistic': stylistic

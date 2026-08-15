@@ -7,7 +7,7 @@
 	},
 	"contributors": [
 		{
-			"name": "lofcz",
+			"name": "Matěj Lofcz Štágl",
 			"url": "https://github.com/lofcz"
 		}
 	],
@@ -33,22 +33,22 @@
 		"node": ">=24"
 	},
 	"scripts": {
-		"build": "npm run build:defs && rollup -c --bundleConfigAsCjs && npm run build:types",
-		"build:defs": "tsc --emitDeclarationOnly",
+		"build": "rslib build -c rsbuild.config.ts && npm run build:types",
 		"build:types": "node scripts/gen-types-namespace.mjs",
-		"dist": "gulp dist",
-		"prepare": "gulp dist",
-		"start": "gulp",
-		"ship": "gulp ship",
-		"watch": "rollup -cw",
-		"docs:dev": "vitepress dev docs",
-		"docs:build": "vitepress build docs",
-		"docs:preview": "vitepress preview docs",
-		"lint": "eslint src test",
-		"typecheck": "tsc --noEmit",
-		"test": "node --import tsx --test test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
-		"test:coverage": "node --import tsx --test --experimental-test-coverage test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts",
-		"test:office": "node --import tsx --test test/office-open.test.ts",
+		"generate:version": "node scripts/package-version.mjs",
+		"dist": "npm run build",
+		"prepare": "npm run build",
+		"start": "rslib build -c rsbuild.config.ts --watch",
+		"ship": "npm run build",
+		"watch": "rslib build -c rsbuild.config.ts --watch",
+		"docs:dev": "rspress dev",
+		"docs:build": "rspress build",
+		"docs:preview": "rspress preview",
+		"lint": "npm run generate:version && eslint src test",
+		"typecheck": "npm run generate:version && tsc --noEmit",
+		"test": "npm run generate:version && node --import tsx --test test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts test/package-version-plugin.test.ts",
+		"test:coverage": "npm run generate:version && node --import tsx --test --experimental-test-coverage test/gen-utils.test.ts test/issues.test.ts test/audit-fixes.test.ts test/pptxgen.e2e.test.ts test/contracts.test.ts test/coverage.test.ts test/coverage-objects.test.ts test/package-version-plugin.test.ts",
+		"test:office": "npm run generate:version && node --import tsx --test test/office-open.test.ts",
 		"check": "npm run lint && npm run typecheck && npm test",
 		"prepublishOnly": "npm run check && npm run build"
 	},
@@ -62,30 +62,20 @@
 	},
 	"dependencies": {
 		"@node-projects/jszip": "^4.2.1",
-		"pako": "3.0.1"
+		"pako": "^3.0.1"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.25.1",
-		"@rollup/plugin-commonjs": "^29.0.3",
-		"@rollup/plugin-node-resolve": "^16.0.1",
+		"@eslint/js": "^10.0.1",
+		"@microsoft/api-extractor": "^7.58.12",
+		"@rslib/core": "^0.23.2",
+		"@rspress/core": "^2.0.19",
 		"@stylistic/eslint-plugin": "^5.10.0",
-		"@types/node": "^26.0.1",
-		"@typescript-eslint/eslint-plugin": "^8.31.0",
-		"@typescript-eslint/parser": "^8.31.0",
-		"eslint": "^9.25.1",
-		"fast-xml-parser": "^5.9.3",
-		"gulp": "^5.0.0",
-		"gulp-concat": "^2.6.1",
-		"gulp-insert": "^0.5.0",
-		"gulp-uglify": "^3.0.2",
-		"rollup": "^4.24.2",
-		"rollup-plugin-dts": "^6.5.1",
-		"rollup-plugin-typescript2": "^0.37.0",
-		"tslib": "^2.8.0",
-		"tsx": "^4.22.4",
+		"@types/node": "^26.2.0",
+		"eslint": "^10.8.1",
+		"fast-xml-parser": "^5.10.1",
+		"tsx": "^4.23.12",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "^8.31.0",
-		"vitepress": "^1.6.4"
+		"typescript-eslint": "^8.67.0"
 	},
 	"repository": {
 		"type": "git",

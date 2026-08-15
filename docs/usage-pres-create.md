@@ -9,13 +9,13 @@ document you add slides to and eventually save. Create one instance per file you
 
 How you get the constructor depends on your environment, but the object it returns is identical.
 
-### Node, or any bundler (React, Angular, Vue, Vite, Webpack)
+### Node, or any bundler (React, Angular, Vue, Rsbuild, Rspack)
 
 Import the default export. This is the recommended path for application code — you get the typed API and
 your bundler picks the correct build automatically.
 
 ```typescript
-import pptxgen from "@neo-ma/pptxgenjs"
+import pptxgen from "@lofcz/pptxgenjs"
 
 const pres = new pptxgen()
 ```

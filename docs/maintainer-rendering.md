@@ -185,7 +185,7 @@ For release-level confidence on a machine with LibreOffice installed:
 PPTXGENJS_OFFICE_BIN="$(command -v libreoffice || command -v soffice)" npm run test:office
 ```
 
-See the repository [Testing guide](https://github.com/NeomaVerwaltung/PptxGenJS/blob/master/TESTING.md) for the manual Node, Vite, Webpack, and Office verification procedures. If PowerPoint displays a repair prompt, start with the [Needs Repair Errors](./needs-repair-errors) guide and then inspect the package relationships and content types before changing rendering code.
+See the repository [Testing guide](https://github.com/lofcz/PptxGenJS/blob/master/TESTING.md) for the manual Node, Rsbuild, and Office verification procedures. If PowerPoint displays a repair prompt, start with the [Needs Repair Errors](./needs-repair-errors) guide and then inspect the package relationships and content types before changing rendering code.
 
 ## Ownership boundaries
 

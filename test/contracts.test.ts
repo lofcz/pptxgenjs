@@ -6,6 +6,7 @@
  */
 import { test, before } from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
 import { assertEmbeddedXlsxContracts, assertPptxPackageContracts, readPart } from './pptx-contracts'
@@ -49,6 +50,12 @@ test('contract: slide keeps text, shape, and table semantics', async () => {
 	assert.match(xml, /<a:srgbClr val="FF0000"\/>/, 'shape fill missing')
 	assert.match(xml, /<a:tbl>/, 'table missing')
 	assert.equal([...xml.matchAll(/<a:gridCol /g)].length, 2, 'table grid width changed')
+})
+
+test('contract: library version is generated from package.json', () => {
+	const pptx = new pptxgen()
+	assert.match(pptx.version, /^\d+\.\d+\.\d+/)
+	assert.doesNotMatch(readFileSync(new URL('../src/pptxgen.ts', import.meta.url), 'utf8'), /const VERSION = '/)
 })
 
 test('contract: bar chart keeps its data and chart type', async () => {

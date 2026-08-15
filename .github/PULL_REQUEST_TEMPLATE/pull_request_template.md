@@ -1,6 +1,6 @@
 # Submission Guidelines
 
-- Modify only the `src/*.ts` files (do not submit `dist` or `src/bld` files)
+- Modify only the `src/*.ts` files (do not submit `dist` files)
 - Add new and updated properties to `src/core-interfaces.ts` and `types/index.d.ts`
 - Review previously accepted changes for examples of what to provide
 

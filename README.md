@@ -12,10 +12,10 @@ PptxGenJS is a JavaScript library for generating PowerPoint presentations progra
 
 ## About this fork
 
-This repository is a fork of [gitbrent/PptxGenJS](https://github.com/gitbrent/PptxGenJS), maintained for the PPTist / ScioBot stack and published as `@lofcz/pptxgenjs`. It tracks hardening work from [NEOMA GmbH](https://neo-ma.de)'s distribution (`@neo-ma/pptxgenjs`):
+This repository is a fork of [gitbrent/PptxGenJS](https://github.com/gitbrent/PptxGenJS), maintained by [Matěj Lofcz Štágl](https://github.com/lofcz) and published as [`@lofcz/pptxgenjs`](https://www.npmjs.com/package/@lofcz/pptxgenjs).
 
 - **Strict null-safety** — the entire source compiles under TypeScript `strictNullChecks` with zero non-null assertions (`!`) and zero unchecked `as` casts; null-safety is enforced through explicit types, guard clauses, and validated defaults
-- **Continuous integration** — unit, end-to-end, OOXML package-contract tests, and an optional LibreOffice consumer check run on Node.js 20 and 22
+- **Continuous integration** — unit, end-to-end, OOXML package-contract tests, and an optional LibreOffice consumer check
 - **Security** — no known vulnerabilities in the published package, and a published [security policy](SECURITY.md)
 
 The public API remains compatible with upstream PptxGenJS; existing code and documentation continue to apply.
@@ -63,7 +63,7 @@ When loading the library via a `<script>` tag rather than a module import, the c
 
 Complete API reference, tutorials, and integration guides are available on the official docs site: [https://gitbrent.github.io/PptxGenJS](https://gitbrent.github.io/PptxGenJS).
 
-Local VitePress docs under [`docs/`](docs) can be previewed with `npm run docs:dev`.
+Local Rspress docs under [`docs/`](docs) can be previewed with `npm run docs:dev`.
 
 ## Issues and support
 
@@ -82,11 +82,12 @@ Notable contributions:
 - [Matt King](https://github.com/kyrrigle) — chart expertise
 - [Mike Wilcox](https://github.com/clubajax) — chart expertise
 - [Joonas](https://github.com/wyozi) — [react-pptx](https://github.com/wyozi/react-pptx)
+- [NEOMA GmbH](https://neo-ma.de) — thank you for the `@neo-ma/pptxgenjs` hardening work (strict null-safety, OOXML package contracts, LibreOffice consumer checks) that this fork builds on
 
 PowerPoint shape definitions and portions of the XML generation are derived from the [Officegen Project](https://github.com/Ziv-Barber/officegen).
 
 ## License
 
-Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [lofcz](https://github.com/lofcz)
+Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [Matěj Lofcz Štágl](https://github.com/lofcz)
 
 Licensed under the [MIT License](https://github.com/lofcz/PptxGenJS/blob/master/LICENSE).

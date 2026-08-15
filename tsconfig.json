@@ -3,14 +3,13 @@
 		"allowSyntheticDefaultImports": true,
 		"declaration": true,
 		"declarationDir": "./out/defs",
-		"ignoreDeprecations": "6.0", // ponytail: node10 resolution removed in TS7; revisit (switch to "bundler") when upgrading to TS7
 
 		"lib": [
 			"dom",
-			"es2020"
+			"es2022"
 		],
 		"module": "es2020",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"noImplicitAny": false,
 		"outDir": "./out",
 		"rootDir": "./src", // ponytail: TS6 no longer infers this
@@ -27,7 +26,6 @@
 		"src/**/*"
 	],
 	"exclude": [
-		"src/bld/**",
 		"src/vendor/fonteditor-core/**/*.js"
 	]
 }

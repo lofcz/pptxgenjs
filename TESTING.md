@@ -40,13 +40,13 @@ Purpose: validate the CommonJS build in a pure Node environment.
 ```bash
 mkdir /tmp/pptxgenjs-node-test && cd /tmp/pptxgenjs-node-test
 npm init -y
-npm install /path/to/this/repo   # installs @neo-ma/pptxgenjs from the local checkout
+npm install /path/to/this/repo   # installs @lofcz/pptxgenjs from the local checkout
 ```
 
 Create `demo.cjs`:
 
 ```js
-const pptxgen = require('@neo-ma/pptxgenjs')
+const pptxgen = require('@lofcz/pptxgenjs')
 const pptx = new pptxgen()
 const slide = pptx.addSlide()
 slide.addText('Node CJS smoke test', { x: 1, y: 1, w: 6, h: 1, fontSize: 24, color: '0088CC' })
@@ -65,21 +65,21 @@ Swap the write call for `pptx.stream()` and serve the returned buffer from a sma
 1. Confirm the streamed PPTX download is correct.
 2. Open the stream URL on a mobile device and verify the download.
 
-## Vite + TypeScript tests
+## Rsbuild + TypeScript tests
 
-Purpose: validate integration with modern front-end toolchains (Vite, TypeScript, React-compatible).
+Purpose: validate integration with modern front-end toolchains (Rsbuild, TypeScript, React-compatible).
 
-No Vite application is checked in, as a pinned SPA becomes outdated between releases. Scaffold a fresh application and link this repository:
+No sample application is checked in, as a pinned SPA becomes outdated between releases. Scaffold a fresh application and link this repository:
 
 ```bash
-npm create vite@latest pptxgenjs-vite-test -- --template react-ts
-cd pptxgenjs-vite-test
+npm create rsbuild@latest pptxgenjs-rsbuild-test -- --template react-ts
+cd pptxgenjs-rsbuild-test
 npm install
-npm install /path/to/this/repo   # installs @neo-ma/pptxgenjs from the local checkout
+npm install /path/to/this/repo   # installs @lofcz/pptxgenjs from the local checkout
 npm run dev
 ```
 
-1. In a component, `import pptxgen from "@neo-ma/pptxgenjs"` and export a test slide.
+1. In a component, `import pptxgen from "@lofcz/pptxgenjs"` and export a test slide.
 2. Verify that IntelliSense autocompletes, for example, `pptxgen.ChartType.` (types resolve correctly).
 3. Export a PowerPoint file and confirm it renders correctly.
 4. Delete the scaffold when finished; nothing is retained.
@@ -92,5 +92,5 @@ Record the result of each test before release:
 | -------------- | --------- | ---------------------- | ------ |
 | pptxgen.es.js  | Webpack 4 | SPFx (v1.16.1) project |        |
 | pptxgen.es.js  | Webpack 5 | SPFx (v1.19.1) project |        |
-| pptxgen.es.js  | Rollup 4  | Vite (v6) scaffold     |        |
+| pptxgen.es.js  | Rspack    | Rsbuild scaffold       |        |
 | pptxgen.cjs.js | Node/CJS  | Node scaffold          |        |

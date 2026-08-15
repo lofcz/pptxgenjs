@@ -152,7 +152,7 @@ async function readNodeMediaFile(rel: ISlideRelMedia, candidates: ISlideRelMedia
 		return 'done'
 	} catch (ex) {
 		markMediaBroken(candidates, rel)
-		throw new Error(`ERROR: Unable to read media: "${rel.path}"\n${String(ex)}`)
+		throw new Error(`ERROR: Unable to read media: "${rel.path}"\n${String(ex)}`, { cause: ex })
 	}
 }
 

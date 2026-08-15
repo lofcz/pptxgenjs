@@ -13,8 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Merged NEOMA `@neo-ma/pptxgenjs` 4.1.0: OOXML package-contract tests, LibreOffice consumer CI, combo-scatter value axes, italic chart titles, image contain sizing, fractional HTML table borders, and scatter category label positions.
-- Restored the NEOMA OOXML split (`src/xml/*`, `src/charts/*`) so future upstream merges land on the same files.
+- Docs site builds with Rspress (Rsbuild / Rspack) instead of VitePress
+- Bumped toolchain to ESLint 10 and current Rslib/eslint/tsx/TypeScript 6 minors; dropped unused `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, and a direct `@rsbuild/core` pin. TypeScript 7 is blocked until typescript-eslint supports it.
+- Build with Rslib / Rsbuild instead of Rollup and gulp
+- Merged OOXML package-contract tests, LibreOffice consumer CI, combo-scatter value axes, italic chart titles, image contain sizing, fractional HTML table borders, and scatter category label positions
+- Restored the chart/XML module split (`src/xml/*`, `src/charts/*`) so future upstream merges land on the same files
 
 ### Fixed
 
@@ -22,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chart embedded workbooks keep per-series `dataTableFormatCode` styles on value cells, including zeros [\#1430](https://github.com/gitbrent/PptxGenJS/issues/1430)
 - Text `margin` arrays map as documented TRBL `[top, right, bottom, left]` onto ECMA-376 §5.1.5.1.1 `CT_TextBodyProperties` `tIns`/`rIns`/`bIns`/`lIns` (guiwoda/fix/text-margin-trbl; `lIns`/`tIns` were swapped under the old LRBT mapping)
 
-## [4.1.0](https://github.com/NeomaVerwaltung/PptxGenJS/releases/tag/v4.1.0) - 2026-08-13
+## [4.1.0](https://github.com/lofcz/PptxGenJS/releases/tag/v4.1.0) - 2026-08-13
 
 ### Added
 
@@ -37,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reorganized OOXML rendering into focused chart and XML modules while preserving the public API.
-- Publish under `@neo-ma/pptxgenjs`; Node.js 20 or later is required.
+- Publish under `@lofcz/pptxgenjs`; Node.js 20 or later is required.
 
 ## [4.0.1](https://github.com/gitbrent/PptxGenJS/releases/tag/v4.0.1) - 2025-06-25
 

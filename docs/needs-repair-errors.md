@@ -55,4 +55,4 @@ If you have confirmed a bug in `pptxgenjs`, open a **new GitHub issue**. Include
 - A **minimal reproducible code example** that demonstrates the issue (only the problematic slide/feature).
 - Any relevant error messages from your browser console or Node.js environment.
 
-A detailed report enables NEOMA to identify and fix bugs in the library efficiently.
+A detailed report makes it possible to identify and fix bugs in the library efficiently.

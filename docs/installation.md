@@ -7,19 +7,19 @@ Install **PptxGenJS** using one of the following methods.
 ### Quick Install (Node-based)
 
 ```bash
-npm install @neo-ma/pptxgenjs
+npm install @lofcz/pptxgenjs
 ```
 
 ```bash
-yarn add @neo-ma/pptxgenjs
+yarn add @lofcz/pptxgenjs
 ```
 
 ### CDN (Browser Usage)
 
-Use the bundled or minified version via [jsDelivr](https://www.jsdelivr.com/package/npm/@neo-ma/pptxgenjs):
+Use the bundled or minified version via [jsDelivr](https://www.jsdelivr.com/package/npm/@lofcz/pptxgenjs):
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@neo-ma/pptxgenjs@4/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@lofcz/pptxgenjs@4/dist/pptxgen.bundle.js"></script>
 ```
 
 > Includes the sole dependency (JSZip) in one file.
@@ -43,11 +43,11 @@ Every release attaches the built bundles as release assets, so no build toolchai
 - `pptxgen.cjs.js` / `pptxgen.es.js` - CommonJS and ES module builds
 
 ```bash
-curl -LO https://github.com/NeomaVerwaltung/PptxGenJS/releases/latest/download/pptxgen.bundle.js
+curl -LO https://github.com/lofcz/PptxGenJS/releases/latest/download/pptxgen.bundle.js
 ```
 
 Building from a git checkout also works: `npm ci` runs the build via the `prepare` script.
 
 ## Source Code and Examples
 
-Download from GitHub: [Latest Release](https://github.com/NeomaVerwaltung/PptxGenJS/releases/latest)
+Download from GitHub: [Latest Release](https://github.com/lofcz/PptxGenJS/releases/latest)

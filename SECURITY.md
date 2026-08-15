@@ -14,11 +14,11 @@ versions are not maintained.
 
 Do not open a public issue for security problems.
 
-Report vulnerabilities privately via GitHub's [security advisory form](https://github.com/NeomaVerwaltung/PptxGenJS/security/advisories/new).
+Report vulnerabilities privately via GitHub's [security advisory form](https://github.com/lofcz/PptxGenJS/security/advisories/new).
 Include a description, the affected version, and a reproduction if possible.
 
-NEOMA aims to acknowledge reports within 5 business days and treats fixes or
-mitigations for confirmed high-severity issues as a priority.
+Reports are acknowledged as quickly as possible. Fixes or mitigations for
+confirmed high-severity issues are treated as a priority.
 
 ## Scope
 

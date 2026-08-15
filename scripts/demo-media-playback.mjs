@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
-import PptxGenJS from '../src/bld/pptxgen.es.js'
+import PptxGenJS from '../dist/pptxgen.es.js'
 const { JSZip } = createRequire(import.meta.url)('@node-projects/jszip')
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')

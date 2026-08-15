@@ -2,9 +2,9 @@
 
 ## Repository targeting
 
-This checkout is the NEOMA-maintained fork: open pull requests against `NeomaVerwaltung/PptxGenJS` (`origin`), not the original `gitbrent/PptxGenJS` (`upstream`). Verify the remotes before GitHub issue or PR work.
+This checkout is the `@lofcz/pptxgenjs` fork maintained by Matěj Lofcz Štágl: open pull requests against `lofcz/PptxGenJS` (`origin`), not the original `gitbrent/PptxGenJS` (`upstream`). Verify the remotes before GitHub issue or PR work.
 
-After creating a pull request, run `gh pr view <number> --repo NeomaVerwaltung/PptxGenJS --json url,state,baseRefName,headRefName,title` and verify the target is `master` and the head is the intended branch before reporting it.
+After creating a pull request, run `gh pr view <number> --repo lofcz/PptxGenJS --json url,state,baseRefName,headRefName,title` and verify the target is `master` and the head is the intended branch before reporting it.
 
 ## OOXML specification
 
