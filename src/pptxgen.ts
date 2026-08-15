@@ -75,6 +75,7 @@ import {
 	SCHEME_COLOR_NAMES,
 	ANCHOR,
 	SHAPE_TYPE,
+	SLIDE_OBJECT_TYPES,
 	SchemeColor,
 	ShapeType,
 	WRITE_OUTPUT_TYPE,
@@ -449,6 +450,12 @@ export default class PptxGenJS implements IPresentationProps {
 			addZoom: notOnMaster,
 			addSectionZoom: notOnMaster,
 			addSummaryZoom: notOnMaster,
+			addContentPart: notOnMaster,
+			addInk: notOnMaster,
+			addOfficeApp: notOnMaster,
+			addContentPart: notOnMaster,
+			addInk: notOnMaster,
+			addOfficeApp: notOnMaster,
 			//
 			_name: '',
 			_presLayout: this._presLayout,
@@ -634,6 +641,10 @@ export default class PptxGenJS implements IPresentationProps {
 				zip.file(`ppt/notesSlides/_rels/notesSlide${idx + 1}.xml.rels`, genXml.makeXmlNotesSlideRel(idx + 1))
 				if ((slide.comments ?? []).length > 0)
 					zip.file(`ppt/comments/commentSlide${idx + 1}.xml`, genComments.makeXmlSlideComments(slide, commentAuthors))
+				for (const rel of slide._rels) {
+					if (rel.type !== SLIDE_OBJECT_TYPES.contentPart && rel.type !== SLIDE_OBJECT_TYPES.officeApp) continue
+					zip.file(rel.Target.replace(/^\.\.\//, 'ppt/'), typeof rel.data === 'string' ? rel.data : '')
+				}
 			})
 			zip.file('ppt/slideMasters/slideMaster1.xml', genXml.makeXmlMaster(this.masterSlide, this.slideLayouts))
 			zip.file('ppt/slideMasters/_rels/slideMaster1.xml.rels', genXml.makeXmlMasterRel(this.masterSlide, this.slideLayouts))

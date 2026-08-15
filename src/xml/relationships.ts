@@ -2,8 +2,9 @@
  * Relationship-part rendering.
  */
 
-import { CRLF } from '../core-enums'
+import { CRLF, SLIDE_OBJECT_TYPES } from '../core-enums'
 import { ISlideRel, ISlideRelChart, ISlideRelMedia, PresSlide, SlideLayout } from '../core-interfaces'
+import { REL_TYPE_CUSTOM_XML, REL_TYPE_WEBEXTENSION } from './content-parts'
 
 /**
  * Transforms slide relations to XML string.
@@ -28,6 +29,10 @@ function slideObjectRelationsToXml (slide: PresSlide | SlideLayout, defaultRels:
 			}
 		} else if (rel.type.toLowerCase().includes('notesSlide')) {
 			strXml += `<Relationship Id="rId${rel.rId}" Target="${rel.Target}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"/>`
+		} else if (rel.type === SLIDE_OBJECT_TYPES.contentPart) {
+			strXml += `<Relationship Id="rId${rel.rId}" Type="${REL_TYPE_CUSTOM_XML}" Target="${rel.Target}"/>`
+		} else if (rel.type === SLIDE_OBJECT_TYPES.officeApp) {
+			strXml += `<Relationship Id="rId${rel.rId}" Type="${REL_TYPE_WEBEXTENSION}" Target="${rel.Target}"/>`
 		}
 	})
 	; (slide._relsChart || []).forEach((rel: ISlideRelChart) => {

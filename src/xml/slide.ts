@@ -40,6 +40,7 @@ import {
 	resolveGlowOptions,
 	valToPts,
 } from '../gen-utils'
+import { genXmlContentPartAlternate, genXmlOfficeAppAlternate } from './content-parts'
 import { genXmlPlaceholder, genXmlTextBody, textRunsHaveOmml } from './text'
 
 const ImageSizingXml = {
@@ -1006,6 +1007,43 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += `<p:spPr>${zGeom}</p:spPr></p:pic></mc:Fallback>`
 				}
 				strSlideXml += '</mc:AlternateContent>'
+				break
+			}
+
+			case SLIDE_OBJECT_TYPES.contentPart: {
+				// MS-PPTX §2.2.3 / §2.2.3.1: mc:AlternateContent { Choice contentPart | Fallback sp|pic }.
+				const cpKind = slideItemObj.contentPartKind === 'ink' ? 'ink' : 'content'
+				strSlideXml += genXmlContentPartAlternate({
+					kind: cpKind,
+					rId: slideItemObj.contentPartRid ?? 0,
+					shapeId,
+					name: slideItemObj.options.objectName || (cpKind === 'ink' ? 'Ink 1' : 'Content Part 1'),
+					altText: slideItemObj.options.altText || '',
+					x,
+					y,
+					cx,
+					cy,
+					locationAttr,
+					bwMode: slideItemObj.contentPartBwMode,
+					coverRid: slideItemObj.coverRid,
+				})
+				break
+			}
+
+			case SLIDE_OBJECT_TYPES.officeApp: {
+				// MS-PPTX §2.2.13: mc:AlternateContent { Choice we:webextensionref | Fallback pic }.
+				strSlideXml += genXmlOfficeAppAlternate({
+					rId: slideItemObj.contentPartRid ?? 0,
+					shapeId,
+					name: slideItemObj.options.objectName || 'Office App 1',
+					altText: slideItemObj.options.altText || '',
+					x,
+					y,
+					cx,
+					cy,
+					locationAttr,
+					coverRid: slideItemObj.coverRid ?? 0,
+				})
 				break
 			}
 

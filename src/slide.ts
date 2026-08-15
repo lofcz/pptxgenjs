@@ -7,7 +7,10 @@ import {
 	AddSlideProps,
 	BackgroundProps,
 	CommentProps,
+	ContentPartProps,
 	HexColor,
+	InkProps,
+	OfficeAppProps,
 	IChartMulti,
 	IChartOpts,
 	IOptsChartData,
@@ -268,6 +271,39 @@ export default class Slide {
 	 */
 	addSummaryZoom(options: SummaryZoomProps): Slide {
 		genObj.addSummaryZoomDefinition(this, options)
+		return this
+	}
+
+	/**
+	 * Embed a content part (MS-PPTX §2.2.3). Opt-in; `sp` fallback.
+	 * @param {ContentPartProps} options - content-part options
+	 * @example slide.addContentPart({ data: '<payload/>', x: 1, y: 1, w: 2, h: 1 })
+	 * @return {Slide} this Slide
+	 */
+	addContentPart(options: ContentPartProps): Slide {
+		genObj.addContentPartDefinition(this, cloneOpts(options))
+		return this
+	}
+
+	/**
+	 * Embed ink as a content part (MS-PPTX §2.2.3.1). Opt-in; `pic` fallback.
+	 * @param {InkProps} options - ink options
+	 * @example slide.addInk({ data: inkMl, cover: 'data:image/png;base64,...', x: 1, y: 1, w: 2, h: 1 })
+	 * @return {Slide} this Slide
+	 */
+	addInk(options: InkProps): Slide {
+		genObj.addInkDefinition(this, cloneOpts(options))
+		return this
+	}
+
+	/**
+	 * Reference an Office App (MS-PPTX §2.2.13 / MS-OWEXML webextensionref). Opt-in; `pic` fallback.
+	 * @param {OfficeAppProps} options - Office App options
+	 * @example slide.addOfficeApp({ reference: { id: 'WA00000', version: '1.0.0.0', storeType: 'OMEX' }, x: 1, y: 1, w: 3, h: 2 })
+	 * @return {Slide} this Slide
+	 */
+	addOfficeApp(options: OfficeAppProps): Slide {
+		genObj.addOfficeAppDefinition(this, cloneOpts(options))
 		return this
 	}
 
