@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/79](https://github.com/NeomaVerwaltung/PptxGenJS/issues/79)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,8 +10,8 @@ Mark repeated table headers with firstRow semantics and preserve rowspan column 
 
 ## Cited lofcz commits (already in this repo)
 
-- `5ceee89` — fix: mark firstRow when autoPageRepeatHeader (Issue #1299) — https://github.com/lofcz/PptxGenJS/commit/5ceee89
-- `5d4a9ba` — fixed issue 1231 — https://github.com/lofcz/PptxGenJS/commit/5d4a9ba
+- `5ceee89` — fix: mark firstRow when autoPageRepeatHeader (Issue #1299) — https://github.com/lofcz/pptxgenjs-plus/commit/5ceee89
+- `5d4a9ba` — fixed issue 1231 — https://github.com/lofcz/pptxgenjs-plus/commit/5d4a9ba
 
 ## Sourced documents (local markdown / extracts)
 

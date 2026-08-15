@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/76](https://github.com/NeomaVerwaltung/PptxGenJS/issues/76)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,7 +10,7 @@ Ensure every generated /ppt/slides/slideN.xml is declared as a PresentationML sl
 
 ## Cited lofcz commits (already in this repo)
 
-- `ce476c0` — fix: restore slide Overrides in [Content_Types].xml — https://github.com/lofcz/PptxGenJS/commit/ce476c0
+- `ce476c0` — fix: restore slide Overrides in [Content_Types].xml — https://github.com/lofcz/pptxgenjs-plus/commit/ce476c0
 
 ## Sourced documents (local markdown / extracts)
 

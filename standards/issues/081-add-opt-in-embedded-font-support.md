@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/81](https://github.com/NeomaVerwaltung/PptxGenJS/issues/81)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,8 +10,8 @@ Evaluate font embedding as an opt-in feature with explicit third-party-license p
 
 ## Cited lofcz commits (already in this repo)
 
-- `3c611bd` — Update gen-fonts.ts — https://github.com/lofcz/PptxGenJS/commit/3c611bd
-- `4dbc4df` — fonts — https://github.com/lofcz/PptxGenJS/commit/4dbc4df
+- `3c611bd` — Update gen-fonts.ts — https://github.com/lofcz/pptxgenjs-plus/commit/3c611bd
+- `4dbc4df` — fonts — https://github.com/lofcz/pptxgenjs-plus/commit/4dbc4df
 
 ## Sourced documents (local markdown / extracts)
 

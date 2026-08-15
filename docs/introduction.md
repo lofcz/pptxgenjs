@@ -4,8 +4,8 @@ title: Introduction
 
 ![PptxGenJS Sample Slides](./assets/readme_banner.png)
 
-![GitHub Repo stars](https://img.shields.io/github/stars/lofcz/PptxGenJS?style=flat-square)
-![GitHub License](https://img.shields.io/github/license/lofcz/PptxGenJS?style=flat-square)
+![GitHub Repo stars](https://img.shields.io/github/stars/lofcz/pptxgenjs-plus?style=flat-square)
+![GitHub License](https://img.shields.io/github/license/lofcz/pptxgenjs-plus?style=flat-square)
 
 **PptxGenJS generates PowerPoint (`.pptx`) files from JavaScript** — in Node, the browser, and every
 common framework. This is `pptxgenjs-plus`, maintained by Matěj Lofcz Štágl, with a modern build and typed API.
@@ -70,10 +70,10 @@ LibreOffice Impress, and Google Slides (via import).
 
 ## Issues and contributing
 
-File issues or ideas on the [issues page](https://github.com/lofcz/PptxGenJS/issues/new), or
-[open a pull request](https://github.com/lofcz/PptxGenJS/pulls). When reporting a problem, include
+File issues or ideas on the [issues page](https://github.com/lofcz/pptxgenjs-plus/issues/new), or
+[open a pull request](https://github.com/lofcz/pptxgenjs-plus/pulls). When reporting a problem, include
 a short code snippet that reproduces it. Documentation lives in-repo under
-[`docs/`](https://github.com/lofcz/PptxGenJS/tree/master/docs) — the "Edit this page" link on any
+[`docs/`](https://github.com/lofcz/pptxgenjs-plus/tree/master/docs) — the "Edit this page" link on any
 page leads directly to its source file.
 
 ## Contributors
@@ -94,4 +94,4 @@ PowerPoint shape definitions and some XML via the [Officegen Project](https://gi
 
 Copyright &copy; 2015-present [Brent Ely](https://github.com/gitbrent/), &copy; 2026-present [Matěj Lofcz Štágl](https://github.com/lofcz)
 
-[MIT](https://github.com/lofcz/PptxGenJS/blob/master/LICENSE)
+[MIT](https://github.com/lofcz/pptxgenjs-plus/blob/master/LICENSE)

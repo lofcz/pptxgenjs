@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/77](https://github.com/NeomaVerwaltung/PptxGenJS/issues/77)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,8 +10,8 @@ Define a small additive typed API for Office Math Markup Language runs. Emit val
 
 ## Cited lofcz commits (already in this repo)
 
-- `c09ee49` — omml — https://github.com/lofcz/PptxGenJS/commit/c09ee49
-- `30ab241` — math — https://github.com/lofcz/PptxGenJS/commit/30ab241
+- `c09ee49` — omml — https://github.com/lofcz/pptxgenjs-plus/commit/c09ee49
+- `30ab241` — math — https://github.com/lofcz/pptxgenjs-plus/commit/30ab241
 
 ## Sourced documents (local markdown / extracts)
 

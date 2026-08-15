@@ -18,5 +18,5 @@ PptxGenJS runs in **modern web and Node environments**. Dual ESM and CJS builds 
 
 ### Builds Provided
 
-- **CommonJS**: [`dist/pptxgen.cjs.js`](https://github.com/lofcz/PptxGenJS/blob/master/dist/pptxgen.cjs.js)
-- **ES Module**: [`dist/pptxgen.es.js`](https://github.com/lofcz/PptxGenJS/blob/master/dist/pptxgen.es.js)
+- **CommonJS**: [`dist/pptxgen.cjs.js`](https://github.com/lofcz/pptxgenjs-plus/blob/master/dist/pptxgen.cjs.js)
+- **ES Module**: [`dist/pptxgen.es.js`](https://github.com/lofcz/pptxgenjs-plus/blob/master/dist/pptxgen.es.js)

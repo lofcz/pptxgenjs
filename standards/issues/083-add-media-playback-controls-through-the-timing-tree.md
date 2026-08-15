@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/83](https://github.com/NeomaVerwaltung/PptxGenJS/issues/83)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,7 +10,7 @@ Add additive autoplay, loop, fullscreen, and mute media options. Specify default
 
 ## Cited lofcz commits (already in this repo)
 
-- `6009328` — feat: add media autoplay/loop/fullScreen/mute via timing tree — https://github.com/lofcz/PptxGenJS/commit/6009328
+- `6009328` — feat: add media autoplay/loop/fullScreen/mute via timing tree — https://github.com/lofcz/pptxgenjs-plus/commit/6009328
 
 ## Sourced documents (local markdown / extracts)
 

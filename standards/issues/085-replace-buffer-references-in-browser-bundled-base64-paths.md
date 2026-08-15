@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/85](https://github.com/NeomaVerwaltung/PptxGenJS/issues/85)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,7 +10,7 @@ Remove Buffer identifiers from shared browser-bundled paths to avoid Vite buffer
 
 ## Cited lofcz commits (already in this repo)
 
-- `cc47ba5` — fix: replace Buffer with portable base64 helpers — https://github.com/lofcz/PptxGenJS/commit/cc47ba5
+- `cc47ba5` — fix: replace Buffer with portable base64 helpers — https://github.com/lofcz/pptxgenjs-plus/commit/cc47ba5
 
 ## Agent notes
 

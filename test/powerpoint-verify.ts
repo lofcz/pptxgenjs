@@ -78,29 +78,14 @@ async function verifyPptxWithPowerPointLocked (
 ): Promise<PowerPointVerifyResult[]> {
 	const exe = await ensurePowerPointSidecar()
 	const paths = (Array.isArray(files) ? files : [files]).map(file => file)
-	const args = [`--timeout-ms`, String(options.timeoutMs ?? 25_000), ...paths]
+	const args = ['--timeout-ms', String(options.timeoutMs ?? 25_000), ...paths]
 	const timeout = (options.timeoutMs ?? 25_000) * paths.length + 20_000
-	await killStrayPowerPoint()
 	try {
-		const first = await runSidecar(exe, args, timeout)
-		if (first.some(result => isTransientOfficeError(result.error))) {
-			await killStrayPowerPoint()
-			return await runSidecar(exe, args, timeout)
-		}
-		return first
+		return await runSidecar(exe, args, timeout)
 	} catch (err) {
-		const text = err instanceof Error ? err.message : String(err)
-		if (/already running|0x800706BA|RPC server/i.test(text)) {
-			await killStrayPowerPoint()
-			return await runSidecar(exe, args, timeout)
-		}
 		await killStrayPowerPoint()
 		throw err
 	}
-}
-
-function isTransientOfficeError (error: string | null | undefined): boolean {
-	return Boolean(error && /0x800706BA|0x800706BE|RPC server/i.test(error))
 }
 
 async function runSidecar (exe: string, args: string[], timeout: number): Promise<PowerPointVerifyResult[]> {

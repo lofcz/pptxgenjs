@@ -5,7 +5,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { isPowerPointSidecarAvailable } from './powerpoint-verify'
-import { isPowerPointResult, verifyPptxFiles } from './pptx-verify'
+import { isPowerPointResult, verifyPptx } from './pptx-verify'
 import { buildRepairFixtures, fixturePath, REPAIR_FIXTURES } from './repair-fixtures'
 
 const available = isPowerPointSidecarAvailable()
@@ -13,24 +13,19 @@ const run = available ? test : test.skip
 
 run('powerpoint: repair fixtures match expected Office verdicts', async () => {
 	await buildRepairFixtures()
-	const paths = REPAIR_FIXTURES.map(fixture => fixturePath(fixture.id))
-	const reports = await verifyPptxFiles(paths, { powerpoint: true, timeoutMs: 30_000 })
-	assert.equal(reports.length, REPAIR_FIXTURES.length)
-
 	const mismatches: string[] = []
-	for (const [index, fixture] of REPAIR_FIXTURES.entries()) {
-		const report = reports[index]
+	for (const fixture of REPAIR_FIXTURES) {
+		const report = await verifyPptx(fixturePath(fixture.id), { powerpoint: true, timeoutMs: 30_000 })
+		if (fixture.expect === 'ok') {
+			assert.equal(report.ok, true, `${fixture.id} should be a clean package: ${JSON.stringify(report.issues)}`)
+		}
 		assert.ok(isPowerPointResult(report.powerpoint), `${fixture.id}: missing PowerPoint result`)
-		const verdict = report.powerpoint.verdict
-		if (verdict !== fixture.expect) {
+		if (report.powerpoint.verdict !== fixture.expect) {
 			mismatches.push(
-				`${fixture.id}: expected ${fixture.expect}, got ${verdict}`
+				`${fixture.id}: expected ${fixture.expect}, got ${report.powerpoint.verdict}`
 				+ (report.powerpoint.repairSummary ? ` (${report.powerpoint.repairSummary})` : '')
 				+ (report.powerpoint.error ? ` error=${report.powerpoint.error}` : ''),
 			)
-		}
-		if (fixture.expect === 'ok') {
-			assert.equal(report.ok, true, `${fixture.id} should be a clean package: ${JSON.stringify(report.issues)}`)
 		}
 	}
 	assert.equal(mismatches.length, 0, mismatches.join('\n'))

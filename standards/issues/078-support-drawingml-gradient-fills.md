@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/78](https://github.com/NeomaVerwaltung/PptxGenJS/issues/78)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,7 +10,7 @@ Add validated gradient fill stops and color transforms without regressing solid,
 
 ## Cited lofcz commits (already in this repo)
 
-- `18b233c` — expand gradient fill support and demo coverage — https://github.com/lofcz/PptxGenJS/commit/18b233c
+- `18b233c` — expand gradient fill support and demo coverage — https://github.com/lofcz/pptxgenjs-plus/commit/18b233c
 
 ## Sourced documents (local markdown / extracts)
 

@@ -12,7 +12,7 @@
 		}
 	],
 	"description": "Create JavaScript PowerPoint Presentations",
-	"homepage": "https://github.com/lofcz/PptxGenJS#readme",
+	"homepage": "https://github.com/lofcz/pptxgenjs-plus#readme",
 	"publishConfig": {
 		"access": "public"
 	},
@@ -34,14 +34,14 @@
 		"node": ">=24"
 	},
 	"scripts": {
-		"build": "rslib build -c rsbuild.config.ts && bun run build:types",
+		"build": "rslib build -c rsbuild.config.mts && bun run build:types",
 		"build:types": "bun scripts/gen-types-namespace.mjs",
 		"generate:version": "bun scripts/package-version.mjs",
 		"dist": "bun run build",
 		"prepare": "bun run build",
-		"start": "rslib build -c rsbuild.config.ts --watch",
+		"start": "rslib build -c rsbuild.config.mts --watch",
 		"ship": "bun run build",
-		"watch": "rslib build -c rsbuild.config.ts --watch",
+		"watch": "rslib build -c rsbuild.config.mts --watch",
 		"docs:dev": "rspress dev",
 		"docs:build": "rspress build",
 		"docs:preview": "rspress preview",
@@ -83,7 +83,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/lofcz/PptxGenJS.git"
+		"url": "git+https://github.com/lofcz/pptxgenjs-plus.git"
 	},
 	"keywords": [
 		"es6-powerpoint",
@@ -108,6 +108,6 @@
 		"typescript-powerpoint"
 	],
 	"bugs": {
-		"url": "https://github.com/lofcz/PptxGenJS/issues"
+		"url": "https://github.com/lofcz/pptxgenjs-plus/issues"
 	}
 }

@@ -28,7 +28,7 @@ bun publish --access public
 ### Add trust for `pptxgenjs-plus`
 
 ```bash
-npm trust github pptxgenjs-plus --file=release.yml --repository=lofcz/PptxGenJS --allow-publish -y
+npm trust github pptxgenjs-plus --file=release.yml --repository=lofcz/pptxgenjs-plus --allow-publish -y
 ```
 
 Confirm:
@@ -40,7 +40,7 @@ npm trust list pptxgenjs-plus
 No `NPM_TOKEN` secret is needed after that. The GitHub Actions workflow uses OIDC with `id-token: write` and publishes with provenance.
 
 - Package: `pptxgenjs-plus`
-- Repository owner/name: `lofcz/PptxGenJS`
+- Repository owner/name: `lofcz/pptxgenjs-plus`
 - Workflow filename: `release.yml`
 - Environment: leave empty unless the repository later adds a protected environment
 

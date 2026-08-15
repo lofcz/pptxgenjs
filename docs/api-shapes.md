@@ -2,7 +2,7 @@
 title: Shapes
 ---
 
-Almost 200 shape types can be added to Slides (see [`ShapeType`](https://github.com/lofcz/PptxGenJS/blob/master/types/index.d.ts) enum).
+Almost 200 shape types can be added to Slides (see [`ShapeType`](https://github.com/lofcz/pptxgenjs-plus/blob/master/types/index.d.ts) enum).
 
 ## Usage
 

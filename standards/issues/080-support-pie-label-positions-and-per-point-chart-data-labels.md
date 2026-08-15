@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/80](https://github.com/NeomaVerwaltung/PptxGenJS/issues/80)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,8 +10,8 @@ Complete chart-label compatibility: pie data-label positions and additive per-po
 
 ## Cited lofcz commits (already in this repo)
 
-- `ad63cdc` — fix: honor dataLabelPosition for pie charts (outEnd) — https://github.com/lofcz/PptxGenJS/commit/ad63cdc
-- `6c0eec6` — feat: per-point custom chart dataLabels (from yukosgiti, selective) — https://github.com/lofcz/PptxGenJS/commit/6c0eec6
+- `ad63cdc` — fix: honor dataLabelPosition for pie charts (outEnd) — https://github.com/lofcz/pptxgenjs-plus/commit/ad63cdc
+- `6c0eec6` — feat: per-point custom chart dataLabels (from yukosgiti, selective) — https://github.com/lofcz/pptxgenjs-plus/commit/6c0eec6
 
 ## Sourced documents (local markdown / extracts)
 

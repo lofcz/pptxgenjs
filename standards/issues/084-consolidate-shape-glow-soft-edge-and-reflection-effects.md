@@ -2,7 +2,7 @@
 
 Source: [https://github.com/NeomaVerwaltung/PptxGenJS/issues/84](https://github.com/NeomaVerwaltung/PptxGenJS/issues/84)
 State: OPEN on NeomaVerwaltung/PptxGenJS
-Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.
+Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.
 
 ## Ask
 
@@ -10,7 +10,7 @@ Serialize a single valid a:effectLst when multiple effects are configured, prese
 
 ## Cited lofcz commits (already in this repo)
 
-- `eaa14f2` — feat: merge glow, softEdge, and reflection into shape effectLst — https://github.com/lofcz/PptxGenJS/commit/eaa14f2
+- `eaa14f2` — feat: merge glow, softEdge, and reflection into shape effectLst — https://github.com/lofcz/pptxgenjs-plus/commit/eaa14f2
 
 ## Sourced documents (local markdown / extracts)
 

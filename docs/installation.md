@@ -43,11 +43,11 @@ Every release attaches the built bundles as release assets, so no build toolchai
 - `pptxgen.cjs.js` / `pptxgen.es.js` - CommonJS and ES module builds
 
 ```bash
-curl -LO https://github.com/lofcz/PptxGenJS/releases/latest/download/pptxgen.bundle.js
+curl -LO https://github.com/lofcz/pptxgenjs-plus/releases/latest/download/pptxgen.bundle.js
 ```
 
 Building from a git checkout also works: `bun ci` runs the build via the `prepare` script.
 
 ## Source Code and Examples
 
-Download from GitHub: [Latest Release](https://github.com/lofcz/PptxGenJS/releases/latest)
+Download from GitHub: [Latest Release](https://github.com/lofcz/pptxgenjs-plus/releases/latest)

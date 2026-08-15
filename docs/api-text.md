@@ -159,7 +159,7 @@ slide.addText(
     [
         {
             text: "PptxGenJS Project",
-            options: { hyperlink: { url: "https://github.com/lofcz/PptxGenJS", tooltip: "Visit Homepage" } },
+            options: { hyperlink: { url: "https://github.com/lofcz/pptxgenjs-plus", tooltip: "Visit Homepage" } },
         },
     ],
     { x: 1.0, y: 1.0, w: 5, h: 1 }

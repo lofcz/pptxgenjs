@@ -1,7 +1,7 @@
 /**
- * Builds small PPTX files that PowerPoint should offer to repair.
- * Mutations come from documented repair triggers in this repo (cNvPr, empty cells,
- * missing content types, NaN attrs, stripped txBody / effectLst).
+ * Builds small PPTX files that PowerPoint has been observed to offer to repair.
+ * Only mutations that produced a Repair dialog on a real Office 16 sidecar run
+ * stay in the set; silent-ok and COM-crash cases were dropped.
  */
 import { mkdir, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
@@ -14,7 +14,6 @@ export type RepairExpect = 'ok' | 'repair' | 'reject'
 export type RepairFixture = {
 	id: string
 	title: string
-	/** What Office has been observed to do. Updated after a sidecar classify run. */
 	expect: RepairExpect
 	mutate?: (zip: JSZip) => Promise<void>
 }
@@ -45,24 +44,10 @@ export const REPAIR_FIXTURES: RepairFixture[] = [
 	},
 	{
 		id: 'invalid-cnvid',
-		title: 'Non-numeric p:cNvPr@id (MS-PPT repair)',
+		title: 'Non-numeric p:cNvPr@id',
 		expect: 'repair',
 		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
 			mustReplace(xml, '<p:cNvPr id="2"', '<p:cNvPr id="abc"', 'invalid-cnvid')),
-	},
-	{
-		id: 'duplicate-cnvid',
-		title: 'Two drawing objects share the same cNvPr id',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
-			mustReplace(xml, '<p:cNvPr id="3"', '<p:cNvPr id="2"', 'duplicate-cnvid')),
-	},
-	{
-		id: 'missing-txbody',
-		title: 'Shape with no p:txBody (OOXML requires it)',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
-			mustReplace(xml, /<p:txBody>[\s\S]*?<\/p:txBody>/, '', 'missing-txbody')),
 	},
 	{
 		id: 'empty-txbody',
@@ -72,8 +57,36 @@ export const REPAIR_FIXTURES: RepairFixture[] = [
 			mustReplace(xml, /<p:txBody>[\s\S]*?<\/p:txBody>/, '<p:txBody/>', 'empty-txbody')),
 	},
 	{
+		id: 'nan-cell-margin',
+		title: 'Table cell marL="NaN"',
+		expect: 'repair',
+		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
+			mustReplace(xml, /marL="\d+"/, 'marL="NaN"', 'nan-cell-margin')),
+	},
+	{
+		id: 'nan-shape-cx',
+		title: 'Shape a:ext cx="NaN"',
+		expect: 'repair',
+		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
+			mustReplace(xml, /<a:ext cx="\d+" cy="\d+"\/>/, '<a:ext cx="NaN" cy="914400"/>', 'nan-shape-cx')),
+	},
+	{
+		id: 'empty-cnvid',
+		title: 'Empty p:cNvPr@id',
+		expect: 'repair',
+		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
+			mustReplace(xml, '<p:cNvPr id="2"', '<p:cNvPr id=""', 'empty-cnvid')),
+	},
+	{
+		id: 'invalid-preset',
+		title: 'Unknown a:prstGeom@prst',
+		expect: 'repair',
+		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
+			mustReplace(xml, 'prst="rect"', 'prst="notashape"', 'invalid-preset')),
+	},
+	{
 		id: 'empty-table-cell',
-		title: 'Table cell with a txBody but no paragraphs',
+		title: 'Table cell txBody with no paragraphs',
 		expect: 'repair',
 		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
 			mustReplace(
@@ -82,102 +95,6 @@ export const REPAIR_FIXTURES: RepairFixture[] = [
 				'<a:tc><a:txBody><a:bodyPr/><a:lstStyle/></a:txBody>',
 				'empty-table-cell',
 			)),
-	},
-	{
-		id: 'missing-effectlst',
-		title: 'Solid slide background without a:effectLst',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
-			mustReplace(xml, '<a:effectLst/>', '', 'missing-effectlst')),
-	},
-	{
-		id: 'nan-cell-margin',
-		title: 'Table cell marL="NaN"',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
-			mustReplace(xml, /marL="\d+"/, 'marL="NaN"', 'nan-cell-margin')),
-	},
-	{
-		id: 'invalid-sldid',
-		title: 'p:sldId@id is not an unsigned int',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, 'ppt/presentation.xml', xml =>
-			mustReplace(xml, /<p:sldId id="\d+"/, '<p:sldId id="xyz"', 'invalid-sldid')),
-	},
-	{
-		id: 'missing-slide-override',
-		title: 'Slide part has no [Content_Types] Override',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, '[Content_Types].xml', xml =>
-			mustReplace(
-				xml,
-				/<Override PartName="\/ppt\/slides\/slide1\.xml"[^>]*\/>/,
-				'',
-				'missing-slide-override',
-			)),
-	},
-	{
-		id: 'phantom-slidemaster',
-		title: 'Content type Override for a slideMaster that does not exist',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, '[Content_Types].xml', xml =>
-			mustReplace(
-				xml,
-				'</Types>',
-				'<Override PartName="/ppt/slideMasters/slideMaster2.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/></Types>',
-				'phantom-slidemaster',
-			)),
-	},
-	{
-		id: 'dangling-media-rel',
-		title: 'Slide relationship points at a missing media part',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, 'ppt/slides/_rels/slide1.xml.rels', xml =>
-			mustReplace(
-				xml,
-				'</Relationships>',
-				'<Relationship Id="rId99" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/missing.png"/></Relationships>',
-				'dangling-media-rel',
-			)),
-	},
-	{
-		id: 'missing-notesmaster-override',
-		title: 'notesMaster part without a content-type Override',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, '[Content_Types].xml', xml =>
-			mustReplace(
-				xml,
-				/<Override PartName="\/ppt\/notesMasters\/notesMaster1\.xml"[^>]*\/>/,
-				'',
-				'missing-notesmaster-override',
-			)),
-	},
-	{
-		id: 'empty-ppr',
-		title: 'Empty a:pPr element (known repair / dropped runs)',
-		expect: 'repair',
-		mutate: zip => rewrite(zip, 'ppt/slides/slide1.xml', xml =>
-			mustReplace(xml, /<a:pPr\b[\s\S]*?<\/a:pPr>/, '<a:pPr></a:pPr>', 'empty-ppr')),
-	},
-	{
-		id: 'chart-bestfit-on-bar',
-		title: 'Pie-only dLbls bestFit on a bar chart',
-		expect: 'repair',
-		mutate: async zip => {
-			const charts = Object.keys(zip.files).filter(name => /^ppt\/charts\/chart\d+\.xml$/.test(name))
-			if (charts.length === 0) throw new Error('chart-bestfit-on-bar: no chart part')
-			await rewrite(zip, charts[0], xml => {
-				if (xml.includes('<c:dLbls>')) {
-					return mustReplace(xml, '<c:dLbls>', '<c:dLbls><c:showBestFit val="1"/>', 'chart-bestfit-on-bar')
-				}
-				return mustReplace(
-					xml,
-					'</c:ser>',
-					'<c:dLbls><c:showBestFit val="1"/><c:showVal val="1"/></c:dLbls></c:ser>',
-					'chart-bestfit-on-bar',
-				)
-			})
-		},
 	},
 ]
 

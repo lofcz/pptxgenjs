@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chart embedded workbooks keep per-series `dataTableFormatCode` styles on value cells, including zeros [\#1430](https://github.com/gitbrent/PptxGenJS/issues/1430)
 - Text `margin` arrays map as documented TRBL `[top, right, bottom, left]` onto ECMA-376 §5.1.5.1.1 `CT_TextBodyProperties` `tIns`/`rIns`/`bIns`/`lIns` (guiwoda/fix/text-margin-trbl; `lIns`/`tIns` were swapped under the old LRBT mapping)
 
-## [4.1.0](https://github.com/lofcz/PptxGenJS/releases/tag/v4.1.0) - 2026-08-13
+## [4.1.0](https://github.com/lofcz/pptxgenjs-plus/releases/tag/v4.1.0) - 2026-08-13
 
 ### Added
 

@@ -381,7 +381,7 @@ def write_issue(issue: dict) -> str:
 		'',
 		f'Source: [{url}]({url})',
 		'State: OPEN on NeomaVerwaltung/PptxGenJS',
-		'Target repo: this fork (`lofcz/PptxGenJS`). Do not impersonate NEOMA.',
+		'Target repo: this fork (`lofcz/pptxgenjs-plus`). Do not impersonate NEOMA.',
 		'',
 		'## Ask',
 		'',
@@ -391,7 +391,7 @@ def write_issue(issue: dict) -> str:
 	if issue['commits']:
 		lines += ['## Cited lofcz commits (already in this repo)', '']
 		for sha, msg in issue['commits']:
-			lines.append(f'- `{sha}` — {msg} — https://github.com/lofcz/PptxGenJS/commit/{sha}')
+			lines.append(f'- `{sha}` — {msg} — https://github.com/lofcz/pptxgenjs-plus/commit/{sha}')
 		lines.append('')
 	if issue['specs']:
 		lines += ['## Sourced documents (local markdown / extracts)', '']

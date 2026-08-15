@@ -99,7 +99,7 @@ The fork keeps the same version line and API surface, and adds:
 - This **documentation site**, maintained in-repo so it tracks the code.
 
 There are no known breaking API changes relative to `pptxgenjs` 4.x. If you encounter a difference in
-behavior, [open an issue](https://github.com/lofcz/PptxGenJS/issues/new) with a short reproduction.
+behavior, [open an issue](https://github.com/lofcz/pptxgenjs-plus/issues/new) with a short reproduction.
 
 ## Rollback
 
