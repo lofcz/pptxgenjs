@@ -36,6 +36,12 @@ const SLIDE_RELATIONSHIP_SUFFIX = '/relationships/slide'
 /** ECMA-376 §15.2.12 Font Part — Office stores EOT as `application/x-fontdata` */
 const FONT_CONTENT_TYPE = 'application/x-fontdata'
 const FONT_RELATIONSHIP_SUFFIX = '/relationships/font'
+const REVISION_INFO_CONTENT_TYPE = 'application/vnd.ms-powerpoint.revisioninfo+xml'
+const CHANGES_INFO_CONTENT_TYPE = 'application/vnd.ms-powerpoint.changesinfo+xml'
+const REVISION_INFO_REL_TYPE = 'http://schemas.microsoft.com/office/2015/10/relationships/revisionInfo'
+const CHANGES_INFO_REL_TYPE = 'http://schemas.microsoft.com/office/2016/11/relationships/changesInfo'
+const REVISION_INFO_PART = 'ppt/revisionInfo.xml'
+const CHANGES_INFO_PART = 'ppt/changesInfo.xml'
 
 /** Read a generated OOXML part and fail with its package path when it is absent. */
 export async function readPart (zip: JSZip, name: string): Promise<string> {
@@ -242,9 +248,80 @@ async function assertPresentationSlideList (zip: JSZip): Promise<void> {
 	assert.deepEqual(orderedTargets, slideParts, 'generated p:sldIdLst order must match slide1..N parts')
 }
 
+function countOverrides (types: XmlObject, contentType: string): string[] {
+	const parts: string[] = []
+	for (const entry of asXmlObjects(types.Override)) {
+		if (entry['@_ContentType'] !== contentType) continue
+		const partName = entry['@_PartName']
+		assert.equal(typeof partName, 'string', `Override for ${contentType} missing PartName`)
+		if (typeof partName === 'string') parts.push(partName.replace(/^\//, ''))
+	}
+	return parts
+}
+
+/**
+ * MS-PPTX §2.1.2 / §2.1.4: zero-or-one Revision/Changes Information parts,
+ * implicit Internal relationship from the Presentation part, no outbound rels.
+ */
+export async function assertRevisionAndChangesInfoContracts (zip: JSZip): Promise<void> {
+	const contentTypes = parseXml(await readPart(zip, '[Content_Types].xml'), '[Content_Types].xml')
+	const types = contentTypes.Types
+	assert.ok(isXmlObject(types), 'missing Types root in [Content_Types].xml')
+
+	const revisionOverrides = countOverrides(types, REVISION_INFO_CONTENT_TYPE)
+	const changesOverrides = countOverrides(types, CHANGES_INFO_CONTENT_TYPE)
+	assert.ok(revisionOverrides.length <= 1, `MS-PPTX §2.1.2: at most one Revision Information part, found ${revisionOverrides.length}`)
+	assert.ok(changesOverrides.length <= 1, `MS-PPTX §2.1.4: at most one Changes Information part, found ${changesOverrides.length}`)
+
+	const packageParts = Object.keys(zip.files).filter(name => !name.endsWith('/'))
+	const revisionParts = packageParts.filter(name => name === REVISION_INFO_PART || /revisioninfo/i.test(name) && name.endsWith('.xml') && !name.endsWith('.rels'))
+	const changesParts = packageParts.filter(name => name === CHANGES_INFO_PART || /changesinfo/i.test(name) && name.endsWith('.xml') && !name.endsWith('.rels'))
+	assert.ok(revisionParts.length <= 1, `MS-PPTX §2.1.2: at most one revisionInfo part, found ${revisionParts.join(', ')}`)
+	assert.ok(changesParts.length <= 1, `MS-PPTX §2.1.4: at most one changesInfo part, found ${changesParts.join(', ')}`)
+
+	const rels = relationshipsFromXml(await readPart(zip, 'ppt/_rels/presentation.xml.rels'), 'ppt/_rels/presentation.xml.rels')
+	const revisionRels = rels.filter(rel => rel.type === REVISION_INFO_REL_TYPE)
+	const changesRels = rels.filter(rel => rel.type === CHANGES_INFO_REL_TYPE)
+	assert.ok(revisionRels.length <= 1, `MS-PPTX §2.1.2: at most one revisionInfo relationship, found ${revisionRels.length}`)
+	assert.ok(changesRels.length <= 1, `MS-PPTX §2.1.4: at most one changesInfo relationship, found ${changesRels.length}`)
+
+	const assertInternalPresentationRel = (rel: Relationship | undefined, partName: string, label: string) => {
+		if (!rel) {
+			assert.ok(!zip.file(partName), `${label} part exists without a Presentation relationship`)
+			return
+		}
+		assert.notEqual(rel.targetMode, 'External', `MS-PPTX §2.1: ${label} TargetMode must be Internal`)
+		assert.ok(!rel.targetMode || rel.targetMode === 'Internal', `MS-PPTX §2.1: ${label} TargetMode must be Internal, got ${rel.targetMode}`)
+		const target = resolveTarget('ppt/presentation.xml', rel.target)
+		assert.equal(target, partName, `${label} relationship must target ${partName}, got ${target}`)
+		assert.ok(zip.file(target), `${label} relationship target missing: ${target}`)
+		assert.ok(!zip.file(`${posix.dirname(partName)}/_rels/${posix.basename(partName)}.rels`), `MS-PPTX §2.1: ${label} part MUST NOT have relationships to other parts`)
+	}
+
+	assertInternalPresentationRel(revisionRels[0], REVISION_INFO_PART, 'Revision Information')
+	assertInternalPresentationRel(changesRels[0], CHANGES_INFO_PART, 'Changes Information')
+
+	if (revisionRels[0]) {
+		assert.deepEqual(revisionOverrides, [REVISION_INFO_PART], 'revisionInfo content type Override must match the part')
+		const xml = await readPart(zip, REVISION_INFO_PART)
+		assert.match(xml, /<(?:[\w]+:)?revInfo[\s>]/, 'Revision Information root MUST be revInfo (§2.7.1.1)')
+	} else {
+		assert.equal(revisionOverrides.length, 0, 'revisionInfo content type Override without a relationship')
+	}
+
+	if (changesRels[0]) {
+		assert.deepEqual(changesOverrides, [CHANGES_INFO_PART], 'changesInfo content type Override must match the part')
+		const xml = await readPart(zip, CHANGES_INFO_PART)
+		assert.match(xml, /<(?:[\w]+:)?chgInfo[\s/>]/, 'Changes Information root MUST be chgInfo (§2.12.1.1)')
+	} else {
+		assert.equal(changesOverrides.length, 0, 'changesInfo content type Override without a relationship')
+	}
+}
+
 export async function assertPptxPackageContracts (zip: JSZip): Promise<void> {
 	await assertOoxmlPackageContracts(zip, REQUIRED_PPTX_PARTS)
 	await assertPresentationSlideList(zip)
+	await assertRevisionAndChangesInfoContracts(zip)
 }
 
 export async function assertXlsxPackageContracts (zip: JSZip): Promise<void> {

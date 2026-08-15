@@ -76,6 +76,7 @@ export default class Slide {
 	public comments?: CommentProps[]
 	public laserTraces?: LaserTracePoint[][]
 	public showEvents?: SlideShowEvent[]
+	public creationId?: number
 
 	constructor(params: {
 		addSlide: (options?: AddSlideProps) => PresSlide

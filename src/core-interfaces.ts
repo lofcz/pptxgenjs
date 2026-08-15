@@ -917,6 +917,12 @@ export interface ObjectNameProps {
 	 * @example 20
 	 */
 	sId?: number
+	/**
+	 * Shape modification identifier (MS-PPTX §2.3.1.19 `p14:modId` on `nvPr`).
+	 * Updated each time the shape is modified; MUST be unique on the slide.
+	 * Opt-in — omitted unless set. @example 1579011935
+	 */
+	modId?: number
 }
 export interface ThemeProps {
 	/**
@@ -2743,6 +2749,11 @@ export interface PresSlide extends SlideBaseProps {
 	 */
 	addComment: (comment: CommentProps) => PresSlide
 	/**
+	 * Slide creation identifier (MS-PPTX §2.3.1.4 `p14:creationId` on `cSld`).
+	 * Opt-in — omitted unless set. @example 123456789
+	 */
+	creationId?: number
+	/**
 	 * Add a Slide Zoom object linking to another slide (MS-PPTX §2.10 `p16:sldZm`).
 	 * Rendered inside `mc:AlternateContent` with a `pic` fallback for older readers.
 	 * @example slide.addZoom({ slideNum: 3, x: 1, y: 4, w: 2, h: 1.13 })
@@ -2931,10 +2942,39 @@ export interface PresentationProps {
 	 * @example [{ name: 'Ada Lovelace', initials: 'AL' }]
 	 */
 	commentAuthors?: CommentAuthorProps[]
+	/**
+	 * Revision Information part (MS-PPTX §2.1.2 `revInfo`). Opt-in — omitted unless set.
+	 * `true` or `{}` emits an empty valid part; `clients` records collaborative revisions.
+	 * @example { clients: [{ id: 'app-1', v: 1, dt: '2024-08-15T00:00:00Z' }] }
+	 */
+	revisionInfo?: boolean | RevisionInfoProps
+	/**
+	 * Changes Information part (MS-PPTX §2.1.4 `chgInfo`). Opt-in — omitted unless set.
+	 * `true` or `{}` emits an empty valid part (zero-or-one cardinality).
+	 */
+	changesInfo?: boolean | ChangesInfoProps
 	subject: string
 	theme?: ThemeProps
 	title: string
 }
+/** One collaborating application instance in `revInfo` (MS-PPTX §2.7.3.1 `CT_ClientRevision`). */
+export interface RevisionClientProps {
+	/** Unique application-instance id (`ST_ClientID`). */
+	id: string
+	/** Latest revision saved by this instance (`ST_ClientRevisionNumber`). */
+	v?: number
+	/** Latest revision saved by another instance on this client's behalf. */
+	vWet?: number
+	/** Date/time of the later of `v` / `vWet` (`xsd:dateTime`). Defaults to now. */
+	dt?: string
+}
+/** Revision Information part payload (MS-PPTX §2.7.1.1 `revInfo`). */
+export interface RevisionInfoProps {
+	/** Collaborative client revisions (`revLst`). Omit for an empty `revInfo`. */
+	clients?: RevisionClientProps[]
+}
+/** Changes Information part payload (MS-PPTX §2.12.1.1 `chgInfo`). Empty object emits a valid empty part. */
+export type ChangesInfoProps = Record<string, never>
 /** A modern-comment author. MS-PPTX §2.16.3.1 `CT_Author`. */
 export interface CommentAuthorProps {
 	/** Author display name (required). */

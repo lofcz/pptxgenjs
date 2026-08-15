@@ -12,7 +12,7 @@ import { JSZip } from '@node-projects/jszip'
 import pptxgen from '../src/pptxgen'
 import { genTableToSlides } from '../src/gen-tables'
 import type { TextPropsOptions } from '../src/core-interfaces'
-import { assertEmbeddedFontContracts, assertPptxPackageContracts, assertSlideTimingStructure, assertSlideTransitionStructure } from './pptx-contracts'
+import { assertEmbeddedFontContracts, assertPptxPackageContracts, assertRevisionAndChangesInfoContracts, assertSlideTimingStructure, assertSlideTransitionStructure } from './pptx-contracts'
 
 /** 4x2 px PNG - non-square on purpose, so a 1x1 inch default is obvious */
 const PNG_4x2 = 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0AAAADklEQVR4nGP4jwQYkDkANvEX6SAXxcIAAAAASUVORK5CYII='
@@ -2270,4 +2270,59 @@ test('#89: slide laserTraceLst + showEvtLst emit URI + namespace', async () => {
 	assert.ok(slideXml.includes('<p14:playEvt time="12722" objId="4"/>'), 'playEvt')
 	assert.ok(slideXml.includes('<p14:seekEvt time="38839" objId="4" seek="10379"/>'), 'seekEvt')
 	assert.ok(slideXml.includes('<p14:stopEvt time="49628" objId="4"/>'), 'stopEvt')
+})
+
+test('#90: revision/changes parts are omitted unless opted in', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('plain', { x: 1, y: 1, w: 2, h: 1 })
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	assert.ok(!zip.file('ppt/revisionInfo.xml'), 'revisionInfo must not be emitted by default')
+	assert.ok(!zip.file('ppt/changesInfo.xml'), 'changesInfo must not be emitted by default')
+	const presRels = await readPart(zip, 'ppt/_rels/presentation.xml.rels')
+	assert.ok(!presRels.includes('revisionInfo'), 'revisionInfo rel must not be emitted by default')
+	assert.ok(!presRels.includes('changesInfo'), 'changesInfo rel must not be emitted by default')
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(!slideXml.includes('creationId'), 'creationId must not be emitted unless set')
+	assert.ok(!slideXml.includes('p14:modId'), 'shape modId must not be emitted unless set')
+})
+
+test('#90: opt-in revisionInfo + changesInfo emit one Internal presentation rel each', async () => {
+	const pptx = new pptxgen()
+	pptx.revisionInfo = { clients: [{ id: 'app-1', v: 3, vWet: 1, dt: '2024-08-15T12:00:00Z' }] }
+	pptx.changesInfo = true
+	const slide = pptx.addSlide()
+	slide.creationId = 123456789
+	slide.addText('tracked', { x: 1, y: 1, w: 2, h: 1, modId: 987654321 })
+	slide.addShape(pptx.ShapeType.rect, { x: 1, y: 2, w: 1, h: 1, fill: { color: 'FF0000' }, modId: 111 })
+
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	await assertRevisionAndChangesInfoContracts(zip)
+
+	const revXml = await readPart(zip, 'ppt/revisionInfo.xml')
+	const chgXml = await readPart(zip, 'ppt/changesInfo.xml')
+	const ctXml = await readPart(zip, '[Content_Types].xml')
+	const presRels = await readPart(zip, 'ppt/_rels/presentation.xml.rels')
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+
+	assert.match(revXml, /<(?:[\w]+:)?revInfo/, 'revInfo root missing')
+	assert.ok(revXml.includes('id="app-1"'), 'client id missing')
+	assert.ok(revXml.includes('v="3"') && revXml.includes('vWet="1"'), 'client revision numbers missing')
+	assert.ok(revXml.includes('dt="2024-08-15T12:00:00Z"'), 'client dt missing')
+	assert.match(chgXml, /<(?:[\w]+:)?chgInfo/, 'chgInfo root missing')
+
+	assert.equal([...ctXml.matchAll(/revisioninfo\+xml/g)].length, 1, 'revisionInfo content type must appear once')
+	assert.equal([...ctXml.matchAll(/changesinfo\+xml/g)].length, 1, 'changesInfo content type must appear once')
+	assert.equal([...presRels.matchAll(/relationships\/revisionInfo"/g)].length, 1, 'exactly one revisionInfo rel')
+	assert.equal([...presRels.matchAll(/relationships\/changesInfo"/g)].length, 1, 'exactly one changesInfo rel')
+	assert.ok(presRels.includes('Target="revisionInfo.xml" TargetMode="Internal"'), 'revisionInfo TargetMode must be Internal')
+	assert.ok(presRels.includes('Target="changesInfo.xml" TargetMode="Internal"'), 'changesInfo TargetMode must be Internal')
+	assert.ok(!zip.file('ppt/_rels/revisionInfo.xml.rels'), 'revisionInfo must not have outbound rels')
+	assert.ok(!zip.file('ppt/_rels/changesInfo.xml.rels'), 'changesInfo must not have outbound rels')
+
+	assert.ok(slideXml.includes('uri="{BB962C8B-B14F-4D97-AF65-F5344CB8AC3E}"'), 'creationId ext uri missing')
+	assert.ok(slideXml.includes('<p14:creationId') && slideXml.includes('val="123456789"'), 'creationId missing')
+	assert.ok(slideXml.includes('uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"'), 'modId ext uri missing')
+	assert.ok(slideXml.includes('val="987654321"') && slideXml.includes('val="111"'), 'shape modIds missing')
 })

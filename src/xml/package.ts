@@ -20,6 +20,18 @@ import { genXmlTransition } from '../gen-transition'
 import { createColorElement, encodeXmlEntities, getUuid, resolveThemeColors } from '../gen-utils'
 import { resolveZoomSections, slideObjectToXml } from './slide'
 import { A14_NS, MATH_NS, MC_NS, P14_NS, P1710_NS } from './text'
+import {
+	CHANGES_INFO_CONTENT_TYPE,
+	CHANGES_INFO_REL_TYPE,
+	REVISION_INFO_CONTENT_TYPE,
+	REVISION_INFO_REL_TYPE,
+} from '../gen-revision'
+
+/** Opt-in MS-PPTX presentation parts (zero-or-one each). */
+export type PresentationTrackingParts = {
+	revisionInfo?: boolean
+	changesInfo?: boolean
+}
 
 /** MS-PPTX §2.2.6 showPr browseMode */
 const URI_BROWSE_MODE = '{F99C55AA-B7CB-42B0-86F8-08522FDF87E8}'
@@ -82,7 +94,7 @@ function slideShowExtLst (slide: PresSlide): string {
  * @param {PresSlide} masterSlide - master slide
  * @returns XML
  */
-export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout[], masterSlide?: PresSlide): string {
+export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout[], masterSlide?: PresSlide, tracking?: PresentationTrackingParts): string {
 	let strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CRLF
 	strXml += '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
 	strXml += '<Default Extension="xml" ContentType="application/xml"/>'
@@ -153,6 +165,12 @@ export function makeXmlContTypes (slides: PresSlide[], slideLayouts: SlideLayout
 				strXml += `<Override PartName="/ppt/comments/commentSlide${idx + 1}.xml" ContentType="application/vnd.ms-powerpoint.comments+xml"/>`
 		})
 	}
+
+	// STEP 5c: Revision / Changes Information parts (MS-PPTX §2.1.2 / §2.1.4) — opt-in, zero-or-one.
+	if (tracking?.revisionInfo)
+		strXml += `<Override PartName="/ppt/revisionInfo.xml" ContentType="${REVISION_INFO_CONTENT_TYPE}"/>`
+	if (tracking?.changesInfo)
+		strXml += `<Override PartName="/ppt/changesInfo.xml" ContentType="${CHANGES_INFO_CONTENT_TYPE}"/>`
 
 	// STEP 6: Add rels
 	; (masterSlide?._relsChart ?? []).forEach(rel => {
@@ -252,7 +270,7 @@ export function makeXmlCore (title: string, subject: string, author: string, rev
  * @param {PresSlide[]} slides - Presenation Slides
  * @returns XML
  */
-export function makeXmlPresentationRels (slides: PresSlide[]): string {
+export function makeXmlPresentationRels (slides: PresSlide[], tracking?: PresentationTrackingParts): string {
 	let intRelNum = 1
 	let strXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' + CRLF
 	strXml += '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
@@ -268,8 +286,14 @@ export function makeXmlPresentationRels (slides: PresSlide[]): string {
 		`<Relationship Id="rId${intRelNum + 3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>` +
 		`<Relationship Id="rId${intRelNum + 4}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/tableStyles" Target="tableStyles.xml"/>`
 	// MS-PPTX §2.1.6: implicit authors rel from presentation (only when comments exist).
+	let extraRel = intRelNum + 5
 	if (slides.some(s => (s.comments ?? []).length > 0))
-		strXml += `<Relationship Id="rId${intRelNum + 5}" Type="http://schemas.microsoft.com/office/2018/10/relationships/authors" Target="authors.xml"/>`
+		strXml += `<Relationship Id="rId${extraRel++}" Type="http://schemas.microsoft.com/office/2018/10/relationships/authors" Target="authors.xml"/>`
+	// MS-PPTX §2.1.2 / §2.1.4: implicit Internal rels from Presentation; parts MUST NOT have outbound rels.
+	if (tracking?.revisionInfo)
+		strXml += `<Relationship Id="rId${extraRel++}" Type="${REVISION_INFO_REL_TYPE}" Target="revisionInfo.xml" TargetMode="Internal"/>`
+	if (tracking?.changesInfo)
+		strXml += `<Relationship Id="rId${extraRel++}" Type="${CHANGES_INFO_REL_TYPE}" Target="changesInfo.xml" TargetMode="Internal"/>`
 	strXml += '</Relationships>'
 
 	return strXml
