@@ -973,6 +973,8 @@ export default class PptxGenJS implements IPresentationProps {
 			}
 		}
 
+		if (options?.transition) newSlide.transition = options.transition
+
 		return newSlide
 	}
 

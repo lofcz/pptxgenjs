@@ -391,10 +391,16 @@ function collectSlideAnimations (slide: PresSlide): SlideObjectAnimation[] {
 			}
 		}
 
+		// Media cNvPr id is mediaRid+2 (not the auto shape index). Charts keep index+2 / sId.
+		const shapeId = slideObj._type === SLIDE_OBJECT_TYPES.media && slideObj.mediaRid != null
+			? slideObj.mediaRid + 2
+			: slideObj.options?.sId ?? index + 2
+
 		animations.push({
 			objectIndex: index,
-			shapeId: slideObj.options?.sId ?? index + 2,
+			shapeId,
 			animation,
+			buildKind: slideObj._type === SLIDE_OBJECT_TYPES.chart ? 'chart' : 'shape',
 		})
 	})
 

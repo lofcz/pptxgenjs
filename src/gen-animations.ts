@@ -138,12 +138,6 @@ export const ANIMATION_PRESETS: Record<string, {
 		subtype: 16 
 	},
 	
-	grow: { 
-		id: 3, 
-		class: 'entr', 
-		subtype: 0 
-	},
-	
 	growandturn: { 
 		id: 31, 
 		class: 'entr', 
@@ -2301,7 +2295,13 @@ function genBuildListXml(animations: SlideObjectAnimation[]): string {
 	let xml = '<p:bldLst>'
 	animations.forEach((anim) => {
 		const shapeId = anim.shapeId ?? anim.objectIndex + 2 // Shapes start at ID 2
-		xml += `<p:bldP spid="${shapeId}" grpId="0" animBg="1"/>`
+		// Charts are graphic frames: ECMA-376 §19.5.13 bldGraphic + §19.5.11 bldAsOne
+		// (object-level entrance, not series-by-category).
+		if (anim.buildKind === 'chart') {
+			xml += `<p:bldGraphic spid="${shapeId}" grpId="0"><p:bldAsOne/></p:bldGraphic>`
+		} else {
+			xml += `<p:bldP spid="${shapeId}" grpId="0" animBg="1"/>`
+		}
 	})
 	xml += '</p:bldLst>'
 	return xml
