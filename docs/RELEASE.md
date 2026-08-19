@@ -1,8 +1,6 @@
 # Releasing `pptxgenjs-plus`
 
-pptxgenjs-plus publishes through npm trusted publishing.
-
-Requires **npm 11.15.0 or later** (`npm install -g npm@^11.15.0`).
+pptxgenjs-plus publishes through npm trusted publishing (OIDC). GitHub Actions must **not** use repository secrets: no `NPM_TOKEN`, no `NODE_AUTH_TOKEN`. The workflow matches [edix](https://github.com/lofcz/edix): `id-token: write`, `setup-node` with `registry-url: https://registry.npmjs.org`, and `npm publish --provenance --access public`.
 
 ## One-Time npm Setup
 
@@ -22,7 +20,7 @@ Trusted publishing can only be attached after the package exists. Publish once f
 ```bash
 bun run check
 bun run dist
-bun publish --access public
+npm publish --access public
 ```
 
 ### Add trust for `pptxgenjs-plus`
@@ -41,7 +39,7 @@ npm trust list pptxgenjs-plus
 
 The JSX package is new on npm and must exist before trusted publishing can be attached. Publish **once** from your machine at the **same version** as `pptxgenjs-plus` (currently `4.1.17`). The workspace `file:../..` dependency is rewritten only for the tarball.
 
-Both names are unscoped npm packages (`pptxgenjs-plus`, `pptxgenjs-plus-jsx`), not an `@org/` scope. Publish from an npm user that already maintains `pptxgenjs-plus` (`npm whoami`). Requires **npm 11.15.0 or later**.
+Both names are unscoped npm packages (`pptxgenjs-plus`, `pptxgenjs-plus-jsx`), not an `@org/` scope. Publish from an npm user that already maintains `pptxgenjs-plus` (`npm whoami`).
 
 ```bash
 bun ci
@@ -49,11 +47,11 @@ bun run check
 bun run dist
 bun run build:jsx
 bun scripts/sync-jsx-version.mjs --publish
-bun publish --access public --cwd packages/pptxgenjs-jsx
+npm publish --access public --prefix packages/pptxgenjs-jsx
 bun scripts/sync-jsx-version.mjs
 ```
 
-Skip `bun publish` at the repo root if `pptxgenjs-plus@4.1.17` is already on the registry.
+Skip the root publish if `pptxgenjs-plus@4.1.17` is already on the registry.
 
 Do **not** commit the rewritten `packages/pptxgenjs-jsx/package.json` (`pptxgenjs-plus` must stay `file:../..` in git). `sync-jsx-version.mjs` without `--publish` restores that.
 
@@ -66,7 +64,7 @@ npm trust github pptxgenjs-plus-jsx --file=release.yml --repository=lofcz/pptxge
 npm trust list pptxgenjs-plus-jsx
 ```
 
-No `NPM_TOKEN` secret is needed after that. The GitHub Actions workflow uses OIDC with `id-token: write` and publishes with provenance.
+Trusted publisher settings:
 
 - Packages: `pptxgenjs-plus`, `pptxgenjs-plus-jsx` (lockstep version)
 - Repository owner/name: `lofcz/pptxgenjs-plus`
@@ -82,17 +80,17 @@ No `NPM_TOKEN` secret is needed after that. The GitHub Actions workflow uses OID
 
 The workflow:
 
-1. Installs with `bun ci` (Bun canary).
-2. Bumps the root `package.json` via `bun pm version`, then copies that version onto `packages/pptxgenjs-jsx`.
-3. Runs `bun run lint`.
-4. Runs `bun run typecheck`.
-5. Runs `bun run test` and `bun run test:jsx`.
-6. Runs `bun run dist` (Rslib) and `bun run build:jsx`.
-7. Verifies package contents with `bun pm pack --dry-run`.
-8. Publishes both packages with `npm publish --provenance` (OIDC trusted publishing; Bun cannot use GitHub OIDC).
-9. Restores the workspace `file:` dependency, pushes the release commit/tag, and creates a GitHub release.
+1. Sets up Node with the npm registry URL (OIDC; no secrets).
+2. Installs with `bun ci` (Bun canary).
+3. Runs `bun run typecheck`, `bun run test`, `bun run test:jsx`.
+4. Runs `bun run dist` (Rslib) and `bun run build:jsx`.
+5. Bumps the root `package.json` via `bun pm version`, then copies that version onto `packages/pptxgenjs-jsx`.
+6. Commits and tags the release (not pushed yet).
+7. Publishes `pptxgenjs-plus` with `npm publish --provenance --access public`.
+8. Rewrites the JSX `file:` dependency, publishes `pptxgenjs-plus-jsx` the same way, then restores `file:../..`.
+9. Pushes the release commit/tag and creates a GitHub release.
 
-GitHub Actions must use `npm publish`, not `bun publish`. Bun has no OIDC trusted-publisher support and fails with `missing authentication (run bunx npm login)`.
+GitHub Actions must use `npm publish`, not `bun publish`. Bun has no OIDC trusted-publisher support.
 
 ## Consumer Install
 
