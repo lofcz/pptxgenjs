@@ -40,6 +40,7 @@ import {
 	resolveGlowOptions,
 	valToPts,
 } from '../gen-utils'
+import { getImagePixelSize } from '../gen-media'
 import { genXmlCreationIdExt, genXmlModIdExt } from '../gen-revision'
 import { genXmlContentPartAlternate, genXmlOfficeAppAlternate } from './content-parts'
 import { genXmlNvPrExtLst, genXmlPlaceholder, genXmlTextBody, textRunsHaveOmml } from './text'
@@ -786,7 +787,9 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += '</a:custGeom>'
 				} else {
 					strSlideXml += '<a:prstGeom prst="' + slideItemObj.shape + '"><a:avLst>'
-					if (slideItemObj.options.rectRadius) {
+					// `rectRadius: 0` is a valid sharp-corner adj (ECMA-376 §5.1.11 preset geom `gd name="adj"`).
+					// Truthy checks skip 0 and fall through to PowerPoint's default rounding.
+					if (typeof slideItemObj.options.rectRadius === 'number' && Number.isFinite(slideItemObj.options.rectRadius) && slideItemObj.options.rectRadius >= 0) {
 						strSlideXml += `<a:gd name="adj" fmla="val ${Math.round((slideItemObj.options.rectRadius * EMU * 100000) / Math.min(cx, cy))}"/>`
 					} else if (slideItemObj.options.angleRange) {
 						for (let i = 0; i < 2; i++) {
@@ -878,11 +881,25 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					const boxH = sizing.h ? getSmartParseNumber(sizing.h, 'Y', slide._presLayout) : cy
 					const boxX = getSmartParseNumber(sizing.x || 0, 'X', slide._presLayout)
 					const boxY = getSmartParseNumber(sizing.y || 0, 'Y', slide._presLayout)
-					const sourceSize = sizing.type !== 'crop' && typeof slideItemObj.options.w === 'number' && typeof slideItemObj.options.h === 'number'
+					let sourceSize = sizing.type !== 'crop' && typeof slideItemObj.options.w === 'number' && typeof slideItemObj.options.h === 'number'
 						? { w: slideItemObj.options.w, h: slideItemObj.options.h }
 						: { w: imgWidth, h: imgHeight }
 
-					strSlideXml += ImageSizingXml[sizing.type](sourceSize, { w: boxW, h: boxH, x: boxX, y: boxY })
+					// contain/cover only use imgSize as an aspect ratio. Prefer real pixel dims from the
+					// blip so a square placement box does not yield an all-zero `a:srcRect` (no-op crop).
+					// Crop offsets are in the same units as the placed image (EMU); mixing pixels would
+					// corrupt l/r/t/b (ECMA-376 §5.1.10.55).
+					if (sizing.type === 'contain' || sizing.type === 'cover') {
+						const imgRel = (slide._relsMedia || []).find(rel => rel.rId === slideItemObj.imageRid)
+						const pixelSize = getImagePixelSize(imgRel?.data)
+						if (pixelSize) sourceSize = pixelSize
+					}
+
+					if (sourceSize.w > 0 && sourceSize.h > 0) {
+						strSlideXml += ImageSizingXml[sizing.type](sourceSize, { w: boxW, h: boxH, x: boxX, y: boxY })
+					} else {
+						strSlideXml += '  <a:stretch><a:fillRect/></a:stretch>'
+					}
 					// ECMA-376 §5.1.10.55: `srcRect` crops the source blip; the `<a:ext>` frame is the independent
 					// on-slide bounding box. Only `cover`/`contain` resize the frame to the fitted box. For `crop`
 					// the frame must keep the user's w/h container - collapsing it to the crop box (or 0) breaks
@@ -902,7 +919,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				strSlideXml += ' </a:xfrm>'
 				// Geometry: rectRadius → roundRect; rounding (legacy) → ellipse; else rect
 				// Selective port of niranjan-uma-shankar/feature/html-to-pptx (keeps ellipse back-compat)
-				if (typeof slideItemObj.options.rectRadius === 'number') {
+				if (typeof slideItemObj.options.rectRadius === 'number' && Number.isFinite(slideItemObj.options.rectRadius) && slideItemObj.options.rectRadius >= 0) {
 					const adjValue = Math.round((slideItemObj.options.rectRadius * EMU * 100000) / Math.min(imgWidth, imgHeight))
 					strSlideXml += ` <a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${adjValue}"/></a:avLst></a:prstGeom>`
 				} else {

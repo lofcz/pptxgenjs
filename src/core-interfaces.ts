@@ -994,6 +994,13 @@ export interface ThemeProps {
 	 * @example ['1B1B1B','FFFFFF','44546A','E7E6E6','0B5FFF','ED7D31','A5A5A5','FFC000','5B9BD5','70AD47','0563C1','954F72']
 	 */
 	themeColors?: HexColor[]
+	/**
+	 * Hyperlink scheme color (`a:hlink` / `a:srgbClr`) as 6-digit hex, with or without `#`.
+	 * Overrides `themeColors[10]` when both are set. Invalid values are ignored.
+	 * @example 'FF0000'
+	 * @default '0563C1'
+	 */
+	hlinkColor?: string
 }
 
 // image / media ==================================================================================
@@ -2669,7 +2676,7 @@ export interface SlideMasterProps {
 	| { line: ShapeProps }
 	| { rect: ShapeProps }
 	| { roundRect: ShapeProps }
-	| { text: TextProps }
+	| { text: { text?: string | TextProps[], options?: TextPropsOptions } }
 	/** any of the 180+ shape types (`line`/`rect` above are shorthands) */
 	| { shape: { type: SHAPE_NAME, options?: ShapeProps } }
 	| { table: { rows: TableRow[], options?: TableProps } }
@@ -2680,8 +2687,9 @@ export interface SlideMasterProps {
 			/**
 			 * Text to be shown in placeholder (shown until user focuses textbox or adds text)
 			 * - Leave blank to have powerpoint show default phrase (ex: "Click to add title")
+			 * - `TextProps[]` for mixed runs (bold/color/etc.)
 			 */
-			text?: string
+			text?: string | TextProps[]
 		}
 	}>
 
