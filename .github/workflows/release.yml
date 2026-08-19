@@ -14,6 +14,10 @@ on:
           - major
           - existing
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -32,13 +36,20 @@ jobs:
         with:
           node-version: 24
 
+      # Capture Node's npm before Bun prepends itself to PATH. Bun's `npm`
+      # shim has no OIDC trusted-publishing support (ENEEDAUTH / bunx npm login).
+      - name: Install npm for trusted publishing
+        run: |
+          NODE_BIN_DIR="$(dirname "$(command -v node)")"
+          echo "NODE_BIN_DIR=${NODE_BIN_DIR}" >> "$GITHUB_ENV"
+          "${NODE_BIN_DIR}/npm" install -g npm@^11.15.0
+          "${NODE_BIN_DIR}/npm" --version
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" && echo "OIDC token endpoint is available"
+
       - name: Setup Bun canary
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: canary
-
-      - name: Install npm for trusted publishing
-        run: npm install -g npm@^11.15.0 && npm --version
 
       - name: Install dependencies
         run: bun ci
@@ -83,7 +94,12 @@ jobs:
           ls -l packages/pptxgenjs-jsx/dist/index.js packages/pptxgenjs-jsx/dist/jsx-runtime.js
 
       - name: Publish pptxgenjs-plus to npm
-        run: npm publish --access public --provenance --ignore-scripts
+        env:
+          NPM_CONFIG_PROVENANCE: true
+        run: |
+          unset NODE_AUTH_TOKEN NPM_TOKEN
+          "${NODE_BIN_DIR}/npm" --version
+          "${NODE_BIN_DIR}/npm" publish --access public --provenance --ignore-scripts
 
       - name: Publish pptxgenjs-plus-jsx to npm
         run: |
@@ -92,7 +108,11 @@ jobs:
 
       - name: Publish pptxgenjs-plus-jsx tarball
         working-directory: packages/pptxgenjs-jsx
-        run: npm publish --access public --provenance --ignore-scripts
+        env:
+          NPM_CONFIG_PROVENANCE: true
+        run: |
+          unset NODE_AUTH_TOKEN NPM_TOKEN
+          "${NODE_BIN_DIR}/npm" publish --access public --provenance --ignore-scripts
 
       - name: Restore JSX workspace dependency
         if: always() && !cancelled()
