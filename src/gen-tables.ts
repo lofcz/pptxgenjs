@@ -559,15 +559,16 @@ export function getSlidesForTableRows(tableRows: TableCell[][] = [], tableProps:
 				// IMPORTANT: ^^^ add empty if there are no words to avoid "needs repair" issue triggered when cells have null content
 			}
 
-			// 5: increase table height by the curr line height (if we're on the last column)
-			if (currCellIdx === numCols - 1) emuTabCurrH += emuLineMaxH
-
-			// 6: advance column/cell index (or circle back to first one to continue adding lines)
-			currCellIdx = currCellIdx < numCols - 1 ? currCellIdx + 1 : 0
-
-			// 7: WIP: done?
+			// 5: done? Check before adding height so the last line of a non-last column still counts
+			// (dunefront 9a4d283 — otherwise the row under-reports height and overflows the slide).
 			const brent = rowCellLines.map(cell => cell._lines?.length ?? 0).reduce((prev, next) => prev + next)
 			if (brent === 0) isDone = true
+
+			// 6: increase table height by the curr line height (last column, or the row just finished)
+			if (isDone || currCellIdx === numCols - 1) emuTabCurrH += emuLineMaxH
+
+			// 7: advance column/cell index (or circle back to first one to continue adding lines)
+			currCellIdx = currCellIdx < numCols - 1 ? currCellIdx + 1 : 0
 		}
 
 		// F: Flush/capture row buffer before it resets at the top of this loop

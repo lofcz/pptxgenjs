@@ -91,6 +91,7 @@ import {
 	DefineLayoutProps,
 	GuideProps,
 	IPresentationProps,
+	MediaOnError,
 	PresLayout,
 	PresSlide,
 	RevisionInfoProps,
@@ -164,6 +165,42 @@ export default class PptxGenJS implements IPresentationProps {
 
 	public get author(): string {
 		return this._author
+	}
+
+	/**
+	 * OPC `dcterms:created` written to `docProps/core.xml`.
+	 */
+	private _created?: Date
+	public set created(value: Date) {
+		this._created = value
+	}
+
+	public get created(): Date | undefined {
+		return this._created
+	}
+
+	/**
+	 * OPC `dcterms:modified` written to `docProps/core.xml`.
+	 */
+	private _modified?: Date
+	public set modified(value: Date) {
+		this._modified = value
+	}
+
+	public get modified(): Date | undefined {
+		return this._modified
+	}
+
+	/**
+	 * Failed image/media load policy. Default throws so invalid input still fails the export.
+	 */
+	private _mediaOnError: MediaOnError = 'throw'
+	public set mediaOnError(value: MediaOnError) {
+		this._mediaOnError = value === 'placeholder' ? 'placeholder' : 'throw'
+	}
+
+	public get mediaOnError(): MediaOnError {
+		return this._mediaOnError
 	}
 
 	/**
@@ -570,7 +607,7 @@ export default class PptxGenJS implements IPresentationProps {
 	 * @param {JSZip} zip - JSZip instance
 	 * @param {Promise<string>[]} chartPromises - promise array
 	 */
-	private readonly createChartMediaRels = (slide: PresSlide | SlideLayout, zip: JSZip, chartPromises: Promise<string>[]): void => {
+	private readonly createChartMediaRels = (slide: PresSlide | SlideLayout, zip: JSZip, chartPromises: Promise<string>[], mediaPaths: Set<string>): void => {
 		slide._relsChart.forEach(rel => chartPromises.push(genCharts.createExcelWorksheet(rel, zip)))
 		slide._relsMedia.forEach(rel => {
 			if (rel.type !== 'online' && rel.type !== 'hyperlink') {
@@ -582,8 +619,11 @@ export default class PptxGenJS implements IPresentationProps {
 				else if (!data.includes(',')) data = 'image/png;base64,' + data
 				else if (!data.includes(';')) data = 'image/png;' + data
 
-				// C: Add media
-				zip.file(rel.Target.replace(/\.\./g, 'ppt'), data.split(',').pop() ?? '', { base64: true })
+				// C: Add media (skip if another rel already wrote this OPC part)
+				const mediaPath = rel.Target.replace(/\.\./g, 'ppt')
+				if (mediaPaths.has(mediaPath)) return
+				mediaPaths.add(mediaPath)
+				zip.file(mediaPath, data.split(',').pop() ?? '', { base64: true })
 			}
 		})
 	}
@@ -634,12 +674,12 @@ export default class PptxGenJS implements IPresentationProps {
 
 		// STEP 1: Read/Encode all Media before zip as base64 content, etc. is required
 		this.slides.forEach(slide => {
-			arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(slide))
+			arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(slide, { onError: this._mediaOnError }))
 		})
 		this.slideLayouts.forEach(layout => {
-			arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(layout))
+			arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(layout, { onError: this._mediaOnError }))
 		})
-		arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(this.masterSlide))
+		arrMediaPromises = arrMediaPromises.concat(genMedia.encodeSlideMediaRels(this.masterSlide, { onError: this._mediaOnError }))
 
 		// STEP 2: Wait for Promises (if any) then generate the PPTX file
 		return await Promise.all(arrMediaPromises).then(async () => {
@@ -673,7 +713,7 @@ export default class PptxGenJS implements IPresentationProps {
 			zip.file('[Content_Types].xml', genXml.makeXmlContTypes(this.slides, this.slideLayouts, this.masterSlide, trackingParts)) // TODO: pass only `this` like below! 20200206
 			zip.file('_rels/.rels', genXml.makeXmlRootRels())
 			zip.file('docProps/app.xml', genXml.makeXmlApp(this.slides, this.company)) // TODO: pass only `this` like below! 20200206
-			zip.file('docProps/core.xml', genXml.makeXmlCore(this.title, this.subject, this.author, this.revision)) // TODO: pass only `this` like below! 20200206
+			zip.file('docProps/core.xml', genXml.makeXmlCore(this.title, this.subject, this.author, this.revision, this.created, this.modified)) // TODO: pass only `this` like below! 20200206
 			zip.file('ppt/_rels/presentation.xml.rels', genXml.makeXmlPresentationRels(this.slides, trackingParts))
 			zip.file('ppt/theme/theme1.xml', genXml.makeXmlTheme(this))
 			zip.file('ppt/presentation.xml', genXml.makeXmlPresentation(this))
@@ -718,13 +758,14 @@ export default class PptxGenJS implements IPresentationProps {
 			zip.file('ppt/notesMasters/_rels/notesMaster1.xml.rels', genXml.makeXmlNotesMasterRel())
 
 			// D: Create all Rels (images, media, chart data)
+			const mediaPaths = new Set<string>()
 			this.slideLayouts.forEach(layout => {
-				this.createChartMediaRels(layout, zip, arrChartPromises)
+				this.createChartMediaRels(layout, zip, arrChartPromises, mediaPaths)
 			})
 			this.slides.forEach(slide => {
-				this.createChartMediaRels(slide, zip, arrChartPromises)
+				this.createChartMediaRels(slide, zip, arrChartPromises, mediaPaths)
 			})
-			this.createChartMediaRels(this.masterSlide, zip, arrChartPromises)
+			this.createChartMediaRels(this.masterSlide, zip, arrChartPromises, mediaPaths)
 
 			// E: Wait for Promises (if any) then generate the PPTX file
 			return await Promise.all(arrChartPromises).then(async () => {

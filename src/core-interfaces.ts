@@ -532,6 +532,16 @@ export interface ShapeFillProps {
 	 * @deprecated v3.3.0 - use `transparency`
 	 */
 	alpha?: number
+	/**
+	 * Image data URI for a DrawingML `a:blipFill` (table cells and other solid-fill sites).
+	 * @example 'image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAACCAIAAADwyuo0...'
+	 */
+	data?: string
+	/**
+	 * Image path/URL for a DrawingML `a:blipFill`.
+	 * @example '/images/cell-bg.png'
+	 */
+	path?: string
 }
 export type ShapeGradientFlip = 'none' | 'x' | 'xy' | 'y'
 export interface ShapeGradientTileRect {
@@ -1022,6 +1032,11 @@ export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 */
 	line?: ShapeLineProps
 	/**
+	 * Alias of `line` (atomisystems image-border API). Same union as table `border` so `ObjectOptions` stays compatible.
+	 * @example { color: 'FF0000', pt: 2 }
+	 */
+	border?: BorderProps | [BorderProps, BorderProps, BorderProps, BorderProps]
+	/**
 	 * Placeholder type
 	 * - values: 'body' | 'header' | 'footer' | 'title' | et. al.
 	 * @example 'body'
@@ -1226,6 +1241,37 @@ export interface MediaProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	mute?: boolean
 }
 
+// groups =========================================================================================
+
+/**
+ * Group shape (`p:grpSp` / ECMA-376 PresentationML §19.3.1.22).
+ * Child object coordinates are relative to the group origin.
+ */
+export interface GroupProps extends PositionProps, ObjectNameProps {
+	/**
+	 * Group rotation in degrees
+	 * @default 0
+	 */
+	rotate?: number
+	/**
+	 * Group shadow (`a:effectLst` on `p:grpSpPr`)
+	 */
+	shadow?: ShadowProps
+	/** @internal child objects collected by `addGroup` */
+	_objects?: ISlideObject[]
+}
+
+/**
+ * Builder passed to `slide.addGroup(opts, group => { ... })`.
+ * Child `x`/`y` are relative to the group origin.
+ */
+export interface Group {
+	addShape(shapeName: SHAPE_NAME, options?: ShapeProps): Group
+	addText(text: string | TextProps[], options?: TextPropsOptions): Group
+	addImage(options: ImageProps): Group
+	addGroup(options: GroupProps, build?: (group: Group) => void): Group
+}
+
 // shapes =========================================================================================
 
 export interface ShapeProps extends PositionProps, ObjectNameProps, AppearOnClickProps, NvPrExtensionProps {
@@ -1293,6 +1339,18 @@ export interface ShapeProps extends PositionProps, ObjectNameProps, AppearOnClic
 	| { x: Coord, y: Coord, curve: { type: 'quadratic', x1: Coord, y1: Coord } }
 	| { close: true }
 	>
+	/**
+	 * Multiple path arrays for `custGeom` (SVG-derived shapes). Each inner array becomes one `a:path`.
+	 */
+	paths?: Array<NonNullable<ShapeProps['points']>>
+	/**
+	 * Custom `a:path@w` in EMU. When set, `points`/`paths` coordinates are used as-is (already EMU).
+	 */
+	pathW?: number
+	/**
+	 * Custom `a:path@h` in EMU. When set with `pathW`, `points`/`paths` coordinates are used as-is.
+	 */
+	pathH?: number
 	/**
 	 * Rounded rectangle radius (only for pptx.shapes.ROUNDED_RECTANGLE)
 	 * - values: 0.0 to 1.0
@@ -1473,6 +1531,8 @@ export interface TableCellProps extends TextBaseProps {
 	 * @example { color:pptx.SchemeColor.accent1 } // theme color Accent1
 	 */
 	fill?: ShapeFillProps
+	/** @internal rId of a cell `a:blipFill` image (registered at addTable) */
+	_fillRid?: number
 	hyperlink?: HyperlinkProps
 	/**
 	 * Cell margin (inches)
@@ -2525,6 +2585,8 @@ export interface ISlideObject {
 	mtype?: MediaType
 	mediaRid?: number
 	shape?: SHAPE_NAME
+	/** @internal group children (`p:grpSp`) */
+	_objects?: ISlideObject[]
 	// zoom (MS-PPTX §2.9-§2.11)
 	/** zoom kind: slide | section | summary @internal */
 	zoomKind?: 'slide' | 'section' | 'summary'
@@ -2554,6 +2616,12 @@ export interface ISlideObject {
  * - 'best': DEFLATE level 9 (smallest file, slowest)
  */
 export type CompressionLevel = 'none' | 'fast' | 'best'
+
+/**
+ * Failed media/image load policy.
+ * `'placeholder'` isolates one asset; it does not swallow invalid API usage.
+ */
+export type MediaOnError = 'throw' | 'placeholder'
 
 /** Font file formats supported by embedded TrueType fonts (`addFont`) */
 export type EmbedFontType = 'ttf' | 'otf' | 'woff' | 'eot'
@@ -3015,6 +3083,21 @@ export interface AddSlideProps {
 export interface PresentationProps {
 	author: string
 	company: string
+	/**
+	 * OPC core property `dcterms:created` (W3CDTF). Defaults to export time.
+	 */
+	created?: Date
+	/**
+	 * OPC core property `dcterms:modified` (W3CDTF). Defaults to export time.
+	 */
+	modified?: Date
+	/**
+	 * How a failed image/media load is handled.
+	 * - `'throw'` (default): abort the export (invalid paths, HTTP errors, decode failures)
+	 * - `'placeholder'`: keep going and embed the broken-image sentinel for that asset only
+	 * @default 'throw'
+	 */
+	mediaOnError?: MediaOnError
 	/**
 	 * Zip compression for exported files
 	 * @default 'none'

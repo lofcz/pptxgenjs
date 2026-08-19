@@ -261,9 +261,13 @@ export function makeXmlApp (slides: PresSlide[], company: string): string {
  * @param {string} subject - metadata data
  * @param {string} author - metadata value
  * @param {string} revision - metadata value
+ * @param {Date} [created] - OPC `dcterms:created` (defaults to now)
+ * @param {Date} [modified] - OPC `dcterms:modified` (defaults to now)
  * @returns XML
  */
-export function makeXmlCore (title: string, subject: string, author: string, revision: string): string {
+export function makeXmlCore (title: string, subject: string, author: string, revision: string, created?: Date, modified?: Date): string {
+	const createdAt = (created ?? new Date()).toISOString().replace(/\.\d\d\dZ/, 'Z')
+	const modifiedAt = (modified ?? new Date()).toISOString().replace(/\.\d\d\dZ/, 'Z')
 	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 	<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 		<dc:title>${encodeXmlEntities(title)}</dc:title>
@@ -271,8 +275,8 @@ export function makeXmlCore (title: string, subject: string, author: string, rev
 		<dc:creator>${encodeXmlEntities(author)}</dc:creator>
 		<cp:lastModifiedBy>${encodeXmlEntities(author)}</cp:lastModifiedBy>
 		<cp:revision>${revision}</cp:revision>
-		<dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().replace(/\.\d\d\dZ/, 'Z')}</dcterms:created>
-		<dcterms:modified xsi:type="dcterms:W3CDTF">${new Date().toISOString().replace(/\.\d\d\dZ/, 'Z')}</dcterms:modified>
+		<dcterms:created xsi:type="dcterms:W3CDTF">${createdAt}</dcterms:created>
+		<dcterms:modified xsi:type="dcterms:W3CDTF">${modifiedAt}</dcterms:modified>
 	</cp:coreProperties>`
 }
 

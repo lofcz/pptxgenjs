@@ -3,7 +3,12 @@
  */
 
 import { IMG_BROKEN, SLIDE_OBJECT_TYPES } from './core-enums'
-import { PresSlide, SlideLayout, ISlideRelMedia } from './core-interfaces'
+import { PresSlide, SlideLayout, ISlideRelMedia, MediaOnError } from './core-interfaces'
+
+export type EncodeMediaOptions = {
+	/** Default `'throw'` matches the historical export policy. */
+	onError?: MediaOnError
+}
 import { applySvgFillColor, applySvgFillToDataUrl, base64ToBytes, binaryStringToBase64, bytesToBase64, importNodeBuiltin, isNodeRuntime, utf8ToBase64 } from './gen-utils'
 
 /** Images are measured in pixels; PowerPoint slide dimensions are inches at 96 DPI */
@@ -129,12 +134,21 @@ function markMediaBroken(candidates: ISlideRelMedia[], rel: ISlideRelMedia): voi
 	copyMediaToDuplicates(candidates, rel)
 }
 
+function mediaLoadFailed(candidates: ISlideRelMedia[], rel: ISlideRelMedia, message: string, onError: MediaOnError): never | string {
+	markMediaBroken(candidates, rel)
+	if (onError === 'placeholder') {
+		console.warn(`WARN: Unable to load image, using placeholder: ${rel.path}${message ? ` (${message})` : ''}`)
+		return 'done'
+	}
+	throw new Error(message)
+}
+
 /**
  * Read one Node-local media source and encode it as base64.
  *
  * A read failure is recorded before rejection so duplicate references remain consistent.
  */
-async function readNodeMediaFile(rel: ISlideRelMedia, candidates: ISlideRelMedia[], fs: typeof import('node:fs')): Promise<string> {
+async function readNodeMediaFile(rel: ISlideRelMedia, candidates: ISlideRelMedia[], fs: typeof import('node:fs'), onError: MediaOnError): Promise<string> {
 	try {
 		const relPath = rel.path ?? ''
 		const svgFill = typeof rel.fill?.color === 'string' ? rel.fill.color : undefined
@@ -151,8 +165,7 @@ async function readNodeMediaFile(rel: ISlideRelMedia, candidates: ISlideRelMedia
 		copyMediaToDuplicates(candidates, rel)
 		return 'done'
 	} catch (ex) {
-		markMediaBroken(candidates, rel)
-		throw new Error(`ERROR: Unable to read media: "${rel.path}"\n${String(ex)}`, { cause: ex })
+		return mediaLoadFailed(candidates, rel, `ERROR: Unable to read media: "${rel.path}"\n${String(ex)}`, onError)
 	}
 }
 
@@ -163,33 +176,41 @@ function loadNodeMediaUrl(
 	rel: ISlideRelMedia,
 	candidates: ISlideRelMedia[],
 	https: typeof import('node:https'),
-	http: typeof import('node:http')
+	http: typeof import('node:http'),
+	onError: MediaOnError
 ): Promise<string> {
 	const httpMod = rel.path?.startsWith('http://') ? http : https
 	return new Promise<string>((resolve, reject) => {
 		const fail = (message: string): void => {
-			markMediaBroken(candidates, rel)
-			reject(new Error(message))
-		}
-		const req = httpMod.get(rel.path ?? '', res => {
-			const status = res.statusCode ?? 0
-			if (status < 200 || status > 299) {
-				res.resume() // drain so the socket is freed
-				fail(`ERROR! Unable to load image (HTTP ${status}): ${rel.path}`)
-				return
+			try {
+				resolve(mediaLoadFailed(candidates, rel, message, onError))
+			} catch (ex) {
+				reject(ex)
 			}
-			let raw = ''
-			res.setEncoding('binary') // IMPORTANT: Only binary encoding works
-			res.on('data', chunk => (raw += chunk))
-			res.on('end', () => {
-				rel.data = binaryStringToBase64(raw)
-				copyMediaToDuplicates(candidates, rel)
-				resolve('done')
+		}
+		try {
+			const req = httpMod.get(rel.path ?? '', res => {
+				const status = res.statusCode ?? 0
+				if (status < 200 || status > 299) {
+					res.resume() // drain so the socket is freed
+					fail(`ERROR! Unable to load image (HTTP ${status}): ${rel.path}`)
+					return
+				}
+				let raw = ''
+				res.setEncoding('binary') // IMPORTANT: Only binary encoding works
+				res.on('data', chunk => (raw += chunk))
+				res.on('end', () => {
+					rel.data = binaryStringToBase64(raw)
+					copyMediaToDuplicates(candidates, rel)
+					resolve('done')
+				})
+				res.on('error', () => fail(`ERROR! Unable to load image (response): ${rel.path}`))
 			})
-			res.on('error', () => fail(`ERROR! Unable to load image (response): ${rel.path}`))
-		})
-		// NOTE: without this, a DNS/TLS/connection failure emits an unhandled 'error' and kills the process
-		req.on('error', ex => fail(`ERROR! Unable to load image (request): ${rel.path}\n${String(ex)}`))
+			// NOTE: without this, a DNS/TLS/connection failure emits an unhandled 'error' and kills the process
+			req.on('error', ex => fail(`ERROR! Unable to load image (request): ${rel.path}\n${String(ex)}`))
+		} catch (ex) {
+			fail(`ERROR! Unable to load image (https.get): ${rel.path}\n${String(ex)}`)
+		}
 	})
 }
 
@@ -197,14 +218,20 @@ function loadNodeMediaUrl(
  * Fetch one browser media source and convert its Blob response to a data URL.
  * SVG previews are produced only after the source relation has been populated.
  */
-function loadBrowserMedia(rel: ISlideRelMedia, candidates: ISlideRelMedia[]): Promise<string> {
+function loadBrowserMedia(rel: ISlideRelMedia, candidates: ISlideRelMedia[], onError: MediaOnError): Promise<string> {
 	return new Promise<string>((resolve, reject) => {
+		const fail = (message: string): void => {
+			try {
+				resolve(mediaLoadFailed(candidates, rel, message, onError))
+			} catch (ex) {
+				reject(ex)
+			}
+		}
 		const xhr = new XMLHttpRequest()
 		xhr.onload = () => {
 			// status 0 = non-HTTP schemes (file://); anything outside 2xx is an error page, not image bytes
 			if (xhr.status !== 0 && (xhr.status < 200 || xhr.status > 299)) {
-				markMediaBroken(candidates, rel)
-				reject(new Error(`ERROR! HTTP status ${xhr.status} loading image: ${rel.path}`))
+				fail(`ERROR! HTTP status ${xhr.status} loading image: ${rel.path}`)
 				return
 			}
 			const reader = new FileReader()
@@ -217,8 +244,7 @@ function loadBrowserMedia(rel: ISlideRelMedia, candidates: ISlideRelMedia[]): Pr
 			reader.readAsDataURL(xhr.response)
 		}
 		xhr.onerror = () => {
-			markMediaBroken(candidates, rel)
-			reject(new Error(`ERROR! Unable to load image (xhr.onerror): ${rel.path}`))
+			fail(`ERROR! Unable to load image (xhr.onerror): ${rel.path}`)
 		}
 		xhr.open('GET', rel.path ?? '')
 		xhr.responseType = 'blob'
@@ -232,14 +258,15 @@ async function encodeMediaRelation(
 	candidates: ISlideRelMedia[],
 	isNode: boolean,
 	modules: NodeMediaModules,
-	loadNodeModules: LoadNodeMediaModules
+	loadNodeModules: LoadNodeMediaModules,
+	onError: MediaOnError
 ): Promise<string> {
 	if (!modules.https) await loadNodeModules()
 
 	const path = rel.path ?? ''
-	if (isNode && modules.fs && !path.startsWith('http')) return readNodeMediaFile(rel, candidates, modules.fs)
-	if (isNode && modules.https && modules.http && path.startsWith('http')) return loadNodeMediaUrl(rel, candidates, modules.https, modules.http)
-	return loadBrowserMedia(rel, candidates)
+	if (isNode && modules.fs && !path.startsWith('http')) return readNodeMediaFile(rel, candidates, modules.fs, onError)
+	if (isNode && modules.https && modules.http && path.startsWith('http')) return loadNodeMediaUrl(rel, candidates, modules.https, modules.http, onError)
+	return loadBrowserMedia(rel, candidates, onError)
 }
 
 /**
@@ -266,7 +293,7 @@ function addSvgPreviewPromises(layout: PresSlide | SlideLayout, isNode: boolean,
  * @param {PresSlide | SlideLayout} layout - slide layout
  * @return {Promise} promise
  */
-export function encodeSlideMediaRels(layout: PresSlide | SlideLayout): Array<Promise<string>> {
+export function encodeSlideMediaRels(layout: PresSlide | SlideLayout, opts?: EncodeMediaOptions): Array<Promise<string>> {
 	// STEP 1: Detect a real Node process. Browser bundles often polyfill `process`
 	// (and even `process.versions.node`), so also require a document-less runtime.
 	const isNode = isNodeRuntime()
@@ -294,9 +321,11 @@ export function encodeSlideMediaRels(layout: PresSlide | SlideLayout): Array<Pro
 	markDuplicateMedia(candidateRels)
 
 	// STEP 4: Read/Encode each unique media item
+	const onError: MediaOnError = opts?.onError === 'placeholder' ? 'placeholder' : 'throw'
+
 	candidateRels
 		.filter(rel => !rel.isDuplicate)
-		.forEach(rel => imageProms.push(encodeMediaRelation(rel, candidateRels, isNode, modules, loadNodeDeps)))
+		.forEach(rel => imageProms.push(encodeMediaRelation(rel, candidateRels, isNode, modules, loadNodeDeps, onError)))
 
 	// STEP 5: SVG-PNG previews
 	// ......: "SVG:" base64 data still requires a png to be generated

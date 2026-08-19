@@ -2623,3 +2623,148 @@ test('#92: phTypeExt cameo emits under p:ph extLst', async () => {
 	)
 	assert.match(layout, /<p:ph[^>]*type="media"[^>]*>[\s\S]*<p:extLst>/, 'phTypeExt must nest under p:ph')
 })
+
+/* ------------------------------------------------------------------------- */
+/* tables / media / groups backport (Dominik, dunefront, atomisystems, …)     */
+/* ------------------------------------------------------------------------- */
+
+const SVG_8 = 'image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiMwMDciLz48L3N2Zz4='
+
+test('table cell blipFill: PNG data emits a:blipFill (ECMA a:tc / a:blipFill)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable([[{ text: 'bg', options: { fill: { data: PNG_4x2 } } }]], { x: 0.5, y: 0.5, w: 4 })
+
+	const zip = await writeZip(pptx)
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(/<a:blipFill[^>]*>[\s\S]*<a:blip r:embed="rId\d+"/.test(xml), 'cell image fill must emit a:blipFill')
+	const media = Object.keys(zip.files).filter(k => /^ppt\/media\//.test(k))
+	assert.ok(media.length >= 1, 'cell fill image must be packed as an OPC media part')
+})
+
+test('table cell blipFill: SVG data emits svgBlip + png fallback', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable([[{ text: 'svg', options: { fill: { data: SVG_8 } } }]], { x: 0.5, y: 0.5, w: 4 })
+
+	const zip = await writeZip(pptx)
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('asvg:svgBlip'), 'SVG cell fill must emit asvg:svgBlip')
+	assert.ok(xml.includes('a:blipFill'), 'SVG cell fill must still wrap a:blipFill')
+	assert.ok(Object.keys(zip.files).some(k => k.endsWith('.svg')), 'SVG media part missing')
+})
+
+test('dunefront: autoPage last line on a non-last column still counts height', async () => {
+	const pptx = new pptxgen()
+	pptx.defineLayout({ name: 'SHORT', width: 10, height: 1.6 })
+	pptx.layout = 'SHORT'
+	const wrapped = Array.from({ length: 48 }, (_, i) => `lineword${i}`).join(' ')
+	pptx.addSlide().addTable(
+		[[{ text: wrapped }, { text: '' }]],
+		{ x: 0.4, y: 0.25, w: 9, colW: [4.5, 4.5], autoPage: true, fontSize: 22 },
+	)
+	assert.ok(pptx.slides.length > 1, 'expected last-line height of col-0 to overflow the short slide')
+})
+
+test('empty table cells still emit a paragraph (PowerPoint repair)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable([['', 'kept'], [{ text: '' }, 'b']], { x: 0.5, y: 0.5, w: 6 })
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(!/<a:tc>\s*<a:txBody>\s*<a:bodyPr[^/]*\/>\s*<a:lstStyle\/>\s*<\/a:txBody>/s.test(xml), 'empty cell missing a:p')
+	assert.ok((xml.match(/<a:tc\b/g) ?? []).length >= 4, 'expected four table cells')
+})
+
+test('opc core.xml honors created/modified dates (dcterms W3CDTF)', async () => {
+	const pptx = new pptxgen()
+	pptx.created = new Date('2020-01-02T03:04:05.000Z')
+	pptx.modified = new Date('2021-06-07T08:09:10.000Z')
+	pptx.addSlide().addText('meta', { x: 1, y: 1, w: 2, h: 0.5 })
+
+	const core = await readPart(await writeZip(pptx), 'docProps/core.xml')
+	assert.ok(core.includes('<dcterms:created xsi:type="dcterms:W3CDTF">2020-01-02T03:04:05Z</dcterms:created>'), 'created date missing')
+	assert.ok(core.includes('<dcterms:modified xsi:type="dcterms:W3CDTF">2021-06-07T08:09:10Z</dcterms:modified>'), 'modified date missing')
+})
+
+test('mediaOnError=placeholder isolates a missing local image', async () => {
+	const pptx = new pptxgen()
+	pptx.mediaOnError = 'placeholder'
+	pptx.addSlide().addImage({ path: 'C:\\pptxgenjs-missing-media-file-xyz.png', x: 1, y: 1, w: 1, h: 1 })
+	const zip = await writeZip(pptx)
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<p:pic>'), 'placeholder image should still emit p:pic')
+})
+
+test('mediaOnError=throw (default) still fails a missing local image', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addImage({ path: 'C:\\pptxgenjs-missing-media-file-xyz.png', x: 1, y: 1, w: 1, h: 1 })
+	await assert.rejects(async () => await writeZip(pptx), /Unable to read media/)
+})
+
+test('addGroup emits p:grpSp with nvGrpSpPr and group-relative children', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addGroup({ x: 1, y: 1, w: 4, h: 3, objectName: 'Cluster', shadow: { type: 'outer', color: '000000' } }, g => {
+		g.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 1, h: 1, fill: { color: 'FF0000' } })
+		g.addText('in-group', { x: 1.2, y: 0, w: 2, h: 0.4 })
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<p:grpSp>'), 'missing p:grpSp')
+	assert.ok(xml.includes('<p:nvGrpSpPr>'), 'missing required nvGrpSpPr')
+	assert.ok(xml.includes('<p:cNvGrpSpPr/>'), 'missing cNvGrpSpPr')
+	assert.ok(xml.includes('<a:chOff x="0" y="0"/>'), 'chOff must be group-relative origin')
+	assert.ok(xml.includes('name="Cluster"'), 'group name missing')
+	assert.ok(xml.includes('<p:sp>'), 'group child shape missing')
+	assert.ok(xml.includes('in-group'), 'group child text missing')
+	assert.ok(xml.includes('<a:outerShdw'), 'group shadow missing')
+})
+
+test('LINE_CALLOUT_4_ACCENT_BAR emits accentCallout4 (not the typo)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.shapes.LINE_CALLOUT_4_ACCENT_BAR, { x: 1, y: 1, w: 2, h: 1 })
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('prst="accentCallout4"'), 'LINE_CALLOUT_4_ACCENT_BAR must emit accentCallout4')
+	assert.ok(!xml.includes('accentCallout3=4'), 'typo preset accentCallout3=4 must not be emitted')
+})
+
+test('custGeom pathW/pathH keep SVG-space coordinates as EMU', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.custGeom, {
+		x: 1, y: 1, w: 2, h: 2,
+		pathW: 100, pathH: 80,
+		points: [{ x: 10, y: 10 }, { x: 90, y: 70 }, { close: true }],
+	})
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<a:path w="100" h="80">'), 'pathW/pathH must become a:path w/h')
+	assert.ok(xml.includes('<a:pt x="10" y="10"'), 'path coordinates must stay in path space')
+	assert.ok(xml.includes('<a:pt x="90" y="70"'), 'second path point missing')
+})
+
+test('innerShdw emits required blurRad/dist/dir and matching close tag', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.rect, {
+		x: 1, y: 1, w: 2, h: 1,
+		fill: { color: 'FFFFFF' },
+		shadow: { type: 'inner', color: '000000', blur: 6, offset: 3, angle: 90, opacity: 0.5 },
+	})
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const shdw = /<a:innerShdw\b[^>]*>[\s\S]*?<\/a:innerShdw>/.exec(xml)?.[0] ?? ''
+	assert.ok(shdw, 'inner shadow must open and close as a:innerShdw')
+	assert.ok(/blurRad="\d+"/.test(shdw), 'innerShdw blurRad required')
+	assert.ok(/dist="\d+"/.test(shdw), 'innerShdw dist required')
+	assert.ok(/dir="\d+"/.test(shdw), 'innerShdw dir required')
+})
+
+test('image border alias emits a:ln on p:pic', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addImage({ data: PNG_4x2, x: 1, y: 1, w: 1, h: 1, border: { color: 'FF0000', pt: 2 } })
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const pic = /<p:pic>[\s\S]*?<\/p:pic>/.exec(xml)?.[0] ?? ''
+	assert.ok(/<a:ln w="\d+">/.test(pic), 'image border must emit a:ln')
+	assert.ok(pic.includes('FF0000'), 'image border color missing')
+})
+
+test('rounded rect image crop emits prst=roundRect with adj (already on next)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addImage({ data: PNG_4x2, x: 1, y: 1, w: 2, h: 2, rectRadius: 0.2 })
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('prst="roundRect"'), 'rectRadius must emit roundRect')
+	assert.ok(/<a:gd name="adj" fmla="val \d+"\/>/.test(xml), 'roundRect adj guide missing')
+})

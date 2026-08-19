@@ -191,6 +191,10 @@ export enum ShapeType {
 	'accentCallout1' = 'accentCallout1',
 	'accentCallout2' = 'accentCallout2',
 	'accentCallout3' = 'accentCallout3',
+	'accentCallout4' = 'accentCallout4',
+	'accentBorderCallout4' = 'accentBorderCallout4',
+	'borderCallout4' = 'borderCallout4',
+	'callout4' = 'callout4',
 	'actionButtonBackPrevious' = 'actionButtonBackPrevious',
 	'actionButtonBeginning' = 'actionButtonBeginning',
 	'actionButtonBlank' = 'actionButtonBlank',
@@ -521,7 +525,7 @@ export enum SHAPE_TYPE {
 	LINE_CALLOUT_3_BORDER_AND_ACCENT_BAR = 'accentBorderCallout3',
 	LINE_CALLOUT_3_NO_BORDER = 'callout3',
 	LINE_CALLOUT_4 = 'borderCallout4',
-	LINE_CALLOUT_4_ACCENT_BAR = 'accentCallout3=4',
+	LINE_CALLOUT_4_ACCENT_BAR = 'accentCallout4',
 	LINE_CALLOUT_4_BORDER_AND_ACCENT_BAR = 'accentBorderCallout4',
 	LINE_CALLOUT_4_NO_BORDER = 'callout4',
 	LINE = 'line',
@@ -598,6 +602,8 @@ export type SHAPE_NAME =
 	| 'accentCallout1'
 	| 'accentCallout2'
 	| 'accentCallout3'
+	| 'accentCallout4'
+	| 'accentBorderCallout4'
 	| 'actionButtonBackPrevious'
 	| 'actionButtonBeginning'
 	| 'actionButtonBlank'
@@ -618,11 +624,13 @@ export type SHAPE_NAME =
 	| 'borderCallout1'
 	| 'borderCallout2'
 	| 'borderCallout3'
+	| 'borderCallout4'
 	| 'bracePair'
 	| 'bracketPair'
 	| 'callout1'
 	| 'callout2'
 	| 'callout3'
+	| 'callout4'
 	| 'can'
 	| 'chartPlus'
 	| 'chartStar'
@@ -813,6 +821,7 @@ export enum MASTER_OBJECTS {
 
 export enum SLIDE_OBJECT_TYPES {
 	'chart' = 'chart',
+	'group' = 'group',
 	'hyperlink' = 'hyperlink',
 	'image' = 'image',
 	'media' = 'media',

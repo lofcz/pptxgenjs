@@ -28,6 +28,8 @@ import {
 	AddSlideProps,
 	BackgroundProps,
 	BorderProps,
+	Group,
+	GroupProps,
 	IChartMulti,
 	IChartOptsLib,
 	IOptsChartData,
@@ -44,6 +46,7 @@ import {
 	OptsChartGridLine,
 	PresLayout,
 	PresSlide,
+	ShapeFillProps,
 	ShapeLineProps,
 	ShapeProps,
 	SlideLayout,
@@ -420,10 +423,81 @@ export function addChartDefinition(target: PresSlide | SlideLayout, type: CHART_
  * `image-1002-1` and one overwrites the other in the zip (issue #1416). Prefix layout/master media with
  * `layout-` so the two namespaces can never collide; the slide namespace keeps its plain `image-<n>-<i>`.
  */
+function imageBorderToLine (border: ImageProps['border']): ShapeLineProps | undefined {
+	if (!border) return undefined
+	const side = Array.isArray(border) ? border[0] : border
+	if (!side || side.type === 'none') return undefined
+	return { color: side.color, width: side.width ?? side.pt }
+}
+
 function imageTargetStem(target: PresSlide | SlideLayout): string {
 	// PresSlide has `_rId`; SlideLayout/master does not. Masters number from 1000 and collide with slide #1000+.
 	if (!('_rId' in target)) return `layout-image-${target._relsMedia.length + 1}`
 	return `image-${target._slideNum}-${target._relsMedia.length + 1}`
+}
+
+function isSvgFillSource (data: string, path: string): boolean {
+	const src = (data || path).toLowerCase()
+	return src.includes('image/svg+xml') || src.endsWith('.svg') || src.includes('.svg?')
+}
+
+/**
+ * Register a table-cell image fill as slide media so `a:blipFill` can embed it
+ * (Dominik-von-Burg PR 1461). Must run at addTable time so encodeSlideMediaRels sees the rels.
+ */
+function registerTableCellImageFill (target: PresSlide, fill: ShapeFillProps | undefined): number | undefined {
+	const data = typeof fill?.data === 'string' ? fill.data : ''
+	const path = typeof fill?.path === 'string' ? fill.path : ''
+	if (!data && !path) return undefined
+
+	const isSvg = isSvgFillSource(data, path)
+	if (isSvg) {
+		const pngRid = getNewRelId(target)
+		target._relsMedia.push({
+			path: path || data + 'png',
+			type: 'image/png',
+			extn: 'png',
+			data: data || '',
+			rId: pngRid,
+			isDuplicate: false,
+			isSvgPng: true,
+			Target: `../media/${imageTargetStem(target)}.png`,
+		})
+		const svgRid = getNewRelId(target)
+		target._relsMedia.push({
+			path: path || data,
+			type: 'image/svg+xml',
+			extn: 'svg',
+			data: data || '',
+			rId: svgRid,
+			isDuplicate: false,
+			Target: `../media/${imageTargetStem(target)}.svg`,
+		})
+		return svgRid
+	}
+
+	let extn = (path.split('?')[0].split('#')[0].split('.').pop() || 'png').toLowerCase()
+	const mime = data ? /image\/([\w+]+);/.exec(data) : null
+	if (mime?.[1]) extn = mime[1] === 'svg+xml' ? 'svg' : mime[1]
+	if (extn === 'jpg') extn = 'jpeg'
+	const imgType = 'image/' + extn
+	const dupeItem = target._relsMedia.filter(item =>
+		item.type === imgType && !item.isDuplicate && !item.isSvgPng && (
+			(path && item.path === path) ||
+			(data && item.data && item.data === data)
+		)
+	)[0]
+	const rId = getNewRelId(target)
+	target._relsMedia.push({
+		path: path || 'preencoded.' + extn,
+		type: imgType,
+		extn,
+		data: data || '',
+		rId,
+		isDuplicate: !!(dupeItem?.Target),
+		Target: dupeItem?.Target ? dupeItem.Target : `../media/${imageTargetStem(target)}.${extn}`,
+	})
+	return rId
 }
 
 export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImageProps): void {
@@ -504,7 +578,7 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 		transparency: opt.transparency || 0,
 		objectName,
 		shadow: opt.shadow ? correctShadowOptions(opt.shadow) : undefined,
-		line: opt.line,
+		line: opt.line || imageBorderToLine(opt.border),
 		_sizeFromImage: !intWidth && !intHeight,
 		// Images build options explicitly (unlike shape/text which pass through opts), so copy animation here
 		animation: opt.animation,
@@ -1117,6 +1191,9 @@ export function addTableDefinition(
 					}
 				})
 
+				const fillRid = registerTableCellImageFill(target, cellOpts.fill)
+				if (fillRid) cellOpts._fillRid = fillRid
+
 				// LAST:
 				newRow.push(newCell)
 			})
@@ -1575,4 +1652,73 @@ function createHyperlinkRels(
 			}
 		}
 	})
+}
+
+function makeGroupCollector (parent: PresSlide): PresSlide {
+	return {
+		_slideObjects: [],
+		_rels: parent._rels,
+		_relsMedia: parent._relsMedia,
+		_relsChart: parent._relsChart,
+		_presLayout: parent._presLayout,
+		_slideNum: parent._slideNum,
+		_allocChartId: parent._allocChartId,
+		_rId: '_rId' in parent ? parent._rId : 0,
+	} as unknown as PresSlide
+}
+
+/**
+ * Adds a PresentationML group (`p:grpSp`, ECMA-376 §19.3.1.22).
+ * Child coordinates are relative to the group origin (`chOff` 0,0 / `chExt` = group size).
+ */
+export function addGroupDefinition (target: PresSlide, opts: GroupProps, objects: ISlideObject[]): ISlideObject {
+	const groupCount = target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.group).length
+	const newObject: ISlideObject = {
+		_type: SLIDE_OBJECT_TYPES.group,
+		options: {
+			x: opts.x ?? 0,
+			y: opts.y ?? 0,
+			w: opts.w ?? 1,
+			h: opts.h ?? 1,
+			rotate: opts.rotate ?? 0,
+			shadow: opts.shadow ? correctShadowOptions(opts.shadow) : undefined,
+			objectName: opts.objectName ? encodeXmlEntities(opts.objectName) : `Group ${groupCount + 1}`,
+		},
+		_objects: objects,
+	}
+	target._slideObjects.push(newObject)
+	return newObject
+}
+
+export function createGroupBuilder (parent: PresSlide, objects: ISlideObject[]): Group {
+	const builder: Group = {
+		addShape (shapeName, options) {
+			const collector = makeGroupCollector(parent)
+			addShapeDefinition(collector, shapeName, options ?? {})
+			objects.push(...collector._slideObjects)
+			return builder
+		},
+		addText (text, options) {
+			const collector = makeGroupCollector(parent)
+			const textParam = typeof text === 'string' || typeof text === 'number' ? [{ text, options }] : text
+			addTextDefinition(collector, textParam, options ?? {}, false)
+			objects.push(...collector._slideObjects)
+			return builder
+		},
+		addImage (options) {
+			const collector = makeGroupCollector(parent)
+			addImageDefinition(collector, options)
+			objects.push(...collector._slideObjects)
+			return builder
+		},
+		addGroup (options, build) {
+			const children: ISlideObject[] = []
+			if (build) build(createGroupBuilder(parent, children))
+			const collector = makeGroupCollector(parent)
+			addGroupDefinition(collector, options, children)
+			objects.push(...collector._slideObjects)
+			return builder
+		},
+	}
+	return builder
 }

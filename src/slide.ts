@@ -7,6 +7,8 @@ import {
 	AddSlideProps,
 	AnimationConfig,
 	BackgroundProps,
+	Group,
+	GroupProps,
 	CommentProps,
 	ContentPartProps,
 	DesignerTag,
@@ -238,6 +240,18 @@ export default class Slide {
 	 */
 	addNotes(notes: string): Slide {
 		genObj.addNotesDefinition(this, notes)
+		return this
+	}
+
+	/**
+	 * Add a group (`p:grpSp`) to this slide. Child x/y are relative to the group origin.
+	 * Existing addShape/addImage/addText APIs are unchanged.
+	 * @example slide.addGroup({ x: 1, y: 1, w: 4, h: 3 }, g => { g.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 1, h: 1 }) })
+	 */
+	addGroup(options: GroupProps, build?: (group: Group) => void): Slide {
+		const children: ISlideObject[] = options._objects ? [...options._objects] : []
+		if (build) build(genObj.createGroupBuilder(this, children))
+		genObj.addGroupDefinition(this, cloneOpts(options), children)
 		return this
 	}
 
