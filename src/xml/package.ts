@@ -517,7 +517,10 @@ export function makeXmlMaster (slide: PresSlide, layouts: SlideLayout[]): string
 	strXml +=
 		'<p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/>'
 	strXml += '<p:sldLayoutIdLst>' + layoutDefs.join('') + '</p:sldLayoutIdLst>'
-	strXml += '<p:hf sldNum="0" hdr="0" ftr="0" dt="0"/>'
+	// ECMA-376 §4.4.1.22 `p:hf@sldNum` (default true) enables the slide-number placeholder.
+	// Honour it only when the user set slideNumber — otherwise keep it off so unused masters
+	// do not surface a default sldNum slot.
+	strXml += `<p:hf sldNum="${slide._slideNumberProps ? '1' : '0'}" hdr="0" ftr="0" dt="0"/>`
 	strXml +=
 		'<p:txStyles>' +
 		' <p:titleStyle>' +

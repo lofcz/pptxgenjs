@@ -173,6 +173,7 @@ test('resolveThemeColors: requires exactly 12 hex colors', () => {
 	console.warn = () => {}
 	try {
 		assert.deepEqual(resolveThemeColors({ themeColors: ['FF0000'] }), [...DEF_THEME_COLORS], 'short array falls back')
+		assert.deepEqual(resolveThemeColors({ hlinkColor: 'not-hex' }), [...DEF_THEME_COLORS], 'invalid hlinkColor is ignored')
 	} finally {
 		console.warn = orig
 	}
@@ -187,6 +188,11 @@ test('resolveThemeColors: requires exactly 12 hex colors', () => {
 		custom,
 		'strips # and uppercases'
 	)
+	const withHlink = [...DEF_THEME_COLORS]
+	withHlink[10] = 'FF0000'
+	assert.deepEqual(resolveThemeColors({ hlinkColor: '#ff0000' }), withHlink, 'hlinkColor overrides scheme hlink')
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	assert.deepEqual(resolveThemeColors({ hlinkColor: 0 as any }), [...DEF_THEME_COLORS], 'non-string hlinkColor is ignored')
 })
 
 test('createColorElement: invalid falls back to default font color', () => {

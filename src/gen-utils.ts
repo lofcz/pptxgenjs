@@ -339,19 +339,30 @@ export const DEF_THEME_COLORS: readonly HexColor[] = [
  */
 export function resolveThemeColors (theme?: ThemeProps): HexColor[] {
 	const input = theme?.themeColors
-	if (!input) return [...DEF_THEME_COLORS]
-	if (input.length !== 12) {
+	let colors: HexColor[]
+	if (!input) {
+		colors = [...DEF_THEME_COLORS]
+	} else if (input.length !== 12) {
 		console.warn(`[pptxgenjs] theme.themeColors must contain exactly 12 hex colors (got ${input.length}); using Office defaults`)
-		return [...DEF_THEME_COLORS]
+		colors = [...DEF_THEME_COLORS]
+	} else {
+		colors = input.map((raw, idx) => {
+			const hex = String(raw || '').replace('#', '').toUpperCase()
+			if (!REGEX_HEX_COLOR.test(hex)) {
+				console.warn(`[pptxgenjs] theme.themeColors[${idx}]="${raw}" is not a valid 6-digit hex; using default ${DEF_THEME_COLORS[idx]}`)
+				return DEF_THEME_COLORS[idx]
+			}
+			return hex
+		})
 	}
-	return input.map((raw, idx) => {
-		const hex = String(raw || '').replace('#', '').toUpperCase()
-		if (!REGEX_HEX_COLOR.test(hex)) {
-			console.warn(`[pptxgenjs] theme.themeColors[${idx}]="${raw}" is not a valid 6-digit hex; using default ${DEF_THEME_COLORS[idx]}`)
-			return DEF_THEME_COLORS[idx]
-		}
-		return hex
-	})
+
+	// Additive override for `a:hlink` (ECMA-376 clrScheme). Reject non-strings and invalid hex.
+	if (typeof theme?.hlinkColor === 'string') {
+		const hex = theme.hlinkColor.replace('#', '').toUpperCase()
+		if (REGEX_HEX_COLOR.test(hex)) colors[10] = hex
+		else console.warn(`[pptxgenjs] theme.hlinkColor="${theme.hlinkColor}" is not a valid 6-digit hex; using ${colors[10]}`)
+	}
+	return colors
 }
 
 export function isModifiedThemeColor (value: unknown): value is ModifiedThemeColor {

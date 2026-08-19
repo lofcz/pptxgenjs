@@ -69,6 +69,11 @@ function isFlatStringArray(arr: unknown): arr is string[] {
 	return Array.isArray(arr) && (arr.length === 0 || !Array.isArray(arr[0]))
 }
 
+/** Unwrap master `text` / placeholder content so TextProps[] is not double-wrapped as a single run. */
+function masterTextRuns (text: string | TextProps[] | undefined): TextProps[] {
+	return Array.isArray(text) ? text : [{ text }]
+}
+
 /**
  * Transforms a slide definition to a slide object that is then passed to the XML transformation process.
  * @param {SlideMasterProps} props - slide definition
@@ -98,7 +103,7 @@ export function createSlideMaster(props: SlideMasterProps, target: SlideLayout):
 				}
 				addTableDefinition(target as unknown as PresSlide, object[key].rows, tableProps, target, target._presLayout, noPaging, noPaging)
 			}
-			else if (MASTER_OBJECTS[key] && key === 'text') addTextDefinition(target, [{ text: object[key].text }], object[key].options, false)
+			else if (MASTER_OBJECTS[key] && key === 'text') addTextDefinition(target, masterTextRuns(object[key].text), object[key].options, false)
 			else if (MASTER_OBJECTS[key] && key === 'placeholder') {
 				// TODO: 20180820: Check for existing `name`?
 				object[key].options.placeholder = object[key].options.name
@@ -106,7 +111,7 @@ export function createSlideMaster(props: SlideMasterProps, target: SlideLayout):
 				object[key].options._placeholderType = object[key].options.type
 				delete object[key].options.type // remap name for earier handling internally
 				object[key].options._placeholderIdx = 100 + idx
-				addTextDefinition(target, [{ text: object[key].text }], object[key].options, true)
+				addTextDefinition(target, masterTextRuns(object[key].text), object[key].options, true)
 				// TODO: ISSUE#599 - only text is suported now (add more below)
 				// else if (object[key].image) addImageDefinition(target, object[key].image)
 				/* 20200120: So... image placeholders go into the "slideLayoutN.xml" file and addImage doesnt do this yet...

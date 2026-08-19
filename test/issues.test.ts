@@ -308,8 +308,9 @@ test('#34: image without w/h is sized from the image itself', async () => {
 
 test('#1286: contain sizing preserves the ratio of mixed pixel dimensions', async () => {
 	const pptx = new pptxgen()
+	// SVG has no raster header, so contain falls back to placement w/h (the unit-mismatch path).
 	pptx.addSlide().addImage({
-		data: PNG_4x2,
+		data: 'image/svg+xml;base64,PHN2Zy8+',
 		x: '19%', y: '54%', w: 2899, h: 97,
 		sizing: { type: 'contain', w: '36%', h: '3%' },
 	})
@@ -2960,4 +2961,125 @@ test('legend overlay=0 keeps reserved space; no magic plotArea layout', async ()
 	assert.ok(legend.includes('<c:legendPos val="t"/>'), 'legendPos t missing')
 	assert.ok(legend.includes('<c:overlay val="0"/>'), 'c:overlay=0 is the spec way to keep plot/legend from overlapping')
 	assert.ok(!chart.includes('<c:y val="0.28"/>'), 'rayishome showGap magic plotArea y must not be imported')
+})
+
+/* ------------------------------------------------------------------------- */
+/* tycoworks render fixes                                                     */
+/* ------------------------------------------------------------------------- */
+
+test('tycoworks: contain/cover srcRect uses real pixel aspect, not a matching placement box', async () => {
+	// 4×2 PNG into a 2×2 in box whose w/h equals the sizing box. Using placement as imgSize
+	// yields an all-zero a:srcRect (no-op). Pixel 2:1 aspect letterboxes / crops instead.
+	// ECMA-376 §5.1.10.55 a:srcRect — percentages of the source blip.
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addImage({ data: PNG_4x2, x: 0.5, y: 0.5, w: 2, h: 2, sizing: { type: 'contain', w: 2, h: 2 } })
+	slide.addImage({ data: PNG_4x2, x: 3, y: 0.5, w: 2, h: 2, sizing: { type: 'cover', w: 2, h: 2 } })
+	slide.addImage({
+		data: PNG_4x2, x: 0.5, y: 3, w: 5, h: 3,
+		sizing: { type: 'crop', x: 0.5, y: 0.5, w: 2, h: 2 },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const pics = [...xml.matchAll(/<p:pic>[\s\S]*?<\/p:pic>/g)].map(m => m[0])
+	assert.equal(pics.length, 3)
+	assert.ok(pics[0].includes('<a:srcRect l="0" r="0" t="-50000" b="-50000"/>'), `contain must letterbox from 4×2 px, got ${/<a:srcRect[^/]*\/>/.exec(pics[0])?.[0]}`)
+	assert.ok(pics[1].includes('<a:srcRect l="25000" r="25000" t="0" b="0"/>'), `cover must crop from 4×2 px, got ${/<a:srcRect[^/]*\/>/.exec(pics[1])?.[0]}`)
+	// Crop stays in placement EMU (not pixels): 0.5/5, (5-2.5)/5, 0.5/3, (3-2.5)/3
+	assert.ok(/<a:srcRect l="10000" r="50000" t="16667" b="16667"\/>/.test(pics[2]), `crop offsets must stay EMU-relative, got ${/<a:srcRect[^/]*\/>/.exec(pics[2])?.[0]}`)
+	const ext = /<a:ext cx="(\d+)" cy="(\d+)"/.exec(pics[2])
+	assert.equal(ext?.[1], '4572000')
+	assert.equal(ext?.[2], '2743200')
+})
+
+test('tycoworks: rectRadius 0 emits adj=0 (sharp corners, not PowerPoint default rounding)', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addShape(pptx.ShapeType.roundRect, { x: 0.5, y: 0.5, w: 2, h: 1, rectRadius: 0, fill: { color: 'FF0000' } })
+	slide.addImage({ data: PNG_4x2, x: 3, y: 0.5, w: 2, h: 2, rectRadius: 0 })
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const shape = /<p:sp>[\s\S]*?<\/p:sp>/.exec(xml)?.[0] ?? ''
+	assert.ok(shape.includes('prst="roundRect"'), 'roundRect preset missing')
+	assert.ok(shape.includes('<a:gd name="adj" fmla="val 0"/>'), 'rectRadius:0 must emit adj 0 (ECMA-376 preset geom gd)')
+	const pic = /<p:pic>[\s\S]*?<\/p:pic>/.exec(xml)?.[0] ?? ''
+	assert.ok(pic.includes('prst="roundRect"') && pic.includes('fmla="val 0"'), 'image rectRadius:0 must emit adj 0')
+})
+
+test('tycoworks: theme.hlinkColor writes a:hlink scheme color', async () => {
+	const pptx = new pptxgen()
+	pptx.theme = { hlinkColor: '#ff0000' }
+	pptx.addSlide().addText(
+		[{ text: 'link', options: { hyperlink: { url: 'https://example.com' } } }],
+		{ x: 0.5, y: 0.5, w: 3, h: 0.5 },
+	)
+
+	const zip = await writeZip(pptx)
+	const theme = await readPart(zip, 'ppt/theme/theme1.xml')
+	assert.ok(theme.includes('<a:hlink><a:srgbClr val="FF0000"/></a:hlink>'), 'hlinkColor must set clrScheme a:hlink')
+	const slideXml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(slideXml.includes('<a:hlinkClick'), 'hyperlink click missing')
+})
+
+test('tycoworks: slide-number placeholder enables p:hf sldNum on the master', async () => {
+	const withNum = new pptxgen()
+	withNum.defineSlideMaster({
+		title: 'NUM_MASTER',
+		slideNumber: { x: 9, y: 6.9 },
+	})
+	withNum.addSlide({ masterName: 'NUM_MASTER' })
+
+	const withoutNum = new pptxgen()
+	withoutNum.addSlide().addText('plain', { x: 0.5, y: 0.5, w: 2, h: 0.5 })
+
+	const masterOn = await readPart(await writeZip(withNum), 'ppt/slideMasters/slideMaster1.xml')
+	assert.ok(masterOn.includes('type="sldNum"'), 'sldNum placeholder missing')
+	assert.ok(masterOn.includes('<p:hf sldNum="1"'), 'ECMA-376 §4.4.1.22 sldNum must be enabled when slideNumber is set')
+
+	const masterOff = await readPart(await writeZip(withoutNum), 'ppt/slideMasters/slideMaster1.xml')
+	assert.ok(masterOff.includes('<p:hf sldNum="0"'), 'unused masters must keep sldNum off')
+})
+
+test('tycoworks: TextProps[] on master text and placeholder is not double-wrapped', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'RICH_MASTER',
+		objects: [
+			{
+				text: {
+					text: [
+						{ text: 'Hello ', options: { bold: true } },
+						{ text: 'world', options: { color: 'FF0000' } },
+					],
+					options: { x: 0.5, y: 0.2, w: 5, h: 0.4 },
+				},
+			},
+			{
+				placeholder: {
+					options: { name: 'body', type: 'body', x: 0.5, y: 1, w: 8, h: 4 },
+					text: [
+						{ text: 'Prompt ', options: { italic: true } },
+						{ text: 'here' },
+					],
+				},
+			},
+		],
+	})
+	pptx.addSlide({ masterName: 'RICH_MASTER' })
+
+	const zip = await writeZip(pptx)
+	const layout = await readPart(zip, 'ppt/slideLayouts/slideLayout2.xml')
+	assert.ok(layout.includes('<a:t>Hello </a:t>'), 'master text first run missing')
+	assert.ok(layout.includes('<a:t>world</a:t>'), 'master text second run missing')
+	assert.ok(layout.includes('b="1"'), 'bold run dropped (double-wrapped TextProps[])')
+	assert.ok(layout.includes('<a:srgbClr val="FF0000"/>'), 'color run dropped')
+	assert.ok(layout.includes('<a:t>Prompt </a:t>'), 'placeholder first run missing')
+	assert.ok(layout.includes('<a:t>here</a:t>'), 'placeholder second run missing')
+	assert.ok(layout.includes('i="1"'), 'italic placeholder run dropped')
+
+	const paragraphs = [...layout.matchAll(/<a:p>([\s\S]*?)<\/a:p>/g)].map(m => m[1])
+	for (const p of paragraphs) {
+		const pPr = p.match(/<a:pPr[\s>]/g) ?? []
+		assert.ok(pPr.length <= 1, `ECMA-376 CT_TextParagraph allows one a:pPr per a:p, found ${pPr.length}`)
+	}
 })

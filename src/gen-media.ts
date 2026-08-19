@@ -75,6 +75,25 @@ function imageDimensions(bytes: Uint8Array): { width?: number; height?: number }
 }
 
 /**
+ * Natural pixel size from encoded image bytes (PNG/JPEG/GIF/BMP headers).
+ * Returns null when the payload is missing, not a supported raster, or claims 0×0
+ * (`imageDimensions` already rejects zero and bomb-sized headers).
+ *
+ * contain/cover `a:srcRect` (ECMA-376 §5.1.10.55) needs the *blip* aspect, not the
+ * placement box — using w/h as imgSize makes srcRect a no-op whenever they match the sizing box.
+ */
+export function getImagePixelSize (base64Data: unknown): { w: number, h: number } | null {
+	if (typeof base64Data !== 'string' || !base64Data || base64Data === IMG_BROKEN) return null
+	try {
+		const dims = imageDimensions(base64ToBytes(base64Data))
+		if (dims.width && dims.height) return { w: dims.width, h: dims.height }
+	} catch {
+		// unrecognized / truncated payload
+	}
+	return null
+}
+
+/**
  * Size images added without `w`/`h` to their natural dimensions (issue #34)
  * @note must run after `encodeSlideMediaRels` has resolved - it reads the encoded image bytes
  * @param {PresSlide | SlideLayout} layout - slide layout
