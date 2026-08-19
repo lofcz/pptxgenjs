@@ -46,6 +46,7 @@ jobs:
           if [ "${{ github.event.inputs.release_type }}" != "existing" ]; then
             bun pm version "${{ github.event.inputs.release_type }}" --no-git-tag-version
           fi
+          bun scripts/sync-jsx-version.mjs
           VERSION=$(bun -e "console.log(require('./package.json').version)")
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           if [ "${{ github.event.inputs.release_type }}" != "existing" ]; then
@@ -63,23 +64,41 @@ jobs:
       - name: Test
         run: bun run test
 
+      - name: Test JSX package
+        run: bun run test:jsx
+
       - name: Build library
         run: bun run dist
+
+      - name: Build JSX package
+        run: bun run build:jsx
 
       - name: Verify package contents
         run: |
           ls -l dist/pptxgen.bundle.js dist/pptxgen.min.js dist/pptxgen.cjs.js dist/pptxgen.es.js
           bun pm pack --dry-run
+          ls -l packages/pptxgenjs-jsx/dist/index.js packages/pptxgenjs-jsx/dist/jsx-runtime.js
 
-      - name: Publish to npm
+      - name: Publish pptxgenjs-plus to npm
         run: bun publish --access public
+
+      - name: Publish pptxgenjs-plus-jsx to npm
+        run: |
+          bun scripts/sync-jsx-version.mjs --publish
+          bun -e "const d=require('./packages/pptxgenjs-jsx/package.json').dependencies['pptxgenjs-plus']; if (String(d).startsWith('file:')) { throw new Error('refusing to publish file: dependency: '+d) }"
+          bun --cwd packages/pptxgenjs-jsx pm pack --dry-run
+          bun publish --access public --cwd packages/pptxgenjs-jsx
+
+      - name: Restore JSX workspace dependency
+        if: always() && !cancelled()
+        run: bun scripts/sync-jsx-version.mjs
 
       - name: Commit release version and create tag
         if: steps.version.outputs.bumped == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json bun.lock
+          git add package.json bun.lock packages/pptxgenjs-jsx/package.json
           git commit -m "chore: release v${{ steps.version.outputs.version }}"
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
 

@@ -19,4 +19,4 @@ For PowerPoint compatibility, also consult Microsoft's [MS-OI29500 Office implem
 
 ## JSX package
 
-`packages/pptxgenjs-jsx` is a Bun workspace package (`pptxgenjs-plus-jsx`). It depends on `pptxgenjs-plus` via `file:../..` (Bun cannot resolve `workspace:*` to the root package). Build the root library first so `types/index.d.ts` exists, then `bun run build:jsx` / `bun run test:jsx`. Before publishing `pptxgenjs-plus-jsx`, replace that `file:` dependency with a semver range.
+`packages/pptxgenjs-jsx` is a Bun workspace package (`pptxgenjs-plus-jsx`). It depends on `pptxgenjs-plus` via `file:../..` (Bun cannot resolve `workspace:*` to the root package). Build the root library first so `types/index.d.ts` exists, then `bun run build:jsx` / `bun run test:jsx`. Keep the `file:` dependency in git; `scripts/sync-jsx-version.mjs --publish` rewrites it to the shared version only for the npm tarball (see `.github/workflows/release.yml`).
