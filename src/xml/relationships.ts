@@ -170,7 +170,7 @@ export function makeXmlMasterRel (masterSlide: PresSlide, slideLayouts: SlideLay
  */
 export function makeXmlNotesMasterRel (): string {
 	return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-		<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/>
+		<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme2.xml"/>
 		</Relationships>`
 }
 

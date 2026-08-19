@@ -2623,3 +2623,145 @@ test('#92: phTypeExt cameo emits under p:ph extLst', async () => {
 	)
 	assert.match(layout, /<p:ph[^>]*type="media"[^>]*>[\s\S]*<p:extLst>/, 'phTypeExt must nest under p:ph')
 })
+
+test('rupivbluegreen/#1348: scatter dLbls populate a:defRPr from dataLabel font opts', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(
+		pptx.ChartType.scatter,
+		[
+			{ name: 'X', values: [1, 2, 3] },
+			{ name: 'Y', values: [4, 5, 6] },
+		],
+		{
+			x: 0.5, y: 0.5, w: 6, h: 4,
+			showLabel: true,
+			dataLabelFormatScatter: 'XY',
+			dataLabelFontSize: 14,
+			dataLabelFontFace: 'Calibri',
+			dataLabelColor: 'FF0000',
+			dataLabelFontBold: true,
+		},
+	)
+
+	const chart = await readChart(await writeZip(pptx))
+	const txPr = /<c:txPr>[\s\S]*?<\/c:txPr>/.exec(chart)?.[0] ?? ''
+	assert.ok(txPr, 'scatter dLbls missing c:txPr')
+	assert.doesNotMatch(txPr, /<a:defRPr\/>/, 'scatter dLbls still emit empty a:defRPr')
+	assert.ok(txPr.includes('sz="1400"'), 'dataLabelFontSize missing on scatter defRPr')
+	assert.ok(txPr.includes('typeface="Calibri"'), 'dataLabelFontFace missing on scatter defRPr')
+	assert.ok(txPr.includes('b="1"'), 'dataLabelFontBold missing on scatter defRPr')
+	assert.ok(txPr.includes('FF0000'), 'dataLabelColor missing on scatter defRPr')
+})
+
+test('Juliussssssss/3260b6e: empty notesSlide omits empty a:t run', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('body', { x: 1, y: 1, w: 4, h: 1 })
+	pptx.addSlide().addNotes('speaker notes')
+
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	const emptyNotes = await readPart(zip, 'ppt/notesSlides/notesSlide1.xml')
+	const filledNotes = await readPart(zip, 'ppt/notesSlides/notesSlide2.xml')
+	// ECMA-376 §5.1.5.2.6 CT_RegularTextRun: empty <a:t></a:t> triggers PowerPoint repair
+	assert.doesNotMatch(emptyNotes, /<a:t><\/a:t>/, 'empty notes still emit an empty a:t run')
+	assert.match(emptyNotes, /<a:p><a:endParaRPr/, 'empty notes must keep a valid paragraph')
+	assert.match(filledNotes, /<a:t>speaker notes<\/a:t>/, 'notes text run missing')
+})
+
+test('Juliussssssss/9bdfe09: notesMaster uses its own theme2 part', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('hello', { x: 1, y: 1, w: 4, h: 1 })
+
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	const theme2 = await readPart(zip, 'ppt/theme/theme2.xml')
+	const theme1 = await readPart(zip, 'ppt/theme/theme1.xml')
+	const ct = await readPart(zip, '[Content_Types].xml')
+	const notesMasterRels = await readPart(zip, 'ppt/notesMasters/_rels/notesMaster1.xml.rels')
+	assert.ok(theme2.includes('<a:theme '), 'theme2 is not a DrawingML theme')
+	assert.ok(theme2.includes('{2E142A2C-CD16-42D6-873A-C26D2A0506FA}'), 'notes themeFamily id missing')
+	assert.ok(theme1.includes('{62F939B6-93AF-4DB8-9C6B-D6C7DFDC589F}'), 'slide themeFamily id changed')
+	assert.ok(ct.includes('PartName="/ppt/theme/theme2.xml"'), 'Content_Types missing theme2 Override')
+	assert.ok(notesMasterRels.includes('../theme/theme2.xml'), 'notesMaster rels must target theme2.xml')
+	assert.ok(!notesMasterRels.includes('../theme/theme1.xml'), 'notesMaster still shares theme1')
+})
+
+test('SCV-Soft/9f66206: slide-number cNvPr id does not collide', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText('occupied', { x: 1, y: 1, w: 2, h: 1, sId: 25 })
+	slide.slideNumber = { x: 0.5, y: 7 }
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const ids = [...xml.matchAll(/<p:cNvPr id="(\d+)"/g)].map(match => match[1])
+	assert.equal(new Set(ids).size, ids.length, `duplicate cNvPr ids: ${ids.join(', ')}`)
+	assert.match(xml, /name="Slide Number Placeholder 0"/, 'slide number shape missing')
+	assert.doesNotMatch(xml, /<p:cNvPr id="25" name="Slide Number Placeholder 0"/, 'slide number still hardcoded to id 25')
+})
+
+test('fujita-h/d7e3e93: explicit image x/y/w/h win over placeholder geometry', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'EXPLICIT_IMG',
+		objects: [{ placeholder: { options: { name: 'PH', type: 'image', x: 1, y: 1, w: 4, h: 2 } } }],
+	})
+	pptx.addSlide({ masterName: 'EXPLICIT_IMG' }).addImage({
+		data: PNG_4x2,
+		placeholder: 'PH',
+		x: 2, y: 3, w: 1, h: 1,
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const pic = /<p:pic>[\s\S]*?<\/p:pic>/.exec(xml)?.[0] ?? ''
+	const m = /<a:off x="(\d+)" y="(\d+)"\/>\s*<a:ext cx="(\d+)" cy="(\d+)"/.exec(pic)
+	assert.ok(m, 'pic xfrm not found')
+	assert.equal(m[1], String(2 * 914400), `x should stay explicit 2in, got ${Number(m[1]) / 914400}in`)
+	assert.equal(m[2], String(3 * 914400), `y should stay explicit 3in, got ${Number(m[2]) / 914400}in`)
+	assert.equal(m[3], String(1 * 914400), `cx should stay explicit 1in, got ${Number(m[3]) / 914400}in`)
+	assert.equal(m[4], String(1 * 914400), `cy should stay explicit 1in, got ${Number(m[4]) / 914400}in`)
+})
+
+test('fujita-h/11c4cb6: user fill on placeholder text is not overwritten', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'PH_FILL',
+		objects: [{
+			placeholder: {
+				options: { name: 'body', type: 'body', x: 0.5, y: 0.5, w: 5, h: 2, fill: { color: '00AA55' } },
+				text: '',
+			},
+		}],
+	})
+	pptx.addSlide({ masterName: 'PH_FILL' }).addText('hello', {
+		placeholder: 'body',
+		fill: { color: 'CC33AA' },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('CC33AA'), 'user fill was overwritten by placeholder fill')
+	assert.ok(!xml.includes('00AA55'), 'placeholder fill won over the caller fill')
+})
+
+test('fujita-h/7280811: ST_PlaceholderType tokens emit on p:ph@type', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'PH_ST_TYPES',
+		objects: [
+			{ placeholder: { options: { name: 'ctr', type: 'ctrTitle', x: 0.5, y: 0.2, w: 3, h: 0.5 }, text: '' } },
+			{ placeholder: { options: { name: 'sub', type: 'subTitle', x: 3.5, y: 0.2, w: 3, h: 0.5 }, text: '' } },
+			{ placeholder: { options: { name: 'obj', type: 'obj', x: 0.5, y: 1, w: 3, h: 1 }, text: '' } },
+			{ placeholder: { options: { name: 'ftr', type: 'ftr', x: 0.5, y: 5, w: 2, h: 0.4 }, text: '' } },
+			{ placeholder: { options: { name: 'sldNum', type: 'sldNum', x: 8, y: 5, w: 1, h: 0.4 }, text: '' } },
+		],
+	})
+	pptx.addSlide({ masterName: 'PH_ST_TYPES' })
+
+	const zip = await writeZip(pptx)
+	const layouts = await Promise.all([1, 2].map(async num => await readPart(zip, `ppt/slideLayouts/slideLayout${num}.xml`)))
+	const layout = layouts.find(xml => xml.includes('PH_ST_TYPES') || xml.includes('type="ctrTitle"')) ?? ''
+	assert.ok(layout.includes('type="ctrTitle"'), 'ctrTitle missing (ECMA-376 §4.8.14 ST_PlaceholderType)')
+	assert.ok(layout.includes('type="subTitle"'), 'subTitle missing')
+	assert.ok(layout.includes('type="obj"'), 'obj missing')
+	assert.ok(layout.includes('type="ftr"'), 'ftr missing')
+	assert.ok(layout.includes('type="sldNum"'), 'sldNum missing')
+})

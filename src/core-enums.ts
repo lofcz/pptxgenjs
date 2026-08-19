@@ -826,15 +826,28 @@ export enum SLIDE_OBJECT_TYPES {
 	'contentPart' = 'contentPart',
 	'officeApp' = 'officeApp',
 }
+/** ECMA-376 §4.8.14 `ST_PlaceholderType` (`standards/ecma/part-21_presentationml-reference-material-animation.txt`). Friendly keys `image`/`table` map to `pic`/`tbl`. */
 export enum PLACEHOLDER_TYPES {
 	'title' = 'title',
 	'body' = 'body',
-	'image' = 'pic',
+	'ctrTitle' = 'ctrTitle',
+	'subTitle' = 'subTitle',
+	'dt' = 'dt',
+	'sldNum' = 'sldNum',
+	'ftr' = 'ftr',
+	'hdr' = 'hdr',
+	'obj' = 'obj',
 	'chart' = 'chart',
 	'table' = 'tbl',
+	'clipArt' = 'clipArt',
+	'dgm' = 'dgm',
 	'media' = 'media',
+	'sldImg' = 'sldImg',
+	'image' = 'pic',
 }
-export type PLACEHOLDER_TYPE = 'title' | 'body' | 'pic' | 'chart' | 'tbl' | 'media'
+export type PLACEHOLDER_TYPE =
+	| 'title' | 'body' | 'ctrTitle' | 'subTitle' | 'dt' | 'sldNum' | 'ftr' | 'hdr' | 'obj'
+	| 'chart' | 'tbl' | 'clipArt' | 'dgm' | 'media' | 'sldImg' | 'pic'
 
 /**
  * NOTE: 20170304: BULLET_TYPES: Only default is used so far. I'd like to combine the two pieces of code that use these before implementing these as options

@@ -676,6 +676,8 @@ export default class PptxGenJS implements IPresentationProps {
 			zip.file('docProps/core.xml', genXml.makeXmlCore(this.title, this.subject, this.author, this.revision)) // TODO: pass only `this` like below! 20200206
 			zip.file('ppt/_rels/presentation.xml.rels', genXml.makeXmlPresentationRels(this.slides, trackingParts))
 			zip.file('ppt/theme/theme1.xml', genXml.makeXmlTheme(this))
+			// notesMaster gets its own theme part (Office repair creates theme2 when notesMaster shares theme1; Juliussssssss 9bdfe09).
+			zip.file('ppt/theme/theme2.xml', genXml.makeXmlTheme(this, 'notes'))
 			zip.file('ppt/presentation.xml', genXml.makeXmlPresentation(this))
 			zip.file('ppt/presProps.xml', genXml.makeXmlPresProps(this))
 			zip.file('ppt/tableStyles.xml', genXml.makeXmlTableStyles())

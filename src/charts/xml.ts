@@ -268,6 +268,21 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
  * @return {string} XML chart
  */
 /**
+ * Default run properties for scatter `c:dLbls` / `c:txPr` (`a:defRPr`).
+ * ECMA-376 Part 1 §5.7.2.49 `CT_DLbls` + §5.1.5.3.5 `CT_TextCharacterProperties`
+ * (`standards/ecma/part-23_drawingml-reference-material-drawingml-charts.txt`).
+ * An empty `<a:defRPr/>` drops dataLabelFont* on scatter labels (gitbrent #1348).
+ */
+function genXmlDataLabelDefRPr (opts: IChartOptsLib): string {
+	return (
+		`<a:defRPr sz="${Math.round((opts.dataLabelFontSize || DEF_FONT_SIZE) * 100)}" b="${opts.dataLabelFontBold ? 1 : 0}" i="${opts.dataLabelFontItalic ? 1 : 0}" u="none" strike="noStrike">` +
+		`<a:solidFill>${createColorElement(opts.dataLabelColor || DEF_FONT_COLOR)}</a:solidFill>` +
+		`<a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>` +
+		'</a:defRPr>'
+	)
+}
+
+/**
  * Rich-text body for a custom chart data label (`c:tx` / `c:rich`).
  * Escapes text and applies data-label font options.
  */
@@ -776,7 +791,7 @@ function makeChartType (
 								strXml += '            <a:lstStyle/>'
 								strXml += '            <a:p>'
 								strXml += '                <a:pPr>'
-								strXml += '                    <a:defRPr/>'
+								strXml += `                    ${genXmlDataLabelDefRPr(opts)}`
 								strXml += '                </a:pPr>'
 								strXml += '              <a:r>'
 								strXml += '                    <a:rPr lang="' + (opts.lang || 'en-US') + '" dirty="0"/>'
@@ -793,7 +808,7 @@ function makeChartType (
 									strXml += '              <a:fld id="{' + getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx') + '}" type="XVALUE">'
 									strXml += '                  <a:rPr lang="' + (opts.lang || 'en-US') + '" baseline="0"/>'
 									strXml += '                  <a:pPr>'
-									strXml += '                      <a:defRPr/>'
+									strXml += `                      ${genXmlDataLabelDefRPr(opts)}`
 									strXml += '                  </a:pPr>'
 									strXml += '                  <a:t>[' + encodeXmlEntities(obj.name) + '</a:t>'
 									strXml += '              </a:fld>'
@@ -804,7 +819,7 @@ function makeChartType (
 									strXml += '              <a:fld id="{' + getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx') + '}" type="YVALUE">'
 									strXml += '                  <a:rPr lang="' + (opts.lang || 'en-US') + '" baseline="0"/>'
 									strXml += '                  <a:pPr>'
-									strXml += '                      <a:defRPr/>'
+									strXml += `                      ${genXmlDataLabelDefRPr(opts)}`
 									strXml += '                  </a:pPr>'
 									strXml += '                  <a:t>[' + encodeXmlEntities(obj.name) + ']</a:t>'
 									strXml += '              </a:fld>'
@@ -859,7 +874,7 @@ function makeChartType (
 						strXml += '        <a:lstStyle/>'
 						strXml += '        <a:p>'
 						strXml += '            <a:pPr>'
-						strXml += '                <a:defRPr/>'
+						strXml += `                ${genXmlDataLabelDefRPr(opts)}`
 						strXml += '            </a:pPr>'
 						strXml += '            <a:endParaRPr lang="en-US"/>'
 						strXml += '        </a:p>'
