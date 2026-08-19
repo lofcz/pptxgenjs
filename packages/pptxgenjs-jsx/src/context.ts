@@ -67,18 +67,22 @@ export interface DeckContextInfo {
 
 /** Group-level metadata accessible via {@link useGroupContext}.
  *
- * `x` and `y` are absolute (accumulated from nested parent groups).
+ * `x` and `y` are the group's origin on the slide (accumulated from nested
+ * parents). Child element coordinates passed to pptxgenjs are group-relative
+ * (`relative: true`) because `<Group>` emits a PresentationML `p:grpSp`.
  * When called outside a `<Group>`, falls back to the deck's dimensions
- * with `x = 0, y = 0`. */
+ * with `x = 0, y = 0` and `relative: false`. */
 export interface GroupContextInfo {
-  /** Absolute x offset (accumulated from all parent groups). */
+  /** Absolute x offset of the group origin on the slide. */
   readonly x: number;
-  /** Absolute y offset (accumulated from all parent groups). */
+  /** Absolute y offset of the group origin on the slide. */
   readonly y: number;
   /** Virtual canvas width of the current group (or deck width when outside a group). */
   readonly width: number;
   /** Virtual canvas height of the current group (or deck height when outside a group). */
   readonly height: number;
+  /** True while rendering inside `<Group>` — child x/y are group-relative. */
+  readonly relative: boolean;
 }
 
 /** Slide-level metadata accessible via {@link useSlideContext}. */
@@ -177,7 +181,7 @@ export function useGroupContext(): GroupContextInfo {
   if (ctx) return ctx;
   // Outside any group — use deck dimensions as the virtual canvas
   const deck = useDeckContext();
-  return { x: 0, y: 0, width: deck.width, height: deck.height };
+  return { x: 0, y: 0, width: deck.width, height: deck.height, relative: false };
 }
 
 // ════════════════════════════════════════════════════════════════════

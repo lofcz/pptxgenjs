@@ -361,13 +361,13 @@ Available chart components: `AreaChart`, `BarChart`, `Bar3DChart`, `BubbleChart`
 
 ### Group
 
-A logical container that offsets all child elements relative to the group's position. Child coordinates are relative to the group's virtual canvas.
+A PresentationML group (`p:grpSp`). Child coordinates are relative to the group's origin. Maps to `slide.addGroup()`.
 
 ```tsx
 <Group x={1} y={1} w={10} h={5}>
-  {/* (0, 0) inside group → (1, 1) on slide */}
+  {/* (0, 0) inside group → group-relative; the group itself sits at (1, 1) */}
   <Rect x={0} y={0} w={10} h={5} fill={{ color: "F0F0F0" }} />
-  {/* "50%" inside group → 5" from group origin → 6" from slide origin */}
+  {/* "50%" inside group → 5" from the group origin */}
   <Text x="50%" y="50%" w={4} h={1}>
     <TextRun options={{ fontSize: 18 }}>Centered in group</TextRun>
   </Text>
@@ -376,9 +376,11 @@ A logical container that offsets all child elements relative to the group's posi
 
 Key features:
 
-- **Coordinate transformation**: All child `x`, `y`, `w`, `h` values are resolved relative to the group's virtual canvas. Percentage strings are resolved against the group's `w` (for x/w) or `h` (for y/h), then offset by the group's absolute position.
-- **Nested groups**: Groups can be nested — each level accumulates its offset.
-- **Context-aware**: Children can use `useGroupContext()` to get the group's virtual canvas dimensions.
+- **Native group shape**: children move and transform together in PowerPoint.
+- **Coordinate transformation**: Child `x`, `y`, `w`, `h` are relative to the group origin. Percentage strings resolve against the group's `w` (for x/w) or `h` (for y/h).
+- **Nested groups**: Groups can nest via `group.addGroup()`.
+- **Valid children**: shapes, text, images, and nested groups. Tables, charts, media, notes, and WordArt must stay on the slide.
+- **Context-aware**: Children can use `useGroupContext()` for the group's virtual canvas (`width` / `height`) and slide origin (`x` / `y`).
 
 ### Raw (escape hatch)
 
@@ -528,7 +530,7 @@ function FullBleedBackground() {
 
 ### useGroupContext
 
-Exposes the current group's absolute offset and virtual canvas dimensions. When called outside a `<Group>`, falls back to deck dimensions with zero offset.
+Exposes the current group's origin on the slide and its virtual canvas. When called outside a `<Group>`, falls back to deck dimensions with zero offset (`relative: false`). Inside a group, child coordinates are group-relative (`relative: true`).
 
 ```tsx
 import { useGroupContext } from "pptxgenjs-plus-jsx";

@@ -2942,6 +2942,11 @@ export interface PresSlide extends SlideBaseProps {
 	addTable: (tableRows: TableRow[], options?: TableProps) => PresSlide
 	addText: (text: string | TextProps[], options?: TextPropsOptions) => PresSlide
 	/**
+	 * Group shape (`p:grpSp`). Child `x`/`y` are relative to the group origin.
+	 * Holds shapes, text, images, and nested groups — not tables, charts, or media.
+	 */
+	addGroup: (options: GroupProps, build?: (group: Group) => void) => PresSlide
+	/**
 	 * WordArt: text with a warp (`presetShape` / `a:prstTxWarp`) and/or a gradient run fill.
 	 * Defaults to centered `textNoShape` (no transform) unless `options` override them.
 	 */

@@ -2742,6 +2742,16 @@ test('table cell blipFill: PNG data emits a:blipFill (ECMA a:tc / a:blipFill)', 
 	assert.ok(media.length >= 1, 'cell fill image must be packed as an OPC media part')
 })
 
+test('table-level fill.data is registered for cells that inherit it', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTable([['a', 'b']], { x: 0.5, y: 0.5, w: 4, fill: { data: PNG_4x2 } })
+
+	const zip = await writeZip(pptx)
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.equal((xml.match(/<a:blipFill\b/g) ?? []).length, 2, 'inherited table image fill must emit a:blipFill on each cell')
+	assert.ok(Object.keys(zip.files).some(k => /^ppt\/media\//.test(k)), 'table fill image must be packed as an OPC media part')
+})
+
 test('table cell blipFill: SVG data emits svgBlip + png fallback', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addTable([[{ text: 'svg', options: { fill: { data: SVG_8 } } }]], { x: 0.5, y: 0.5, w: 4 })

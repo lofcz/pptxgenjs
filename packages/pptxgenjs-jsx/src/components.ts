@@ -46,6 +46,12 @@ export type DeckProps = {
   revision?: string;
   /** Enable right-to-left mode for the whole presentation. */
   rtlMode?: boolean;
+  /** OPC core `dcterms:created`. Maps to `pptx.created`. */
+  created?: Date;
+  /** OPC core `dcterms:modified`. Maps to `pptx.modified`. */
+  modified?: Date;
+  /** Failed media handling. Maps to `pptx.mediaOnError`. */
+  mediaOnError?: PptxGenJSType.MediaOnError;
   /** Default theme fonts. Maps to `pptx.theme`. */
   theme?: PptxGenJSType.ThemeProps;
   /** Built-in layout name or custom layout object. Use `layouts` for additional custom layouts. */
@@ -393,11 +399,18 @@ export type TableToSlidesProps = PptxGenJSType.TableToSlidesProps & {
   options?: PptxGenJSType.TableToSlidesProps;
 } & LeafProps;
 
-// ── Group (logical container) ──────────────────────────────────────
+// ── Group (`p:grpSp`) ──────────────────────────────────────────────
 
-export type GroupProps = PptxGenJSType.PositionProps & {
+/** Props for `<Group>`. Maps to `slide.addGroup()`.
+ * Child coordinates are relative to the group origin. Only shapes, text,
+ * images, and nested groups are valid children (not tables, charts, or media).
+ */
+export type GroupProps = Omit<PptxGenJSType.GroupProps, "_objects"> & {
   children?: PptxChildren;
 };
+
+/** Props for `<WordArt>`. Maps to `slide.addWordArt()`. */
+export type WordArtProps = TextProps;
 
 // ── Escape hatch ──────────────────────────────────────────────────
 
@@ -419,6 +432,8 @@ export type RenderContext = {
   pptx: PptxGenJSType;
   /** The current slide being rendered (undefined during presentation-level rendering). */
   slide?: PptxGenJSType.PresSlide;
+  /** The current group builder when rendering inside `<Group>`. */
+  group?: PptxGenJSType.Group;
   /** The raw node being rendered. */
   node: PptxNode<"Raw">;
 };
@@ -693,8 +708,10 @@ export const Raw = component("Raw") as ComponentFactory<RawProps>;
 
 // ── Group ─────────────────────────────────────────────────────────
 
-/** Logical container — child coordinates are relative to the group's
- * top-left corner.  Uses `useGroupContext()` for nested positioning.
- * Maps to a coordinate-transform during rendering (no PptxGenJS
- * equivalent). */
+/** PresentationML group (`p:grpSp`). Child coordinates are relative to
+ * the group's origin. Maps to `slide.addGroup()`. Nested groups use
+ * `group.addGroup()`. Tables, charts, and media are not valid children. */
 export const Group = component("Group") as ComponentFactory<GroupProps>;
+
+/** WordArt text with a warp (`a:prstTxWarp`). Maps to `slide.addWordArt()`. */
+export const WordArt = component("WordArt") as ComponentFactory<WordArtProps>;

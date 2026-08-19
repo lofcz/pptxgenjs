@@ -18,6 +18,7 @@ import {
   isLeafNodeType,
   isPptxNode,
   resolveChild,
+  createNode,
 } from "./node.js";
 
 import {
@@ -243,6 +244,9 @@ function applyDeckProps(pptx: PptxPresentation, props: Record<string, any>): voi
     revision,
     rtlMode,
     theme,
+    created,
+    modified,
+    mediaOnError,
   } = props;
 
   layouts?.forEach((l: any) => pptx.defineLayout(l));
@@ -263,6 +267,9 @@ function applyDeckProps(pptx: PptxPresentation, props: Record<string, any>): voi
   setIfDefined(pptx, "revision", revision);
   setIfDefined(pptx, "rtlMode", rtlMode);
   setIfDefined(pptx, "theme", theme);
+  setIfDefined(pptx, "created", created);
+  setIfDefined(pptx, "modified", modified);
+  setIfDefined(pptx, "mediaOnError", mediaOnError);
 }
 
 // ── Deck children traversal (async) ───────────────────────────────
@@ -349,6 +356,7 @@ async function processSlide(
   const slide = ctx.pptx.addSlide({
     masterName: props.masterName,
     sectionTitle: resolvedSectionTitle,
+    transition: props.transition,
   });
 
   setIfDefined(slide, "background", props.background);
@@ -373,7 +381,7 @@ async function processSlide(
     // the entire slide content evaluation and rendering pipeline.
     await withSlideContext(slideCtx, async () => {
       const lazyNode = await resolveChild(LazyComponent({}));
-      await renderSlideElement(lazyNode, { pptx: ctx.pptx, slide });
+      await renderSlideElement(lazyNode, { pptx: ctx.pptx, slide, target: slide });
     });
     return;
   }
@@ -387,75 +395,79 @@ async function processSlide(
     for (const rawChild of node.children) {
       const child = await resolveChild(rawChild);
       if (!isPptxNode(child)) continue;
-      await renderSlideElement(child, { pptx: ctx.pptx, slide });
+      await renderSlideElement(child, { pptx: ctx.pptx, slide, target: slide });
     }
   });
 }
 
 // ── Slide element rendering ───────────────────────────────────────
 
-async function renderSlideElement(
-  node: PptxNode,
-  ctx: { pptx: PptxPresentation; slide: PptxSlide },
-): Promise<void> {
-  const { slide } = ctx;
+type ObjectTarget = PptxSlide | PptxGenJSType.Group;
+
+type ElementRenderCtx = {
+  pptx: PptxPresentation;
+  slide: PptxSlide;
+  target: ObjectTarget;
+};
+
+function isSlideTarget(target: ObjectTarget): target is PptxSlide {
+  return typeof (target as PptxSlide).addTable === "function";
+}
+
+function requireSlideTarget(target: ObjectTarget, type: string): PptxSlide {
+  if (!isSlideTarget(target)) {
+    throw new Error(
+      `${type} cannot be placed inside <Group>. PresentationML p:grpSp only holds shapes, text, images, and nested groups.`,
+    );
+  }
+  return target;
+}
+
+async function renderSlideElement(node: PptxNode, ctx: ElementRenderCtx): Promise<void> {
+  const { target } = ctx;
   assertLeafHasNoChildren(node.type, node.children);
 
   if (CHART_TYPES.has(node.type)) {
-    renderChart(node, slide);
+    renderChart(node, requireSlideTarget(target, node.type));
     return;
   }
 
   if (SHAPE_TYPES.has(node.type)) {
-    renderShape(node, slide);
+    renderShape(node, target);
     return;
   }
 
   switch (node.type) {
     case "Text":
-      await renderText(node, slide);
+      await renderText(node, target);
+      break;
+    case "WordArt":
+      await renderWordArt(node, requireSlideTarget(target, "WordArt"));
       break;
     case "Line":
-      renderLine(node, slide);
+      renderLine(node, target);
       break;
     case "LineBetween":
-      renderLineBetween(node, slide);
+      renderLineBetween(node, target);
       break;
     case "Image":
-      renderImage(node, slide);
+      renderImage(node, target);
       break;
     case "Media":
-      renderMedia(node, slide);
+      renderMedia(node, requireSlideTarget(target, "Media"));
       break;
     case "Table":
-      await renderTable(node, slide);
+      await renderTable(node, requireSlideTarget(target, "Table"));
       break;
     case "Notes":
-      slide.addNotes(getTextContent(node, (node.props as any).text));
+      requireSlideTarget(target, "Notes").addNotes(getTextContent(node, (node.props as any).text));
       break;
     case "Raw":
-      (node.props as any).render({ pptx: ctx.pptx, slide, node });
+      await (node.props as any).render({ pptx: ctx.pptx, slide: ctx.slide, group: isSlideTarget(target) ? undefined : target, node });
       break;
-    case "Group": {
-      const props = node.props as any;
-      const parentGroup = useGroupContext(); // deck fallback when not inside another group
-      const absX = resolveCoord(props.x, parentGroup.width, 0) + parentGroup.x;
-      const absY = resolveCoord(props.y, parentGroup.height, 0) + parentGroup.y;
-      const grpW = resolveCoord(props.w, parentGroup.width, parentGroup.width);
-      const grpH = resolveCoord(props.h, parentGroup.height, parentGroup.height);
-
-      const groupInfo: GroupContextInfo = { x: absX, y: absY, width: grpW, height: grpH };
-
-      await withGroupContext(groupInfo, async () => {
-        for (const rawChild of node.children) {
-          const child = await resolveChild(rawChild);
-          if (isPptxNode(child)) {
-            await renderSlideElement(child, ctx);
-          }
-        }
-      });
+    case "Group":
+      await renderGroup(node, ctx);
       break;
-    }
     case "Fragment":
       for (const rawChild of node.children) {
         const child = await resolveChild(rawChild);
@@ -467,6 +479,152 @@ async function renderSlideElement(
     default:
       throw new Error(`${node.type} cannot be rendered directly on a slide.`);
   }
+}
+
+/** Resolve deferred children so a sync `addGroup` builder can emit them. */
+async function materializeNode(node: PptxNode): Promise<PptxNode> {
+  if (node.type !== "Fragment" && node.type !== "Group" && node.type !== "Text" && node.type !== "WordArt") {
+    return node;
+  }
+  const children: PptxChild[] = [];
+  for (const raw of node.children) {
+    const child = await resolveChild(raw);
+    children.push(isPptxNode(child) ? await materializeNode(child) : child);
+  }
+  return createNode(node.type, { ...(node.props as object), children });
+}
+
+async function renderGroup(node: PptxNode, ctx: ElementRenderCtx): Promise<void> {
+  const props = node.props as any;
+  const parentGroup = useGroupContext();
+  const relX = resolveCoord(props.x, parentGroup.width, 0);
+  const relY = resolveCoord(props.y, parentGroup.height, 0);
+  const grpW = resolveCoord(props.w, parentGroup.width, parentGroup.width);
+  const grpH = resolveCoord(props.h, parentGroup.height, parentGroup.height);
+  const groupInfo: GroupContextInfo = {
+    x: parentGroup.x + relX,
+    y: parentGroup.y + relY,
+    width: grpW,
+    height: grpH,
+    relative: true,
+  };
+
+  const children: PptxNode[] = [];
+  await withGroupContext(groupInfo, async () => {
+    for (const rawChild of node.children) {
+      const child = await resolveChild(rawChild);
+      if (isPptxNode(child)) children.push(await materializeNode(child));
+    }
+  });
+
+  ctx.target.addGroup(
+    {
+      x: relX,
+      y: relY,
+      w: grpW,
+      h: grpH,
+      rotate: props.rotate,
+      shadow: props.shadow,
+      objectName: props.objectName,
+    },
+    (group) => {
+      void withGroupContext(groupInfo, () => {
+        for (const child of children) {
+          emitResolvedElement(child, { pptx: ctx.pptx, slide: ctx.slide, target: group });
+        }
+      });
+    },
+  );
+}
+
+/** Sync emit for already-materialized nodes (used inside addGroup's sync builder). */
+function emitResolvedElement(node: PptxNode, ctx: ElementRenderCtx): void {
+  const { target } = ctx;
+  assertLeafHasNoChildren(node.type, node.children);
+
+  if (CHART_TYPES.has(node.type)) {
+    renderChart(node, requireSlideTarget(target, node.type));
+    return;
+  }
+  if (SHAPE_TYPES.has(node.type)) {
+    renderShape(node, target);
+    return;
+  }
+
+  switch (node.type) {
+    case "Text":
+      renderTextResolved(node, target);
+      break;
+    case "WordArt":
+      renderWordArtResolved(node, requireSlideTarget(target, "WordArt"));
+      break;
+    case "Line":
+      renderLine(node, target);
+      break;
+    case "LineBetween":
+      renderLineBetween(node, target);
+      break;
+    case "Image":
+      renderImage(node, target);
+      break;
+    case "Media":
+      renderMedia(node, requireSlideTarget(target, "Media"));
+      break;
+    case "Table":
+      throw new Error("Table cannot be placed inside <Group>.");
+    case "Notes":
+      throw new Error("Notes cannot be placed inside <Group>.");
+    case "Raw":
+      void (node.props as any).render({ pptx: ctx.pptx, slide: ctx.slide, group: target, node });
+      break;
+    case "Group":
+      emitResolvedGroup(node, ctx);
+      break;
+    case "Fragment":
+      for (const child of node.children) {
+        if (isPptxNode(child)) emitResolvedElement(child, ctx);
+      }
+      break;
+    default:
+      throw new Error(`${node.type} cannot be rendered directly on a slide.`);
+  }
+}
+
+function emitResolvedGroup(node: PptxNode, ctx: ElementRenderCtx): void {
+  const props = node.props as any;
+  const parentGroup = useGroupContext();
+  const relX = resolveCoord(props.x, parentGroup.width, 0);
+  const relY = resolveCoord(props.y, parentGroup.height, 0);
+  const grpW = resolveCoord(props.w, parentGroup.width, parentGroup.width);
+  const grpH = resolveCoord(props.h, parentGroup.height, parentGroup.height);
+  const groupInfo: GroupContextInfo = {
+    x: parentGroup.x + relX,
+    y: parentGroup.y + relY,
+    width: grpW,
+    height: grpH,
+    relative: true,
+  };
+
+  ctx.target.addGroup(
+    {
+      x: relX,
+      y: relY,
+      w: grpW,
+      h: grpH,
+      rotate: props.rotate,
+      shadow: props.shadow,
+      objectName: props.objectName,
+    },
+    (group) => {
+      void withGroupContext(groupInfo, () => {
+        for (const child of node.children) {
+          if (isPptxNode(child)) {
+            emitResolvedElement(child, { pptx: ctx.pptx, slide: ctx.slide, target: group });
+          }
+        }
+      });
+    },
+  );
 }
 
 // ── Coordinate helpers ─────────────────────────────────────────────
@@ -495,37 +653,49 @@ function resolveCoord(
 }
 
 /**
- * Apply the current group's absolute x/y offset to an element's props.
- * Percentage-based Coord values (e.g. `"50%"`) are resolved relative to
- * the group's virtual canvas **before** adding the group offset.
- * When no group is active (i.e., direct slide children), returns the
- * props unchanged — percentages pass through to pptxgenjs natively.
+ * Resolve percentage coordinates against the current group's canvas.
+ * Inside a `<Group>`, child x/y stay group-relative (the group origin is
+ * applied by `p:grpSp`, not by adding an offset here). Direct slide
+ * children are returned unchanged so pptxgenjs can accept native `%` coords.
  */
 function offsetXY<T extends Record<string, any>>(props: T): T {
-  const { x: groupX, y: groupY, width: grpW, height: grpH } = useGroupContext();
-  if (
-    groupX === 0 &&
-    groupY === 0 &&
-    typeof props.x !== "string" &&
-    typeof props.y !== "string" &&
-    typeof props.w !== "string" &&
-    typeof props.h !== "string"
-  ) {
-    return { ...props };
-  }
-  const resolvedX = resolveCoord(props.x, grpW, 0);
-  const resolvedY = resolveCoord(props.y, grpH, 0);
+  const { relative, width: grpW, height: grpH } = useGroupContext();
+  if (!relative) return { ...props };
   const resolvedW = resolveCoord(props.w, grpW, props.w);
   const resolvedH = resolveCoord(props.h, grpH, props.h);
-  return { ...props, x: resolvedX + groupX, y: resolvedY + groupY, w: resolvedW, h: resolvedH };
+  return {
+    ...props,
+    x: resolveCoord(props.x, grpW, 0),
+    y: resolveCoord(props.y, grpH, 0),
+    w: resolvedW,
+    h: resolvedH,
+  };
 }
 
 // ── Individual element renderers ──────────────────────────────────
 
-async function renderText(node: PptxNode, slide: PptxSlide): Promise<void> {
+async function renderText(node: PptxNode, target: ObjectTarget): Promise<void> {
   const props = offsetXY(node.props as any);
   const content = await resolveTextContent(node, props);
-  slide.addText(content, mergeOptions(props.options, props));
+  target.addText(content, mergeOptions(props.options, props));
+}
+
+function renderTextResolved(node: PptxNode, target: ObjectTarget): void {
+  const props = offsetXY(node.props as any);
+  const content = textContentFromResolved(node, props);
+  target.addText(content, mergeOptions(props.options, props));
+}
+
+async function renderWordArt(node: PptxNode, slide: PptxSlide): Promise<void> {
+  const props = offsetXY(node.props as any);
+  const content = await resolveTextContent(node, props);
+  slide.addWordArt(content, mergeOptions(props.options, props));
+}
+
+function renderWordArtResolved(node: PptxNode, slide: PptxSlide): void {
+  const props = offsetXY(node.props as any);
+  const content = textContentFromResolved(node, props);
+  slide.addWordArt(content, mergeOptions(props.options, props));
 }
 
 /**
@@ -548,29 +718,38 @@ async function resolveTextContent(node: PptxNode, props: Record<string, any>): P
   return getTextContent(node);
 }
 
-function renderShape(node: PptxNode, slide: PptxSlide): void {
-  const props = offsetXY(node.props as any);
-  slide.addShape(props.shape, mergeOptions(props.options, props, ["shape"]));
+/** Like {@link resolveTextContent} but assumes children are already materialized. */
+function textContentFromResolved(node: PptxNode, props: Record<string, any>): string | any[] {
+  const textRuns = collectTextRunsFromChildren(node.children);
+  if (textRuns) return textRuns;
+  if (props.runs !== undefined) return deepClone(props.runs);
+  if (props.text !== undefined) return deepClone(props.text);
+  return getTextContent(node);
 }
 
-function renderLine(node: PptxNode, slide: PptxSlide): void {
+function renderShape(node: PptxNode, target: ObjectTarget): void {
   const props = offsetXY(node.props as any);
-  slide.addShape("line", mergeOptions(props.options, props));
+  target.addShape(props.shape, mergeOptions(props.options, props, ["shape"]));
 }
 
-function renderLineBetween(node: PptxNode, slide: PptxSlide): void {
-  const { x: ox, y: oy, width: grpW, height: grpH } = useGroupContext();
+function renderLine(node: PptxNode, target: ObjectTarget): void {
+  const props = offsetXY(node.props as any);
+  target.addShape("line", mergeOptions(props.options, props));
+}
+
+function renderLineBetween(node: PptxNode, target: ObjectTarget): void {
+  const { width: grpW, height: grpH } = useGroupContext();
   const props = node.props as any;
-  const x1 = resolveCoord(props.x1, grpW, 0) + ox;
-  const y1 = resolveCoord(props.y1, grpH, 0) + oy;
-  const x2 = resolveCoord(props.x2, grpW, 0) + ox;
-  const y2 = resolveCoord(props.y2, grpH, 0) + oy;
+  const x1 = resolveCoord(props.x1, grpW, 0);
+  const y1 = resolveCoord(props.y1, grpH, 0);
+  const x2 = resolveCoord(props.x2, grpW, 0);
+  const y2 = resolveCoord(props.y2, grpH, 0);
   const x = Math.min(x1, x2);
   const y = Math.min(y1, y2);
   const w = Math.abs(x2 - x1);
   const h = Math.abs(y2 - y1);
 
-  slide.addShape("line", {
+  target.addShape("line", {
     ...mergeOptions(props.options, props, ["x1", "y1", "x2", "y2"]),
     x,
     y,
@@ -581,9 +760,9 @@ function renderLineBetween(node: PptxNode, slide: PptxSlide): void {
   });
 }
 
-function renderImage(node: PptxNode, slide: PptxSlide): void {
+function renderImage(node: PptxNode, target: ObjectTarget): void {
   const props = offsetXY(node.props as any);
-  slide.addImage(mergeOptions(props.options, props, ["shape"]));
+  target.addImage(mergeOptions(props.options, props, ["shape"]));
 }
 
 function renderMedia(node: PptxNode, slide: PptxSlide): void {
@@ -749,21 +928,13 @@ async function resolveChildren(node: PptxNode): Promise<readonly PptxChild[]> {
 }
 
 async function collectTextRuns(node: PptxNode): Promise<any[] | undefined> {
-  const children = await resolveChildren(node);
+  return collectTextRunsFromChildren(await resolveChildren(node));
+}
 
-  // Run mode only kicks in when at least one <TextRun> child is present.
-  // Plain-string-only children keep the legacy single-string path
-  // (getTextContent, priority 4 in resolveTextContent).
+function collectTextRunsFromChildren(children: readonly PptxChild[]): any[] | undefined {
   const hasTextRun = children.some((c) => isPptxNode(c) && c.type === "TextRun");
   if (!hasTextRun) return undefined;
 
-  // Build the run list preserving child order: <TextRun> nodes map to
-  // formatted runs; plain string/number children become default-style runs
-  // so mixed content like <Text>plain<TextRun>styled</TextRun></Text>
-  // renders as a normal segment followed by a styled one.
-  // Whitespace-only strings (typical JSX multi-line formatting between
-  // elements) are skipped so existing multi-line <TextRun> layouts keep
-  // rendering identically — attach explicit spaces to a run's text instead.
   const runs: any[] = [];
   for (const child of children) {
     if (isPptxNode(child) && child.type === "TextRun") {
@@ -927,6 +1098,7 @@ const SLIDE_CHILDREN = new Set([
   "ScatterChart",
   "Table",
   "Notes",
+  "WordArt",
   "Raw",
   "Fragment",
 ]);

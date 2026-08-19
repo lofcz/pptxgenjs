@@ -1179,6 +1179,7 @@ export function addTableDefinition(
 	// STEP 2: Transform `tableRows` into well-formatted TableCell's
 	// tableRows can be object or plain text array: `[{text:'cell 1'}, {text:'cell 2', options:{color:'ff0000'}}]` | `["cell 1", "cell 2"]`
 	const arrRows: TableCell[][] = []
+	const tableFillRid = registerTableCellImageFill(target, opt.fill)
 	tableRows.forEach(row => {
 		const newRow: TableCell[] = []
 
@@ -1227,7 +1228,8 @@ export function addTableDefinition(
 					}
 				})
 
-				const fillRid = registerTableCellImageFill(target, cellOpts.fill)
+				const fillRid = registerTableCellImageFill(target, cellOpts.fill) ??
+					(cellOpts.fill ? undefined : tableFillRid)
 				if (fillRid) cellOpts._fillRid = fillRid
 
 				// LAST:
