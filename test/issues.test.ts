@@ -3083,3 +3083,141 @@ test('tycoworks: TextProps[] on master text and placeholder is not double-wrappe
 		assert.ok(pPr.length <= 1, `ECMA-376 CT_TextParagraph allows one a:pPr per a:p, found ${pPr.length}`)
 	}
 })
+
+/* ------------------------------------------------------------------------- */
+/* text effects / fonts / WordArt backport                                    */
+/* ------------------------------------------------------------------------- */
+
+test('rmac-stream/WordArt: addWordArt emits prstTxWarp + run gradFill', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addWordArt('Arch Up', {
+		x: 0.5, y: 0.5, w: 5, h: 1.2,
+		fontSize: 36, bold: true,
+		presetShape: 'textArchUp',
+		gradient: {
+			type: 'linear',
+			angle: 90,
+			stops: [
+				{ color: 'FFC000', pos: 0 },
+				{ color: 'C00000', pos: 100 },
+			],
+		},
+	})
+
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<a:prstTxWarp prst="textArchUp"><a:avLst/></a:prstTxWarp>'), 'missing prstTxWarp')
+	assert.ok(xml.includes('<a:gradFill'), 'WordArt run missing gradFill')
+	assert.ok(xml.includes('<a:gs pos="0"><a:srgbClr val="FFC000"/>'), 'gradient stop 0')
+	assert.ok(xml.includes('<a:gs pos="100000"><a:srgbClr val="C00000"/>'), 'gradient stop 100')
+	const bodyPr = /<a:bodyPr[^>]*>[\s\S]*?<\/a:bodyPr>/.exec(xml)?.[0] ?? ''
+	assert.ok(bodyPr.indexOf('<a:prstTxWarp') < bodyPr.indexOf('<a:spAutoFit') || !bodyPr.includes('<a:spAutoFit'), 'prstTxWarp must precede autofit')
+})
+
+test('text run gradFill + latin/ea/cs typefaces', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('Hello 你好', {
+		x: 0.5, y: 0.5, w: 4, h: 1,
+		fontFace: 'Calibri',
+		fontFaceEa: 'Microsoft YaHei',
+		fontFaceCs: 'Arial',
+		gradient: {
+			type: 'radial',
+			stops: [
+				{ color: 'FF0000', pos: 0 },
+				{ color: '0000FF', pos: 100 },
+			],
+		},
+		transparency: 40,
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const rPr = /<a:rPr[\s\S]*?<\/a:rPr>/.exec(xml)?.[0] ?? ''
+	assert.ok(rPr.includes('<a:gradFill'), 'text run missing gradFill')
+	assert.ok(rPr.includes('<a:path path="circle"'), 'radial text gradient')
+	assert.ok(rPr.includes('<a:latin typeface="Calibri"'), 'latin typeface')
+	assert.ok(rPr.includes('<a:ea typeface="Microsoft YaHei"'), 'ea typeface')
+	assert.ok(rPr.includes('<a:cs typeface="Arial"'), 'cs typeface')
+	assert.ok(!rPr.includes('<a:solidFill>'), 'gradient must replace solid text fill')
+})
+
+test('line gradFill + shape blur precede glow in CT_EffectList', async () => {
+	const blur = { radius: 6, grow: false }
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.rect, {
+		x: 0.5, y: 0.5, w: 3, h: 1,
+		fill: { color: 'FFFFFF' },
+		line: {
+			width: 3,
+			gradient: {
+				type: 'linear',
+				angle: 0,
+				stops: [
+					{ color: '00FF00', pos: 0 },
+					{ color: '0000FF', pos: 100 },
+				],
+			},
+		},
+		blur,
+		glow: { size: 8, color: '00AAFF', opacity: 0.6 },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const ln = /<a:ln[^>]*>[\s\S]*?<\/a:ln>/.exec(xml)?.[0] ?? ''
+	assert.ok(ln.includes('<a:gradFill'), 'line missing gradFill')
+	assert.ok(ln.includes('<a:gs pos="0"><a:srgbClr val="00FF00"/>'), 'line stop 0')
+	const effectList = /<a:effectLst>[\s\S]*?<\/a:effectLst>/.exec(xml)?.[0] ?? ''
+	assert.ok(effectList.includes('<a:blur rad="'), 'missing blur')
+	assert.ok(effectList.includes('grow="0"'), 'blur grow=false')
+	assert.ok(effectList.indexOf('<a:blur ') < effectList.indexOf('<a:glow '), 'CT_EffectList: blur must precede glow')
+	assert.equal(blur.radius, 6, 'caller blur options were mutated')
+})
+
+test('slide background gradient + table noFill + border transparency', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.background = {
+		type: 'gradient',
+		gradient: {
+			type: 'linear',
+			angle: 90,
+			stops: [
+				{ color: 'FFFFFF', pos: 0 },
+				{ color: 'CCCCCC', pos: 100 },
+			],
+		},
+	}
+	slide.addTable([
+		[{
+			text: 'cell',
+			options: {
+				fill: { type: 'none' },
+				border: [
+					{ type: 'solid', color: 'FF0000', pt: 1, transparency: 50 },
+					{ type: 'none' },
+					{ type: 'none' },
+					{ type: 'none' },
+				],
+			},
+		}],
+	], { x: 0.5, y: 0.5, w: 3, h: 0.5, colW: [3] })
+
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	const xml = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(/<p:bgPr>[\s\S]*<a:gradFill/.test(xml), 'background missing gradFill')
+	assert.ok(xml.includes('<a:tcPr') && xml.includes('<a:noFill/>'), 'transparent cell missing noFill')
+	assert.ok(xml.includes('<a:lnT') && xml.includes('<a:alpha val="50000"/>'), 'border transparency')
+})
+
+test('theme ea/cs typefaces write a:ea / a:cs on fontScheme', async () => {
+	const pptx = new pptxgen()
+	pptx.theme = { headFontFace: 'Calibri Light', bodyFontFace: 'Calibri', eaFontFace: 'Microsoft YaHei', csFontFace: 'Arial' }
+	pptx.addSlide().addText('hi', { x: 0.5, y: 0.5, w: 2, h: 0.5 })
+
+	const theme = await readPart(await writeZip(pptx), 'ppt/theme/theme1.xml')
+	assert.ok(theme.includes('<a:latin typeface="Calibri Light"/>'), 'head latin')
+	assert.ok(theme.includes('<a:ea typeface="Microsoft YaHei"/>'), 'theme ea')
+	assert.ok(theme.includes('<a:cs typeface="Arial"/>'), 'theme cs')
+})

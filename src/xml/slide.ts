@@ -12,6 +12,7 @@ import {
 	SLIDE_OBJECT_TYPES,
 } from '../core-enums'
 import {
+	BlurProps,
 	Coord,
 	ISlideObject,
 	ObjectOptions,
@@ -140,7 +141,10 @@ function genXmlLine (line: ShapeLineProps): string {
 	// ECMA-376 §5.1.2.1.34: `<a:ln>` carries `w` and `cap` attributes (cap = line ending style, issue #782)
 	const attrs = (line.width ? ` w="${valToPts(line.width)}"` : '') + (line.cap && ['flat', 'sq', 'rnd'].includes(line.cap) ? ` cap="${line.cap}"` : '')
 	let xml = `<a:ln${attrs}>`
-	if (line.color) xml += genXmlColorSelection(line)
+	const hasGrad = !!(line.gradient || line.type === 'gradient' || line.type === 'linearGradient')
+	if (line.type !== 'none' && (line.color || hasGrad)) {
+		xml += genXmlColorSelection(hasGrad && !line.type ? { ...line, type: 'gradient' } : line)
+	}
 	if (line.dashType) xml += `<a:prstDash val="${line.dashType}"/>`
 	if (line.beginArrowType) xml += `<a:headEnd type="${line.beginArrowType}"/>`
 	if (line.endArrowType) xml += `<a:tailEnd type="${line.endArrowType}"/>`
@@ -191,15 +195,27 @@ export type ShapeEffectLstOptions = {
 	glow?: TextGlowProps
 	softEdge?: SoftEdgeProps
 	reflection?: ReflectionProps
+	blur?: BlurProps
 }
 
 /**
- * Create the shape/image `a:effectLst` block (shadow + glow + reflection + softEdge).
- * Child order follows ECMA-376 `CT_EffectList`: glow, innerShdw, outerShdw, reflection, softEdge.
+ * Create `a:blur` (ECMA-376 `CT_BlurEffect`). `rad` is EMUs; `grow` omitted unless set.
+ */
+function genXmlBlurElement (blur: BlurProps): string {
+	const rad = valToPts(blur.radius)
+	const grow = blur.grow === false ? ' grow="0"' : blur.grow === true ? ' grow="1"' : ''
+	return `<a:blur rad="${rad}"${grow}/>`
+}
+
+/**
+ * Create the shape/image `a:effectLst` block (blur + glow + shadow + reflection + softEdge).
+ * Child order follows ECMA-376 `CT_EffectList`: blur, glow, innerShdw, outerShdw, reflection, softEdge.
  * @note pure - unit conversion must NOT be written back to the caller's options object (issue #20)
  */
 function genXmlEffectLst (opts: ShapeEffectLstOptions): string {
 	const parts: string[] = []
+
+	if (opts.blur && typeof opts.blur.radius === 'number') parts.push(genXmlBlurElement(opts.blur))
 
 	const resolvedGlow = resolveGlowOptions(opts.glow)
 	if (resolvedGlow) parts.push(createGlowElement(resolvedGlow))
@@ -711,8 +727,12 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 									{ idx: 2, name: 'lnB' },
 								].forEach(obj => {
 									if (border[obj.idx].type !== 'none') {
+										const borderTransparency = border[obj.idx].transparency
+										const borderAlpha = typeof borderTransparency === 'number'
+											? `<a:alpha val="${Math.round((100 - Math.min(100, Math.max(0, borderTransparency))) * 1000)}"/>`
+											: ''
 										strXml += `<a:${obj.name} w="${valToPts(border[obj.idx].pt)}" cap="flat" cmpd="sng" algn="ctr">`
-										strXml += `<a:solidFill>${createColorElement(border[obj.idx].color)}</a:solidFill>`
+										strXml += `<a:solidFill>${createColorElement(border[obj.idx].color, borderAlpha)}</a:solidFill>`
 										strXml += `<a:prstDash val="${border[obj.idx].type === 'dash' ? 'sysDash' : 'solid'
 										}"/><a:round/><a:headEnd type="none" w="med" len="med"/><a:tailEnd type="none" w="med" len="med"/>`
 										strXml += `</a:${obj.name}>`
@@ -824,6 +844,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 						glow: slideItemObj.options.glow,
 						softEdge: slideItemObj.options.softEdge,
 						reflection: slideItemObj.options.reflection,
+						blur: slideItemObj.options.blur,
 					})
 
 					// B: Close shape Properties
@@ -936,6 +957,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 						glow: slideItemObj.options.glow,
 						softEdge: slideItemObj.options.softEdge,
 						reflection: slideItemObj.options.reflection,
+						blur: slideItemObj.options.blur,
 					})
 					strSlideXml += '</p:spPr>'
 					strSlideXml += '</p:pic>'
@@ -1104,7 +1126,13 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strSlideXml += `<a:off x="${x}" y="${y}"/><a:ext cx="${cx}" cy="${cy}"/>`
 					strSlideXml += `<a:chOff x="0" y="0"/><a:chExt cx="${cx}" cy="${cy}"/>`
 					strSlideXml += '</a:xfrm>'
-					strSlideXml += genXmlEffectLst({ shadow: slideItemObj.options.shadow })
+					strSlideXml += genXmlEffectLst({
+						shadow: slideItemObj.options.shadow,
+						glow: slideItemObj.options.glow,
+						softEdge: slideItemObj.options.softEdge,
+						reflection: slideItemObj.options.reflection,
+						blur: slideItemObj.options.blur,
+					})
 					strSlideXml += '</p:grpSpPr>'
 					renderObjectList(slideItemObj._objects ?? [])
 					strSlideXml += '</p:grpSp>'

@@ -58,6 +58,7 @@ function cloneTextRunOpts (options?: TextPropsOptions): TextPropsOptions | undef
 	delete runOpts.softEdge
 	delete runOpts.reflection
 	delete runOpts.shadow
+	delete runOpts.blur
 	return runOpts
 }
 
@@ -398,9 +399,21 @@ export default class Slide {
 	 */
 	addText(text: string | TextProps[], options?: TextPropsOptions): Slide {
 		// String/number text is one run. Keep text styling on that run, but leave
-		// glow/softEdge/reflection/shadow on the shape `effectLst` (issue #84).
+		// glow/softEdge/reflection/shadow/blur on the shape `effectLst` (issue #84).
 		const textParam = typeof text === 'string' || typeof text === 'number' ? [{ text, options: cloneTextRunOpts(options) }] : text
 		genObj.addTextDefinition(this, textParam, cloneOpts(options), false)
 		return this
+	}
+
+	/**
+	 * Add WordArt to Slide — text with a DrawingML warp (`a:prstTxWarp`) and/or a gradient run fill.
+	 * Defaults to centered `textNoShape` (no transform); options override.
+	 * @param {string|TextProps[]} text - text string or complex object
+	 * @param {TextPropsOptions} options - text/WordArt options (`presetShape`, `gradient`, etc.)
+	 * @return {Slide} this Slide
+	 */
+	addWordArt(text: string | TextProps[], options?: TextPropsOptions): Slide {
+		const opts: TextPropsOptions = { align: 'center', presetShape: 'textNoShape', ...options }
+		return this.addText(text, opts)
 	}
 }
