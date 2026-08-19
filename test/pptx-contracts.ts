@@ -538,7 +538,7 @@ function findXmlElements (value: unknown, localName: string): XmlObject[] {
 /**
  * Structural checks for `<p:timing>` (ECMA-376 §19.3.1.48 `CT_SlideTiming`).
  * Requires `tnLst`, a `tmRoot` node, a `mainSeq` for object animations, unique `cTn` ids,
- * `bldLst`/`bldP` entries, and at least one `spTgt`.
+ * `bldLst` with `bldP` and/or `bldGraphic` entries, and at least one `spTgt`.
  */
 export function assertSlideTimingStructure (slideXml: string): { shapeIds: string[], presetClasses: string[] } {
 	assert.equal(XMLValidator.validate(slideXml), true, 'slide XML is malformed')
@@ -560,7 +560,8 @@ export function assertSlideTimingStructure (slideXml: string): { shapeIds: strin
 	const bldLst = timing['p:bldLst']
 	assert.ok(isXmlObject(bldLst), 'missing p:bldLst for object animations')
 	const bldPs = asXmlObjects(bldLst['p:bldP'])
-	assert.ok(bldPs.length > 0, 'p:bldLst has no p:bldP entries')
+	const bldGraphics = asXmlObjects(bldLst['p:bldGraphic'])
+	assert.ok(bldPs.length + bldGraphics.length > 0, 'p:bldLst has no p:bldP or p:bldGraphic entries')
 
 	const shapeIds = findXmlElements(timing, 'p:spTgt')
 		.map(node => node['@_spid'])

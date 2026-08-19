@@ -72,23 +72,50 @@ const MODERN: Record<string, [string, 'none' | 'side' | 'orient' | 'eight' | 'in
 	window: [P14_NS, 'orient', 'split'],
 }
 
+/**
+ * Map friendly caller names to ECMA-376 transition tokens.
+ * OOXML short codes (`l`/`horz`/`ld`) stay as-is. `ll`/`rl` are accepted as aliases
+ * for the spec corner tokens `ld`/`rd` (ST_TransitionCornerDirectionType).
+ */
+const DIR_ALIASES: Record<string, string> = {
+	l: 'l', r: 'r', u: 'u', d: 'd',
+	left: 'l', right: 'r', up: 'u', down: 'd',
+	horz: 'horz', vert: 'vert',
+	horizontal: 'horz', vertical: 'vert',
+	lu: 'lu', ru: 'ru', ld: 'ld', rd: 'rd',
+	leftup: 'lu', rightup: 'ru', leftdown: 'ld', rightdown: 'rd',
+	ll: 'ld', rl: 'rd',
+	in: 'in', out: 'out',
+}
+
+function normalizeDir (value?: string): string | undefined {
+	if (!value) return undefined
+	const key = value.replace(/[-_\s]/g, '').toLowerCase()
+	return DIR_ALIASES[key] ?? value
+}
+
 /** Build the inner element + its directional attribute for a base transition. */
 function baseInner(type: string, kind: string, p: SlideTransitionProps): string {
 	switch (kind) {
 		case 'none':
 			return `<p:${type}/>`
 		case 'side':
-			return `<p:${type}${dir(['l', 'r', 'u', 'd'], p, 'l')}/>`
+			return `<p:${type}${dirAttr(['l', 'r', 'u', 'd'], p)}/>`
 		case 'orient':
-			return `<p:${type}${dir(['horz', 'vert'], p, 'horz')}/>`
+			return `<p:${type}${dirAttr(['horz', 'vert'], p)}/>`
 		case 'eight':
-			return `<p:${type}${dir(['l', 'r', 'u', 'd', 'lu', 'ru', 'ld', 'rd'], p, 'l')}/>`
+			return `<p:${type}${dirAttr(['l', 'r', 'u', 'd', 'lu', 'ru', 'ld', 'rd'], p)}/>`
 		case 'corner':
-			return `<p:${type}${dir(['lu', 'ru', 'll', 'rl'], p, 'lu')}/>`
+			return `<p:${type}${dirAttr(['lu', 'ru', 'ld', 'rd'], p)}/>`
 		case 'inout':
-			return `<p:${type}${dir(['in', 'out'], p, 'out')}/>`
-		case 'split':
-			return `<p:${type} orient="${p.direction === 'vert' ? 'vert' : 'horz'}" dir="${p.direction === 'in' ? 'in' : 'out'}"/>`
+			return `<p:${type}${dirAttr(['in', 'out'], p)}/>`
+		case 'split': {
+			// CT_SplitTransition: orient=ST_Direction (horz|vert), dir=ST_TransitionInOutDirectionType (in|out)
+			const raw = normalizeDir(p.direction)
+			const orient = normalizeDir(p.orient) ?? (raw === 'vert' || raw === 'horz' ? raw : 'horz')
+			const splitDir = raw === 'in' || raw === 'out' ? raw : 'out'
+			return `<p:${type} orient="${orient === 'vert' ? 'vert' : 'horz'}" dir="${splitDir}"/>`
+		}
 		case 'wheel':
 			return `<p:${type}${p.spokes ? ` spokes="${p.spokes}"` : ''}/>`
 		case 'black':
@@ -99,9 +126,10 @@ function baseInner(type: string, kind: string, p: SlideTransitionProps): string 
 }
 
 /** Emit a `dir` attribute when the supplied direction is valid for this transition. */
-function dir(valid: string[], p: SlideTransitionProps, dflt: string): string {
-	const d = p.direction && valid.includes(p.direction) ? p.direction : undefined
-	return d && d !== dflt ? ` dir="${d}"` : d ? ` dir="${d}"` : ''
+function dirAttr(valid: string[], p: SlideTransitionProps): string {
+	const d = normalizeDir(p.direction)
+	const token = d && valid.includes(d) ? d : undefined
+	return token ? ` dir="${token}"` : ''
 }
 
 /**
@@ -127,10 +155,10 @@ export function genXmlTransition(slide: PresSlide): string {
 		const [ns, kind, fallbackType] = MODERN[type]
 		const prefix = ns === P16_NS ? 'p16' : ns === P15_NS ? 'p15' : 'p14'
 		const inner =
-			kind === 'side' ? `<${prefix}:${type}${dir(['l', 'r', 'u', 'd'], t, 'l')}/>`
-				: kind === 'orient' ? `<${prefix}:${type}${dir(['horz', 'vert'], t, 'horz')}/>`
-					: kind === 'eight' ? `<${prefix}:${type}${dir(['l', 'r', 'u', 'd', 'lu', 'ru', 'ld', 'rd'], t, 'l')}/>`
-						: kind === 'inout' ? `<${prefix}:${type}${dir(['in', 'out'], t, 'out')}/>`
+			kind === 'side' ? `<${prefix}:${type}${dirAttr(['l', 'r', 'u', 'd'], t)}/>`
+				: kind === 'orient' ? `<${prefix}:${type}${dirAttr(['horz', 'vert'], t)}/>`
+					: kind === 'eight' ? `<${prefix}:${type}${dirAttr(['l', 'r', 'u', 'd', 'lu', 'ru', 'ld', 'rd'], t)}/>`
+						: kind === 'inout' ? `<${prefix}:${type}${dirAttr(['in', 'out'], t)}/>`
 							: `<${prefix}:${type}/>`
 		const [fbName, fbKind] = BASE[fallbackType]
 		const fallback = baseInner(fbName, fbKind, { type: fallbackType as TRANSITION_TYPE })

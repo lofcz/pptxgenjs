@@ -296,6 +296,8 @@ export interface SlideObjectAnimation {
 	/** DrawingML `cNvPr` id (honors explicit `sId` when set) */
 	shapeId: number
 	animation: AnimationConfig
+	/** Charts use `p:bldGraphic`/`p:bldAsOne` (ECMA-376 §19.5.11); other objects use `p:bldP`. */
+	buildKind?: 'shape' | 'chart'
 }
 
 // used by charts, shape, text
@@ -2984,12 +2986,18 @@ export interface SlideTransitionProps {
 	 */
 	type: TRANSITION_TYPE
 	/**
-	 * Transition direction. Meaning depends on type:
+	 * Transition direction. OOXML tokens or friendly aliases (`left`→`l`, `up`→`u`, `horizontal`→`horz`).
 	 * side (push/wipe/vortex/pan): 'l'|'r'|'u'|'d'; orientation (blinds/checker/comb/randomBar/doors): 'horz'|'vert';
 	 * eight-dir (cover/pull/ferris/gallery/conveyor/flip/switch): 'l'|'r'|'u'|'d'|'lu'|'ru'|'ld'|'rd';
-	 * corner (strips): 'lu'|'ru'|'ll'|'rl'; in/out (split/zoom/warp): 'in'|'out'.
+	 * corner (strips): 'lu'|'ru'|'ld'|'rd' (ECMA-376 §19.5.74 / ST_TransitionCornerDirectionType);
+	 * in/out (split `dir` / zoom / warp): 'in'|'out'.
 	 */
 	direction?: string
+	/**
+	 * Split-only orientation (`CT_SplitTransition@orient`, ECMA-376 §19.5.71).
+	 * Accepts 'horz'|'vert' or 'horizontal'|'vertical'. When omitted, `direction` of horz/vert is used.
+	 */
+	orient?: 'horz' | 'vert' | 'horizontal' | 'vertical'
 	/**
 	 * Transition speed.
 	 * @default 'fast'
@@ -3011,6 +3019,8 @@ export interface SlideTransitionProps {
 export interface AddSlideProps {
 	masterName?: string // TODO: 20200528: rename to "masterTitle" (createMaster uses `title` so lets be consistent)
 	sectionTitle?: string
+	/** Optional slide transition applied at creation (same as `slide.addTransition()`). */
+	transition?: SlideTransitionProps
 }
 export interface PresentationProps {
 	author: string

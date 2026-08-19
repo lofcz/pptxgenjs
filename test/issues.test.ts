@@ -1935,6 +1935,87 @@ test('#82: addAnimation + TransitionType emit structurally valid timing and tran
 	assert.ok(slideXml.includes('<p:push dir="l"/>'), `push dir not emitted: ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
 })
 
+test('#82: teeter emphasis scales animRot delays to duration (ECMA-376 §19.5.7 animRot)', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addShape(pptx.ShapeType.rect, {
+		x: 1, y: 1, w: 2, h: 1, fill: { color: '4472C4' },
+		animation: { type: 'teeter', duration: 2000 },
+	})
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const timing = assertSlideTimingStructure(slideXml)
+	assert.ok(timing.presetClasses.includes('emph'), 'teeter must be an emphasis preset')
+	assert.ok(slideXml.includes('presetID="32"'), 'teeter presetID=32 missing')
+	assert.equal((slideXml.match(/<p:animRot /g) || []).length, 5, 'teeter must emit 5 animRot steps')
+	assert.ok(slideXml.includes('dur="200"'), 'teeter first-step duration should scale 100ms * 2')
+	assert.ok(slideXml.includes('delay="400"'), 'teeter second-step delay should scale 200ms * 2')
+	assert.ok(slideXml.includes('delay="1600"'), 'teeter last-step delay should scale 800ms * 2')
+})
+
+test('#82: afterPrevious emits afterEffect and cumulative delay (ECMA-376 §19.5.33 nodeType)', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addText('A', { x: 0.5, y: 0.5, w: 3, h: 0.5, animation: { type: 'fadein', duration: 500, trigger: 'onClick' } })
+	slide.addText('B', { x: 0.5, y: 1.2, w: 3, h: 0.5, animation: { type: 'fadein', duration: 400, trigger: 'afterPrevious' } })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const timing = assertSlideTimingStructure(slideXml)
+	assert.ok(timing.presetClasses.includes('entr'), 'fadein must be an entrance preset')
+	assert.ok(slideXml.includes('nodeType="clickEffect"'), 'onClick missing clickEffect')
+	assert.ok(slideXml.includes('nodeType="afterEffect"'), 'afterPrevious missing afterEffect')
+	assert.ok(/<p:stCondLst><p:cond delay="500"\/><\/p:stCondLst>/.test(slideXml),
+		`afterPrevious wrapper delay should be the previous duration (500): ${/<p:stCondLst><p:cond delay="\d+"/.exec(slideXml)?.[0]}`)
+})
+
+test('#82: chart animation targets graphicFrame id via bldGraphic/bldAsOne', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.addChart(pptx.charts.BAR, [{ name: 'Q', labels: ['A'], values: [1] }], {
+		x: 1, y: 1, w: 4, h: 3,
+		animation: { type: 'fadein', duration: 400 },
+	})
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const timing = assertSlideTimingStructure(slideXml)
+	assert.ok(timing.presetClasses.includes('entr'), 'chart fadein must be an entrance preset')
+	const cNvPr = /<p:cNvPr id="(\d+)"[^>]*name="Chart/.exec(slideXml)
+	assert.ok(cNvPr, 'chart graphicFrame cNvPr missing')
+	assert.ok(slideXml.includes(`<p:bldGraphic spid="${cNvPr[1]}" grpId="0"><p:bldAsOne/></p:bldGraphic>`),
+		'chart must use p:bldGraphic/p:bldAsOne (ECMA-376 §19.5.11/§19.5.13)')
+	assert.ok(slideXml.includes(`<p:spTgt spid="${cNvPr[1]}"`), 'chart animation spTgt must match cNvPr id')
+	assert.ok(!slideXml.includes('<p:bldP '), 'chart-only timing must not emit p:bldP')
+})
+
+test('#transition: friendly direction aliases map to OOXML tokens', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide({ transition: { type: 'wipe', direction: 'left' } })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assertSlideTransitionStructure(slideXml, { type: 'wipe' })
+	assert.ok(slideXml.includes('<p:wipe dir="l"/>'), `friendly left must emit dir="l": ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
+})
+
+test('#transition: split uses CT_SplitTransition orient+dir', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTransition({ type: 'split', direction: 'in', orient: 'vertical' })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assertSlideTransitionStructure(slideXml, { type: 'split' })
+	assert.ok(slideXml.includes('<p:split orient="vert" dir="in"/>'),
+		`split orient/dir wrong: ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
+})
+
+test('#transition: strips corner uses ST_TransitionCornerDirectionType ld/rd', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addTransition({ type: 'strips', direction: 'leftDown' })
+
+	const slideXml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assertSlideTransitionStructure(slideXml, { type: 'strips' })
+	assert.ok(slideXml.includes('<p:strips dir="ld"/>'),
+		`strips leftDown must emit dir="ld": ${/<p:transition[\s\S]*?<\/p:transition>/.exec(slideXml)?.[0]}`)
+})
+
 test('#gap3: guides emit p15:sldGuideLst in presentation.xml', async () => {
 	const pptx = new pptxgen()
 	pptx.guides = [{ orient: 'vert', pos: 3.5 }, { orient: 'horz', pos: 2, color: 'FF0000' }]
