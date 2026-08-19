@@ -470,6 +470,51 @@ test('#33: picture/chart/table placeholders emit their `p:ph` type on the layout
 	assert.ok(pic.includes(`<a:off x="${Math.round(0.5 * 914400)}"`), 'slide image did not inherit the placeholder position')
 })
 
+test('gitbrent#1526: p:ph@type accepts OOXML tokens and PLACEHOLDER_TYPES keys', async () => {
+	const pptx = new pptxgen()
+	pptx.defineSlideMaster({
+		title: 'PH_TYPE_MATRIX',
+		objects: [
+			{ placeholder: { options: { name: 'title', type: 'title', x: 0.5, y: 0.2, w: 3, h: 0.5 }, text: '' } },
+			{ placeholder: { options: { name: 'body', type: 'body', x: 3.5, y: 0.2, w: 3, h: 0.5 }, text: '' } },
+			{ placeholder: { options: { name: 'pic', type: 'pic', x: 0.5, y: 1, w: 3, h: 2 }, text: '' } },
+			{ placeholder: { options: { name: 'tbl', type: 'tbl', x: 3.5, y: 1, w: 3, h: 2 }, text: '' } },
+			{ placeholder: { options: { name: 'chart', type: 'chart', x: 6.5, y: 1, w: 3, h: 2 }, text: '' } },
+			{ placeholder: { options: { name: 'media', type: 'media', x: 0.5, y: 3.2, w: 3, h: 2 }, text: '' } },
+			{ placeholder: { options: { name: 'imageKey', type: 'image', x: 3.5, y: 3.2, w: 3, h: 2 } as never, text: '' } },
+			{ placeholder: { options: { name: 'tableKey', type: 'table', x: 6.5, y: 3.2, w: 3, h: 2 } as never, text: '' } },
+			{ placeholder: { options: { name: 'generic', x: 0.5, y: 5.4, w: 3, h: 1 } as never, text: '' } },
+			{ placeholder: { options: { name: 'unknown', type: 'not-a-type', x: 3.5, y: 5.4, w: 3, h: 1 } as never, text: '' } },
+		],
+	})
+	pptx.addSlide({ masterName: 'PH_TYPE_MATRIX' })
+
+	const zip = await writeZip(pptx)
+	const layouts = await Promise.all([1, 2].map(async num => await readPart(zip, `ppt/slideLayouts/slideLayout${num}.xml`)))
+	const layout = layouts.find(xml => xml.includes('PH_TYPE_MATRIX')) ?? ''
+	assert.ok(layout, 'missing PH_TYPE_MATRIX layout')
+
+	const ph = (idx: number): string => new RegExp(`<p:ph[^>]*idx="${idx}"[^>]*>`).exec(layout)?.[0] ?? ''
+	const expectType = (idx: number, type: string) => {
+		assert.match(ph(idx), new RegExp(`type="${type}"`), `idx ${idx} should emit type="${type}"`)
+	}
+	const expectNoType = (idx: number) => {
+		assert.doesNotMatch(ph(idx), /type=/, `idx ${idx} should omit type (ECMA-376 CT_Placeholder default=obj)`)
+		assert.match(ph(idx), /idx=/, `idx ${idx} placeholder missing`)
+	}
+
+	expectType(100, 'title')
+	expectType(101, 'body')
+	expectType(102, 'pic')
+	expectType(103, 'tbl')
+	expectType(104, 'chart')
+	expectType(105, 'media')
+	expectType(106, 'pic')
+	expectType(107, 'tbl')
+	expectNoType(108)
+	expectNoType(109)
+})
+
 test('#32: masters accept any shape type, tables and media', async () => {
 	const pptx = new pptxgen()
 	pptx.defineSlideMaster({

@@ -723,6 +723,29 @@ export function genXmlNvPrExtLst (options?: ObjectOptions, extraExts: string[] =
 }
 
 /**
+ * Resolve a placeholder type to the ST_PlaceholderType token written on `p:ph@type`.
+ * ECMA-376 §4.4.1.33 / CT_Placeholder: `type` is `use="optional" default="obj"`
+ * (`standards/ecma/part-20_presentationml-reference-material-slides.txt`).
+ * Omitting the attribute is therefore the generic object placeholder, not a picture/table slot.
+ *
+ * `PlaceholderProps.type` is the OOXML token ('pic', 'tbl', …) while PLACEHOLDER_TYPES is keyed
+ * by friendly name ('image', 'table'). Accept both so `type: 'pic'` and `PLACEHOLDER_TYPES.image`
+ * emit `type="pic"`. Port of gitbrent/PptxGenJS#1526; the prior double lookup dropped pic/tbl.
+ * @param {string} type placeholder type as provided by the user
+ * @returns OOXML placeholder type, or an empty string when unrecognized
+ */
+function resolvePlaceholderType (type: string | undefined): string {
+	if (!type) return ''
+
+	// A) OOXML value ('pic'): the documented form of `PlaceholderProps.type`
+	const ooxmlTypes: string[] = Object.values(PLACEHOLDER_TYPES)
+	if (ooxmlTypes.includes(type)) return type
+
+	// B) Enum key ('image'): tolerated so untyped (JS) callers keep working
+	return PLACEHOLDER_TYPES[type as keyof typeof PLACEHOLDER_TYPES]?.toString() ?? ''
+}
+
+/**
  * Generate an XML Placeholder
  * @param {ISlideObject} placeholderObj
  * @param {ObjectOptions} extraOpts slide-object options (phTypeExt override)
@@ -732,12 +755,7 @@ export function genXmlPlaceholder (placeholderObj: ISlideObject | undefined, ext
 	if (!placeholderObj) return ''
 
 	const placeholderIdx = placeholderObj.options?._placeholderIdx ? placeholderObj.options._placeholderIdx : ''
-	const placeholderTyp = placeholderObj.options?._placeholderType ? placeholderObj.options._placeholderType : ''
-	// NOTE: accept both the friendly name ('image', 'table') and the OOXML code it maps to ('pic', 'tbl').
-	// The old code looked the mapped code back up in the enum, which only ever hit for the types whose
-	// name and code are identical - that is why picture/chart/table placeholders never got a `type` (issue #33).
-	const placeholderCodes: string[] = Object.values(PLACEHOLDER_TYPES)
-	const placeholderType: string = PLACEHOLDER_TYPES[placeholderTyp]?.toString() ?? (placeholderCodes.includes(placeholderTyp) ? placeholderTyp : '')
+	const placeholderType = resolvePlaceholderType(placeholderObj.options?._placeholderType)
 
 	const attrs =
 		`${placeholderIdx ? ' idx="' + placeholderIdx.toString() + '"' : ''}` +
