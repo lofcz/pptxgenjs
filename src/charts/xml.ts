@@ -25,6 +25,8 @@ import {
 	genXmlErrBars,
 	getErrorrateExcelCol,
 	getExcelColName,
+	resolveAreaGrouping,
+	resolveSeriesLineDash,
 	resolveShadowOptions,
 	seriesHasErrorrate,
 } from './utils'
@@ -382,8 +384,10 @@ function makeChartType (
 		case CHART_TYPE.RADAR:
 			// 1: Start Chart
 			strXml += `<c:${chartType}Chart>`
-			if (chartType === CHART_TYPE.AREA && opts.barGrouping === 'stacked') {
-				strXml += '<c:grouping val="' + opts.barGrouping + '"/>'
+			// Area charts: `c:grouping` / ST_Grouping (ECMA-376 §5.7.2.76 / §5.7.3.17).
+			// `barGrouping` is the public option name; the element is not `c:barGrouping` (that is ST_BarGrouping on bar charts).
+			if (chartType === CHART_TYPE.AREA) {
+				strXml += '<c:grouping val="' + resolveAreaGrouping(opts.barGrouping) + '"/>'
 			}
 
 			if (chartType === CHART_TYPE.BAR || chartType === CHART_TYPE.BAR3D) {
@@ -464,7 +468,7 @@ function makeChartType (
 						strXml += '<a:ln><a:noFill/></a:ln>'
 					} else {
 						strXml += `<a:ln w="${valToPts(opts.lineSize)}" cap="${createLineCap(opts.lineCap)}"><a:solidFill>${createColorElement(seriesColor)}</a:solidFill>`
-						strXml += '<a:prstDash val="' + (opts.lineDash || 'solid') + '"/><a:round/></a:ln>'
+						strXml += '<a:prstDash val="' + resolveSeriesLineDash(obj.lineDash, opts.lineDash) + '"/><a:round/></a:ln>'
 					}
 				} else if (opts.dataBorder) {
 					strXml += `<a:ln w="${valToPts(opts.dataBorder.pt)}" cap="${createLineCap(opts.lineCap)}"><a:solidFill>${createColorElement(opts.dataBorder.color)}</a:solidFill><a:prstDash val="solid"/><a:round/></a:ln>`
@@ -540,7 +544,8 @@ function makeChartType (
 						strXml += '    <c:spPr>'
 						if (opts.lineSize === 0) {
 							strXml += '<a:ln><a:noFill/></a:ln>'
-						} else if (chartType === CHART_TYPE.BAR) {
+						} else if (chartType === CHART_TYPE.BAR || chartType === CHART_TYPE.BAR3D) {
+							// CT_DPt.spPr is CT_ShapeProperties: series color is a fill (`a:solidFill`), not an outline (`a:ln`).
 							strXml += `<a:solidFill>${createColorElement(arrColors[index % arrColors.length])}</a:solidFill>`
 						} else {
 							strXml += `<a:ln><a:solidFill>${createColorElement(arrColors[index % arrColors.length])}</a:solidFill></a:ln>`
@@ -729,7 +734,7 @@ function makeChartType (
 						strXml += '<a:ln><a:noFill/></a:ln>'
 					} else {
 						strXml += `<a:ln w="${valToPts(opts.lineSize)}" cap="${createLineCap(opts.lineCap)}"><a:solidFill>${createColorElement(tmpSerColor)}</a:solidFill>`
-						strXml += `<a:prstDash val="${opts.lineDash || 'solid'}"/><a:round/></a:ln>`
+						strXml += `<a:prstDash val="${resolveSeriesLineDash(obj.lineDash, opts.lineDash)}"/><a:round/></a:ln>`
 					}
 
 					// Shadow
@@ -1027,7 +1032,7 @@ function makeChartType (
 						strXml += `<a:ln w="${valToPts(opts.dataBorder.pt)}" cap="flat"><a:solidFill>${createColorElement(opts.dataBorder.color)}</a:solidFill><a:prstDash val="solid"/><a:round/></a:ln>`
 					} else {
 						strXml += `<a:ln w="${valToPts(opts.lineSize)}" cap="flat"><a:solidFill>${createColorElement(tmpSerColor)}</a:solidFill>`
-						strXml += `<a:prstDash val="${opts.lineDash || 'solid'}"/><a:round/></a:ln>`
+						strXml += `<a:prstDash val="${resolveSeriesLineDash(obj.lineDash, opts.lineDash)}"/><a:round/></a:ln>`
 					}
 
 					// Shadow

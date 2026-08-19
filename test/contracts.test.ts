@@ -98,6 +98,20 @@ test('contract: bar chart keeps its data and chart type', async () => {
 	assert.match(xml, /<c:v>Sales<\/c:v>/, 'series name missing')
 	assert.match(xml, /<c:v>Q1<\/c:v>/, 'category label missing')
 	assert.match(xml, /<c:v>20<\/c:v>/, 'series value missing')
+	assert.match(xml, /<c:cat>\s*<c:strRef>/, 'single-level categories must use c:strRef')
+	assert.doesNotMatch(xml, /<c:multiLvlStrRef>/, 'single-level categories must not use multiLvlStrRef')
+})
+
+test('contract: slide chart relationship Target is relative; Content_Types PartName stays absolute', async () => {
+	const rels = await readPart(zip, 'ppt/slides/_rels/slide1.xml.rels')
+	assert.match(
+		rels,
+		/Type="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships\/chart" Target="\.\.\/charts\/chart\d+\.xml"/,
+		'chart relationship Target must be relative to the slide part',
+	)
+	assert.doesNotMatch(rels, /Target="\/ppt\/charts\//, 'absolute chart relationship Target is non-idiomatic')
+	const types = await readPart(zip, '[Content_Types].xml')
+	assert.match(types, /PartName="\/ppt\/charts\/chart\d+\.xml"/, 'Content_Types Override PartName must stay package-absolute')
 })
 
 test('contract: gradient stops and color transforms keep DrawingML fill semantics', async () => {

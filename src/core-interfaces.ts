@@ -2031,6 +2031,12 @@ export interface OptsChartData {
 	 * @see Toukyh/fix-custom-label
 	 */
 	labelsRange?: string[]
+	/**
+	 * Per-series line dash for line/scatter/bubble (overrides chart-level `lineDash`)
+	 * - DrawingML `a:prstDash` / ST_PresetLineDashVal
+	 * @example 'dash'
+	 */
+	lineDash?: 'solid' | 'dash' | 'dashDot' | 'lgDash' | 'lgDashDot' | 'lgDashDotDot' | 'sysDash' | 'sysDot'
 }
 // Used internally, probably shouldn't be used by end users
 export interface IOptsChartData extends OptsChartData {

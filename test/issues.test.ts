@@ -2768,3 +2768,115 @@ test('rounded rect image crop emits prst=roundRect with adj (already on next)', 
 	assert.ok(xml.includes('prst="roundRect"'), 'rectRadius must emit roundRect')
 	assert.ok(/<a:gd name="adj" fmla="val \d+"\/>/.test(xml), 'roundRect adj guide missing')
 })
+
+/* ------------------------------------------------------------------------- */
+/* charts backport (eliasaronson, kotlyarevskyy, pop-xiaodong, Auxdible)     */
+/* ------------------------------------------------------------------------- */
+
+test('eliasaronson/PR1465: chart rel Target is relative; Content_Types PartName stays absolute', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [{ name: 'Sales', labels: ['Q1', 'Q2'], values: [1, 2] }], { x: 1, y: 1, w: 4, h: 3 })
+	const zip = await writeZip(pptx)
+	const rels = await readPart(zip, 'ppt/slides/_rels/slide1.xml.rels')
+	assert.match(rels, /Target="\.\.\/charts\/chart\d+\.xml"/, 'slide→chart Target should be ../charts/chartN.xml')
+	assert.doesNotMatch(rels, /Target="\/ppt\/charts\//, 'slide→chart Target must not stay package-absolute')
+	const types = await readPart(zip, '[Content_Types].xml')
+	assert.match(types, /PartName="\/ppt\/charts\/chart\d+\.xml"/, 'Content_Types PartName stays /ppt/charts/chartN.xml')
+	await assertPptxPackageContracts(zip)
+})
+
+test('kotlyarevskyy: per-series lineDash emits a:prstDash on line/scatter/bubble', async () => {
+	const cases: Array<{ type: 'line' | 'scatter' | 'bubble', data: Array<{ name: string, labels?: string[], values: number[], sizes?: number[], lineDash?: 'dash' | 'sysDot' }> }> = [
+		{
+			type: 'line',
+			data: [
+				{ name: 'A', labels: ['1', '2'], values: [1, 2], lineDash: 'dash' },
+				{ name: 'B', labels: ['1', '2'], values: [3, 4], lineDash: 'sysDot' },
+			],
+		},
+		{
+			type: 'scatter',
+			data: [
+				{ name: 'X', values: [1, 2] },
+				{ name: 'A', values: [10, 20], lineDash: 'dash' },
+				{ name: 'B', values: [30, 40], lineDash: 'sysDot' },
+			],
+		},
+		{
+			type: 'bubble',
+			data: [
+				{ name: 'X', values: [1, 2] },
+				{ name: 'A', values: [1, 2], sizes: [5, 6], lineDash: 'dash' },
+				{ name: 'B', values: [3, 4], sizes: [7, 8], lineDash: 'sysDot' },
+			],
+		},
+	]
+
+	for (const { type, data } of cases) {
+		const pptx = new pptxgen()
+		pptx.addSlide().addChart(pptx.ChartType[type], data, { x: 1, y: 1, w: 4, h: 3, lineDash: 'solid' })
+		const chart = await readChart(await writeZip(pptx))
+		assert.ok(chart.includes('<a:prstDash val="dash"/>'), `${type} series dash missing`)
+		assert.ok(chart.includes('<a:prstDash val="sysDot"/>'), `${type} series sysDot missing`)
+	}
+})
+
+test('kotlyarevskyy: unknown series lineDash falls back to chart-level / solid', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.line, [
+		{ name: 'A', labels: ['1', '2'], values: [1, 2], lineDash: 'not-a-dash' as unknown as 'dash' },
+	], { x: 1, y: 1, w: 4, h: 3, lineDash: 'lgDash' })
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(chart.includes('<a:prstDash val="lgDash"/>'), 'invalid series dash should fall back to chart lineDash')
+	assert.ok(!chart.includes('not-a-dash'), 'illegal ST_PresetLineDashVal must not be emitted')
+})
+
+test('pop-xiaodong: area charts emit c:grouping for percentStacked (ST_Grouping)', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.area, [
+		{ name: 'A', labels: ['Q1', 'Q2'], values: [1, 2] },
+		{ name: 'B', labels: ['Q1', 'Q2'], values: [3, 4] },
+	], { x: 1, y: 1, w: 4, h: 3, barGrouping: 'percentStacked' })
+
+	const chart = await readChart(await writeZip(pptx))
+	const area = chart.match(/<c:areaChart>[\s\S]*?<\/c:areaChart>/)?.[0] ?? ''
+	assert.ok(area.includes('<c:grouping val="percentStacked"/>'), 'area percentStacked must emit c:grouping, not c:barGrouping')
+	assert.ok(!area.includes('barGrouping'), 'area charts must not emit a barGrouping element')
+})
+
+test('pop-xiaodong: area clustered barGrouping remaps to ST_Grouping standard', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.area, [
+		{ name: 'A', labels: ['Q1'], values: [1] },
+	], { x: 1, y: 1, w: 4, h: 3, barGrouping: 'clustered' })
+
+	const chart = await readChart(await writeZip(pptx))
+	const area = chart.match(/<c:areaChart>[\s\S]*?<\/c:areaChart>/)?.[0] ?? ''
+	assert.ok(area.includes('<c:grouping val="standard"/>'), 'clustered is ST_BarGrouping-only; area falls back to standard')
+	assert.ok(!area.includes('val="clustered"'), 'area must not emit clustered grouping')
+})
+
+test('Auxdible: bar3D data-point color is a fill, not an outline', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar3d, [
+		{ name: 'Sales', labels: ['Q1', 'Q2'], values: [1, 2] },
+	], { x: 1, y: 1, w: 4, h: 3, chartColors: ['FF0000', '00FF00'] })
+
+	const chart = await readChart(await writeZip(pptx))
+	const dPts = [...chart.matchAll(/<c:dPt>[\s\S]*?<\/c:dPt>/g)].map(m => m[0])
+	assert.ok(dPts.length >= 2, 'bar3D per-point colors missing')
+	assert.ok(dPts[0].includes('<a:solidFill>'), 'bar3D dPt should fill the bar')
+	assert.ok(!/<a:ln>\s*<a:solidFill>/.test(dPts[0]), 'bar3D dPt color must not live only on a:ln')
+})
+
+test('legend overlay=0 keeps reserved space; no magic plotArea layout', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [{ name: 'Sales', labels: ['Q1'], values: [1] }], {
+		x: 1, y: 1, w: 4, h: 3, showLegend: true, legendPos: 't',
+	})
+	const chart = await readChart(await writeZip(pptx))
+	const legend = chart.match(/<c:legend>[\s\S]*?<\/c:legend>/)?.[0] ?? ''
+	assert.ok(legend.includes('<c:legendPos val="t"/>'), 'legendPos t missing')
+	assert.ok(legend.includes('<c:overlay val="0"/>'), 'c:overlay=0 is the spec way to keep plot/legend from overlapping')
+	assert.ok(!chart.includes('<c:y val="0.28"/>'), 'rayishome showGap magic plotArea y must not be imported')
+})
