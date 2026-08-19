@@ -89,8 +89,10 @@ The workflow:
 5. Runs `bun run test` and `bun run test:jsx`.
 6. Runs `bun run dist` (Rslib) and `bun run build:jsx`.
 7. Verifies package contents with `bun pm pack --dry-run`.
-8. Publishes `pptxgenjs-plus`, then rewrites the JSX `file:` dependency to the shared version and publishes `pptxgenjs-plus-jsx`.
+8. Publishes both packages with `npm publish --provenance` (OIDC trusted publishing; Bun cannot use GitHub OIDC).
 9. Restores the workspace `file:` dependency, pushes the release commit/tag, and creates a GitHub release.
+
+GitHub Actions must use `npm publish`, not `bun publish`. Bun has no OIDC trusted-publisher support and fails with `missing authentication (run bunx npm login)`.
 
 ## Consumer Install
 

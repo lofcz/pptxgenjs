@@ -37,6 +37,9 @@ jobs:
         with:
           bun-version: canary
 
+      - name: Install npm for trusted publishing
+        run: npm install -g npm@^11.15.0 && npm --version
+
       - name: Install dependencies
         run: bun ci
 
@@ -80,14 +83,16 @@ jobs:
           ls -l packages/pptxgenjs-jsx/dist/index.js packages/pptxgenjs-jsx/dist/jsx-runtime.js
 
       - name: Publish pptxgenjs-plus to npm
-        run: bun publish --access public
+        run: npm publish --access public --provenance --ignore-scripts
 
       - name: Publish pptxgenjs-plus-jsx to npm
         run: |
           bun scripts/sync-jsx-version.mjs --publish
           bun -e "const d=require('./packages/pptxgenjs-jsx/package.json').dependencies['pptxgenjs-plus']; if (String(d).startsWith('file:')) { throw new Error('refusing to publish file: dependency: '+d) }"
-          bun --cwd packages/pptxgenjs-jsx pm pack --dry-run
-          bun publish --access public --cwd packages/pptxgenjs-jsx
+
+      - name: Publish pptxgenjs-plus-jsx tarball
+        working-directory: packages/pptxgenjs-jsx
+        run: npm publish --access public --provenance --ignore-scripts
 
       - name: Restore JSX workspace dependency
         if: always() && !cancelled()
