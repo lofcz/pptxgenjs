@@ -38,7 +38,11 @@ function slideObjectRelationsToXml (slide: PresSlide | SlideLayout, defaultRels:
 	})
 	; (slide._relsChart || []).forEach((rel: ISlideRelChart) => {
 		lastRid = Math.max(lastRid, rel.rId)
-		strXml += `<Relationship Id="rId${rel.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="${rel.Target}"/>`
+		// OPC Part 2: relationship Target is resolved from the source part. Stored `rel.Target`
+		// is the absolute `/ppt/charts/chartN.xml` form reused as Content_Types PartName.
+		// PowerPoint writes the relative `../charts/chartN.xml`; absolute targets are valid but
+		// non-idiomatic and break stricter consumers (PR 1465 / eliasaronson).
+		strXml += `<Relationship Id="rId${rel.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="${rel.Target.replace(/^\/ppt\//, '../')}"/>`
 	})
 	; (slide._relsMedia || []).forEach((rel: ISlideRelMedia) => {
 		const relRid = rel.rId.toString()

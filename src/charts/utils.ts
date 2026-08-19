@@ -154,3 +154,26 @@ export function createLineCap (lineCap: ChartLineCap | undefined): string {
 		throw new Error(`Invalid chart line cap: ${neverLineCap}`)
 	}
 }
+
+/** DrawingML `a:prstDash` / ST_PresetLineDashVal — same set as `line.dashType` / chart `lineDash`. */
+const CHART_LINE_DASH_TYPES = ['solid', 'dash', 'dashDot', 'lgDash', 'lgDashDot', 'lgDashDotDot', 'sysDash', 'sysDot'] as const
+export type ChartLineDashType = (typeof CHART_LINE_DASH_TYPES)[number]
+
+/**
+ * Per-series dash wins over chart-level `lineDash`. Unknown values fall back so we never
+ * emit an illegal ST_PresetLineDashVal.
+ */
+export function resolveSeriesLineDash (seriesDash?: string, chartDash?: string): ChartLineDashType {
+	if (seriesDash && (CHART_LINE_DASH_TYPES as readonly string[]).includes(seriesDash)) return seriesDash as ChartLineDashType
+	if (chartDash && (CHART_LINE_DASH_TYPES as readonly string[]).includes(chartDash)) return chartDash as ChartLineDashType
+	return 'solid'
+}
+
+/** Area charts use `c:grouping` / ST_Grouping (standard|stacked|percentStacked), not ST_BarGrouping. */
+const AREA_GROUPING = ['standard', 'stacked', 'percentStacked'] as const
+export type AreaGrouping = (typeof AREA_GROUPING)[number]
+
+export function resolveAreaGrouping (barGrouping?: string): AreaGrouping {
+	if (barGrouping && (AREA_GROUPING as readonly string[]).includes(barGrouping)) return barGrouping as AreaGrouping
+	return 'standard'
+}
