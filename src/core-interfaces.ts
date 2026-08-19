@@ -1015,6 +1015,10 @@ export interface PlaceholderProps extends PositionProps, TextBaseProps, NvPrExte
 	 * margin (points)
 	 */
 	margin?: Margin
+	/**
+	 * Placeholder background fill. Kept when a slide inherits layout defaults (caller fill wins).
+	 */
+	fill?: ShapeFillProps
 }
 export interface ObjectNameProps {
 	/**
@@ -2860,6 +2864,11 @@ export interface ObjectOptions extends ImageProps, PositionProps, ShapeProps, Ta
 	_placeholderType?: PLACEHOLDER_TYPE
 	/** image added without `w`/`h`: size it from the image itself during export @internal */
 	_sizeFromImage?: boolean
+	/** Caller set this axis; placeholder geometry must not overwrite it. */
+	_explicitX?: boolean
+	_explicitY?: boolean
+	_explicitW?: boolean
+	_explicitH?: boolean
 
 	cx?: Coord
 	cy?: Coord

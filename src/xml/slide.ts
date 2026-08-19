@@ -328,6 +328,14 @@ function resolveShapeId (options: ObjectOptions | undefined, idx: number, usedId
 	return shapeId
 }
 
+/** Next unused `p:cNvPr@id` (ECMA-376 §5.1.2.1.9 `CT_NonVisualDrawingProps`). Slide-number used to hardcode 25 (SCV-Soft 9f66206). */
+function nextUnusedShapeId (usedIds: Set<number>, start = 2): number {
+	let shapeId = start
+	while (usedIds.has(shapeId)) shapeId++
+	usedIds.add(shapeId)
+	return shapeId
+}
+
 /**
  * DrawingML `a:custGeom` (ECMA-376 §5.1.11.5).
  * `pathW`/`pathH` mean coordinates are already in the path EMU space (SVG-derived paths).
@@ -498,12 +506,13 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				else if (typeof rawH === 'number' && rawH < 100 && typeof rawW === 'number' && rawW >= 100) imgHeight = rawH
 			}
 
-			// If using a placeholder then inherit it's position
+			// Inherit placeholder geometry only for axes the caller did not set (fujita-h d7e3e93).
+			// addImage always writes x/y/w/h defaults, so `_explicit*` distinguishes unset vs explicit.
 			if (placeholderObj) {
-				if (placeholderObj.options?.x || placeholderObj.options?.x === 0) x = getSmartParseNumber(placeholderObj.options?.x, 'X', slide._presLayout)
-				if (placeholderObj.options?.y || placeholderObj.options?.y === 0) y = getSmartParseNumber(placeholderObj.options?.y, 'Y', slide._presLayout)
-				if (placeholderObj.options?.w || placeholderObj.options?.w === 0) cx = getSmartParseNumber(placeholderObj.options?.w, 'X', slide._presLayout)
-				if (placeholderObj.options?.h || placeholderObj.options?.h === 0) cy = getSmartParseNumber(placeholderObj.options?.h, 'Y', slide._presLayout)
+				if (!slideItemObj.options._explicitX && (placeholderObj.options?.x || placeholderObj.options?.x === 0)) x = getSmartParseNumber(placeholderObj.options?.x, 'X', slide._presLayout)
+				if (!slideItemObj.options._explicitY && (placeholderObj.options?.y || placeholderObj.options?.y === 0)) y = getSmartParseNumber(placeholderObj.options?.y, 'Y', slide._presLayout)
+				if (!slideItemObj.options._explicitW && (placeholderObj.options?.w || placeholderObj.options?.w === 0)) cx = getSmartParseNumber(placeholderObj.options?.w, 'X', slide._presLayout)
+				if (!slideItemObj.options._explicitH && (placeholderObj.options?.h || placeholderObj.options?.h === 0)) cy = getSmartParseNumber(placeholderObj.options?.h, 'Y', slide._presLayout)
 				// Re-sync the image frame: imgWidth/imgHeight were snapshotted from cx/cy before this block, so a
 				// placeholder's w/h would otherwise be lost and the frame stay at the 1x1 default (issue #996).
 				imgWidth = cx
@@ -1152,9 +1161,10 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 		// Set some defaults (done here b/c SlideNumber canbe added to masters or slides and has numerous entry points)
 		if (!slide._slideNumberProps.align) slide._slideNumberProps.align = 'left'
 
+		const slideNumId = nextUnusedShapeId(usedShapeIds)
 		strSlideXml += '<p:sp>'
 		strSlideXml += ' <p:nvSpPr>'
-		strSlideXml += '  <p:cNvPr id="25" name="Slide Number Placeholder 0"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr>'
+		strSlideXml += `  <p:cNvPr id="${slideNumId}" name="Slide Number Placeholder 0"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr>`
 		strSlideXml += '  <p:nvPr><p:ph type="sldNum" sz="quarter" idx="4294967295"/></p:nvPr>'
 		strSlideXml += ' </p:nvSpPr>'
 		strSlideXml += ' <p:spPr>'

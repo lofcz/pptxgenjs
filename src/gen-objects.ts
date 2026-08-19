@@ -232,8 +232,12 @@ export function addChartDefinition(target: PresSlide | SlideLayout, type: CHART_
 	// STEP 2: Set default options/decode user options
 	// A: Core
 	options._type = type
-	options.x = typeof options.x !== 'undefined' && options.x != null && !isNaN(Number(options.x)) ? options.x : 1
-	options.y = typeof options.y !== 'undefined' && options.y != null && !isNaN(Number(options.y)) ? options.y : 1
+	const explicitChartX = typeof options.x !== 'undefined' && options.x != null && !isNaN(Number(options.x))
+	const explicitChartY = typeof options.y !== 'undefined' && options.y != null && !isNaN(Number(options.y))
+	const explicitChartW = options.w !== undefined && options.w !== null
+	const explicitChartH = options.h !== undefined && options.h !== null
+	options.x = explicitChartX ? options.x : 1
+	options.y = explicitChartY ? options.y : 1
 	options.w = options.w || '50%'
 	options.h = options.h || '50%'
 	options.objectName = options.objectName
@@ -396,7 +400,14 @@ export function addChartDefinition(target: PresSlide | SlideLayout, type: CHART_
 	// The chart object stores the position/placeholder that gen-xml reads; chart `fill`
 	// is a color string (vs ObjectOptions' ShapeFillProps) and is never read here, so it
 	// is reconciled to undefined to keep the stored object a valid ObjectOptions.
-	resultObject.options = { ...options, fill: undefined }
+	resultObject.options = {
+		...options,
+		fill: undefined,
+		_explicitX: explicitChartX,
+		_explicitY: explicitChartY,
+		_explicitW: explicitChartW,
+		_explicitH: explicitChartH,
+	}
 	resultObject.chartRid = getNewRelId(target)
 
 	// STEP 5: Add this chart to this Slide Rels (rId/rels count spans all slides! Count all images to get next rId)
@@ -589,6 +600,12 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 		blur: opt.blur,
 		line: opt.line || imageBorderToLine(opt.border),
 		_sizeFromImage: !intWidth && !intHeight,
+		// addImage always writes x/y/w/h defaults, so remember which axes the caller actually set
+		// (placeholder geometry must not overwrite explicit placement; fujita-h d7e3e93 / #996).
+		_explicitX: opt.x !== undefined && opt.x !== null,
+		_explicitY: opt.y !== undefined && opt.y !== null,
+		_explicitW: opt.w !== undefined && opt.w !== null,
+		_explicitH: opt.h !== undefined && opt.h !== null,
 		// Images build options explicitly (unlike shape/text which pass through opts), so copy animation here
 		animation: opt.animation,
 		appearOnClick: opt.appearOnClick,
@@ -727,6 +744,10 @@ export function addMediaDefinition(target: PresSlide, opt: MediaProps): void {
 	slideData.options.y = intPosY
 	slideData.options.w = intSizeX
 	slideData.options.h = intSizeY
+	slideData.options._explicitX = opt.x !== undefined && opt.x !== null
+	slideData.options._explicitY = opt.y !== undefined && opt.y !== null
+	slideData.options._explicitW = opt.w !== undefined && opt.w !== null
+	slideData.options._explicitH = opt.h !== undefined && opt.h !== null
 	slideData.options.objectName = objectName
 	slideData.options.animation = opt.animation
 	slideData.options.appearOnClick = opt.appearOnClick
@@ -1086,6 +1107,11 @@ export function addShapeDefinition(target: PresSlide | SlideLayout, shapeName: S
 	if (typeof options.line === 'object' && options.line.type !== 'none') options.line = newLineOpts
 
 	// 2: Set options defaults
+	const shapeOpts = options as ObjectOptions
+	shapeOpts._explicitX = options.x !== undefined && options.x !== null
+	shapeOpts._explicitY = options.y !== undefined && options.y !== null
+	shapeOpts._explicitW = options.w !== undefined && options.w !== null
+	shapeOpts._explicitH = options.h !== undefined && options.h !== null
 	options.x = options.x || (options.x === 0 ? 0 : 1)
 	options.y = options.y || (options.y === 0 ? 0 : 1)
 	options.w = options.w || (options.w === 0 ? 0 : 1)
@@ -1216,6 +1242,11 @@ export function addTableDefinition(
 	})
 
 	// STEP 3: Set options
+	const tableOpts = opt as ObjectOptions
+	tableOpts._explicitX = opt.x !== undefined && opt.x !== null
+	tableOpts._explicitY = opt.y !== undefined && opt.y !== null
+	tableOpts._explicitW = opt.w !== undefined && opt.w !== null
+	tableOpts._explicitH = opt.h !== undefined && opt.h !== null
 	opt.x = getSmartParseNumber(opt.x || (opt.x === 0 ? 0 : EMU / 2), 'X', presLayout)
 	opt.y = getSmartParseNumber(opt.y || (opt.y === 0 ? 0 : EMU / 2), 'Y', presLayout)
 	if (opt.h) opt.h = getSmartParseNumber(opt.h, 'Y', presLayout) // NOTE: Dont set default `h` - leaving it null triggers auto-rowH in `makeXMLSlide()`
@@ -1412,12 +1443,21 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 				itemOpts.bullet = itemOpts.bullet || false
 			}
 
-			// A.3: Text targeting a placeholder need to inherit the placeholders options (eg: margin, valign, etc.) (Issue #640)
+			// A.3: Text targeting a placeholder inherits layout defaults (margin, valign, fill, …) (Issue #640).
+			// Caller options win so a user fill/spacing is not wiped by the placeholder (fujita-h 11c4cb6).
+			// Do not share the layout `_bodyProp` object — rebuild it below from the merged public options.
+			itemOpts._explicitX = itemOpts.x !== undefined && itemOpts.x !== null
+			itemOpts._explicitY = itemOpts.y !== undefined && itemOpts.y !== null
+			itemOpts._explicitW = itemOpts.w !== undefined && itemOpts.w !== null
+			itemOpts._explicitH = itemOpts.h !== undefined && itemOpts.h !== null
 			if (itemOpts.placeholder && '_slideLayout' in target && target._slideLayout && target._slideLayout._slideObjects) {
 				const placeHold = target._slideLayout._slideObjects.filter(
 					item => item._type === 'placeholder' && item.options && item.options.placeholder && item.options.placeholder === itemOpts.placeholder
 				)[0]
-				if (placeHold?.options) itemOpts = { ...itemOpts, ...placeHold.options }
+				if (placeHold?.options) {
+					const { _bodyProp: _ignored, ...layoutOpts } = placeHold.options
+					itemOpts = { ...layoutOpts, ...itemOpts, _bodyProp: {} }
+				}
 			}
 
 			// A.4: Other options
