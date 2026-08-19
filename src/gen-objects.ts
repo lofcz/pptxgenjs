@@ -504,6 +504,10 @@ export function addImageDefinition(target: PresSlide | SlideLayout, opt: ImagePr
 		transparency: opt.transparency || 0,
 		objectName,
 		shadow: opt.shadow ? correctShadowOptions(opt.shadow) : undefined,
+		glow: opt.glow,
+		softEdge: opt.softEdge,
+		reflection: opt.reflection,
+		blur: opt.blur,
 		line: opt.line,
 		_sizeFromImage: !intWidth && !intHeight,
 		// Images build options explicitly (unlike shape/text which pass through opts), so copy animation here
@@ -983,7 +987,7 @@ export function addShapeDefinition(target: PresSlide | SlideLayout, shapeName: S
 	// 1: ShapeLineProps defaults
 	const hasConnectorEnds = options.line.sourceId != null || options.line.targetId != null
 	const newLineOpts: ShapeLineProps = {
-		type: options.line.type || 'solid',
+		type: options.line.type || (options.line.gradient ? 'gradient' : 'solid'),
 		color: options.line.color || DEF_SHAPE_LINE_COLOR,
 		transparency: options.line.transparency || 0,
 		gradient: options.line.gradient,
@@ -1114,6 +1118,7 @@ export function addTableDefinition(
 						type: cellBorder[idx].type || DEF_CELL_BORDER.type,
 						color: cellBorder[idx].color || DEF_CELL_BORDER.color,
 						pt: cellBorder[idx].width ?? (typeof cellBorder[idx].pt === 'number' ? cellBorder[idx].pt : DEF_CELL_BORDER.pt),
+						transparency: typeof cellBorder[idx].transparency === 'number' ? cellBorder[idx].transparency : undefined,
 					}
 				})
 
@@ -1146,7 +1151,7 @@ export function addTableDefinition(
 		const optBorder = opt.border
 		;[0, 1, 2, 3].forEach(idx => {
 			optBorder[idx] = optBorder[idx]
-				? { type: optBorder[idx].type || DEF_CELL_BORDER.type, color: optBorder[idx].color || DEF_CELL_BORDER.color, pt: optBorder[idx].width ?? optBorder[idx].pt ?? DEF_CELL_BORDER.pt }
+				? { type: optBorder[idx].type || DEF_CELL_BORDER.type, color: optBorder[idx].color || DEF_CELL_BORDER.color, pt: optBorder[idx].width ?? optBorder[idx].pt ?? DEF_CELL_BORDER.pt, transparency: optBorder[idx].transparency }
 				: { type: 'none' }
 		})
 	}
@@ -1342,7 +1347,7 @@ export function addTextDefinition(target: PresSlide | SlideLayout, text: TextPro
 			if (itemOpts.shape === SHAPE_TYPE.LINE) {
 				// ShapeLineProps defaults
 				const newLineOpts: ShapeLineProps = {
-					type: itemOpts.line?.type || 'solid',
+					type: itemOpts.line?.type || (itemOpts.line?.gradient ? 'gradient' : 'solid'),
 					color: itemOpts.line?.color || DEF_SHAPE_LINE_COLOR,
 					transparency: itemOpts.line?.transparency || 0,
 					gradient: itemOpts.line?.gradient,

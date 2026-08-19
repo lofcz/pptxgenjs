@@ -624,6 +624,9 @@ export function genXmlColorSelection (props: Color | ShapeFillProps | ShapeLineP
 					typeof colorVal === 'string' ? colorVal : String(colorVal.baseColor),
 				)
 				break
+			case 'none':
+				outText += '<a:noFill/>'
+				break
 			default: // keep a statement so empty-default is not stripped, then flagged by no-default
 				outText += ''
 				break

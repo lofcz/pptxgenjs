@@ -301,6 +301,7 @@ test('genXmlColorSelection', () => {
 		}),
 		'<a:gradFill rotWithShape="1"><a:gsLst><a:gs pos="0"><a:schemeClr val="accent1"><a:tint val="40000"/></a:schemeClr></a:gs><a:gs pos="100000"><a:srgbClr val="FF0000"><a:lumMod val="110000"/><a:shade val="50000"/></a:srgbClr></a:gs></a:gsLst><a:lin ang="0" scaled="0"/></a:gradFill>'
 	)
+	assert.equal(genXmlColorSelection({ type: 'none' }), '<a:noFill/>', 'type:none is DrawingML noFill')
 	// gs@pos is ST_PositiveFixedPercentage (0–100000); API percents outside 0–100 are clamped
 	const clampedStops = genXmlColorSelection({
 		type: 'gradient',

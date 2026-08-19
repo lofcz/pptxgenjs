@@ -17,7 +17,22 @@ import {
 	TableCell,
 	TextProps,
 	TextPropsOptions,
+	TextShapeType,
 } from '../core-interfaces'
+
+/** ECMA-376 §5.1.12.76 `ST_TextShapeType` — used to validate `a:prstTxWarp@prst`. */
+const TEXT_SHAPE_TYPES: ReadonlySet<TextShapeType> = new Set([
+	'textNoShape', 'textPlain', 'textStop', 'textTriangle', 'textTriangleInverted',
+	'textChevron', 'textChevronInverted', 'textRingInside', 'textRingOutside',
+	'textArchUp', 'textArchDown', 'textCircle', 'textButton',
+	'textArchUpPour', 'textArchDownPour', 'textCirclePour', 'textButtonPour',
+	'textCurveUp', 'textCurveDown', 'textCanUp', 'textCanDown',
+	'textWave1', 'textWave2', 'textDoubleWave1', 'textWave4',
+	'textInflate', 'textDeflate', 'textInflateBottom', 'textDeflateBottom',
+	'textInflateTop', 'textDeflateTop', 'textDeflateInflate', 'textDeflateInflateDeflate',
+	'textFadeRight', 'textFadeLeft', 'textFadeUp', 'textFadeDown',
+	'textSlantUp', 'textSlantDown', 'textCascadeUp', 'textCascadeDown',
+])
 import {
 	createColorElement,
 	createGlowElement,
@@ -199,18 +214,28 @@ function genXmlTextRunProperties (opts: ObjectOptions | TextPropsOptions, isDefa
 	runProps += opts.caps && ['none', 'small', 'all'].includes(opts.caps) ? ` cap="${opts.caps}"` : ''
 	runProps += ' dirty="0">'
 	// Color / Font / Highlight / Outline are children of <a:rPr>, so add them now before closing the runProperties tag
-	if (opts.color || opts.fontFace || opts.outline || (typeof opts.underline === 'object' && opts.underline.color)) {
+	if (opts.color || opts.gradient || opts.fontFace || opts.fontFaceEa || opts.fontFaceCs || opts.outline || (typeof opts.underline === 'object' && opts.underline.color)) {
 		if (opts.outline && typeof opts.outline === 'object') {
-			runProps += `<a:ln w="${valToPts(opts.outline.size || 0.75)}">${genXmlColorSelection(opts.outline.color || 'FFFFFF')}</a:ln>`
+			runProps += `<a:ln w="${valToPts(opts.outline.size || 0.75)}">${genXmlColorSelection({
+				color: opts.outline.color || 'FFFFFF',
+				transparency: opts.outline.transparency,
+			})}</a:ln>`
 		}
-		if (opts.color) runProps += genXmlColorSelection({ color: opts.color, transparency: opts.transparency })
+		// Run fill: gradient (`a:gradFill`) takes precedence over solid `color` (WordArt / text gradient)
+		if (opts.gradient) runProps += genXmlColorSelection({ type: 'gradient', gradient: opts.gradient, transparency: opts.transparency })
+		else if (opts.color) runProps += genXmlColorSelection({ color: opts.color, transparency: opts.transparency })
 		if (opts.highlight) runProps += `<a:highlight>${createColorElement(opts.highlight)}</a:highlight>`
 		if (typeof opts.underline === 'object' && opts.underline.color) runProps += `<a:uFill>${genXmlColorSelection(opts.underline.color)}</a:uFill>`
 		const resolvedGlow = resolveGlowOptions(opts.glow)
 		if (resolvedGlow) runProps += `<a:effectLst>${createGlowElement(resolvedGlow)}</a:effectLst>`
-		if (opts.fontFace) {
-			// NOTE: 'cs' = Complex Script, 'ea' = East Asian (use "-120" instead of "0" - per Issue #174); ea must come first (Issue #174)
-			runProps += `<a:latin typeface="${opts.fontFace}" pitchFamily="34" charset="0"/><a:ea typeface="${opts.fontFace}" pitchFamily="34" charset="-122"/><a:cs typeface="${opts.fontFace}" pitchFamily="34" charset="-120"/>`
+		const latin = opts.fontFace
+		const ea = opts.fontFaceEa || opts.fontFace
+		const cs = opts.fontFaceCs || opts.fontFace
+		if (latin || ea || cs) {
+			// NOTE: 'cs' = Complex Script, 'ea' = East Asian (use "-120" instead of "0" - per Issue #174)
+			if (latin) runProps += `<a:latin typeface="${latin}" pitchFamily="34" charset="0"/>`
+			if (ea) runProps += `<a:ea typeface="${ea}" pitchFamily="34" charset="-122"/>`
+			if (cs) runProps += `<a:cs typeface="${cs}" pitchFamily="34" charset="-120"/>`
 		}
 	}
 
@@ -364,6 +389,11 @@ function genXmlBodyProperties (slideObject: ISlideObject | TableCell): string {
 
 		// E: Close <a:bodyPr element
 		bodyProperties += '>'
+
+		// E.1: WordArt text warp (`a:prstTxWarp`) — first child of CT_TextBodyProperties, before autofit
+		if (slideObject.options.presetShape && TEXT_SHAPE_TYPES.has(slideObject.options.presetShape)) {
+			bodyProperties += `<a:prstTxWarp prst="${slideObject.options.presetShape}"><a:avLst/></a:prstTxWarp>`
+		}
 
 		/**
 		 * F: Text Fit/AutoFit/Shrink option
@@ -603,7 +633,7 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 				// NOTE: This loop will pick up unecessary keys (`x`, etc.), but it doesnt hurt anything
 				// `glow` / softEdge / reflection belong on the shape effectLst (not per-run), unless set on the run itself
 				// `omml` is a run-level math payload — inheriting it would replace sibling plain-text runs
-				if (key === 'glow' || key === 'softEdge' || key === 'reflection' || key === 'shadow' || key === 'omml') return
+				if (key === 'glow' || key === 'softEdge' || key === 'reflection' || key === 'shadow' || key === 'blur' || key === 'omml') return
 				if (key !== 'bullet' && !textOpts[key]) textOpts[key] = val
 			})
 
@@ -620,12 +650,15 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 		/* C: Append 'endParaRPr' (when needed) and close current open paragraph
 		 * NOTE: (ISSUE#20, ISSUE#193): Add 'endParaRPr' with font/size props or PPT default (Arial/18pt en-us) is used making row "too tall"/not honoring options
 		 */
-		if (slideObj._type === SLIDE_OBJECT_TYPES.tablecell && (opts.fontSize || opts.fontFace)) {
-			if (opts.fontFace) {
+		if (slideObj._type === SLIDE_OBJECT_TYPES.tablecell && (opts.fontSize || opts.fontFace || opts.fontFaceEa || opts.fontFaceCs)) {
+			const latin = opts.fontFace
+			const ea = opts.fontFaceEa || opts.fontFace
+			const cs = opts.fontFaceCs || opts.fontFace
+			if (latin || ea || cs) {
 				strSlideXml += `<a:endParaRPr lang="${opts.lang || 'en-US'}"` + (opts.fontSize ? ` sz="${Math.round(opts.fontSize * 100)}"` : '') + ' dirty="0">'
-				strSlideXml += `<a:latin typeface="${opts.fontFace}" charset="0"/>`
-				strSlideXml += `<a:ea typeface="${opts.fontFace}" charset="0"/>`
-				strSlideXml += `<a:cs typeface="${opts.fontFace}" charset="0"/>`
+				if (latin) strSlideXml += `<a:latin typeface="${latin}" charset="0"/>`
+				if (ea) strSlideXml += `<a:ea typeface="${ea}" charset="0"/>`
+				if (cs) strSlideXml += `<a:cs typeface="${cs}" charset="0"/>`
 				strSlideXml += '</a:endParaRPr>'
 			} else {
 				strSlideXml += `<a:endParaRPr lang="${opts.lang || 'en-US'}"` + (opts.fontSize ? ` sz="${Math.round(opts.fontSize * 100)}"` : '') + ' dirty="0"/>'

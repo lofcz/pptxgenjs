@@ -311,8 +311,13 @@ export interface BorderProps {
 	 * @default '666666'
 	 */
 	color?: HexColor
-
-	// TODO: add `transparency` prop to Borders (0-100%)
+	/**
+	 * Border transparency (percent)
+	 * - range: 0-100
+	 * - DrawingML `a:srgbClr/a:alpha` on the border `a:solidFill`
+	 * @default 0
+	 */
+	transparency?: number
 
 	/**
 	 * Border width (points)
@@ -358,6 +363,40 @@ export interface SoftEdgeProps {
 	 */
 	radius: number
 }
+
+/**
+ * Blur effect (`a:blur`) — ECMA-376 `CT_BlurEffect` / `CT_EffectList` first child.
+ * - `radius` in points (written as `rad` in EMUs)
+ * - `grow` expands the visual bounds (`a:blur@grow`, schema default true)
+ */
+export interface BlurProps {
+	/**
+	 * Blur radius (points)
+	 * @example 6
+	 */
+	radius: number
+	/**
+	 * Whether the effect grows the shape bounds
+	 * - OOXML `a:blur@grow` (optional, default true)
+	 */
+	grow?: boolean
+}
+
+/**
+ * WordArt / preset text warp (`a:prstTxWarp@prst`, ECMA-376 `ST_TextShapeType`)
+ * @see standards/ecma/part-22_drawingml-reference-material-drawingml-main.txt §5.1.12.76
+ */
+export type TextShapeType =
+	| 'textNoShape' | 'textPlain' | 'textStop' | 'textTriangle' | 'textTriangleInverted'
+	| 'textChevron' | 'textChevronInverted' | 'textRingInside' | 'textRingOutside'
+	| 'textArchUp' | 'textArchDown' | 'textCircle' | 'textButton'
+	| 'textArchUpPour' | 'textArchDownPour' | 'textCirclePour' | 'textButtonPour'
+	| 'textCurveUp' | 'textCurveDown' | 'textCanUp' | 'textCanDown'
+	| 'textWave1' | 'textWave2' | 'textDoubleWave1' | 'textWave4'
+	| 'textInflate' | 'textDeflate' | 'textInflateBottom' | 'textDeflateBottom'
+	| 'textInflateTop' | 'textDeflateTop' | 'textDeflateInflate' | 'textDeflateInflateDeflate'
+	| 'textFadeRight' | 'textFadeLeft' | 'textFadeUp' | 'textFadeDown'
+	| 'textSlantUp' | 'textSlantDown' | 'textCascadeUp' | 'textCascadeDown'
 
 /**
  * Reflection effect (`a:reflection`) — Mona/PPTist-compatible subset.
@@ -810,6 +849,21 @@ export interface TextBaseProps {
 	 */
 	fontFace?: string
 	/**
+	 * East-Asian typeface (`a:ea`). Falls back to `fontFace` when omitted.
+	 * @example 'Microsoft YaHei'
+	 */
+	fontFaceEa?: string
+	/**
+	 * Complex-script typeface (`a:cs`). Falls back to `fontFace` when omitted.
+	 * @example 'Arial'
+	 */
+	fontFaceCs?: string
+	/**
+	 * Gradient text fill (`a:gradFill` on `a:rPr`). When set, overrides solid `color`.
+	 * @example { type:'linear', angle:45, stops:[{ pos:0, color:'FF0000' }, { pos:100, color:'0000FF' }] }
+	 */
+	gradient?: ShapeGradientProps
+	/**
 	 * Font size
 	 * @example 12 // Font size 12
 	 */
@@ -989,6 +1043,16 @@ export interface ThemeProps {
 	 */
 	bodyFontFace?: string
 	/**
+	 * East-Asian theme typeface (`a:ea` on major/minor `fontScheme`)
+	 * @example 'Microsoft YaHei'
+	 */
+	eaFontFace?: string
+	/**
+	 * Complex-script theme typeface (`a:cs` on major/minor `fontScheme`)
+	 * @example 'Arial'
+	 */
+	csFontFace?: string
+	/**
 	 * Custom theme color scheme — exactly 12 hex colors, in order:
 	 * dk1, lt1, dk2, lt2, accent1–6, hlink, folHlink
 	 * @example ['1B1B1B','FFFFFF','44546A','E7E6E6','0B5FFF','ED7D31','A5A5A5','FFC000','5B9BD5','70AD47','0563C1','954F72']
@@ -1067,6 +1131,10 @@ export interface ImageProps extends PositionProps, DataOrPathProps, ObjectNamePr
 	 * Reflection effect (`a:reflection`)
 	 */
 	reflection?: ReflectionProps
+	/**
+	 * Blur effect (`a:blur` in picture `effectLst`)
+	 */
+	blur?: BlurProps
 	/**
 	 * Image sizing options
 	 */
@@ -1323,6 +1391,10 @@ export interface ShapeProps extends PositionProps, ObjectNameProps, AppearOnClic
 	 * Reflection effect (`a:reflection`)
 	 */
 	reflection?: ReflectionProps
+	/**
+	 * Blur effect (`a:blur` in shape `effectLst`)
+	 */
+	blur?: BlurProps
 
 	/**
 	 * @deprecated v3.3.0
@@ -1779,10 +1851,15 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 * @example [0.05, 0.1, 0.05, 0.1] // inches (PowerPoint "Normal")
 	 */
 	margin?: Margin
-	outline?: { color: Color, size: number }
+	outline?: { color: Color, size: number, transparency?: number }
 	paraSpaceAfter?: number
 	paraSpaceBefore?: number
 	placeholder?: string
+	/**
+	 * WordArt text warp preset (`a:prstTxWarp` on `a:bodyPr`)
+	 * @example 'textArchUp'
+	 */
+	presetShape?: TextShapeType
 	/**
 	 * Rounded rectangle radius (only for pptx.shapes.ROUNDED_RECTANGLE)
 	 * - values: 0.0 to 1.0
@@ -1810,6 +1887,10 @@ export interface TextPropsOptions extends PositionProps, DataOrPathProps, TextBa
 	 * Reflection effect (`a:reflection` on the text shape)
 	 */
 	reflection?: ReflectionProps
+	/**
+	 * Blur effect (`a:blur` on the text shape)
+	 */
+	blur?: BlurProps
 	shape?: SHAPE_NAME
 	/**
 	 * Strikethrough style
@@ -2767,6 +2848,11 @@ export interface PresSlide extends SlideBaseProps {
 	addShape: (shapeName: SHAPE_NAME, options?: ShapeProps) => PresSlide
 	addTable: (tableRows: TableRow[], options?: TableProps) => PresSlide
 	addText: (text: string | TextProps[], options?: TextPropsOptions) => PresSlide
+	/**
+	 * WordArt: text with a warp (`presetShape` / `a:prstTxWarp`) and/or a gradient run fill.
+	 * Defaults to centered `textNoShape` (no transform) unless `options` override them.
+	 */
+	addWordArt: (text: string | TextProps[], options?: TextPropsOptions) => PresSlide
 
 	/**
 	 * Background color or image (`color` | `path` | `data`)
