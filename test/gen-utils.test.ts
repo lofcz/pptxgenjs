@@ -45,6 +45,8 @@ test('inch2Emu', () => {
 	assert.equal(inch2Emu('2'), 1828800)
 	assert.equal(inch2Emu('1in'), 914400)
 	assert.equal(inch2Emu(200), 200, 'values > 100 are assumed to be EMU already')
+	assert.equal(inch2Emu(-0.5), -457200, 'negative inches stay inches')
+	assert.equal(inch2Emu(-200), -200, 'negative EMU is not re-multiplied')
 })
 
 test('valToPts', () => {
@@ -88,7 +90,9 @@ test('encodeXmlEntities', () => {
 
 test('getSmartParseNumber', () => {
 	assert.equal(getSmartParseNumber(1, 'X', LAYOUT), 914400, 'small numbers are inches')
+	assert.equal(getSmartParseNumber(-0.5, 'X', LAYOUT), -457200, 'negative inches stay inches')
 	assert.equal(getSmartParseNumber(914400, 'X', LAYOUT), 914400, 'large numbers are already EMU')
+	assert.equal(getSmartParseNumber(-914400, 'X', LAYOUT), -914400, 'negative EMU is not re-multiplied')
 	assert.equal(getSmartParseNumber('50%', 'X', LAYOUT), 4572000, 'percent of width')
 	assert.equal(getSmartParseNumber('50%', 'Y', LAYOUT), 3429000, 'percent of height')
 	assert.equal(getSmartParseNumber('garbage', 'X', LAYOUT), 0)

@@ -16,3 +16,7 @@ For OOXML generation or package changes, work from the official [ECMA-376 Office
 - Part 4: Transitional Migration Features
 
 For PowerPoint compatibility, also consult Microsoft's [MS-OI29500 Office implementation notes](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oi29500/1fd4a662-8623-49c0-82f0-18fa91b413b8), which documents Office behavior that varies from or extends the standard. Use the relevant source when a generated package or element is in question; keep package-contract tests semantic rather than snapshotting generated XML.
+
+## JSX package
+
+`packages/pptxgenjs-jsx` is a Bun workspace package (`pptxgenjs-plus-jsx`). It depends on `pptxgenjs-plus` via `file:../..` (Bun cannot resolve `workspace:*` to the root package). Build the root library first so `types/index.d.ts` exists, then `bun run build:jsx` / `bun run test:jsx`. Before publishing `pptxgenjs-plus-jsx`, replace that `file:` dependency with a semver range.

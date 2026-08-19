@@ -21,6 +21,17 @@
         "typescript-eslint": "^8.67.0",
       },
     },
+    "packages/pptxgenjs-jsx": {
+      "name": "pptxgenjs-plus-jsx",
+      "version": "0.1.6",
+      "dependencies": {
+        "pptxgenjs-plus": "file:../..",
+      },
+      "devDependencies": {
+        "@types/node": "^26.2.0",
+        "typescript": "^6.0.3",
+      },
+    },
   },
   "packages": {
     "@ast-grep/napi": ["@ast-grep/napi@0.37.0", "", { "optionalDependencies": { "@ast-grep/napi-darwin-arm64": "0.37.0", "@ast-grep/napi-darwin-x64": "0.37.0", "@ast-grep/napi-linux-arm64-gnu": "0.37.0", "@ast-grep/napi-linux-arm64-musl": "0.37.0", "@ast-grep/napi-linux-x64-gnu": "0.37.0", "@ast-grep/napi-linux-x64-musl": "0.37.0", "@ast-grep/napi-win32-arm64-msvc": "0.37.0", "@ast-grep/napi-win32-ia32-msvc": "0.37.0", "@ast-grep/napi-win32-x64-msvc": "0.37.0" } }, "sha512-Hb4o6h1Pf6yRUAX07DR4JVY7dmQw+RVQMW5/m55GoiAT/VRoKCWBtIUPPOnqDVhbx1Cjfil9b6EDrgJsUAujEQ=="],
@@ -590,6 +601,10 @@
     "path-parse": ["path-parse@1.0.7", "", {}, "sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw=="],
 
     "picomatch": ["picomatch@4.0.5", "", {}, "sha512-RvwwcruNjI1ncT5xRakeyS9Lf8lcItv34KD+aif+VH9kduAyfYBipGh12274xtenIPZ119/R9BdTBa8gAwSh0A=="],
+
+    "pptxgenjs-plus": ["pptxgenjs-plus@root:", {}],
+
+    "pptxgenjs-plus-jsx": ["pptxgenjs-plus-jsx@workspace:packages/pptxgenjs-jsx"],
 
     "prelude-ls": ["prelude-ls@1.2.1", "", {}, "sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g=="],
 

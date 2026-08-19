@@ -31,6 +31,23 @@ slide.addText('Hello', { x: 0.5, y: 0.5, fontSize: 24 })
 await pres.writeFile({ fileName: 'hello.pptx' })
 ```
 
+Declarative JSX lives in the workspace package `pptxgenjs-plus-jsx` (`packages/pptxgenjs-jsx`):
+
+```tsx
+/** @jsxImportSource pptxgenjs-plus-jsx */
+import { Deck, Slide, Text } from 'pptxgenjs-plus-jsx'
+import { renderPptx } from 'pptxgenjs-plus-jsx/render'
+
+await renderPptx(
+	<Deck title="Hello">
+		<Slide>
+			<Text x={0.5} y={0.5} w={8} h={1} fontSize={24}>Hello</Text>
+		</Slide>
+	</Deck>,
+	{ fileName: 'hello.pptx' },
+)
+```
+
 ## Contributors
 
 Thanks to everyone who contributed to the original project and this distribution.

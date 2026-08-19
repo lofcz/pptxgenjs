@@ -1879,6 +1879,25 @@ test('#1199: fit:{type:"shrink", fontScale, lnSpcReduction} emits normAutofit pe
 		`normAutofit attrs missing: ${/<a:normAutofit[^>]*\/>/.exec(slideXml)?.[0]}`)
 })
 
+test('#102: negative line deltas use non-negative extents without reversing arrows', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addShape(pptx.ShapeType.line, {
+		x: 3,
+		y: 3,
+		w: -1.533,
+		h: -1.218,
+		line: { color: '000000', beginArrowType: 'triangle', endArrowType: 'stealth' },
+	})
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	const transform = /<a:xfrm flipH="1" flipV="1"><a:off x="(\d+)" y="(\d+)"\/><a:ext cx="(\d+)" cy="(\d+)"\/><\/a:xfrm>/.exec(xml)
+	assert.ok(transform, 'negative line was not normalized with axis flips')
+	assert.ok(Number(transform[1]) < 3 * 914400 && Number(transform[2]) < 3 * 914400, 'line offset did not retain its endpoints')
+	assert.ok(Number(transform[3]) > 0 && Number(transform[4]) > 0, 'line extents must be non-negative')
+	assert.match(xml, /<a:headEnd type="triangle"/, 'line start arrow was not retained')
+	assert.match(xml, /<a:tailEnd type="stealth"/, 'line end arrow was not retained')
+})
+
 test('#782: line.cap emits cap attribute on <a:ln> (flat|sq|rnd)', async () => {
 	const pptx = new pptxgen()
 	pptx.addSlide().addShape(pptx.ShapeType.line, { x: 1, y: 1, w: 3, h: 0, line: { color: 'FF0000', width: 2, cap: 'rnd' } })

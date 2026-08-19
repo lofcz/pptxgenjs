@@ -8,6 +8,7 @@ import {
 	DEF_PRES_LAYOUT_NAME,
 	DEF_TEXT_SHADOW,
 	EMU,
+	SHAPE_TYPE,
 	SLDNUMFLDID,
 	SLIDE_OBJECT_TYPES,
 } from '../core-enums'
@@ -314,6 +315,32 @@ function applyConnectorAutoLayout (
 	}
 }
 
+/**
+ * DrawingML `a:ext` uses ST_PositiveCoordinate, so extents cannot be negative.
+ * Lines treat w/h as endpoint deltas: fold a negative axis into the offset and
+ * flip that axis so the same endpoints (and therefore head/tail arrows) remain.
+ */
+function normalizeLineExtents (
+	x: number,
+	y: number,
+	cx: number,
+	cy: number,
+	flipH: boolean,
+	flipV: boolean
+): { x: number, y: number, cx: number, cy: number, flipH: boolean, flipV: boolean } {
+	if (cx < 0) {
+		x += cx
+		cx = -cx
+		flipH = !flipH
+	}
+	if (cy < 0) {
+		y += cy
+		cy = -cy
+		flipV = !flipV
+	}
+	return { x, y, cx, cy, flipH, flipV }
+}
+
 function resolveShapeId (options: ObjectOptions | undefined, idx: number, usedIds: Set<number>): number {
 	const requested = options?.sId
 	let shapeId = requested != null ? requested : idx + 2
@@ -518,9 +545,19 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 				imgWidth = cx
 				imgHeight = cy
 			}
-			//
-			if (slideItemObj.options.flipH) locationAttr += ' flipH="1"'
-			if (slideItemObj.options.flipV) locationAttr += ' flipV="1"'
+			let flipH = !!slideItemObj.options.flipH
+			let flipV = !!slideItemObj.options.flipV
+			if (slideItemObj.shape === SHAPE_TYPE.LINE) {
+				const line = normalizeLineExtents(x, y, cx, cy, flipH, flipV)
+				x = line.x
+				y = line.y
+				cx = line.cx
+				cy = line.cy
+				flipH = line.flipH
+				flipV = line.flipV
+			}
+			if (flipH) locationAttr += ' flipH="1"'
+			if (flipV) locationAttr += ' flipV="1"'
 			if (slideItemObj.options.rotate) locationAttr += ` rot="${convertRotationDegrees(slideItemObj.options.rotate)}"`
 
 			// B: Add OBJECT to the current Slide

@@ -14,6 +14,16 @@ npm install pptxgenjs-plus
 yarn add pptxgenjs-plus
 ```
 
+### JSX (optional)
+
+The workspace package `pptxgenjs-plus-jsx` wraps this library in a declarative JSX tree (`<Deck>`, `<Slide>`, `<Text>`, charts, shapes, …). From this repo it is already linked via Bun workspaces. From npm:
+
+```bash
+npm install pptxgenjs-plus pptxgenjs-plus-jsx
+```
+
+See `packages/pptxgenjs-jsx/README.md` for `jsxImportSource` setup and the component API.
+
 ### CDN (Browser Usage)
 
 Use the bundled or minified version via [jsDelivr](https://www.jsdelivr.com/package/npm/pptxgenjs-plus):

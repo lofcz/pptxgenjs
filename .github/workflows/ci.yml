@@ -20,6 +20,7 @@ jobs:
       - run: bun ci
       - run: bun run check
       - run: bun run build
+      - run: bun run build:jsx
 
   office-consumer:
     runs-on: ubuntu-latest

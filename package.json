@@ -13,6 +13,9 @@
 	],
 	"description": "Create JavaScript PowerPoint Presentations",
 	"homepage": "https://github.com/lofcz/pptxgenjs-plus#readme",
+	"workspaces": [
+		"packages/*"
+	],
 	"publishConfig": {
 		"access": "public"
 	},
@@ -36,6 +39,7 @@
 	"scripts": {
 		"build": "rslib build -c rsbuild.config.mts && bun run build:types",
 		"build:types": "bun scripts/gen-types-namespace.mjs",
+		"build:jsx": "bun run --cwd packages/pptxgenjs-jsx build",
 		"generate:version": "bun scripts/package-version.mjs",
 		"dist": "bun run build",
 		"prepare": "bun run build",
@@ -54,7 +58,8 @@
 		"powerpoint:verify": "bun test/powerpoint-verify.ts",
 		"pptx:verify": "bun test/pptx-verify.ts",
 		"fixtures:repair": "bun test/repair-fixtures.ts",
-		"check": "bun run lint && bun run typecheck && bun run test",
+		"test:jsx": "bun run --cwd packages/pptxgenjs-jsx typecheck && bun test packages/pptxgenjs-jsx",
+		"check": "bun run lint && bun run typecheck && bun run test && bun run test:jsx",
 		"prepublishOnly": "bun run check && bun run build"
 	},
 	"browser": {
