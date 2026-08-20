@@ -2,6 +2,8 @@
  * PptxGenJS: Utility Methods
  */
 
+import { parseXml } from '@rgrove/parse-xml'
+
 import { EMU, REGEX_HEX_COLOR, DEF_FONT_COLOR, DEF_TEXT_GLOW, ONEPT, SchemeColor, SCHEME_COLORS } from './core-enums'
 import { PresLayout, TextGlowProps, PresSlide, SlideLayout, ShapeFillProps, Color, ShapeLineProps, Coord, ShadowProps, ShapeGradientProps, ShapePatternProps, ModifiedThemeColor, ThemeProps, HexColor } from './core-interfaces'
 
@@ -257,6 +259,24 @@ export function encodeXmlEntities (xml: string | undefined): string {
 	// NOTE: Dont use short-circuit eval here as value c/b "0" (zero) etc.!
 	if (typeof xml === 'undefined' || xml == null) return ''
 	return xml.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+}
+
+/**
+ * Check that a string is a well-formed XML fragment (strict XML 1.0 via
+ * `@rgrove/parse-xml`). Used to reject caller-supplied markup (e.g. OMML)
+ * that would otherwise corrupt the package — PowerPoint shows a repair
+ * prompt (or refuses to open) for malformed slide XML.
+ * @param {string} xml - XML fragment to validate
+ * @returns {string | null} description of the first problem, or null when well-formed
+ */
+export function validateXmlFragment (xml: string): string | null {
+	try {
+		// Synthetic root: fragments may have multiple top-level elements
+		parseXml(`<x>${xml}</x>`)
+		return null
+	} catch (error) {
+		return (error as Error).message.split('\n')[0]
+	}
 }
 
 /**

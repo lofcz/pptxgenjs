@@ -40,6 +40,7 @@ import {
 	genXmlColorSelection,
 	inch2Emu,
 	resolveGlowOptions,
+	validateXmlFragment,
 	valToPts,
 	warnDeprecatedOnce,
 } from '../gen-utils'
@@ -233,9 +234,9 @@ function genXmlTextRunProperties (opts: ObjectOptions | TextPropsOptions, isDefa
 		const cs = opts.fontFaceCs || opts.fontFace
 		if (latin || ea || cs) {
 			// NOTE: 'cs' = Complex Script, 'ea' = East Asian (use "-120" instead of "0" - per Issue #174)
-			if (latin) runProps += `<a:latin typeface="${latin}" pitchFamily="34" charset="0"/>`
-			if (ea) runProps += `<a:ea typeface="${ea}" pitchFamily="34" charset="-122"/>`
-			if (cs) runProps += `<a:cs typeface="${cs}" pitchFamily="34" charset="-120"/>`
+			if (latin) runProps += `<a:latin typeface="${encodeXmlEntities(latin)}" pitchFamily="34" charset="0"/>`
+			if (ea) runProps += `<a:ea typeface="${encodeXmlEntities(ea)}" pitchFamily="34" charset="-122"/>`
+			if (cs) runProps += `<a:cs typeface="${encodeXmlEntities(cs)}" pitchFamily="34" charset="-120"/>`
 		}
 	}
 
@@ -289,6 +290,13 @@ export const P1710_NS = 'http://schemas.microsoft.com/office/powerpoint/2017/10/
 function normalizeOmml (omml: string): string {
 	let trimmed = omml.trim()
 	if (!trimmed) return ''
+
+	// Malformed OMML would be embedded verbatim and corrupt the whole package
+	// (PowerPoint repair prompt / open failure), so fail fast with a pointer.
+	const problem = validateXmlFragment(trimmed)
+	if (problem) {
+		throw new Error(`ERROR: text run 'omml' option is not a well-formed XML fragment: ${problem}. Escape all '<', '&' in math text (e.g. <m:t>a&lt;b</m:t>).`)
+	}
 
 	// Already PowerPoint-wrapped
 	if (/^<a14:m[\s/>]/i.test(trimmed)) return trimmed
@@ -656,9 +664,9 @@ export function genXmlTextBody (slideObj: ISlideObject | TableCell): string {
 			const cs = opts.fontFaceCs || opts.fontFace
 			if (latin || ea || cs) {
 				strSlideXml += `<a:endParaRPr lang="${opts.lang || 'en-US'}"` + (opts.fontSize ? ` sz="${Math.round(opts.fontSize * 100)}"` : '') + ' dirty="0">'
-				if (latin) strSlideXml += `<a:latin typeface="${latin}" charset="0"/>`
-				if (ea) strSlideXml += `<a:ea typeface="${ea}" charset="0"/>`
-				if (cs) strSlideXml += `<a:cs typeface="${cs}" charset="0"/>`
+				if (latin) strSlideXml += `<a:latin typeface="${encodeXmlEntities(latin)}" charset="0"/>`
+				if (ea) strSlideXml += `<a:ea typeface="${encodeXmlEntities(ea)}" charset="0"/>`
+				if (cs) strSlideXml += `<a:cs typeface="${encodeXmlEntities(cs)}" charset="0"/>`
 				strSlideXml += '</a:endParaRPr>'
 			} else {
 				strSlideXml += `<a:endParaRPr lang="${opts.lang || 'en-US'}"` + (opts.fontSize ? ` sz="${Math.round(opts.fontSize * 100)}"` : '') + ' dirty="0"/>'

@@ -219,8 +219,8 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 				strXml += '    <a:pPr>'
 				strXml += rel.opts.legendFontSize ? `<a:defRPr sz="${Math.round(Number(rel.opts.legendFontSize) * 100)}">` : '<a:defRPr>'
 				if (rel.opts.legendColor) strXml += genXmlColorSelection(rel.opts.legendColor)
-				if (rel.opts.legendFontFace) strXml += '<a:latin typeface="' + rel.opts.legendFontFace + '"/>'
-				if (rel.opts.legendFontFace) strXml += '<a:cs    typeface="' + rel.opts.legendFontFace + '"/>'
+				if (rel.opts.legendFontFace) strXml += '<a:latin typeface="' + encodeXmlEntities(rel.opts.legendFontFace) + '"/>'
+				if (rel.opts.legendFontFace) strXml += '<a:cs    typeface="' + encodeXmlEntities(rel.opts.legendFontFace) + '"/>'
 				strXml += '      </a:defRPr>'
 				strXml += '    </a:pPr>'
 				strXml += '    <a:endParaRPr lang="en-US"/>'
@@ -279,7 +279,7 @@ function genXmlDataLabelDefRPr (opts: IChartOptsLib): string {
 	return (
 		`<a:defRPr sz="${Math.round((opts.dataLabelFontSize || DEF_FONT_SIZE) * 100)}" b="${opts.dataLabelFontBold ? 1 : 0}" i="${opts.dataLabelFontItalic ? 1 : 0}" u="none" strike="noStrike">` +
 		`<a:solidFill>${createColorElement(opts.dataLabelColor || DEF_FONT_COLOR)}</a:solidFill>` +
-		`<a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>` +
+		`<a:latin typeface="${encodeXmlEntities(opts.dataLabelFontFace) || 'Arial'}"/>` +
 		'</a:defRPr>'
 	)
 }
@@ -294,7 +294,7 @@ function genXmlDataLabelRichText (text: string, opts: IChartOptsLib): string {
 	let xml = '<c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r>'
 	xml += `<a:rPr lang="${lang}" dirty="0" sz="${sz}" b="${opts.dataLabelFontBold ? 1 : 0}" i="${opts.dataLabelFontItalic ? 1 : 0}">`
 	xml += `<a:solidFill>${createColorElement(opts.dataLabelColor || DEF_FONT_COLOR)}</a:solidFill>`
-	xml += `<a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>`
+	xml += `<a:latin typeface="${encodeXmlEntities(opts.dataLabelFontFace) || 'Arial'}"/>`
 	xml += '</a:rPr>'
 	xml += `<a:t>${encodeXmlEntities(text)}</a:t>`
 	xml += '</a:r></a:p></c:rich></c:tx>'
@@ -509,7 +509,7 @@ function makeChartType (
 						(opts.dataLabelFontSize || DEF_FONT_SIZE) * 100
 					)}" u="none">`
 					strXml += `<a:solidFill>${createColorElement(opts.dataLabelColor || DEF_FONT_COLOR)}</a:solidFill>`
-					strXml += `<a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>`
+					strXml += `<a:latin typeface="${encodeXmlEntities(opts.dataLabelFontFace) || 'Arial'}"/>`
 					strXml += '</a:defRPr></a:pPr></a:p></c:txPr>'
 					if (opts.dataLabelPosition) strXml += `<c:dLblPos val="${opts.dataLabelPosition}"/>`
 					strXml += '<c:showLegendKey val="0"/>'
@@ -656,7 +656,7 @@ function makeChartType (
 				strXml += '      <a:p><a:pPr>'
 				strXml += `        <a:defRPr b="${opts.dataLabelFontBold ? 1 : 0}" i="${opts.dataLabelFontItalic ? 1 : 0}" strike="noStrike" sz="${Math.round((opts.dataLabelFontSize || DEF_FONT_SIZE) * 100)}" u="none">`
 				strXml += '          <a:solidFill>' + createColorElement(opts.dataLabelColor || DEF_FONT_COLOR) + '</a:solidFill>'
-				strXml += '          <a:latin typeface="' + (opts.dataLabelFontFace || 'Arial') + '"/>'
+				strXml += '          <a:latin typeface="' + (encodeXmlEntities(opts.dataLabelFontFace) || 'Arial') + '"/>'
 				strXml += '        </a:defRPr>'
 				strXml += '      </a:pPr></a:p>'
 				strXml += '    </c:txPr>'
@@ -972,7 +972,7 @@ function makeChartType (
 				strXml += '      <a:p><a:pPr>'
 				strXml += `        <a:defRPr b="${opts.dataLabelFontBold ? '1' : '0'}" i="${opts.dataLabelFontItalic ? '1' : '0'}" strike="noStrike" sz="${Math.round((opts.dataLabelFontSize || DEF_FONT_SIZE) * 100)}" u="none">`
 				strXml += '          <a:solidFill>' + createColorElement(opts.dataLabelColor || DEF_FONT_COLOR) + '</a:solidFill>'
-				strXml += '          <a:latin typeface="' + (opts.dataLabelFontFace || 'Arial') + '"/>'
+				strXml += '          <a:latin typeface="' + (encodeXmlEntities(opts.dataLabelFontFace) || 'Arial') + '"/>'
 				strXml += '        </a:defRPr>'
 				strXml += '      </a:pPr></a:p>'
 				strXml += '    </c:txPr>'
@@ -1121,7 +1121,7 @@ function makeChartType (
 					Math.round(opts.dataLabelFontSize || DEF_FONT_SIZE) * 100
 				)}" u="none">`
 				strXml += `<a:solidFill>${createColorElement(opts.dataLabelColor || DEF_FONT_COLOR)}</a:solidFill>`
-				strXml += `<a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>`
+				strXml += `<a:latin typeface="${encodeXmlEntities(opts.dataLabelFontFace) || 'Arial'}"/>`
 				strXml += '</a:defRPr></a:pPr></a:p></c:txPr>'
 				if (opts.dataLabelPosition) strXml += `<c:dLblPos val="${opts.dataLabelPosition}"/>`
 				strXml += '<c:showLegendKey val="0"/>'
@@ -1221,7 +1221,7 @@ function makeChartType (
 			strXml += '      <a:p>'
 			strXml += '        <a:pPr>'
 			strXml += `          <a:defRPr sz="${Math.round((opts.dataLabelFontSize || DEF_FONT_SIZE) * 100)}" b="${opts.dataLabelFontBold ? '1' : '0'}" i="${opts.dataLabelFontItalic ? '1' : '0'}" u="none" strike="noStrike">`
-			strXml += `            <a:solidFill><a:srgbClr val="000000"/></a:solidFill><a:latin typeface="${opts.dataLabelFontFace || 'Arial'}"/>`
+			strXml += `            <a:solidFill><a:srgbClr val="000000"/></a:solidFill><a:latin typeface="${encodeXmlEntities(opts.dataLabelFontFace) || 'Arial'}"/>`
 			strXml += '          </a:defRPr>'
 			strXml += '        </a:pPr>'
 			strXml += '      </a:p>'

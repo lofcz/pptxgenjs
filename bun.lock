@@ -6,6 +6,7 @@
       "name": "pptxgenjs-plus",
       "dependencies": {
         "@node-projects/jszip": "^4.2.1",
+        "@rgrove/parse-xml": "^4.2.3",
         "pako": "^3.0.1",
       },
       "devDependencies": {
@@ -23,7 +24,7 @@
     },
     "packages/pptxgenjs-jsx": {
       "name": "pptxgenjs-plus-jsx",
-      "version": "4.1.17",
+      "version": "4.1.18",
       "dependencies": {
         "pptxgenjs-plus": "file:../..",
       },
@@ -103,6 +104,8 @@
     "@nodable/entities": ["@nodable/entities@3.0.0", "", {}, "sha512-8L9xFeTYKhm49xfIypoe2W5wV1m/3Z58kT+7kR9A8OyFxcPduI4VmxaUMQyKYrRjUoLLSXv6EKKID5Tvj9cUVw=="],
 
     "@node-projects/jszip": ["@node-projects/jszip@4.2.1", "", { "dependencies": { "@types/node": "^26.1.1", "pako": "^3.0.1" } }, "sha512-KuSM1ZNidyl9l9JVlAAVg+3Tk0WaB0V45wp0ZGVfXcWmxw+TuE7KuyTdLJJkOfXcPWfDBAyeyisOOzTLV4RpBw=="],
+
+    "@rgrove/parse-xml": ["@rgrove/parse-xml@4.2.3", "", {}, "sha512-Jhlb+0zYez1T1yXUQs3F1qAtFuJljBVNdy9TKmLDauAXkxsOXopKYOyQ5Wm6SvP3fycav0GviX4Y15WWhGetMw=="],
 
     "@rsbuild/core": ["@rsbuild/core@2.1.13", "", { "dependencies": { "@rspack/core": "~2.1.10", "@swc/helpers": "^0.5.23" }, "peerDependencies": { "core-js": ">= 3.0.0" }, "optionalPeers": ["core-js"], "bin": { "rsbuild": "bin/rsbuild.js" } }, "sha512-Z+6MzmjOio4+bFZQ24k+7ge/oNCOdXIunAssrswTNE8AIf6mcyXpJZevRXRiOEMZasRPA8VNyh+9JngQLg729Q=="],
 

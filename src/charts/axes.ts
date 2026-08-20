@@ -82,7 +82,7 @@ export function makeCatAxis (opts: IChartOptsLib, axisId: string, valAxisId: str
 	strXml += '    <a:pPr>'
 	strXml += `      <a:defRPr sz="${Math.round((opts.catAxisLabelFontSize || DEF_FONT_SIZE) * 100)}" b="${opts.catAxisLabelFontBold ? 1 : 0}" i="${opts.catAxisLabelFontItalic ? 1 : 0}" u="none" strike="noStrike">`
 	strXml += '      <a:solidFill>' + createColorElement(opts.catAxisLabelColor || DEF_FONT_COLOR) + '</a:solidFill>'
-	strXml += '      <a:latin typeface="' + (opts.catAxisLabelFontFace || 'Arial') + '"/>'
+	strXml += '      <a:latin typeface="' + (encodeXmlEntities(opts.catAxisLabelFontFace) || 'Arial') + '"/>'
 	strXml += '   </a:defRPr>'
 	strXml += '  </a:pPr>'
 	strXml += '  <a:endParaRPr lang="' + (opts.lang || 'en-US') + '"/>'
@@ -186,7 +186,7 @@ export function makeValAxis (opts: IChartOptsLib, valAxisId: string): string {
 	strXml += '    <a:pPr>'
 	strXml += `      <a:defRPr sz="${Math.round((opts.valAxisLabelFontSize || DEF_FONT_SIZE) * 100)}" b="${opts.valAxisLabelFontBold ? 1 : 0}" i="${opts.valAxisLabelFontItalic ? 1 : 0}" u="none" strike="noStrike">`
 	strXml += '        <a:solidFill>' + createColorElement(opts.valAxisLabelColor || DEF_FONT_COLOR) + '</a:solidFill>'
-	strXml += '        <a:latin typeface="' + (opts.valAxisLabelFontFace || 'Arial') + '"/>'
+	strXml += '        <a:latin typeface="' + (encodeXmlEntities(opts.valAxisLabelFontFace) || 'Arial') + '"/>'
 	strXml += '      </a:defRPr>'
 	strXml += '    </a:pPr>'
 	strXml += '  <a:endParaRPr lang="' + (opts.lang || 'en-US') + '"/>'
@@ -263,7 +263,7 @@ export function makeSerAxis (opts: IChartOptsLib, axisId: string, valAxisId: str
 	strXml += '    <a:pPr>'
 	strXml += `    <a:defRPr sz="${Math.round((opts.serAxisLabelFontSize || DEF_FONT_SIZE) * 100)}" b="${opts.serAxisLabelFontBold ? '1' : '0'}" i="${opts.serAxisLabelFontItalic ? '1' : '0'}" u="none" strike="noStrike">`
 	strXml += `      <a:solidFill>${createColorElement(opts.serAxisLabelColor || DEF_FONT_COLOR)}</a:solidFill>`
-	strXml += `      <a:latin typeface="${opts.serAxisLabelFontFace || 'Arial'}"/>`
+	strXml += `      <a:latin typeface="${encodeXmlEntities(opts.serAxisLabelFontFace) || 'Arial'}"/>`
 	strXml += '   </a:defRPr>'
 	strXml += '  </a:pPr>'
 	strXml += '  <a:endParaRPr lang="' + (opts.lang || 'en-US') + '"/>'
