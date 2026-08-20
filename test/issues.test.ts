@@ -3396,3 +3396,57 @@ test('fujita-h/7280811: ST_PlaceholderType tokens emit on p:ph@type', async () =
 	assert.ok(layout.includes('type="ftr"'), 'ftr missing')
 	assert.ok(layout.includes('type="sldNum"'), 'sldNum missing')
 })
+
+test('Escaping: fontFace with XML-special characters emits a well-formed typeface attribute', async () => {
+	// Real-world repair-dialog case: a consumer passed the literal string `&quot`
+	// as fontFace and the raw interpolation produced typeface="&quot" — a broken
+	// entity reference that makes PowerPoint refuse to open the file.
+	const pptx = new pptxgen()
+	pptx.addSlide().addText('body', { x: 0.5, y: 0.5, w: 4, h: 1, fontFace: '&quot' })
+	pptx.addSlide().addTable([[{ text: 'cell', options: { fontFace: 'A<B&"C' } }]], { x: 0.5, y: 0.5, w: 4 })
+
+	const zip = await writeZip(pptx)
+	await assertPptxPackageContracts(zip)
+	const slide1 = await readPart(zip, 'ppt/slides/slide1.xml')
+	assert.ok(slide1.includes('typeface="&amp;quot"'), 'fontFace ampersand was not XML-escaped in a:latin@typeface')
+	assert.ok(!/typeface="&quot[^;]/.test(slide1), 'broken entity reference leaked into typeface attribute')
+	const slide2 = await readPart(zip, 'ppt/slides/slide2.xml')
+	assert.ok(slide2.includes('typeface="A&lt;B&amp;&quot;C"'), 'table-cell fontFace was not XML-escaped')
+})
+
+test('Escaping: chart fontFace options with XML-special characters stay well-formed', async () => {
+	const evil = 'F&F<G'
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [{ name: 'S', labels: ['Q1'], values: [1] }], {
+		x: 0.5, y: 0.5, w: 6, h: 3,
+		showTitle: true, title: 'T', titleFontFace: evil,
+		showValue: true, dataLabelFontFace: evil,
+		showLegend: true, legendFontFace: evil,
+		catAxisLabelFontFace: evil, valAxisLabelFontFace: evil,
+	})
+
+	const chart = await readChart(await writeZip(pptx))
+	assert.ok(!chart.includes(`typeface="${evil}"`), 'raw fontFace leaked into chart XML')
+	assert.ok(chart.includes('typeface="F&amp;F&lt;G"'), 'chart fontFace was not XML-escaped')
+})
+
+test('OMML: malformed omml option throws instead of writing a corrupt package', async () => {
+	// Unescaped '<'/'&' inside m:t (e.g. from a broken MathML->OMML converter)
+	// used to be embedded verbatim, producing a pptx PowerPoint cannot open.
+	const bad = '<m:oMath><m:r><m:t xml:space="preserve"><<br/>h</m:t></m:r></m:oMath>'
+	const pptx = new pptxgen()
+	pptx.addSlide().addText([{ text: '', options: { omml: bad } }], { x: 0.5, y: 0.5, w: 6, h: 1 })
+	await assert.rejects(async () => await pptx.write({ outputType: 'nodebuffer' }), /well-formed XML fragment/)
+
+	const badEntity = '<m:oMath><m:r><m:t>a&nbsp;b</m:t></m:r></m:oMath>'
+	const pptx2 = new pptxgen()
+	pptx2.addSlide().addText([{ text: '', options: { omml: badEntity } }], { x: 0.5, y: 0.5, w: 6, h: 1 })
+	await assert.rejects(async () => await pptx2.write({ outputType: 'nodebuffer' }), /well-formed XML fragment/)
+
+	// Valid OMML (incl. numeric refs + all five XML entities) must still pass
+	const good = '<m:oMath><m:r><m:t xml:space="preserve">a&lt;b&amp;c&#x200B;&quot;&apos;&gt;</m:t></m:r></m:oMath>'
+	const pptx3 = new pptxgen()
+	pptx3.addSlide().addText([{ text: '', options: { omml: good } }], { x: 0.5, y: 0.5, w: 6, h: 1 })
+	const xml = await readPart(await writeZip(pptx3), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('a&lt;b&amp;c'), 'valid OMML was rejected or mangled')
+})

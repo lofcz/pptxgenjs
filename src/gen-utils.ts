@@ -259,6 +259,61 @@ export function encodeXmlEntities (xml: string | undefined): string {
 	return xml.toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 }
 
+// XML Name with optional namespace prefix (e.g. `m:oMath`, `xml:space`)
+const XML_NAME = String.raw`[A-Za-z_][\w.-]*(?::[A-Za-z_][\w.-]*)?`
+// Opening/self-closing tag with quoted attributes, closing tag, or comment
+const XML_TAG_RE = new RegExp(
+	String.raw`^<(?:(/)\s*(${XML_NAME})\s*|(${XML_NAME})((?:\s+${XML_NAME}\s*=\s*(?:"[^<"]*"|'[^<']*'))*)\s*(/)?)>|^<!--[\s\S]*?-->`
+)
+// XML defines exactly five named entities; anything else must be numeric
+const XML_ENTITY_RE = /^&(?:amp|lt|gt|quot|apos|#\d+|#x[0-9A-Fa-f]+);/
+
+/** Index of the first invalid `&` (bad or unterminated entity reference), or -1. */
+function findInvalidEntity (text: string): number {
+	let amp = text.indexOf('&')
+	while (amp !== -1) {
+		if (!XML_ENTITY_RE.test(text.slice(amp))) return amp
+		amp = text.indexOf('&', amp + 1)
+	}
+	return -1
+}
+
+/**
+ * Check that a string is a well-formed XML fragment (balanced quoted-attribute
+ * tags, no raw `<`/`&` in character data). Used to reject caller-supplied
+ * markup (e.g. OMML) that would otherwise corrupt the package — PowerPoint
+ * shows a repair prompt (or refuses to open) for malformed slide XML.
+ * @param {string} xml - XML fragment to validate
+ * @returns {string | null} description of the first problem, or null when well-formed
+ */
+export function validateXmlFragment (xml: string): string | null {
+	const stack: string[] = []
+	let pos = 0
+	while (pos < xml.length) {
+		const lt = xml.indexOf('<', pos)
+		const text = xml.slice(pos, lt === -1 ? xml.length : lt)
+		const badAmp = findInvalidEntity(text)
+		if (badAmp !== -1) {
+			return `invalid entity reference at offset ${pos + badAmp} ("${xml.substr(pos + badAmp, 12)}")`
+		}
+		if (lt === -1) break
+		const match = XML_TAG_RE.exec(xml.slice(lt))
+		if (!match) return `malformed tag at offset ${lt} ("${xml.substr(lt, 20)}")`
+		const [full, isClose, closeName, openName, attrs, selfClose] = match
+		if (isClose) {
+			const expected = stack.pop()
+			if (expected !== closeName) return `mismatched closing tag </${closeName}> at offset ${lt} (expected ${expected ? `</${expected}>` : 'no closing tag'})`
+		} else if (openName) {
+			const badAttrAmp = findInvalidEntity(attrs ?? '')
+			if (badAttrAmp !== -1) return `invalid entity reference in attributes of <${openName}> at offset ${lt}`
+			if (!selfClose) stack.push(openName)
+		}
+		pos = lt + full.length
+	}
+	if (stack.length) return `unclosed tag <${stack[stack.length - 1]}>`
+	return null
+}
+
 /**
  * Convert inches into EMU
  * @param {number|string} inches - as string or number
