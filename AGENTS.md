@@ -23,4 +23,4 @@ For PowerPoint compatibility, also consult Microsoft's [MS-OI29500 Office implem
 
 ## Std helpers package
 
-`packages/pptxgenjs-std` is a Bun workspace package (`pptxgenjs-plus-std`) of layout/chart helpers (`grid`, `waterfall`) that peer-depend on `pptxgenjs-plus` via `file:../..`. It is **not** a `packages/core` split — library code stays at repo-root `src/`. Build/test with `bun run build:std` / `bun run test:std`.
+`packages/pptxgenjs-std` is a Bun workspace package (`pptxgenjs-plus-std`) of layout/chart helpers (`grid`, `waterfall`). It peer-depends on `pptxgenjs-plus` at the **same version** as the root package and uses `file:../..` only as a `devDependency`. It is **not** a `packages/core` split — library code stays at repo-root `src/`. Build/test with `bun run build:std` / `bun run test:std`. `scripts/sync-jsx-version.mjs` keeps jsx + std versions lockstep with the root.

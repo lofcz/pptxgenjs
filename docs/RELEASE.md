@@ -35,38 +35,42 @@ Confirm:
 npm trust list pptxgenjs-plus
 ```
 
-### First publish of `pptxgenjs-plus-jsx`
+### First publish of `pptxgenjs-plus-jsx` / `pptxgenjs-plus-std`
 
-The JSX package is new on npm and must exist before trusted publishing can be attached. Publish **once** from your machine at the **same version** as `pptxgenjs-plus` (currently `4.1.17`). The workspace `file:../..` dependency is rewritten only for the tarball.
+Workspace packages are new on npm and must exist before trusted publishing can be attached. Publish **once** from your machine at the **same version** as `pptxgenjs-plus`. `file:../..` deps are rewritten only for the tarball. Do **not** use `npm publish --prefix` from the repo root — in this workspace that publishes the root package.
 
-Both names are unscoped npm packages (`pptxgenjs-plus`, `pptxgenjs-plus-jsx`), not an `@org/` scope. Publish from an npm user that already maintains `pptxgenjs-plus` (`npm whoami`).
+Both names are unscoped npm packages, not an `@org/` scope. Publish from an npm user that already maintains `pptxgenjs-plus` (`npm whoami`).
 
 ```bash
 bun ci
 bun run check
 bun run dist
 bun run build:jsx
+bun run build:std
 bun scripts/sync-jsx-version.mjs --publish
-npm publish --access public --prefix packages/pptxgenjs-jsx
+npm publish --access public --workspace pptxgenjs-plus-jsx
+npm publish --access public --workspace pptxgenjs-plus-std
 bun scripts/sync-jsx-version.mjs
 ```
 
-Skip the root publish if `pptxgenjs-plus@4.1.17` is already on the registry.
+Skip any name that is already on the registry at this version.
 
-Do **not** commit the rewritten `packages/pptxgenjs-jsx/package.json` (`pptxgenjs-plus` must stay `file:../..` in git). `sync-jsx-version.mjs` without `--publish` restores that.
+Do **not** commit the rewritten workspace `package.json` files (`pptxgenjs-plus` must stay `file:../..` in git). `sync-jsx-version.mjs` without `--publish` restores that.
 
-### Add trust for `pptxgenjs-plus-jsx`
+### Add trust for workspace packages
 
-Same workflow file; a second trust entry on the new package name:
+Same workflow file; one trust entry per package name:
 
 ```bash
 npm trust github pptxgenjs-plus-jsx --file=release.yml --repository=lofcz/pptxgenjs-plus --allow-publish -y
+npm trust github pptxgenjs-plus-std --file=release.yml --repository=lofcz/pptxgenjs-plus --allow-publish -y
 npm trust list pptxgenjs-plus-jsx
+npm trust list pptxgenjs-plus-std
 ```
 
 Trusted publisher settings:
 
-- Packages: `pptxgenjs-plus`, `pptxgenjs-plus-jsx` (lockstep version)
+- Packages: `pptxgenjs-plus`, `pptxgenjs-plus-jsx`, `pptxgenjs-plus-std` (lockstep version)
 - Repository owner/name: `lofcz/pptxgenjs-plus`
 - Workflow filename: `release.yml`
 - Environment: leave empty unless the repository later adds a protected environment
@@ -82,12 +86,12 @@ The workflow:
 
 1. Sets up Node with the npm registry URL (OIDC; no secrets).
 2. Installs with `bun ci` (Bun canary).
-3. Runs `bun run typecheck`, `bun run test`, `bun run test:jsx`.
-4. Runs `bun run dist` (Rslib) and `bun run build:jsx`.
-5. Bumps the root `package.json` via `bun pm version`, then copies that version onto `packages/pptxgenjs-jsx`.
+3. Runs `bun run typecheck`, `bun run test`, `bun run test:jsx`, `bun run test:std`.
+4. Runs `bun run dist` (Rslib), `bun run build:jsx`, and `bun run build:std`.
+5. Bumps the root `package.json` via `bun pm version`, then copies that version onto `packages/pptxgenjs-jsx` and `packages/pptxgenjs-std`.
 6. Commits and tags the release (not pushed yet).
 7. Publishes `pptxgenjs-plus` with `npm publish --provenance --access public`.
-8. Rewrites the JSX `file:` dependency, publishes `pptxgenjs-plus-jsx` the same way, then restores `file:../..`.
+8. Rewrites workspace `file:` deps, publishes `pptxgenjs-plus-jsx` and `pptxgenjs-plus-std` the same way (from each package directory), then restores `file:../..`.
 9. Pushes the release commit/tag and creates a GitHub release.
 
 GitHub Actions must use `npm publish`, not `bun publish`. Bun has no OIDC trusted-publisher support.
@@ -97,6 +101,7 @@ GitHub Actions must use `npm publish`, not `bun publish`. Bun has no OIDC truste
 ```bash
 npm install pptxgenjs-plus
 npm install pptxgenjs-plus-jsx   # optional JSX runtime; same version
+npm install pptxgenjs-plus-std   # optional grid/waterfall helpers; same version
 ```
 
 Use:

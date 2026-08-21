@@ -60,8 +60,10 @@ test('every exports target is published', () => {
 	assert.equal(PACKAGE.sideEffects, false, 'pure helpers: bundlers must be free to drop unused categories')
 })
 
-test('the core is a peer, not a runtime dependency', () => {
-	assert.equal(PACKAGE.peerDependencies['pptxgenjs-plus'], '>=4.1.19')
+test('the core is a lockstep peer, not a runtime dependency', () => {
+	const root = JSON.parse(readFileSync(join(import.meta.dirname, '..', '..', '..', 'package.json'), 'utf8'))
+	assert.equal(PACKAGE.version, root.version, 'std version must match the root package')
+	assert.equal(PACKAGE.peerDependencies['pptxgenjs-plus'], root.version, 'std peer must be the same version as the core')
 	assert.equal(PACKAGE.dependencies, undefined, 'std must stay dependency-free at runtime')
 	assert.equal(PACKAGE.devDependencies['pptxgenjs-plus'], 'file:../..')
 

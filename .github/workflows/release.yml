@@ -53,11 +53,17 @@ jobs:
       - name: Test JSX package
         run: bun run test:jsx
 
+      - name: Test std package
+        run: bun run test:std
+
       - name: Build
         run: bun run dist
 
       - name: Build JSX package
         run: bun run build:jsx
+
+      - name: Build std package
+        run: bun run build:std
 
       - name: Bump package version
         id: version
@@ -78,21 +84,25 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json bun.lock packages/pptxgenjs-jsx/package.json
+          git add package.json bun.lock packages/pptxgenjs-jsx/package.json packages/pptxgenjs-std/package.json
           git commit -m "chore: release v${{ steps.version.outputs.version }}"
           git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
 
       - name: Publish to npm
         run: npm publish --provenance --access public
 
-      - name: Prepare pptxgenjs-plus-jsx for publish
+      - name: Prepare workspace packages for publish
         run: bun scripts/sync-jsx-version.mjs --publish
 
       - name: Publish pptxgenjs-plus-jsx to npm
         working-directory: packages/pptxgenjs-jsx
         run: npm publish --provenance --access public
 
-      - name: Restore JSX workspace dependency
+      - name: Publish pptxgenjs-plus-std to npm
+        working-directory: packages/pptxgenjs-std
+        run: npm publish --provenance --access public
+
+      - name: Restore workspace file: dependencies
         if: always() && !cancelled()
         run: bun scripts/sync-jsx-version.mjs
 

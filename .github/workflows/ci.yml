@@ -21,6 +21,7 @@ jobs:
       - run: bun run check
       - run: bun run build
       - run: bun run build:jsx
+      - run: bun run build:std
 
   office-consumer:
     runs-on: ubuntu-latest

@@ -25,4 +25,4 @@ waterfall(slide, {
 
 Category subpaths: `pptxgenjs-plus-std/layout`, `pptxgenjs-plus-std/charts`.
 
-`pptxgenjs-plus` is a peer dependency (`>=4.1.19`) so helpers act on the caller's own presentation instance.
+`pptxgenjs-plus` is a peer dependency at the same version as this package, so helpers act on the caller's own presentation instance.
