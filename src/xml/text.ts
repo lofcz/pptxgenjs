@@ -298,6 +298,8 @@ function normalizeOmml (omml: string): string {
 		throw new Error(`ERROR: text run 'omml' option is not a well-formed XML fragment: ${problem}. Escape all '<', '&' in math text (e.g. <m:t>a&lt;b</m:t>).`)
 	}
 
+	trimmed = stripPowerPointIllegalOmml(trimmed)
+
 	// Already PowerPoint-wrapped
 	if (/^<a14:m[\s/>]/i.test(trimmed)) return trimmed
 
@@ -309,6 +311,21 @@ function normalizeOmml (omml: string): string {
 	}
 
 	return `<a14:m xmlns:a14="${A14_NS}">${trimmed}</a14:m>`
+}
+
+/**
+ * PowerPoint's `a14:m` math zone is a subset of Word OMML. `m:br` is legal in
+ * Word (ECMA-376 §22.1.2.10, parent `m:r`) but PowerPoint refuses to open the
+ * package when it is present — even wrapped in `m:r` (COM 0x80020009).
+ * Confirmed with powerpoint-verify on a deck whose only difference was a
+ * MathML `mspace linebreak="newline"` converted to a bare `<m:br/>`.
+ */
+function stripPowerPointIllegalOmml (xml: string): string {
+	return xml
+		.replace(/<m:r>\s*<m:br\b[^>]*\/>\s*<\/m:r>/gi, '')
+		.replace(/<m:r>\s*<m:br\b[^>]*>\s*<\/m:br>\s*<\/m:r>/gi, '')
+		.replace(/<m:br\b[^>]*\/>/gi, '')
+		.replace(/<m:br\b[^>]*>\s*<\/m:br>/gi, '')
 }
 
 export function textRunsHaveOmml (text: TextProps[] | string | undefined): boolean {

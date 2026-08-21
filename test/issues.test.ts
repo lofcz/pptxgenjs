@@ -3450,3 +3450,19 @@ test('OMML: malformed omml option throws instead of writing a corrupt package', 
 	const xml = await readPart(await writeZip(pptx3), 'ppt/slides/slide1.xml')
 	assert.ok(xml.includes('a&lt;b&amp;c'), 'valid OMML was rejected or mangled')
 })
+
+test('OMML: m:br is stripped so PowerPoint can open the package', async () => {
+	// Word-oriented converters (mathml2omml) emit m:br for mspace linebreak="newline".
+	// PowerPoint rejects the whole file if that element appears inside a14:m.
+	const withBareBr = '<m:oMath><m:br/><m:r><m:t>vecF</m:t></m:r></m:oMath>'
+	const withWrappedBr = '<m:oMath><m:r><m:br/></m:r><m:r><m:t>F</m:t></m:r></m:oMath>'
+	const pptx = new pptxgen()
+	pptx.addSlide().addText([
+		{ text: '', options: { omml: withBareBr } },
+		{ text: '', options: { omml: withWrappedBr } },
+	], { x: 0.5, y: 0.5, w: 6, h: 1 })
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(!xml.includes('<m:br'), 'm:br must not reach slide XML')
+	assert.ok(xml.includes('<m:t xml:space="preserve">vecF</m:t>') || xml.includes('<m:t>vecF</m:t>'), 'run after bare br was dropped')
+	assert.ok(xml.includes('<m:t xml:space="preserve">F</m:t>') || xml.includes('<m:t>F</m:t>'), 'run after wrapped br was dropped')
+})

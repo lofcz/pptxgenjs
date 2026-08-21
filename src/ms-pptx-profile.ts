@@ -482,8 +482,8 @@ const EXT: MsPptxExtension[] = [
 		choiceRequires: 'a14',
 		fallback: 'plain text run (down-level)',
 		api: 'addText({ text, omml }) / math runs',
-		packageContract: 'PowerPoint requires a14:m around m:oMath. Bare OMML is stripped on open. presentationPr MAY carry the a14:m ext URI.',
-		officeFixture: 'Proven via PowerPoint 16 COM (src/xml/text.ts). Semantic: OMML wrapped in a14:m.',
+		packageContract: 'PowerPoint requires a14:m around m:oMath. Bare OMML is stripped on open. m:br (Word math line-break) is stripped — PowerPoint rejects the package if it is present. presentationPr MAY carry the a14:m ext URI.',
+		officeFixture: 'Proven via PowerPoint 16 COM (src/xml/text.ts). Semantic: OMML wrapped in a14:m; no m:br.',
 		schema: '[MS-ODRAWXML] + ECMA-376 math',
 	},
 	{
