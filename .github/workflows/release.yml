@@ -102,7 +102,7 @@ jobs:
         working-directory: packages/pptxgenjs-std
         run: npm publish --provenance --access public
 
-      - name: Restore workspace file: dependencies
+      - name: Restore workspace file dependencies
         if: always() && !cancelled()
         run: bun scripts/sync-jsx-version.mjs
 

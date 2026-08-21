@@ -35,14 +35,14 @@
     },
     "packages/pptxgenjs-std": {
       "name": "pptxgenjs-plus-std",
-      "version": "0.1.0",
+      "version": "4.1.19",
       "devDependencies": {
         "@types/node": "^26.2.0",
         "pptxgenjs-plus": "file:../..",
         "typescript": "^6.0.3",
       },
       "peerDependencies": {
-        "pptxgenjs-plus": ">=4.1.19",
+        "pptxgenjs-plus": "4.1.19",
       },
     },
   },
