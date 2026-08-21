@@ -42,12 +42,14 @@ export function genXmlTitle (opts: IChartPropsTitle, chartX?: number, chartY?: n
             <a:defRPr ${sizeAttr} b="${titleBold}" i="${titleItalic}" u="none" strike="noStrike">
               <a:solidFill>${createColorElement(opts.color || DEF_FONT_COLOR)}</a:solidFill>
               <a:latin typeface="${encodeXmlEntities(opts.fontFace) || 'Arial'}"/>
+              <a:ea typeface="${encodeXmlEntities(opts.fontFace) || 'Arial'}"/>
             </a:defRPr>
           </a:pPr>
           <a:r>
             <a:rPr ${sizeAttr} b="${titleBold}" i="${titleItalic}" u="none" strike="noStrike">
               <a:solidFill>${createColorElement(opts.color || DEF_FONT_COLOR)}</a:solidFill>
               <a:latin typeface="${encodeXmlEntities(opts.fontFace) || 'Arial'}"/>
+              <a:ea typeface="${encodeXmlEntities(opts.fontFace) || 'Arial'}"/>
             </a:rPr>
             <a:t>${encodeXmlEntities(opts.title) || ''}</a:t>
           </a:r>

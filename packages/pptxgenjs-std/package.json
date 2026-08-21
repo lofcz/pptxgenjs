@@ -1,0 +1,71 @@
+{
+	"name": "pptxgenjs-plus-std",
+	"version": "0.1.0",
+	"description": "Layout and diagram helpers for pptxgenjs-plus",
+	"homepage": "https://github.com/lofcz/pptxgenjs-plus/tree/next/packages/pptxgenjs-std#readme",
+	"bugs": {
+		"url": "https://github.com/lofcz/pptxgenjs-plus/issues"
+	},
+	"license": "MIT",
+	"author": {
+		"name": "Matěj Lofcz Štágl",
+		"url": "https://github.com/lofcz"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/lofcz/pptxgenjs-plus.git",
+		"directory": "packages/pptxgenjs-std"
+	},
+	"keywords": [
+		"pptx",
+		"pptxgenjs",
+		"pptxgenjs-plus",
+		"powerpoint",
+		"waterfall-chart",
+		"slide-layout"
+	],
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./layout": {
+			"types": "./dist/layout/index.d.ts",
+			"default": "./dist/layout/index.js"
+		},
+		"./charts": {
+			"types": "./dist/charts/index.d.ts",
+			"default": "./dist/charts/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"typecheck": "tsc --noEmit",
+		"test": "bun test"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"engines": {
+		"bun": ">=1.3.0",
+		"node": ">=24"
+	},
+	"peerDependencies": {
+		"pptxgenjs-plus": ">=4.1.19"
+	},
+	"devDependencies": {
+		"pptxgenjs-plus": "file:../..",
+		"@types/node": "^26.2.0",
+		"typescript": "^6.0.3"
+	}
+}

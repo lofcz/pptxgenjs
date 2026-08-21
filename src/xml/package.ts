@@ -13,6 +13,7 @@ import {
 	SlideLayout,
 	SlideObjectAnimation,
 	SlideShowEvent,
+	SlideShowProps,
 	TextProps,
 } from '../core-interfaces'
 import { createTimingXml, MediaPlaybackEntry } from '../gen-animations'
@@ -695,17 +696,55 @@ export function makeXmlPresentation (pres: IPresentationProps): string {
  * @return {string} XML
  */
 export function makeXmlPresProps (pres?: IPresentationProps): string {
-	// MS-PPTX §2.2.6 showPr (browseMode / laserClr) and §2.2.7/§2.2.16/§2.2.12
-	// presentationPr extLst. Opt-in: emit an ext only when the property is set.
-	const showExts: string[] = []
-	if (typeof pres?.browseMode === 'boolean')
-		showExts.push(`<p:ext uri="${URI_BROWSE_MODE}"><p14:browseMode xmlns:p14="${P14_NS}" showStatus="${pres.browseMode ? '1' : '0'}"/></p:ext>`)
-	if (pres?.laserColor)
-		showExts.push(`<p:ext uri="${URI_LASER_CLR}"><p14:laserClr xmlns:p14="${P14_NS}">${createColorElement(pres.laserColor)}</p14:laserClr></p:ext>`)
-	const showPr = showExts.length > 0 ? `<p:showPr><p:extLst>${showExts.join('')}</p:extLst></p:showPr>` : ''
+	// CT_PresentationProperties sequence: showPr then extLst. Opt-in: emit nothing extra unless set.
+	const showPr = makeXmlShowPr(pres)
+	const extLst = makeXmlPresPropsExtLst(pres)
+	return (
+		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
+		'<p:presentationPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' +
+		`${showPr}${extLst}</p:presentationPr>`
+	)
+}
 
+/**
+ * `p:showPr` for slide-show options, or '' when none are set.
+ * ECMA-376 §19.2.1.30 requires a present/browse/kiosk choice whenever `showPr` is written.
+ */
+function makeXmlShowPr (pres?: IPresentationProps): string {
+	const show: SlideShowProps = pres?.slideShow ?? {}
+	const browseMode = show.browseMode ?? pres?.browseMode
+	const laserColor = show.laserColor ?? pres?.laserColor
+	const hasShow = !!pres?.slideShow && Object.keys(show).length > 0
+	const hasExt = typeof browseMode === 'boolean' || !!laserColor
+	if (!hasShow && !hasExt) return ''
+
+	const mode = show.mode ?? 'present'
+	if (show.mode && !['present', 'browse', 'kiosk'].includes(show.mode)) {
+		console.warn(`[pptxgenjs] slideShow.mode must be 'present' | 'browse' | 'kiosk' - "${String(show.mode)}" ignored, 'present' used`)
+	}
+	let attrs = ''
+	if (show.loop === true) attrs += ' loop="1"'
+	if (show.showNarration === false) attrs += ' showNarration="0"'
+	if (show.showAnimation === false) attrs += ' showAnimation="0"'
+	if (show.useTimings === false) attrs += ' useTimings="0"'
+
+	const resolvedMode = ['present', 'browse', 'kiosk'].includes(mode) ? mode : 'present'
+	const choice = resolvedMode === 'browse'
+		? `<p:browse${show.showScrollbar === true ? ' showScrollbar="1"' : ''}/>`
+		: resolvedMode === 'kiosk' ? '<p:kiosk/>' : '<p:present/>'
+
+	const showExts: string[] = []
+	if (typeof browseMode === 'boolean')
+		showExts.push(`<p:ext uri="${URI_BROWSE_MODE}"><p14:browseMode xmlns:p14="${P14_NS}" showStatus="${browseMode ? '1' : '0'}"/></p:ext>`)
+	if (laserColor)
+		showExts.push(`<p:ext uri="${URI_LASER_CLR}"><p14:laserClr xmlns:p14="${P14_NS}">${createColorElement(laserColor)}</p14:laserClr></p:ext>`)
+
+	return `<p:showPr${attrs}>${choice}${showExts.length > 0 ? `<p:extLst>${showExts.join('')}</p:extLst>` : ''}</p:showPr>`
+}
+
+function makeXmlPresPropsExtLst (pres?: IPresentationProps): string {
 	const exts: string[] = []
-	if (pres?.defaultImageDpi && pres.defaultImageDpi > 0)
+	if (typeof pres?.defaultImageDpi === 'number' && Number.isFinite(pres.defaultImageDpi) && pres.defaultImageDpi >= 0)
 		exts.push(`<p:ext uri="${URI_DEFAULT_IMAGE_DPI}"><p14:defaultImageDpi xmlns:p14="${P14_NS}" val="${Math.round(pres.defaultImageDpi)}"/></p:ext>`)
 	if (pres?.discardImageEditData)
 		exts.push(`<p:ext uri="${URI_DISCARD_IMAGE_EDIT_DATA}"><p14:discardImageEditData xmlns:p14="${P14_NS}" val="1"/></p:ext>`)
@@ -713,13 +752,7 @@ export function makeXmlPresProps (pres?: IPresentationProps): string {
 		exts.push(`<p:ext uri="${URI_READONLY_RECOMMENDED}"><p1710:readonlyRecommended xmlns:p1710="${P1710_NS}" val="1"/></p:ext>`)
 	if (pres?.chartTrackingRefBased)
 		exts.push('<p:ext uri="{FD5EFAAD-0ECE-453E-9831-46B23BE46B34}"><p15:chartTrackingRefBased xmlns:p15="http://schemas.microsoft.com/office/powerpoint/2012/main" val="1"/></p:ext>')
-
-	const extLst = exts.length > 0 ? `<p:extLst>${exts.join('')}</p:extLst>` : ''
-	return (
-		`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}` +
-		'<p:presentationPr xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">' +
-		`${showPr}${extLst}</p:presentationPr>`
-	)
+	return exts.length > 0 ? `<p:extLst>${exts.join('')}</p:extLst>` : ''
 }
 
 /**

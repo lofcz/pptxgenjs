@@ -864,7 +864,13 @@ export function addSectionZoomDefinition(target: PresSlide, opt: SectionZoomProp
  */
 export function addSummaryZoomDefinition(target: PresSlide, opt: SummaryZoomProps): void {
 	pushZoomObject(target, 'summary', opt, obj => {
-		obj.zoomSectionTitle = opt.sectionTitle
+		const titles = [
+			...(opt.sectionTitle ? [opt.sectionTitle] : []),
+			...(opt.sectionTitles ?? []),
+		].filter((title, idx, all) => title && all.indexOf(title) === idx)
+		if (titles.length === 0) throw new Error('addSummaryZoom() error: provide `sectionTitle` or `sectionTitles`')
+		obj.zoomSectionTitle = titles[0]
+		obj.zoomSectionTitles = titles.slice(1)
 		if (obj.options) {
 			obj.options.zoomTitle = opt.title
 			obj.options.zoomDescr = opt.descr
@@ -1150,7 +1156,7 @@ export function addTableDefinition(
 	getSlide: (slideNumber: number) => PresSlide
 ): PresSlide[] {
 	const slides: PresSlide[] = [target] // Create array of Slides as more may be added by auto-paging
-	const opt: TableProps = options && typeof options === 'object' ? options : {}
+	const opt: TableProps = options && typeof options === 'object' ? { ...options } : {}
 	opt.objectName = opt.objectName ? encodeXmlEntities(opt.objectName) : `Table ${target._slideObjects.filter(obj => obj._type === SLIDE_OBJECT_TYPES.table).length}`
 
 	// STEP 1: REALITY-CHECK

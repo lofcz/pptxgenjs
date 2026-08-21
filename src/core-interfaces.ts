@@ -2694,8 +2694,12 @@ export interface ISlideObject {
 	zoomSlideNum?: number
 	/** target section title (section/summary zoom) @internal */
 	zoomSectionTitle?: string
+	/** extra summary-zoom section titles (`sectionTitles`) @internal */
+	zoomSectionTitles?: string[]
 	/** resolved target section GUID (braced `{…}`), set at build @internal */
 	zoomSectionId?: string
+	/** resolved extra summary-zoom section GUIDs @internal */
+	zoomSectionIds?: string[]
 	/** cover/thumbnail image rId @internal */
 	zoomRid?: number
 	/** content-part / ink / Office App relationship id @internal */
@@ -3005,9 +3009,11 @@ export interface PresSlide extends SlideBaseProps {
 	addComment: (comment: CommentProps) => PresSlide
 	/**
 	 * Slide creation identifier (MS-PPTX §2.3.1.4 `p14:creationId` on `cSld`).
-	 * Opt-in — omitted unless set. @example 123456789
+	 * Opt-in — omitted unless set. `true` assigns a reproducible id from the slide number.
+	 * @example 123456789
+	 * @example true
 	 */
-	creationId?: number
+	creationId?: number | true
 	/**
 	 * Add a Slide Zoom object linking to another slide (MS-PPTX §2.10 `p16:sldZm`).
 	 * Rendered inside `mc:AlternateContent` with a `pic` fallback for older readers.
@@ -3085,7 +3091,9 @@ export interface SectionZoomProps extends ZoomBaseProps {
 /** A Summary Zoom navigation object. MS-PPTX §2.11 `CT_SummaryZoom`. */
 export interface SummaryZoomProps extends ZoomBaseProps {
 	/** Title of the target section (must match an `addSection({ title })`). */
-	sectionTitle: string
+	sectionTitle?: string
+	/** Additional section titles (each emits a `p16:summaryZmObj`). */
+	sectionTitles?: string[]
 	/** Alt-text title on the zoom object. */
 	title?: string
 	/** Alt-text description on the zoom object. */
@@ -3204,6 +3212,44 @@ export interface AddSlideProps {
 	/** Optional slide transition applied at creation (same as `slide.addTransition()`). */
 	transition?: SlideTransitionProps
 }
+/**
+ * Slide-show options written to `ppt/presProps.xml` as `p:showPr` (ECMA-376 §19.2.1.30).
+ * Opt-in: unset writes no `showPr`. The present/browse/kiosk choice is required when `showPr` is emitted.
+ */
+export interface SlideShowProps {
+	/**
+	 * How the slide show runs (`p:showPr` choice).
+	 * - `present`: full screen, presenter-driven
+	 * - `browse`: windowed, viewer-driven
+	 * - `kiosk`: full screen, self-running
+	 * @default 'present'
+	 */
+	mode?: 'present' | 'browse' | 'kiosk'
+	/** Restart the show after the last slide. @default false */
+	loop?: boolean
+	/** Play recorded narration. @default true */
+	showNarration?: boolean
+	/** Play animations. @default true */
+	showAnimation?: boolean
+	/** Use the slide timings recorded in the file. @default true */
+	useTimings?: boolean
+	/**
+	 * Show the scrollbar when `mode` is `browse` (`p:browse@showScrollbar`).
+	 * Distinct from `browseMode` (MS-PPTX status-bar `p14:browseMode@showStatus`).
+	 */
+	showScrollbar?: boolean
+	/**
+	 * Status-bar visibility in browse mode (MS-PPTX §2.3.1.2 `p14:browseMode@showStatus`).
+	 * Merges with the presentation-level `browseMode` property.
+	 */
+	browseMode?: boolean
+	/**
+	 * Laser-pointer color (MS-PPTX §2.3.1.16 `p14:laserClr`).
+	 * Merges with the presentation-level `laserColor` property.
+	 */
+	laserColor?: Color
+}
+
 export interface PresentationProps {
 	author: string
 	company: string
@@ -3262,9 +3308,18 @@ export interface PresentationProps {
 	notesGuides?: GuideProps[]
 	/**
 	 * Default DPI used when compressing/saving images. MS-PPTX §2.3.1.5 `defaultImageDpi`.
-	 * Only applies when image compression is on. @example 220
+	 * Only applies when image compression is on. `0` means "do not compress".
+	 * @example 220
+	 * @example 0
 	 */
 	defaultImageDpi?: number
+	/**
+	 * Slide-show options (`p:showPr`). Opt-in — omitted unless set.
+	 * Emits the required present/browse/kiosk choice plus optional loop/narration/animation flags.
+	 * Flat `browseMode` / `laserColor` still work and merge into this `showPr`.
+	 * @example { mode: 'kiosk', loop: true }
+	 */
+	slideShow?: SlideShowProps
 	/**
 	 * Discard image editing data (crop info, imgProps) on save. MS-PPTX §2.3.1.6 `discardImageEditData`.
 	 * @default false

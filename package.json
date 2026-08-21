@@ -40,6 +40,7 @@
 		"build": "rslib build -c rsbuild.config.mts && bun run build:types",
 		"build:types": "bun scripts/gen-types-namespace.mjs",
 		"build:jsx": "bun run --cwd packages/pptxgenjs-jsx build",
+		"build:std": "bun run --cwd packages/pptxgenjs-std build",
 		"generate:version": "bun scripts/package-version.mjs",
 		"dist": "bun run build",
 		"prepare": "bun run build",
@@ -59,7 +60,8 @@
 		"pptx:verify": "bun test/pptx-verify.ts",
 		"fixtures:repair": "bun test/repair-fixtures.ts",
 		"test:jsx": "bun run --cwd packages/pptxgenjs-jsx typecheck && bun test packages/pptxgenjs-jsx",
-		"check": "bun run lint && bun run typecheck && bun run test && bun run test:jsx",
+		"test:std": "bun run --cwd packages/pptxgenjs-std typecheck && bun test packages/pptxgenjs-std",
+		"check": "bun run lint && bun run typecheck && bun run test && bun run test:jsx && bun run test:std",
 		"prepublishOnly": "bun run check && bun run build"
 	},
 	"browser": {

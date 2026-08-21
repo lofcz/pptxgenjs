@@ -220,6 +220,7 @@ export function makeXmlCharts (rel: ISlideRelChart): string {
 				strXml += rel.opts.legendFontSize ? `<a:defRPr sz="${Math.round(Number(rel.opts.legendFontSize) * 100)}">` : '<a:defRPr>'
 				if (rel.opts.legendColor) strXml += genXmlColorSelection(rel.opts.legendColor)
 				if (rel.opts.legendFontFace) strXml += '<a:latin typeface="' + encodeXmlEntities(rel.opts.legendFontFace) + '"/>'
+				if (rel.opts.legendFontFace) strXml += '<a:ea    typeface="' + encodeXmlEntities(rel.opts.legendFontFace) + '"/>'
 				if (rel.opts.legendFontFace) strXml += '<a:cs    typeface="' + encodeXmlEntities(rel.opts.legendFontFace) + '"/>'
 				strXml += '      </a:defRPr>'
 				strXml += '    </a:pPr>'

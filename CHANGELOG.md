@@ -11,9 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Text `vertOverflow` / `horzOverflow` emit ECMA-376 `a:bodyPr` overflow attrs so overflowing runs can clip instead of spilling out of the shape
 - Package-contract tests for opt-in `addFont` (Font parts, `application/x-fontdata`, Presentation font rels); default export embeds nothing
+- `pptx.slideShow` emits a spec-valid `p:showPr` with the required present/browse/kiosk choice, plus loop/narration/animation/timing flags
+- `slide.creationId = true` assigns a reproducible `p14:creationId`; tables get unique default `p14:modId` values
+- `addSummaryZoom({ sectionTitles })` can target multiple sections
+- `pptxgenjs-plus-std` workspace package with `grid` / `gridFor` layout helpers and a stacked-bar `waterfall` construction (ported from NeomaVerwaltung/PptxGenJS)
 
 ### Changed
 
+- Chart titles, legends, and axis labels emit an `a:ea` typeface slot next to `a:latin` so East Asian faces render
+- `defaultImageDpi: 0` is written ("do not compress"); previously only values `> 0` were emitted
+- Modern transition Fallback no longer copies `p14:dur` (Choice-only)
+- Auto-paged tables copy caller options so overflow mutations cannot move sibling tables
 - Published npm package renamed from `@lofcz/pptxgenjs` to `pptxgenjs-plus`
 - Docs site builds with Rspress (Rsbuild / Rspack) instead of VitePress
 - Bumped toolchain to ESLint 10 and current Rslib/eslint/tsx/TypeScript 6 minors; dropped unused `@typescript-eslint/eslint-plugin`, `@typescript-eslint/parser`, and a direct `@rsbuild/core` pin. TypeScript 7 is blocked until typescript-eslint supports it.

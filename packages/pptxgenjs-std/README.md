@@ -1,0 +1,28 @@
+# pptxgenjs-plus-std
+
+Layout and diagram helpers for [pptxgenjs-plus](https://github.com/lofcz/pptxgenjs-plus). These helpers compose the public `addChart` / position APIs — they do not replace the core library.
+
+```ts
+import pptxgen from 'pptxgenjs-plus'
+import { grid, waterfall } from 'pptxgenjs-plus-std'
+
+const pptx = new pptxgen()
+const slide = pptx.addSlide()
+const at = grid()
+
+slide.addText('Q3 bridge', { ...at(0, 0, 12, 1), fontSize: 28 })
+waterfall(slide, {
+  labels: ['Open', 'Sales', 'Churn'],
+  values: [100, 30, -12],
+  total: 'Close',
+}, { ...at(0, 1, 12, 5), showValue: true })
+```
+
+## Helpers
+
+- `grid()` / `gridFor(pres)` — place objects on a column/row grid; throws instead of drifting off-slide
+- `waterfall(slide, props, options?)` — stacked-bar waterfall (transparent riser + signed per-point labels)
+
+Category subpaths: `pptxgenjs-plus-std/layout`, `pptxgenjs-plus-std/charts`.
+
+`pptxgenjs-plus` is a peer dependency (`>=4.1.19`) so helpers act on the caller's own presentation instance.

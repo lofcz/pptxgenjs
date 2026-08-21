@@ -18,6 +18,10 @@ export const CHANGES_INFO_NS = 'http://schemas.microsoft.com/office/powerpoint/2
 export const P14_NS = 'http://schemas.microsoft.com/office/powerpoint/2010/main'
 export const CREATION_ID_URI = '{BB962C8B-B14F-4D97-AF65-F5344CB8AC3E}'
 export const MOD_ID_URI = '{D42A27DB-BD31-4B8C-83A1-F6EECF244321}'
+/** Deterministic, unique-per-object `p14:modId` base (MS-PPTX §2.3.1.19). */
+export const TABLE_MOD_ID_BASE = 1579011935
+/** Deterministic `p14:creationId` base when `slide.creationId === true` (MS-PPTX §2.3.1.4). */
+export const CREATION_ID_BASE = 2147483648
 
 export type RevisionTrackingOpt = boolean | RevisionInfoProps | undefined
 export type ChangesTrackingOpt = boolean | ChangesInfoProps | undefined
@@ -41,10 +45,28 @@ export function randomIdVal (value: number): string {
 	return String(unsignedInt(value))
 }
 
+/**
+ * Resolve `slide.creationId` to an unsigned 32-bit integer, or `undefined` when unset/invalid.
+ * `true` assigns a reproducible id from the slide number so callers can opt in without picking one.
+ */
+export function resolveCreationId (creationId: number | true | undefined, slideNum?: number): number | undefined {
+	if (creationId === true) return CREATION_ID_BASE + (slideNum ?? 0)
+	if (typeof creationId !== 'number' || !Number.isFinite(creationId)) {
+		if (creationId !== undefined) console.warn(`[pptxgenjs] creationId must be \`true\` or an unsigned 32-bit integer - "${String(creationId)}" ignored`)
+		return undefined
+	}
+	if (creationId < 0 || creationId > 0xffffffff || Math.floor(creationId) !== creationId) {
+		console.warn(`[pptxgenjs] creationId must be an integer between 0 and 4294967295 - "${String(creationId)}" ignored`)
+		return undefined
+	}
+	return creationId
+}
+
 /** `p:ext` wrapper for `p14:creationId` on `cSld` (MS-PPTX §2.2.9 / §2.3.1.4). */
-export function genXmlCreationIdExt (creationId?: number): string {
-	if (typeof creationId !== 'number' || !Number.isFinite(creationId)) return ''
-	return `<p:extLst><p:ext uri="${CREATION_ID_URI}"><p14:creationId xmlns:p14="${P14_NS}" val="${randomIdVal(creationId)}"/></p:ext></p:extLst>`
+export function genXmlCreationIdExt (creationId?: number | true, slideNum?: number): string {
+	const resolved = resolveCreationId(creationId, slideNum)
+	if (resolved === undefined) return ''
+	return `<p:extLst><p:ext uri="${CREATION_ID_URI}"><p14:creationId xmlns:p14="${P14_NS}" val="${randomIdVal(resolved)}"/></p:ext></p:extLst>`
 }
 
 /** `p:ext` wrapper for `p14:modId` on `nvPr` (MS-PPTX §2.2.9 / §2.3.1.19). */

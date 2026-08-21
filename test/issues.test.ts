@@ -1937,6 +1937,7 @@ test('#transition: modern morph wraps in mc:AlternateContent with fallback', asy
 	assert.ok(slideXml.includes('<mc:Choice Requires="p16">'), 'no p16 Choice')
 	assert.ok(slideXml.includes('<p16:morph/>'), 'no p16:morph element')
 	assert.ok(slideXml.includes('p14:dur="800"'), 'no p14:dur duration attr')
+	assert.ok(!/<mc:Fallback>[\s\S]*?p14:dur/.test(slideXml), 'Fallback must not carry p14:dur')
 	assert.ok(slideXml.includes('mc:Ignorable="a14 p14"'), `slide root missing p14 ignorable: ${/<p:sld [^>]*>/.exec(slideXml)?.[0]}`)
 })
 
@@ -2432,7 +2433,7 @@ test('#89: presentationPr image/view + showPr browse/laser emit URI + namespace'
 	assert.ok(presPrXml.includes('uri="{1BD7E111-0CB8-44D6-8891-C1BB2F81B7CC}"'), 'readonlyRecommended URI')
 	assert.ok(presPrXml.includes('<p1710:readonlyRecommended xmlns:p1710="http://schemas.microsoft.com/office/powerpoint/2017/10/main" val="1"/>'), 'readonlyRecommended xml')
 	// MS-PPTX §2.2.6 slide-show extensions on presentationPr/showPr/extLst
-	assert.ok(presPrXml.includes('<p:showPr><p:extLst>'), 'showPr wrapper missing')
+	assert.ok(presPrXml.includes('<p:showPr><p:present/><p:extLst>'), 'showPr wrapper missing required present choice')
 	assert.ok(presPrXml.includes('uri="{F99C55AA-B7CB-42B0-86F8-08522FDF87E8}"'), 'browseMode URI')
 	assert.ok(presPrXml.includes('<p14:browseMode xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" showStatus="0"/>'), 'browseMode xml')
 	assert.ok(presPrXml.includes('uri="{EC167BDD-8182-4AB7-AECC-EB403E3ABB37}"'), 'laserClr URI')
@@ -2532,6 +2533,62 @@ test('#90: opt-in revisionInfo + changesInfo emit one Internal presentation rel 
 	assert.ok(slideXml.includes('<p14:creationId') && slideXml.includes('val="123456789"'), 'creationId missing')
 	assert.ok(slideXml.includes('uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"'), 'modId ext uri missing')
 	assert.ok(slideXml.includes('val="987654321"') && slideXml.includes('val="111"'), 'shape modIds missing')
+})
+
+test('#90: tables get unique default modIds; creationId:true is reproducible', async () => {
+	const pptx = new pptxgen()
+	const slide = pptx.addSlide()
+	slide.creationId = true
+	slide.addTable([['A', 'B']], { x: 0.5, y: 0.5, w: 4 })
+	slide.addTable([['C', 'D']], { x: 0.5, y: 2, w: 4 })
+
+	const xml = await readPart(await writeZip(pptx), 'ppt/slides/slide1.xml')
+	assert.ok(xml.includes('<p14:creationId') && xml.includes('val="2147483649"'), `creationId:true missing: ${xml}`)
+	const modIds = [...xml.matchAll(/<p14:modId[^>]*val="(\d+)"/g)].map(m => m[1])
+	assert.equal(modIds.length, 2, `expected two table modIds, got ${modIds.join(',')}`)
+	assert.notEqual(modIds[0], modIds[1], 'table modIds must be unique on the slide')
+})
+
+test('#89: slideShow emits present/browse/kiosk choice and loop', async () => {
+	const pptx = new pptxgen()
+	pptx.slideShow = { mode: 'kiosk', loop: true, showAnimation: false }
+	pptx.addSlide().addText('x', { x: 1, y: 1, w: 1, h: 1 })
+	const presPrXml = await readPart(await writeZip(pptx), 'ppt/presProps.xml')
+	assert.ok(presPrXml.includes('<p:showPr loop="1" showAnimation="0"><p:kiosk/>'), `kiosk showPr missing: ${presPrXml}`)
+})
+
+test('#89: defaultImageDpi 0 means do not compress', async () => {
+	const pptx = new pptxgen()
+	pptx.defaultImageDpi = 0
+	pptx.addSlide().addText('x', { x: 1, y: 1, w: 1, h: 1 })
+	const presPrXml = await readPart(await writeZip(pptx), 'ppt/presProps.xml')
+	assert.ok(presPrXml.includes('<p14:defaultImageDpi') && presPrXml.includes('val="0"'), `dpi 0 missing: ${presPrXml}`)
+})
+
+test('chart title and legend emit East Asian typeface slots', async () => {
+	const pptx = new pptxgen()
+	pptx.addSlide().addChart(pptx.ChartType.bar, [{ name: '売上', labels: ['Q1'], values: [10] }], {
+		x: 0.5, y: 0.5, w: 6, h: 3, showTitle: true, title: '売上', titleFontFace: 'Yu Gothic',
+		showLegend: true, legendFontFace: 'Yu Gothic',
+	})
+	const zip = await writeZip(pptx)
+	const chartName = Object.keys(zip.files).find(name => /^ppt\/charts\/chart\d+\.xml$/.test(name))
+	assert.ok(chartName, 'missing chart part')
+	const xml = await readPart(zip, chartName)
+	assert.ok(/<a:ea\s+typeface="Yu Gothic"/.test(xml), `chart missing a:ea typeface: ${xml}`)
+})
+
+test('#88: summary zoom sectionTitles emit multiple summaryZmObj', async () => {
+	const TINY = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='
+	const pptx = new pptxgen()
+	pptx.addSection({ title: 'Intro' })
+	pptx.addSlide({ sectionTitle: 'Intro' }).addText('a', { x: 0.5, y: 0.5, w: 2, h: 0.5 })
+	pptx.addSection({ title: 'Outro' })
+	pptx.addSlide({ sectionTitle: 'Outro' }).addText('b', { x: 0.5, y: 0.5, w: 2, h: 0.5 })
+	const zoomSlide = pptx.addSlide()
+	zoomSlide.addSummaryZoom({ sectionTitles: ['Intro', 'Outro'], x: 1, y: 3, w: 2, h: 1, cover: TINY })
+	const xml = await readPart(await writeZip(pptx), `ppt/slides/slide${pptx.slides.length}.xml`)
+	assert.equal((xml.match(/<p16:summaryZmObj /g) || []).length, 2, `expected two summaryZmObj: ${xml}`)
 })
 
 const INK_ML = '<?xml version="1.0" encoding="UTF-8"?><ink xmlns="http://www.w3.org/2003/InkML"><trace>1 1, 2 2</trace></ink>'

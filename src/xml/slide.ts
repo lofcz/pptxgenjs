@@ -43,7 +43,7 @@ import {
 	valToPts,
 } from '../gen-utils'
 import { getImagePixelSize } from '../gen-media'
-import { genXmlCreationIdExt, genXmlModIdExt } from '../gen-revision'
+import { genXmlCreationIdExt, genXmlModIdExt, TABLE_MOD_ID_BASE } from '../gen-revision'
 import { genXmlContentPartAlternate, genXmlOfficeAppAlternate } from './content-parts'
 import { genXmlNvPrExtLst, genXmlPlaceholder, genXmlTextBody, textRunsHaveOmml } from './text'
 
@@ -420,12 +420,18 @@ function genCustGeomXml (slideItemObj: ISlideObject, cx: number, cy: number, sli
  * Throws if the named section doesn't exist, since a dangling anchor produces a repair prompt.
  */
 export function resolveZoomSections (slide: PresSlide, sections?: SectionProps[]): void {
-	;(slide._slideObjects ?? []).forEach(obj => {
-		if (obj._type !== SLIDE_OBJECT_TYPES.zoom || obj.zoomKind === 'slide' || !obj.zoomSectionTitle) return
-		const sect = (sections ?? []).find(s => s.title === obj.zoomSectionTitle)
-		if (!sect) throw new Error(`addZoom() error: no section named "${obj.zoomSectionTitle}" — call addSection({ title }) first`)
+	const resolveTitle = (title: string): string => {
+		const sect = (sections ?? []).find(s => s.title === title)
+		if (!sect) throw new Error(`addZoom() error: no section named "${title}" — call addSection({ title }) first`)
 		if (!sect._id) sect._id = getUuid('xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx')
-		obj.zoomSectionId = `{${sect._id}}`
+		return `{${sect._id}}`
+	}
+	;(slide._slideObjects ?? []).forEach(obj => {
+		if (obj._type !== SLIDE_OBJECT_TYPES.zoom || obj.zoomKind === 'slide') return
+		if (obj.zoomSectionTitle) obj.zoomSectionId = resolveTitle(obj.zoomSectionTitle)
+		if (obj.zoomSectionTitles && obj.zoomSectionTitles.length > 0) {
+			obj.zoomSectionIds = obj.zoomSectionTitles.map(resolveTitle)
+		}
 	})
 }
 
@@ -580,10 +586,11 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 					strXml = `<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="${intTableNum * (slide._slideNum ?? 0) + 1}" name="${slideItemObj.options.objectName}"/>`
 					// When the table binds to a master/layout placeholder, emit `<p:ph type="tbl"/>` (ECMA-376 §4.4.1.33, issue #856)
 					const tblPh = placeholderObj ? genXmlPlaceholder(placeholderObj, slideItemObj.options) : ''
-					const tblModId = '<p:ext uri="{D42A27DB-BD31-4B8C-83A1-F6EECF244321}"><p14:modId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1579011935"/></p:ext>'
+					// MS-PPTX §2.3.1.19: each p14:modId must be unique on the slide (not a constant).
+					const tableModId = typeof slideItemObj.options.modId === 'number' ? slideItemObj.options.modId : TABLE_MOD_ID_BASE + idx
 					strXml +=
 						'<p:cNvGraphicFramePr><a:graphicFrameLocks noGrp="1"/></p:cNvGraphicFramePr>' +
-					`  ${genXmlNvPr(slideItemObj.options, tblPh, [typeof slideItemObj.options.modId === 'number' ? nvPrModIdExt(slideItemObj.options.modId) : tblModId])}` +
+					`  ${genXmlNvPr(slideItemObj.options, tblPh, [nvPrModIdExt(tableModId)])}` +
 					'</p:nvGraphicFramePr>'
 					strXml += `<p:xfrm><a:off x="${x || (x === 0 ? 0 : EMU)}" y="${y || (y === 0 ? 0 : EMU)}"/><a:ext cx="${cx || (cx === 0 ? 0 : EMU)}" cy="${cy || EMU
 					}"/></p:xfrm>`
@@ -1091,7 +1098,8 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 						const szDescr = zOpts.zoomDescr ? ` descr="${encodeXmlEntities(zOpts.zoomDescr)}"` : ''
 						const szOff = (typeof zOpts.offsetFactorX === 'number' ? ` offsetFactorX="${Math.round(zOpts.offsetFactorX)}"` : '') + (typeof zOpts.offsetFactorY === 'number' ? ` offsetFactorY="${Math.round(zOpts.offsetFactorY)}"` : '')
 						const szScale = (typeof zOpts.scaleFactorX === 'number' ? ` scaleFactorX="${Math.round(zOpts.scaleFactorX)}"` : '') + (typeof zOpts.scaleFactorY === 'number' ? ` scaleFactorY="${Math.round(zOpts.scaleFactorY)}"` : '')
-						strSlideXml += `<p16:summaryZm><p16:summaryZmObj sectionId="${slideItemObj.zoomSectionId}"${szTitle}${szDescr}${szOff}${szScale}>${zmPr}</p16:summaryZmObj><p16:gridLayout/></p16:summaryZm>`
+						const extraZm = (slideItemObj.zoomSectionIds ?? []).map(id => `<p16:summaryZmObj sectionId="${id}">${zmPr}</p16:summaryZmObj>`).join('')
+						strSlideXml += `<p16:summaryZm><p16:summaryZmObj sectionId="${slideItemObj.zoomSectionId}"${szTitle}${szDescr}${szOff}${szScale}>${zmPr}</p16:summaryZmObj>${extraZm}<p16:gridLayout/></p16:summaryZm>`
 					}
 					strSlideXml += '</mc:Choice>'
 					// Fallback for older readers: pic for slide/section zoom; grpSp for summary zoom (§2.2.15).
@@ -1249,7 +1257,7 @@ export function slideObjectToXml (slide: PresSlide | SlideLayout): string {
 
 	// STEP 5: Close spTree and finalize slide XML
 	strSlideXml += '</p:spTree>'
-	strSlideXml += genXmlCreationIdExt('creationId' in slide ? slide.creationId : undefined)
+	strSlideXml += genXmlCreationIdExt('creationId' in slide ? slide.creationId : undefined, slide._slideNum ?? undefined)
 	strSlideXml += '</p:cSld>'
 
 	// LAST: Return

@@ -24,13 +24,25 @@
     },
     "packages/pptxgenjs-jsx": {
       "name": "pptxgenjs-plus-jsx",
-      "version": "4.1.18",
+      "version": "4.1.19",
       "dependencies": {
         "pptxgenjs-plus": "file:../..",
       },
       "devDependencies": {
         "@types/node": "^26.2.0",
         "typescript": "^6.0.3",
+      },
+    },
+    "packages/pptxgenjs-std": {
+      "name": "pptxgenjs-plus-std",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/node": "^26.2.0",
+        "pptxgenjs-plus": "file:../..",
+        "typescript": "^6.0.3",
+      },
+      "peerDependencies": {
+        "pptxgenjs-plus": ">=4.1.19",
       },
     },
   },
@@ -609,6 +621,8 @@
 
     "pptxgenjs-plus-jsx": ["pptxgenjs-plus-jsx@workspace:packages/pptxgenjs-jsx"],
 
+    "pptxgenjs-plus-std": ["pptxgenjs-plus-std@workspace:packages/pptxgenjs-std"],
+
     "prelude-ls": ["prelude-ls@1.2.1", "", {}, "sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g=="],
 
     "property-information": ["property-information@7.2.0", "", {}, "sha512-IAtzIB6sUiWaJYrX9smp3V46pBGbBeLFRGdh25kg1334VcBlD8HzhPeNIWQH9zhGmo2itIe25EHt9dQP7G5hmg=="],
@@ -800,6 +814,8 @@
     "mdast-util-find-and-replace/escape-string-regexp": ["escape-string-regexp@5.0.0", "", {}, "sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw=="],
 
     "parse-entities/@types/unist": ["@types/unist@2.0.11", "", {}, "sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA=="],
+
+    "pptxgenjs-plus-std/pptxgenjs-plus": ["pptxgenjs-plus@root:", {}],
 
     "@microsoft/tsdoc-config/ajv/json-schema-traverse": ["json-schema-traverse@1.0.0", "", {}, "sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug=="],
 

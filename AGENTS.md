@@ -20,3 +20,7 @@ For PowerPoint compatibility, also consult Microsoft's [MS-OI29500 Office implem
 ## JSX package
 
 `packages/pptxgenjs-jsx` is a Bun workspace package (`pptxgenjs-plus-jsx`). It depends on `pptxgenjs-plus` via `file:../..` (Bun cannot resolve `workspace:*` to the root package). Build the root library first so `types/index.d.ts` exists, then `bun run build:jsx` / `bun run test:jsx`. Keep the `file:` dependency in git; `scripts/sync-jsx-version.mjs --publish` rewrites it to the shared version only for the npm tarball (see `.github/workflows/release.yml`).
+
+## Std helpers package
+
+`packages/pptxgenjs-std` is a Bun workspace package (`pptxgenjs-plus-std`) of layout/chart helpers (`grid`, `waterfall`) that peer-depend on `pptxgenjs-plus` via `file:../..`. It is **not** a `packages/core` split — library code stays at repo-root `src/`. Build/test with `bun run build:std` / `bun run test:std`.

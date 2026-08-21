@@ -98,6 +98,7 @@ import {
 	SectionProps,
 	SlideLayout,
 	SlideMasterProps,
+	SlideShowProps,
 	SlideNumberProps,
 	TableToSlidesProps,
 	ThemeProps,
@@ -348,6 +349,11 @@ export default class PptxGenJS implements IPresentationProps {
 	public browseMode?: boolean
 	/** Laser-pointer color. MS-PPTX §2.3.1.16 `p14:laserClr` on `showPr`. */
 	public laserColor?: string
+	/**
+	 * Slide-show options (`p:showPr`). Opt-in — omitted unless set.
+	 * @example pptx.slideShow = { mode: 'kiosk', loop: true }
+	 */
+	public slideShow?: SlideShowProps
 
 	/**
 	 * Chart data-point properties and datalabels follow their cell references.

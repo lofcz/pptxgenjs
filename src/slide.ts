@@ -84,7 +84,7 @@ export default class Slide {
 	public comments?: CommentProps[]
 	public laserTraces?: LaserTracePoint[][]
 	public showEvents?: SlideShowEvent[]
-	public creationId?: number
+	public creationId?: number | true
 	/** Designer Service tags on this slide's `p:sldId` (MS-PPTX §2.2.20). Opt-in. */
 	public designTags?: DesignerTag[]
 

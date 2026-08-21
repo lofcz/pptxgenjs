@@ -142,11 +142,12 @@ export function genXmlTransition(slide: PresSlide): string {
 
 	const speed = t.speed && ['slow', 'med', 'fast'].includes(t.speed) ? t.speed : undefined
 	const dur = typeof t.duration === 'number' && t.duration > 0 ? ` p14:dur="${Math.round(t.duration)}"` : ''
-	const attrs =
-		(speed && !dur ? ` spd="${speed}"` : '') +
-		dur +
+	// Fallback must stay in the ECMA-376 attribute set (`spd`); `p14:dur` is Choice-only.
+	const fallbackAttrs =
+		(speed ? ` spd="${speed}"` : '') +
 		(t.advClick === false ? ' advClick="0"' : '') +
 		(typeof t.advTm === 'number' && t.advTm >= 0 ? ` advTm="${Math.round(t.advTm)}"` : '')
+	const attrs = fallbackAttrs + dur
 
 	const type = t.type as TRANSITION_TYPE
 
@@ -167,7 +168,7 @@ export function genXmlTransition(slide: PresSlide): string {
 			`<mc:Choice Requires="${prefix}">` +
 			`<p:transition${attrs}>${inner}</p:transition>` +
 			'</mc:Choice>' +
-			`<mc:Fallback><p:transition${attrs}>${fallback}</p:transition></mc:Fallback>` +
+			`<mc:Fallback><p:transition${fallbackAttrs}>${fallback}</p:transition></mc:Fallback>` +
 			'</mc:AlternateContent>'
 		)
 	}
